@@ -1,0 +1,265 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+}
+
+enum Role {
+  superadmin
+  admin
+  loan_officer
+  teller
+  member
+}
+
+enum UserStatus {
+  pending
+  active
+  suspended
+  inactive
+}
+
+enum DocumentType {
+  valid_id
+  proof_of_billing
+  residency_cert
+}
+
+enum VerificationStatus {
+  pending
+  verified
+  rejected
+}
+
+enum LoanStatus {
+  pending
+  approved
+  active
+  paid
+  defaulted
+  rejected
+}
+
+enum ScheduleStatus {
+  pending
+  paid
+  overdue
+}
+
+enum PaymentStatus {
+  pending
+  verified
+  rejected
+}
+
+enum AccountType {
+  share_capital
+  regular_savings
+}
+
+enum TransactionType {
+  deposit
+  withdrawal
+  dividend
+  fee
+}
+
+model User {
+  user_id       Int       @id @default(autoincrement())
+  member_code   String?   @unique @db.VarChar(20)
+  username      String    @unique @db.VarChar(50)
+  email         String    @unique @db.VarChar(150)
+  phone         String?   @db.VarChar(20)
+  password_hash String    @db.VarChar(255)
+  role          Role      @default(member)
+  status        UserStatus @default(pending)
+  created_at    DateTime  @default(now())
+  updated_at    DateTime  @updatedAt
+
+  profile             UserProfile?
+  documents           UserDocument[]
+  two_factor_auth     TwoFactorAuth?
+  loans               Loan[]                 @relation("UserLoans")
+  approved_loans      Loan[]                 @relation("ApprovedLoans")
+  savings_accounts    SavingsAccount[]
+  verified_payments   Payment[]              @relation("VerifiedPayments")
+  processed_savings   SavingsTransaction[]   @relation("ProcessedSavings")
+  audit_logs          AuditLog[]
+
+  @@map("users")
+}
+
+model UserProfile {
+  profile_id Int       @id @default(autoincrement())
+  user_id    Int       @unique
+  first_name String    @db.VarChar(100)
+  last_name  String    @db.VarChar(100)
+  birthdate  DateTime? @db.Date
+  address    String?   @db.Text
+  occupation String?   @db.VarChar(150)
+  photo_url  String?   @db.VarChar(255)
+
+  user User @relation(fields: [user_id], references: [user_id], onDelete: Cascade)
+
+  @@map("user_profiles")
+}
+
+model UserDocument {
+  document_id         Int                @id @default(autoincrement())
+  user_id             Int
+  document_type       DocumentType
+  id_type_name        String?            @db.VarChar(100)
+  file_url            String             @db.VarChar(255)
+  verification_status VerificationStatus @default(pending)
+  uploaded_at         DateTime           @default(now())
+
+  user User @relation(fields: [user_id], references: [user_id], onDelete: Cascade)
+
+  @@map("user_documents")
+}
+
+model TwoFactorAuth {
+  tfa_id         Int     @id @default(autoincrement())
+  user_id        Int     @unique
+  totp_secret    String  @db.VarChar(255)
+  is_enabled     Boolean @default(false)
+  recovery_codes String? @db.Text
+
+  user User @relation(fields: [user_id], references: [user_id], onDelete: Cascade)
+
+  @@map("two_factor_auth")
+}
+
+model LoanProduct {
+  product_id            Int     @id @default(autoincrement())
+  name                  String  @db.VarChar(100)
+  description           String? @db.Text
+  min_amount            Decimal @db.Decimal(15, 2)
+  max_amount            Decimal @db.Decimal(15, 2)
+  interest_rate_percent Decimal @db.Decimal(5, 2)
+  max_term_months       Int
+  is_active             Boolean @default(true)
+
+  loans Loan[]
+
+  @@map("loan_products")
+}
+
+model Loan {
+  loan_id           Int        @id @default(autoincrement())
+  user_id           Int
+  product_id        Int
+  loan_reference    String     @unique @db.VarChar(50)
+  principal_amount  Decimal    @db.Decimal(15, 2)
+  purpose           String     @db.Text
+  term_months       Int
+  interest_applied  Decimal    @db.Decimal(15, 2)
+  total_payable     Decimal    @db.Decimal(15, 2)
+  balance_remaining Decimal    @db.Decimal(15, 2)
+  status            LoanStatus @default(pending)
+  applied_at        DateTime   @default(now())
+  approved_at       DateTime?
+  approved_by       Int?
+
+  user        User          @relation("UserLoans", fields: [user_id], references: [user_id])
+  product     LoanProduct   @relation(fields: [product_id], references: [product_id])
+  approver    User?         @relation("ApprovedLoans", fields: [approved_by], references: [user_id], onDelete: SetNull)
+  schedules   LoanSchedule[]
+  payments    Payment[]
+
+  @@map("loans")
+}
+
+model LoanSchedule {
+  schedule_id        Int            @id @default(autoincrement())
+  loan_id            Int
+  installment_number Int
+  due_date           DateTime       @db.Date
+  principal_amount   Decimal        @db.Decimal(15, 2)
+  interest_amount    Decimal        @db.Decimal(15, 2)
+  total_due          Decimal        @db.Decimal(15, 2)
+  status             ScheduleStatus @default(pending)
+  paid_at            DateTime?
+
+  loan Loan @relation(fields: [loan_id], references: [loan_id], onDelete: Cascade)
+
+  @@map("loan_schedules")
+}
+
+model PaymentMethod {
+  method_id      Int     @id @default(autoincrement())
+  provider_name  String  @db.VarChar(100)
+  account_number String? @db.VarChar(100)
+  is_active      Boolean @default(true)
+
+  payments Payment[]
+
+  @@map("payment_methods")
+}
+
+model Payment {
+  payment_id        Int           @id @default(autoincrement())
+  loan_id           Int
+  method_id         Int
+  payment_reference String        @unique @db.VarChar(100)
+  amount_paid       Decimal       @db.Decimal(15, 2)
+  receipt_url       String?       @db.VarChar(255)
+  status            PaymentStatus @default(pending)
+  submitted_at      DateTime      @default(now())
+  verified_at       DateTime?
+  verified_by       Int?
+  notes             String?       @db.Text
+
+  loan            Loan          @relation(fields: [loan_id], references: [loan_id])
+  payment_method  PaymentMethod @relation(fields: [method_id], references: [method_id])
+  verifier        User?         @relation("VerifiedPayments", fields: [verified_by], references: [user_id], onDelete: SetNull)
+
+  @@map("payments")
+}
+
+model SavingsAccount {
+  account_id   Int         @id @default(autoincrement())
+  user_id      Int
+  account_type AccountType
+  balance      Decimal     @default(0) @db.Decimal(15, 2)
+  opened_at    DateTime    @default(now())
+
+  user         User                 @relation(fields: [user_id], references: [user_id], onDelete: Cascade)
+  transactions SavingsTransaction[]
+
+  @@unique([user_id, account_type])
+  @@map("savings_accounts")
+}
+
+model SavingsTransaction {
+  transaction_id   Int             @id @default(autoincrement())
+  account_id       Int
+  transaction_type TransactionType
+  amount           Decimal         @db.Decimal(15, 2)
+  reference        String?         @db.VarChar(100)
+  processed_at     DateTime        @default(now())
+  processed_by     Int?
+
+  account   SavingsAccount @relation(fields: [account_id], references: [account_id])
+  processor User?          @relation("ProcessedSavings", fields: [processed_by], references: [user_id], onDelete: SetNull)
+
+  @@map("savings_transactions")
+}
+
+model AuditLog {
+  log_id      Int      @id @default(autoincrement())
+  user_id     Int?
+  action      String   @db.VarChar(100)
+  entity_type String   @db.VarChar(50)
+  entity_id   Int?
+  old_values  Json?
+  new_values  Json?
+  ip_address  String?  @db.VarChar(45)
+  created_at  DateTime @default(now())
+
+  user User? @relation(fields: [user_id], references: [user_id], onDelete: SetNull)
+
+  @@map("audit_logs")
+}
