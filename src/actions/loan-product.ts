@@ -73,7 +73,17 @@ export const getLoanProducts = async () => {
         product_id: "desc",
       },
     });
-    return products;
+    return products.map((product) => ({
+      product_id: product.product_id,
+      name: product.name,
+      description: product.description,
+      min_amount: Number(product.min_amount),
+      max_amount: Number(product.max_amount),
+      interest_rate_percent: Number(product.interest_rate_percent),
+      max_term_months: product.max_term_months,
+      is_active: product.is_active,
+      tenant_id: product.tenant_id,
+    }));
   } catch (error) {
     console.error(error);
     return [];

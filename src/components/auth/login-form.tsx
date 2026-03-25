@@ -63,7 +63,7 @@ export const LoginForm = () => {
           }
         } else {
           toast.success("Login successful!");
-          window.location.reload(); // Refresh to let middleware handle routing
+          window.location.reload(); // Refresh to let proxy handle routing
         }
       } catch (error) {
         toast.error("Something went wrong.");
