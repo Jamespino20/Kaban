@@ -8,10 +8,20 @@ import {
 } from "lucide-react";
 import { auth } from "@/lib/auth";
 import { LoanApplicationTab } from "@/components/member/loan-application-tab";
+import { UserAccountNav } from "@/components/layout/user-account-nav";
+import { TwoFactorSetup } from "@/components/auth/two-factor-setup";
+import prisma from "@/lib/prisma";
+import { Settings2 } from "lucide-react";
 
 export default async function PintuanPage() {
   const session = await auth();
-  const userName = session?.user?.name || "Member";
+  const userName = session?.user?.username || "Member";
+
+  const userWith2FA = await prisma.user.findUnique({
+    where: { user_id: parseInt(session?.user?.id || "0") },
+    include: { two_factor_auth: true },
+  });
+  const is2FAEnabled = userWith2FA?.two_factor_auth?.is_enabled || false;
 
   return (
     <div className="min-h-screen bg-emerald-50/30 p-6 md:p-10">
@@ -29,18 +39,21 @@ export default async function PintuanPage() {
             </p>
           </div>
 
-          <div className="bg-white/80 backdrop-blur-xl p-4 rounded-3xl border border-emerald-100 shadow-sm flex items-center gap-4">
-            <div className="w-12 h-12 bg-emerald-100 rounded-2xl flex items-center justify-center text-emerald-600">
-              <Wallet className="w-6 h-6" />
+          <div className="flex items-center gap-8">
+            <div className="bg-white/80 backdrop-blur-xl p-4 rounded-3xl border border-emerald-100 shadow-sm flex items-center gap-4">
+              <div className="w-12 h-12 bg-emerald-100 rounded-2xl flex items-center justify-center text-emerald-600">
+                <Wallet className="w-6 h-6" />
+              </div>
+              <div>
+                <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">
+                  Available Credit
+                </p>
+                <p className="text-xl font-display font-bold text-slate-900">
+                  ₱50,000.00
+                </p>
+              </div>
             </div>
-            <div>
-              <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">
-                Available Credit
-              </p>
-              <p className="text-xl font-display font-bold text-slate-900">
-                ₱50,000.00
-              </p>
-            </div>
+            <UserAccountNav name={userName} />
           </div>
         </div>
 
@@ -68,6 +81,13 @@ export default async function PintuanPage() {
               >
                 <History className="w-4 h-4" />
                 <span>Kasaysayan</span>
+              </TabsTrigger>
+              <TabsTrigger
+                value="settings"
+                className="rounded-xl data-[state=active]:bg-emerald-600 data-[state=active]:text-white transition-all px-8 py-3 flex items-center gap-2"
+              >
+                <Settings2 className="w-4 h-4" />
+                <span>Settings</span>
               </TabsTrigger>
             </TabsList>
           </div>
@@ -134,16 +154,17 @@ export default async function PintuanPage() {
             </div>
           </TabsContent>
 
-          <TabsContent value="apply" className="outline-none">
-            <LoanApplicationTab />
-          </TabsContent>
-
-          <TabsContent value="history" className="outline-none">
-            <div className="bg-white p-20 rounded-[2.5rem] border border-slate-50 flex flex-col items-center justify-center text-center space-y-4">
-              <History className="w-12 h-12 text-slate-200" />
-              <p className="text-slate-400 font-medium">
-                History engine loading...
-              </p>
+          <TabsContent value="settings" className="outline-none">
+            <div className="flex flex-col items-center justify-center space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+              <div className="text-center space-y-2">
+                <h2 className="text-3xl font-display font-bold text-slate-900 italic">
+                  Security Settings
+                </h2>
+                <p className="text-slate-500">
+                  I-secure ang iyong Pintuan access gamit ang 2FA.
+                </p>
+              </div>
+              <TwoFactorSetup isEnabledInitial={is2FAEnabled} />
             </div>
           </TabsContent>
         </Tabs>

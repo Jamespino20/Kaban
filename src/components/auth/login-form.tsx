@@ -6,6 +6,7 @@ import * as z from "zod";
 import { useState, useTransition } from "react";
 import { signIn } from "next-auth/react";
 import { toast } from "sonner";
+import { Eye, EyeOff } from "lucide-react";
 
 import {
   Form,
@@ -30,6 +31,7 @@ const LoginSchema = z.object({
 
 export const LoginForm = () => {
   const [showTwoFactor, setShowTwoFactor] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const [isPending, startTransition] = useTransition();
 
   const form = useForm<z.infer<typeof LoginSchema>>({
@@ -72,8 +74,12 @@ export const LoginForm = () => {
   return (
     <div className="w-full">
       <div className="flex flex-col space-y-2 text-center mb-8">
-        <h1 className="text-2xl font-semibold tracking-tight">Access Treasury</h1>
-        <p className="text-sm text-muted-foreground">Enter your credentials to manage your Kaban</p>
+        <h1 className="text-2xl font-semibold tracking-tight">
+          Access Treasury
+        </h1>
+        <p className="text-sm text-muted-foreground">
+          Enter your credentials to manage your Kaban
+        </p>
       </div>
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
@@ -124,13 +130,26 @@ export const LoginForm = () => {
                   <FormItem>
                     <FormLabel>Password</FormLabel>
                     <FormControl>
-                      <Input
-                        {...field}
-                        disabled={isPending}
-                        placeholder="******"
-                        type="password"
-                        className="rounded-xl h-12"
-                      />
+                      <div className="relative">
+                        <Input
+                          {...field}
+                          disabled={isPending}
+                          placeholder="******"
+                          type={showPassword ? "text" : "password"}
+                          className="rounded-xl h-12 pr-10"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowPassword(!showPassword)}
+                          className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors"
+                        >
+                          {showPassword ? (
+                            <EyeOff className="w-4 h-4" />
+                          ) : (
+                            <Eye className="w-4 h-4" />
+                          )}
+                        </button>
+                      </div>
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -143,7 +162,11 @@ export const LoginForm = () => {
             type="submit"
             className="w-full rounded-xl h-12 bg-emerald-600 hover:bg-emerald-700 text-white font-bold transition-all mt-4"
           >
-            {isPending ? "Connecting..." : showTwoFactor ? "Verify Code" : "Sign In"}
+            {isPending
+              ? "Connecting..."
+              : showTwoFactor
+                ? "Verify Code"
+                : "Sign In"}
           </Button>
         </form>
       </Form>
