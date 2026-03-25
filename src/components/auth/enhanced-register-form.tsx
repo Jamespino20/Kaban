@@ -141,7 +141,6 @@ export function EnhancedRegisterForm() {
       const res = await register({
         ...values,
         idPicture: idUrl,
-        name: `${values.firstName} ${values.lastName}`, // Fallback for general name
       });
       if (res.error) toast.error(res.error);
       if (res.success) toast.success(res.success);

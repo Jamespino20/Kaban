@@ -19,9 +19,9 @@ import { applyForLoan } from "@/actions/loan-application";
 import { Calculator, ArrowRightCircle } from "lucide-react";
 
 const LoanApplicationSchema = z.object({
-  product_id: z.coerce.number(),
-  amount: z.coerce.number().min(100, "Minimum ₱100"),
-  term_months: z.coerce.number().min(1, "Minimum 1 month"),
+  product_id: z.number(),
+  amount: z.number().min(100, "Minimum ₱100"),
+  term_months: z.number().min(1, "Minimum 1 month"),
 });
 
 interface LoanApplicationFormProps {

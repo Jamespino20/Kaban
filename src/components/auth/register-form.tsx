@@ -49,7 +49,19 @@ export const RegisterForm = () => {
 
   const onSubmit = (values: z.infer<typeof RegisterSchema>) => {
     startTransition(async () => {
-      register(values)
+      register({
+        ...values,
+        firstName: values.name.split(" ")[0] || "User",
+        lastName: values.name.split(" ")[1] || "Member",
+        phone: "09000000000",
+        birthdate: "2000-01-01",
+        gender: "other",
+        region: "N/A",
+        province: "N/A",
+        city: "N/A",
+        barangay: "N/A",
+        idPicture: "N/A",
+      })
         .then((data) => {
           if (data.error) {
             toast.error(data.error);

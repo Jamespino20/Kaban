@@ -33,7 +33,7 @@ export function TenantManagementTab({
       setError(null);
       const res = await decommissionBranch(tenantId);
 
-      if (res.success) {
+      if (res.success && res.data) {
         // Refresh local state
         setTenants((prev) =>
           prev.map((t) =>

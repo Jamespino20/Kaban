@@ -1,11 +1,9 @@
 "use server";
 
-import * as otplib from "otplib";
+import { generateSecret, generateURI, verify } from "otplib";
 import QRCode from "qrcode";
 import prisma from "@/lib/prisma";
 import { auth } from "@/lib/auth";
-
-const { authenticator } = otplib;
 
 export async function generate2FASecret() {
   const session = await auth();
@@ -21,7 +19,7 @@ export async function generate2FASecret() {
   let secret = user.two_factor_auth?.totp_secret;
 
   if (!secret) {
-    secret = authenticator.generateSecret();
+    secret = generateSecret();
     await prisma.twoFactorAuth.upsert({
       where: { user_id: user.user_id },
       update: { totp_secret: secret },
@@ -29,11 +27,11 @@ export async function generate2FASecret() {
     });
   }
 
-  const otpauth = authenticator.keyuri(
-    user.email,
-    "Kaban Treasury",
-    secret as string,
-  );
+  const otpauth = generateURI({
+    secret: secret as string,
+    label: user.email,
+    issuer: "Kaban Treasury",
+  });
 
   const qrCodeUrl = await QRCode.toDataURL(otpauth);
 
@@ -53,7 +51,7 @@ export async function verifyAndEnable2FA(token: string) {
     return { error: "2FA not initiated" };
   }
 
-  const isValid = authenticator.verify({
+  const isValid = await verify({
     token,
     secret: user.two_factor_auth.totp_secret,
   });

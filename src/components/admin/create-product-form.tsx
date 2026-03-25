@@ -20,12 +20,10 @@ import { createLoanProduct } from "@/actions/loan-product";
 const LoanProductSchema = z.object({
   name: z.string().min(1, "Name is required"),
   description: z.string().optional(),
-  min_amount: z.coerce.number().min(0, "Min amount must be positive"),
-  max_amount: z.coerce.number().min(0, "Max amount must be positive"),
-  interest_rate_percent: z.coerce
-    .number()
-    .min(0, "Interest rate must be positive"),
-  max_term_months: z.coerce.number().min(1, "Term must be at least 1 month"),
+  min_amount: z.number().min(0, "Min amount must be positive"),
+  max_amount: z.number().min(0, "Max amount must be positive"),
+  interest_rate_percent: z.number().min(0, "Interest rate must be positive"),
+  max_term_months: z.number().min(1, "Term must be at least 1 month"),
 });
 
 interface CreateProductFormProps {

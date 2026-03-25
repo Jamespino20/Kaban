@@ -54,9 +54,7 @@ export const applyForLoan = async (
       data: {
         user_id: parseInt(session.user.id),
         product_id,
-        amount,
         term_months,
-        interest_rate: product.interest_rate_percent,
         status: "pending",
         tenant_id: session.user.tenantId,
         loan_reference: `LN-${session.user.tenantId}-${Date.now()}`, // Added a temp reference logic
