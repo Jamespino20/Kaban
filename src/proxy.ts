@@ -4,7 +4,7 @@ import { NextResponse } from "next/server";
 
 const { auth } = NextAuth(authConfig);
 
-export default auth((req) => {
+const authProxy = auth((req) => {
   const { nextUrl } = req;
   const isLoggedIn = !!req.auth;
   const role = req.auth?.user?.role;
@@ -47,9 +47,10 @@ export default auth((req) => {
   if (!isLoggedIn && !isPublicRoute) {
     return NextResponse.redirect(new URL("/auth/login", nextUrl));
   }
-
-  return;
 });
+
+export default authProxy;
+export const proxy = authProxy;
 
 export const config = {
   matcher: ["/((?!api|_next/static|_next/image|images|videos|favicon.ico).*)"],
