@@ -1,36 +1,90 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Kaban | The Shared Treasury
 
-## Getting Started
+**Iyong yaman, ating Kaban.**  
+A modern, microfinancing digital lending SaaS platform designed for Filipino cooperatives and micro-entrepreneurs. Kaban provides low-interest, transparent, and secure financial services with a focus on community and growth.
 
-First, run the development server:
+![Kaban Hero Preview](file:///c:/xampp/htdocs/Kaban/kaban-web/public/images/kaban_growth.png)
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+## 🚀 Quick Start
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### Prerequisites
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+- Node.js 21+
+- PostgreSQL (e.g., Vercel Postgres / Neon)
+- SMTP account (for emails/2FA)
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### Installation
 
-## Learn More
+1. **Clone and Install:**
 
-To learn more about Next.js, take a look at the following resources:
+   ```bash
+   git clone https://github.com/Jamespino20/Kaban.git
+   cd kaban-web
+   npm install --legacy-peer-deps
+   ```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+2. **Configure Environment:**
+   Copy `.env.example` to `.env` and fill in your database and auth credentials.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+   ```bash
+   cp .env.example .env
+   ```
 
-## Deploy on Vercel
+3. **Database Setup:**
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+   ```bash
+   npx prisma db push
+   npx tsx prisma/seed.ts
+   ```
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+4. **Run Development:**
+   ```bash
+   npm run dev
+   ```
+
+---
+
+## ✨ Features
+
+- **Tiered Lending:** 1.5%–2.5% monthly interest based on term duration (1–12 months).
+- **Multi-Tenancy:** Regional (TenantGroups) and Branch (Tenants) hierarchical management.
+- **Enterprise Security:** BSP-supervised standards with 2FA (TOTP/Email) and secure digital receipts.
+- **Role-Based Access (RBAC):** Superadmin, Admin, Loan Officer, Teller, and Member roles.
+- **Transparent Tracking:** Real-time loan calculator and member dashboard.
+- **Audit Logging:** System-wide accountability capturing every critical action.
+
+---
+
+## 🛠️ Tech Stack
+
+- **Framework:** [Next.js 16](https://nextjs.org/) (App Router + Turbopack)
+- **Database:** [PostgreSQL (Neon)](https://neon.tech/) via [Prisma 7.5](https://www.prisma.io/)
+- **Authentication:** [Auth.js (v5)](https://authjs.dev/) + [otplib](https://github.com/yeojames/otplib)
+- **Styling:** Tailwind CSS + Lucide Icons
+- **Deployment:** Vercel
+
+---
+
+## ⚙️ Configuration
+
+| Variable                | Description                                    | Source                    |
+| ----------------------- | ---------------------------------------------- | ------------------------- |
+| `DATABASE_URL`          | Neon pooled connection string                  | Neon Console              |
+| `DATABASE_URL_UNPOOLED` | Neon direct connection string (for migrations) | Neon Console              |
+| `AUTH_SECRET`           | Secret for NextAuth session encryption         | `openssl rand -base64 32` |
+| `SMTP_*`                | Server, Port, User, Pass for system emails     | Email Provider            |
+| `NEXT_PUBLIC_APP_URL`   | Base URL of the application                    | Deployment Environment    |
+
+---
+
+## 📖 Documentation
+
+- [Implementation Strategy](file:///C:/Users/James%20Bryant/.gemini/antigravity/brain/04a9f28a-febc-4d4c-bec6-6c09e2392202/implementation_plan.md)
+- [Migration Walkthrough](file:///C:/Users/James%20Bryant/.gemini/antigravity/brain/04a9f28a-febc-4d4c-bec6-6c09e2392202/walkthrough.md)
+- [Future Enhancements Plan](file:///C:/Users/James%20Bryant/.gemini/antigravity/brain/04a9f28a-febc-4d4c-bec6-6c09e2392202/PLAN-auth-audit-roles.md)
+
+---
+
+## ⚖️ License
+
+MIT License. Copyright (c) 2026 Kaban.
