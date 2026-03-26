@@ -1,12 +1,10 @@
 import { PrismaClient } from "@prisma/client";
-import { PrismaMariaDb } from "@prisma/adapter-mariadb";
+import { PrismaNeon } from "@prisma/adapter-neon";
 
 const prismaClientSingleton = () => {
-  const url = (process.env.DATABASE_URL || "").replace(
-    "mysql://",
-    "mariadb://",
-  );
-  const adapter = new PrismaMariaDb(url);
+  const adapter = new PrismaNeon({
+    connectionString: process.env.DATABASE_URL,
+  });
   return new PrismaClient({ adapter });
 };
 
