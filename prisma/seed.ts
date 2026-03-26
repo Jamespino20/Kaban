@@ -4,8 +4,16 @@ import { PrismaNeon } from "@prisma/adapter-neon";
 import bcrypt from "bcryptjs";
 import "dotenv/config";
 
+const connectionString =
+  process.env.DATABASE_URL_UNPOOLED ||
+  process.env.KABANSTORAGE_DATABASE_URL_UNPOOLED ||
+  process.env.DATABASE_URL ||
+  process.env.KABANSTORAGE_DATABASE_URL ||
+  process.env.KABANSTORAGE_URL ||
+  process.env.KABANSTORAGE_PRISMA_URL;
+
 const adapter = new PrismaNeon({
-  connectionString: process.env.DATABASE_URL,
+  connectionString,
 });
 const prisma = new PrismaClient({ adapter });
 
