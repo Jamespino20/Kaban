@@ -27,50 +27,6 @@ model TenantGroup {
   @@map("tenant_groups")
 }
 
-// Geographical Locations (Seeded from JSON)
-model Region {
-  id        Int      @id @default(autoincrement())
-  name      String   @db.VarChar(100)
-  reg_code  String   @unique @db.VarChar(10)
-  provinces Province[]
-
-  @@map("geo_regions")
-}
-
-model Province {
-  id         Int       @id @default(autoincrement())
-  name       String    @db.VarChar(100)
-  reg_code   String    @db.VarChar(10)
-  prov_code  String    @unique @db.VarChar(10)
-  cities     CityMun[]
-
-  region Region @relation(fields: [reg_code], references: [reg_code])
-
-  @@map("geo_provinces")
-}
-
-model CityMun {
-  id         Int        @id @default(autoincrement())
-  name       String     @db.VarChar(100)
-  prov_code  String     @db.VarChar(10)
-  mun_code   String     @unique @db.VarChar(10)
-  barangays  Barangay[]
-
-  province Province @relation(fields: [prov_code], references: [prov_code])
-
-  @@map("geo_cities_mun")
-}
-
-model Barangay {
-  id        Int     @id @default(autoincrement())
-  name      String  @db.VarChar(100)
-  mun_code  String  @db.VarChar(10)
-
-  city_mun CityMun @relation(fields: [mun_code], references: [mun_code])
-
-  @@map("geo_barangays")
-}
-
 model Tenant {
   tenant_id       Int      @id @default(autoincrement())
   tenant_group_id Int?
@@ -136,6 +92,21 @@ enum PaymentStatus {
   rejected
 }
 
+enum GuaranteeStatus {
+  pending
+  vouched
+  rejected
+  voided
+}
+
+enum LedgerAccountType {
+  ASSET
+  LIABILITY
+  EQUITY
+  REVENUE
+  EXPENSE
+}
+
 enum AccountType {
   share_capital
   regular_savings
@@ -161,37 +132,40 @@ model User {
   created_at    DateTime   @default(now())
   updated_at    DateTime   @updatedAt
 
-  tenant            Tenant                  @relation(fields: [tenant_id], references: [tenant_id])
-  profile           UserProfile?
-  documents         UserDocument[]
-  two_factor_auth   TwoFactorAuth?
-  loans             Loan[]                  @relation("UserLoans")
-  approved_loans    Loan[]                  @relation("ApprovedLoans")
-  savings_accounts  SavingsAccount[]
-  verified_payments Payment[]               @relation("VerifiedPayments")
-  processed_savings SavingsTransaction[]    @relation("ProcessedSavings")
-  audit_logs        AuditLog[]
-  sent_messages     Message[]               @relation("SentMessages")
-  transfer_requests BranchTransferRequest[]
+  tenant                  Tenant                  @relation(fields: [tenant_id], references: [tenant_id])
+  profile                 UserProfile?
+  documents               UserDocument[]
+  two_factor_auth         TwoFactorAuth?
+  loans                   Loan[]                  @relation("UserLoans")
+  approved_loans          Loan[]                  @relation("ApprovedLoans")
+  savings_accounts        SavingsAccount[]
+  verified_payments       Payment[]               @relation("VerifiedPayments")
+  processed_savings       SavingsTransaction[]    @relation("ProcessedSavings")
+  audit_logs              AuditLog[]
+  sent_messages           Message[]               @relation("SentMessages")
+  transfer_requests       BranchTransferRequest[]
+  guarantees              LoanGuarantee[]         @relation("Guarantor")
+  social_vouches_sent     SocialVouch[]           @relation("Voucher")
+  social_vouches_received SocialVouch[]           @relation("Vouchee")
 
   @@map("users")
 }
 
 model UserProfile {
-  profile_id Int       @id @default(autoincrement())
-  user_id    Int       @unique
+  profile_id  Int       @id @default(autoincrement())
+  user_id     Int       @unique
   first_name  String    @db.VarChar(100)
   middle_name String?   @db.VarChar(100)
   last_name   String    @db.VarChar(100)
   gender      String?   @db.VarChar(20)
   birthdate   DateTime? @db.Date
-  address    String?   @db.Text
-  occupation String?   @db.VarChar(150)
-  region     String?   @db.VarChar(100)
-  province   String?   @db.VarChar(100)
-  city       String?   @db.VarChar(100)
-  barangay   String?   @db.VarChar(100)
-  photo_url  String?   @db.VarChar(255)
+  address     String?   @db.Text
+  occupation  String?   @db.VarChar(150)
+  region      String?   @db.VarChar(100)
+  province    String?   @db.VarChar(100)
+  city        String?   @db.VarChar(100)
+  barangay    String?   @db.VarChar(100)
+  photo_url   String?   @db.VarChar(255)
 
   user User @relation(fields: [user_id], references: [user_id], onDelete: Cascade)
 
@@ -258,12 +232,14 @@ model Loan {
   approved_at       DateTime?
   approved_by       Int?
 
-  tenant    Tenant         @relation(fields: [tenant_id], references: [tenant_id])
-  user      User           @relation("UserLoans", fields: [user_id], references: [user_id])
-  product   LoanProduct    @relation(fields: [product_id], references: [product_id])
-  approver  User?          @relation("ApprovedLoans", fields: [approved_by], references: [user_id], onDelete: SetNull)
-  schedules LoanSchedule[]
-  payments  Payment[]
+  tenant         Tenant          @relation(fields: [tenant_id], references: [tenant_id])
+  user           User            @relation("UserLoans", fields: [user_id], references: [user_id])
+  product        LoanProduct     @relation(fields: [product_id], references: [product_id])
+  approver       User?           @relation("ApprovedLoans", fields: [approved_by], references: [user_id], onDelete: SetNull)
+  schedules      LoanSchedule[]
+  payments       Payment[]
+  guarantees     LoanGuarantee[]
+  interest_audit InterestAudit?
 
   @@map("loans")
 }
@@ -358,6 +334,7 @@ model AuditLog {
   old_values  Json?
   new_values  Json?
   ip_address  String?  @db.VarChar(45)
+  user_agent  String?  @db.Text
   created_at  DateTime @default(now())
 
   tenant Tenant? @relation(fields: [tenant_id], references: [tenant_id])
@@ -428,4 +405,72 @@ model DecommissionedBackup {
   tenant Tenant @relation(fields: [tenant_id], references: [tenant_id], onDelete: Restrict)
 
   @@map("decommissioned_backups")
+}
+
+model LoanGuarantee {
+  id             Int             @id @default(autoincrement())
+  loan_id        Int
+  guarantor_id   Int
+  status         GuaranteeStatus @default(pending)
+  vouched_at     DateTime?
+  soft_freeze_at DateTime?
+  hard_freeze_at DateTime?
+
+  loan      Loan @relation(fields: [loan_id], references: [loan_id], onDelete: Cascade)
+  guarantor User @relation("Guarantor", fields: [guarantor_id], references: [user_id])
+
+  @@map("loan_guarantees")
+}
+
+model BusinessLedger {
+  id             Int      @id @default(autoincrement())
+  transaction_id String   @default(cuid()) // Links the debit and credit sides
+  account_id     Int
+  debit          Decimal  @default(0) @db.Decimal(15, 2)
+  credit         Decimal  @default(0) @db.Decimal(15, 2)
+  description    String   @db.Text
+  created_at     DateTime @default(now())
+  created_by     Int?
+
+  account LedgerAccount @relation(fields: [account_id], references: [id])
+
+  @@map("business_ledger")
+}
+
+model LedgerAccount {
+  id        Int               @id @default(autoincrement())
+  name      String            @db.VarChar(100)
+  code      String            @unique @db.VarChar(20) // e.g. TREASURY_VAULT, MEMBER_SAVINGS
+  type      LedgerAccountType
+  tenant_id Int?
+
+  ledger_entries BusinessLedger[]
+
+  @@map("ledger_accounts")
+}
+
+model SocialVouch {
+  id         Int      @id @default(autoincrement())
+  voucher_id Int
+  vouchee_id Int
+  score      Int      @default(5)
+  comment    String?  @db.Text
+  created_at DateTime @default(now())
+
+  voucher User @relation("Voucher", fields: [voucher_id], references: [user_id])
+  vouchee User @relation("Vouchee", fields: [vouchee_id], references: [user_id])
+
+  @@map("social_vouches")
+}
+
+model InterestAudit {
+  id               Int      @id @default(autoincrement())
+  loan_id          Int      @unique
+  formula_snapshot Json
+  rate_applied     Decimal  @db.Decimal(5, 2)
+  created_at       DateTime @default(now())
+
+  loan Loan @relation(fields: [loan_id], references: [loan_id], onDelete: Cascade)
+
+  @@map("interest_audit")
 }

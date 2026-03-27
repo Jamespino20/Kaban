@@ -17,11 +17,12 @@ See the chat for clarifying questions regarding Paluwagan 2.0 penalty distributi
 ## Phase 2: Core Database Updates (Prisma)
 
 - [ ] Add `LoanGuarantee` model (Paluwagan 2.0) with Tiered Enforcement (Soft Freeze / Hard Freeze).
-- [ ] Add `BusinessLedger` model (Inventory-to-Credit) as a strict **Immutable Ledger** (Insert only).
-- [ ] Add `SocialVouch` model (Social Verification).
-- [ ] Add `interest_audit` columns/data to lock in the exact interest formula at the time of loan generation.
-- [ ] Enhance `AuditLog` extension to capture client IP Address and User Agent.
-- [ ] Enforce Prisma `$transaction` (Atomic Transactions) across `loan_schedules`, `loans`, and `payment_ledger`.
+- [ ] Add `BusinessLedger` model as a **Double-Entry Accounting System** (Immutable, transaction-linked debits/credits).
+- [ ] Add `Account` model to categorize Ledger entries (e.g., `Member_Savings`, `Treasury_Vault`, `Revenue_Interest`).
+- [ ] Add `SocialVouch` model (Social Verification / Reputation engine).
+- [ ] Add `InterestAudit` model to lock interest formulas at loan inception.
+- [ ] Enhance `AuditLog` model with `ip_address` and `user_agent` strings.
+- [ ] Implementation of `Prisma.$transaction` wrapper utility for all financial operations.
 
 ## Phase 3: The "Anti-GCash" UI Features (Pintuan & Sibol)
 
