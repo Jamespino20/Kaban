@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState, useTransition, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -18,6 +18,7 @@ import {
   ChevronLeft,
   Eye,
   EyeOff,
+  Building2,
 } from "lucide-react";
 
 import {
@@ -33,6 +34,13 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { register } from "@/actions/register";
 import { uploadIdPicture } from "@/actions/upload";
+import { getRegions, getTenantsByRegion } from "@/actions/tenant-management";
+import {
+  fetchPsgcProvinces,
+  fetchPsgcCities,
+  fetchPsgcBarangays,
+} from "@/actions/psgc-actions";
+import { LocationComboBox } from "@/components/ui/location-combo-box";
 
 const EnhancedRegisterSchema = z
   .object({
@@ -49,7 +57,8 @@ const EnhancedRegisterSchema = z
     confirmPassword: z.string(),
     birthdate: z.string().min(1, "Birthdate is required"),
     gender: z.enum(["male", "female", "other"]),
-    region: z.string().min(1, "Region is required"),
+    regionId: z.string().min(1, "Region is required"),
+    tenantId: z.string().min(1, "Branch is required"),
     province: z.string().min(1, "Province is required"),
     city: z.string().min(1, "City is required"),
     barangay: z.string().min(1, "Barangay is required"),
@@ -70,6 +79,26 @@ export function EnhancedRegisterForm() {
   const [idFile, setIdFile] = useState<File | null>(null);
   const [idUrl, setIdUrl] = useState<string>("");
 
+  // New State for Multi-Tenancy
+  const [regions, setRegions] = useState<
+    { id: number; name: string; reg_code: string }[]
+  >([]);
+  const [tenants, setTenants] = useState<{ tenant_id: number; name: string }[]>(
+    [],
+  );
+
+  // Geographical State
+  // Geographical State
+  const [geoProvinces, setGeoProvinces] = useState<
+    { code: string; name: string }[]
+  >([]);
+  const [geoCities, setGeoCities] = useState<{ code: string; name: string }[]>(
+    [],
+  );
+  const [geoBarangays, setGeoBarangays] = useState<
+    { code: string; name: string }[]
+  >([]);
+
   const form = useForm<z.infer<typeof EnhancedRegisterSchema>>({
     resolver: zodResolver(EnhancedRegisterSchema),
     defaultValues: {
@@ -83,7 +112,8 @@ export function EnhancedRegisterForm() {
       confirmPassword: "",
       birthdate: "",
       gender: "male",
-      region: "",
+      regionId: "",
+      tenantId: "",
       province: "",
       city: "",
       barangay: "",
@@ -91,6 +121,74 @@ export function EnhancedRegisterForm() {
       privacyAccepted: false,
     },
   });
+
+  // Fetch Regions on Mount
+  useEffect(() => {
+    const fetchRegionsData = async () => {
+      const data = await getRegions();
+      setRegions(data as any);
+    };
+    fetchRegionsData();
+  }, []);
+
+  // Handler: When Region (TenantGroup) Changes
+  const onRegionChange = async (regionId: string) => {
+    form.setValue("regionId", regionId);
+    form.setValue("tenantId", "");
+    form.setValue("province", "");
+    form.setValue("city", "");
+    form.setValue("barangay", "");
+
+    if (regionId) {
+      // 1. Fetch Tenants for this Region
+      const tenantData = await getTenantsByRegion(parseInt(regionId));
+      setTenants(tenantData);
+
+      // 2. Fetch Geo Provinces for this Region's reg_code via PSGC
+      const selected = regions.find((r) => r.id === parseInt(regionId));
+      if (selected) {
+        const provinceData = await fetchPsgcProvinces(selected.reg_code);
+        setGeoProvinces(
+          provinceData.map((p) => ({ code: p.code, name: p.name })),
+        );
+      }
+    } else {
+      setTenants([]);
+      setGeoProvinces([]);
+    }
+    setGeoCities([]);
+    setGeoBarangays([]);
+  };
+
+  // Handler: When Province Changes
+  const onProvinceChange = async (provCode: string) => {
+    form.setValue("province", provCode);
+    form.setValue("city", "");
+    form.setValue("barangay", "");
+
+    if (provCode) {
+      const cityData = await fetchPsgcCities(provCode);
+      setGeoCities(cityData.map((c) => ({ code: c.code, name: c.name })));
+    } else {
+      setGeoCities([]);
+    }
+    setGeoBarangays([]);
+  };
+
+  // Handler: When City Changes
+  const onCityChange = async (munCode: string) => {
+    form.setValue("city", munCode);
+    form.setValue("barangay", "");
+
+    if (munCode) {
+      const barangayData = await fetchPsgcBarangays(munCode);
+      setGeoBarangays(
+        barangayData.map((b) => ({ code: b.code, name: b.name })),
+      );
+    } else {
+      setGeoBarangays([]);
+    }
+  };
 
   const nextStep = async () => {
     const fields = getStepFields(step);
@@ -107,7 +205,7 @@ export function EnhancedRegisterForm() {
       case 2:
         return ["firstName", "middleName", "lastName", "birthdate", "gender"];
       case 3:
-        return ["region", "province", "city", "barangay"];
+        return ["regionId", "tenantId", "province", "city", "barangay"];
       case 4:
         return ["termsAccepted", "privacyAccepted"];
       default:
@@ -137,9 +235,24 @@ export function EnhancedRegisterForm() {
       return;
     }
 
+    const selectedRegion = regions.find(
+      (r) => r.id === parseInt(values.regionId),
+    );
+    const selectedProv = geoProvinces.find((p) => p.code === values.province);
+    const selectedCity = geoCities.find((c) => c.code === values.city);
+    // Barangay in form is ID, we might need its name
+    const selectedBarangay = geoBarangays.find(
+      (b) => b.code === values.barangay,
+    );
+
     startTransition(async () => {
       const res = await register({
         ...values,
+        region: selectedRegion?.name || "Unknown",
+        province: selectedProv?.name || values.province,
+        city: selectedCity?.name || values.city,
+        barangay: selectedBarangay?.name || values.barangay,
+        tenantId: parseInt(values.tenantId),
         idPicture: idUrl,
       });
       if (res.error) toast.error(res.error);
@@ -373,72 +486,139 @@ export function EnhancedRegisterForm() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <FormField
                     control={form.control}
-                    name="region"
+                    name="regionId"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Region</FormLabel>
+                        <FormLabel>Area / Region</FormLabel>
                         <FormControl>
-                          <Input
+                          <select
                             {...field}
-                            placeholder="e.g. Region IV-A"
-                            className="rounded-xl h-12"
-                          />
+                            onChange={(e) => onRegionChange(e.target.value)}
+                            className="w-full rounded-xl h-12 border border-slate-200 px-4 bg-white outline-none"
+                          >
+                            <option value="">Select Region</option>
+                            {regions.map((r) => (
+                              <option key={r.id} value={r.id.toString()}>
+                                {r.name}
+                              </option>
+                            ))}
+                          </select>
                         </FormControl>
                         <FormMessage />
                       </FormItem>
                     )}
                   />
+                  <FormField
+                    control={form.control}
+                    name="tenantId"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Cooperative Branch</FormLabel>
+                        <FormControl>
+                          <select
+                            {...field}
+                            disabled={!form.getValues("regionId")}
+                            className="w-full rounded-xl h-12 border border-slate-200 px-4 bg-white outline-none font-bold text-emerald-700"
+                          >
+                            <option value="">Select Branch</option>
+                            {tenants.map((t) => (
+                              <option
+                                key={t.tenant_id}
+                                value={t.tenant_id.toString()}
+                              >
+                                {t.name}
+                              </option>
+                            ))}
+                          </select>
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+
+                <div className="space-y-4 pt-4 border-t border-slate-100">
+                  <h4 className="text-sm font-semibold text-slate-500 uppercase tracking-wider">
+                    Address Details
+                  </h4>
+
                   <FormField
                     control={form.control}
                     name="province"
                     render={({ field }) => (
-                      <FormItem>
+                      <FormItem className="flex flex-col">
                         <FormLabel>Province</FormLabel>
                         <FormControl>
-                          <Input
-                            {...field}
-                            placeholder="e.g. Batangas"
-                            className="rounded-xl h-12"
+                          <LocationComboBox
+                            items={geoProvinces}
+                            value={field.value}
+                            onChange={(val) => {
+                              field.onChange(val);
+                              onProvinceChange(val);
+                            }}
+                            placeholder="Select Province"
+                            disabled={
+                              !form.getValues("regionId") ||
+                              geoProvinces.length === 0
+                            }
                           />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
                     )}
                   />
-                  <FormField
-                    control={form.control}
-                    name="city"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>City / Municipality</FormLabel>
-                        <FormControl>
-                          <Input
-                            {...field}
-                            placeholder="e.g. Lipa City"
-                            className="rounded-xl h-12"
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="barangay"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Barangay</FormLabel>
-                        <FormControl>
-                          <Input
-                            {...field}
-                            placeholder="e.g. Marawoy"
-                            className="rounded-xl h-12"
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <FormField
+                      control={form.control}
+                      name="city"
+                      render={({ field }) => (
+                        <FormItem className="flex flex-col">
+                          <FormLabel>City / Municipality</FormLabel>
+                          <FormControl>
+                            <LocationComboBox
+                              items={geoCities}
+                              value={field.value}
+                              onChange={(val) => {
+                                field.onChange(val);
+                                onCityChange(val);
+                              }}
+                              placeholder="Select City"
+                              disabled={
+                                !form.getValues("province") ||
+                                geoCities.length === 0
+                              }
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="barangay"
+                      render={({ field }) => (
+                        <FormItem className="flex flex-col">
+                          <FormLabel>Barangay</FormLabel>
+                          <FormControl>
+                            <LocationComboBox
+                              items={geoBarangays}
+                              value={field.value}
+                              onChange={(val) => {
+                                field.onChange(val);
+                              }}
+                              placeholder="Select Barangay"
+                              disabled={
+                                !form.getValues("city") ||
+                                geoBarangays.length === 0
+                              }
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
                 </div>
               </div>
             )}

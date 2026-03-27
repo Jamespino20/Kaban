@@ -9,13 +9,30 @@ import {
   PowerOff,
   ShieldAlert,
   CheckCircle,
+  Plus,
 } from "lucide-react";
-import { getTenants, decommissionBranch } from "@/actions/tenant-management";
+import {
+  getRegions,
+  getTenantsByRegion,
+  decommissionBranch,
+} from "@/actions/tenant-management";
+
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { CreateRegionForm } from "./create-region-form";
+import { CreateBranchForm } from "./create-branch-form";
 
 export function TenantManagementTab({
   initialTenants,
+  role,
 }: {
   initialTenants: any[];
+  role: string;
 }) {
   const [tenants, setTenants] = useState(initialTenants);
   const [isPending, startTransition] = useTransition();
@@ -58,16 +75,47 @@ export function TenantManagementTab({
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center bg-red-50 p-6 rounded-2xl border border-red-100">
-        <div>
+        <div className="flex-1">
           <h3 className="text-xl font-bold text-red-900 flex items-center gap-2">
             <ShieldAlert className="w-6 h-6" /> Danger Zone: Region Management
           </h3>
           <p className="text-sm text-red-700 mt-1">
             Actions taken here have system-wide consequences. Decommissioning a
-            branch will freeze its operations and generate an emergency snapshot
-            for safe data recovery.
+            branch will freeze its operations and generate an emergency
+            snapshot.
           </p>
         </div>
+        {role === "superadmin" && (
+          <div className="flex gap-3">
+            <Dialog>
+              <DialogTrigger asChild>
+                <Button className="bg-slate-900 text-white hover:bg-slate-800">
+                  <Plus className="w-4 h-4 mr-2" /> Add Region
+                </Button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Create New Region (Tenant Group)</DialogTitle>
+                </DialogHeader>
+                <CreateRegionForm onOpenChange={() => {}} />
+              </DialogContent>
+            </Dialog>
+
+            <Dialog>
+              <DialogTrigger asChild>
+                <Button className="bg-emerald-600 text-white hover:bg-emerald-700">
+                  <Plus className="w-4 h-4 mr-2" /> Add Branch
+                </Button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Create New Branch (Tenant)</DialogTitle>
+                </DialogHeader>
+                <CreateBranchForm onOpenChange={() => {}} />
+              </DialogContent>
+            </Dialog>
+          </div>
+        )}
       </div>
 
       {error && (

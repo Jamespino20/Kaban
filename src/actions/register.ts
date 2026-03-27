@@ -21,6 +21,7 @@ const RegisterSchema = z.object({
   city: z.string(),
   barangay: z.string(),
   idPicture: z.string(),
+  tenantId: z.number().int().positive("Please select a branch"),
 });
 
 export const register = async (values: z.infer<typeof RegisterSchema>) => {
@@ -46,6 +47,7 @@ export const register = async (values: z.infer<typeof RegisterSchema>) => {
     city,
     barangay,
     idPicture,
+    tenantId,
   } = validatedFields.data;
 
   const hashedPassword = await bcrypt.hash(password, 10);
@@ -66,17 +68,13 @@ export const register = async (values: z.infer<typeof RegisterSchema>) => {
     return { error: "Username already taken!" };
   }
 
-  // Find a default tenant for now or handle multi-tenancy registration logic
-  const defaultTenant = await prisma.tenant.findFirst();
-  if (!defaultTenant) return { error: "No storage units available" };
-
   const user = await prisma.user.create({
     data: {
       email,
       username,
       phone,
       password_hash: hashedPassword,
-      tenant_id: defaultTenant.tenant_id,
+      tenant_id: tenantId,
       role: "member",
     },
   });

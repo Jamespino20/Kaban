@@ -27,6 +27,50 @@ model TenantGroup {
   @@map("tenant_groups")
 }
 
+// Geographical Locations (Seeded from JSON)
+model Region {
+  id        Int      @id @default(autoincrement())
+  name      String   @db.VarChar(100)
+  reg_code  String   @unique @db.VarChar(10)
+  provinces Province[]
+
+  @@map("geo_regions")
+}
+
+model Province {
+  id         Int       @id @default(autoincrement())
+  name       String    @db.VarChar(100)
+  reg_code   String    @db.VarChar(10)
+  prov_code  String    @unique @db.VarChar(10)
+  cities     CityMun[]
+
+  region Region @relation(fields: [reg_code], references: [reg_code])
+
+  @@map("geo_provinces")
+}
+
+model CityMun {
+  id         Int        @id @default(autoincrement())
+  name       String     @db.VarChar(100)
+  prov_code  String     @db.VarChar(10)
+  mun_code   String     @unique @db.VarChar(10)
+  barangays  Barangay[]
+
+  province Province @relation(fields: [prov_code], references: [prov_code])
+
+  @@map("geo_cities_mun")
+}
+
+model Barangay {
+  id        Int     @id @default(autoincrement())
+  name      String  @db.VarChar(100)
+  mun_code  String  @db.VarChar(10)
+
+  city_mun CityMun @relation(fields: [mun_code], references: [mun_code])
+
+  @@map("geo_barangays")
+}
+
 model Tenant {
   tenant_id       Int      @id @default(autoincrement())
   tenant_group_id Int?

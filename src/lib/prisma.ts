@@ -1,5 +1,6 @@
 import { PrismaClient } from "@prisma/client";
 import { PrismaNeon } from "@prisma/adapter-neon";
+import { prismaAuditExtension } from "./prisma-audit";
 
 const prismaClientSingleton = () => {
   const connectionString =
@@ -11,7 +12,7 @@ const prismaClientSingleton = () => {
     process.env.KABANSTORAGE_PRISMA_URL;
 
   const adapter = new PrismaNeon({ connectionString });
-  return new PrismaClient({ adapter });
+  return new PrismaClient({ adapter }).$extends(prismaAuditExtension);
 };
 
 declare global {
@@ -20,6 +21,6 @@ declare global {
 
 const prisma = globalThis.prisma ?? prismaClientSingleton();
 
-export default prisma;
+export default prisma as unknown as ReturnType<typeof prismaClientSingleton>;
 
 if (process.env.NODE_ENV !== "production") globalThis.prisma = prisma;

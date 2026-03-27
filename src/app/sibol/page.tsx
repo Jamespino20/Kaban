@@ -8,11 +8,13 @@ import {
 } from "lucide-react";
 import { LoanProductsTab } from "@/components/admin/loan-products-tab";
 import { TenantManagementTab } from "@/components/admin/tenant-management-tab";
+import { AuditLogViewer } from "@/components/admin/audit-log-viewer";
 import { getTenants } from "@/actions/tenant-management";
 import { auth } from "@/lib/auth";
 import { UserAccountNav } from "@/components/layout/user-account-nav";
 import { TwoFactorSetup } from "@/components/auth/two-factor-setup";
 import prisma from "@/lib/prisma";
+import { History } from "lucide-react";
 
 export default async function SibolPage() {
   const tenants = await getTenants();
@@ -96,6 +98,14 @@ export default async function SibolPage() {
                 <Settings2 className="w-4 h-4" />
                 <span>Settings</span>
               </TabsTrigger>
+
+              <TabsTrigger
+                value="audit"
+                className="rounded-xl data-[state=active]:bg-slate-900 data-[state=active]:text-white transition-all px-6 py-2.5 flex items-center gap-2"
+              >
+                <History className="w-4 h-4" />
+                <span>Audit Logs</span>
+              </TabsTrigger>
             </TabsList>
 
             <div className="hidden md:block px-4">
@@ -137,7 +147,10 @@ export default async function SibolPage() {
           </TabsContent>
 
           <TabsContent value="branches" className="outline-none">
-            <TenantManagementTab initialTenants={tenants} />
+            <TenantManagementTab
+              initialTenants={tenants}
+              role={session?.user?.role as string}
+            />
           </TabsContent>
 
           <TabsContent value="approvals" className="outline-none">
@@ -173,6 +186,16 @@ export default async function SibolPage() {
               </div>
               <TwoFactorSetup isEnabledInitial={is2FAEnabled} />
             </div>
+          </TabsContent>
+
+          <TabsContent value="audit" className="outline-none">
+            <AuditLogViewer
+              tenantId={
+                session?.user?.role === "superadmin"
+                  ? undefined
+                  : Number(session?.user?.tenantId || 0)
+              }
+            />
           </TabsContent>
         </Tabs>
       </div>

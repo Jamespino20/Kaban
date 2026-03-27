@@ -13,11 +13,48 @@ const fraunces = Fraunces({
 });
 
 export const metadata: Metadata = {
-  title: "Kaban | The Shared Treasury — SEC-Registered Microfinance",
+  metadataBase: new URL("https://kaban-iatk.vercel.app"),
+  title: {
+    default: "Kaban | The Shared Treasury — SEC-Registered Microfinance",
+    template: "%s | Kaban",
+  },
   description:
-    "SEC-Registered, BSP-Supervised microfinancing for Filipino entrepreneurs. Rates from 1.5% monthly. 24-hour loan approval. Digital receipts and transparent tracking.",
+    "SEC-Registered, BSP-Supervised microfinancing for Filipino entrepreneurs. Rates from 1.5% monthly. The community-driven Paluwagan 2.0 alternative to GCash.",
+  keywords: [
+    "microfinance philippines",
+    "paluwagan app",
+    "sari-sari store loan",
+    "business loan options philippines",
+    "gcash alternative",
+  ],
+  authors: [{ name: "Kaban Cooperative Board" }],
+  creator: "Kaban Technologies",
+  openGraph: {
+    type: "website",
+    locale: "en_PH",
+    url: "https://kaban-iatk.vercel.app",
+    title: "Kaban | The Shared Treasury",
+    description:
+      "The Business Operating System for Filipino Entrepreneurs. Transparent, cooperative-backed credit designed for the real world.",
+    siteName: "Kaban Microfinance",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Kaban | The Shared Treasury",
+    description: "The Business Operating System for Filipino Entrepreneurs.",
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-video-preview": -1,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+    },
+  },
 };
-
 import { Toaster } from "@/components/ui/sonner";
 
 export default function RootLayout({
