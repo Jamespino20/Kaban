@@ -1,5 +1,6 @@
 import { Prisma } from "@prisma/client";
 import { auth } from "@/lib/auth";
+import { headers } from "next/headers";
 
 export const prismaAuditExtension = Prisma.defineExtension((client) => {
   return client.$extends({
@@ -24,18 +25,22 @@ export const prismaAuditExtension = Prisma.defineExtension((client) => {
           // 2. Fetch Session to get the User (Actor)
           // Note: In server actions/routes, auth() works.
           let userId: number | null = null;
-          let tenantId: number | null = null;
+          let ipAddress: string | null = null;
+          let userAgent: string | null = null;
 
           try {
+            // Fetch Request-level metadata
+            const headerList = await headers();
+            ipAddress =
+              headerList.get("x-forwarded-for")?.split(",")[0] || null;
+            userAgent = headerList.get("user-agent") || null;
+
             const session = await auth();
             if (session?.user) {
               userId = parseInt(session.user.id);
-              // In Kaban, users are tied to tenants. We can't easily get tenant_id from session
-              // unless we added it to the session object.
-              // For now, we'll try to find the user's tenant if needed, or rely on null.
             }
           } catch {
-            // Background or seed tasks might not have a session
+            // Background or seed tasks might not have a session/headers
           }
 
           // 3. Capture Old State (for updates/deletes)
@@ -83,6 +88,8 @@ export const prismaAuditExtension = Prisma.defineExtension((client) => {
                       (args as any)?.where?.user_id,
                     old_values: oldData ? (oldData as any) : Prisma.JsonNull,
                     new_values: result ? (result as any) : Prisma.JsonNull,
+                    ip_address: ipAddress,
+                    user_agent: userAgent,
                   },
                 })
                 .catch((e: any) =>

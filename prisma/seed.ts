@@ -40,7 +40,7 @@ async function main() {
   ];
 
   for (const acc of ledgerAccounts) {
-    await (prisma.ledgerAccount as any).upsert({
+    await (prisma as any).ledgerAccount.upsert({
       where: { code: acc.code },
       update: { name: acc.name, type: acc.type },
       create: { name: acc.name, code: acc.code, type: acc.type as any },
