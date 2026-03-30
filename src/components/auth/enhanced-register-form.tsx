@@ -36,6 +36,7 @@ import { register } from "@/actions/register";
 import { uploadIdPicture } from "@/actions/upload";
 import { getRegions, getTenantsByRegion } from "@/actions/tenant-management";
 import {
+  fetchPsgcRegions,
   fetchPsgcProvinces,
   fetchPsgcCities,
   fetchPsgcBarangays,
@@ -59,6 +60,7 @@ const EnhancedRegisterSchema = z
     gender: z.enum(["male", "female", "other"]),
     regionId: z.string().min(1, "Region is required"),
     tenantId: z.string().min(1, "Branch is required"),
+    psgcRegion: z.string().min(1, "PSGC Region is required"),
     province: z.string().min(1, "Province is required"),
     city: z.string().min(1, "City is required"),
     barangay: z.string().min(1, "Barangay is required"),
@@ -87,8 +89,10 @@ export function EnhancedRegisterForm() {
     [],
   );
 
-  // Geographical State
-  // Geographical State
+  // PSGC Geographical State
+  const [psgcRegions, setPsgcRegions] = useState<
+    { code: string; name: string }[]
+  >([]);
   const [geoProvinces, setGeoProvinces] = useState<
     { code: string; name: string }[]
   >([]);
@@ -114,6 +118,7 @@ export function EnhancedRegisterForm() {
       gender: "male",
       regionId: "",
       tenantId: "",
+      psgcRegion: "",
       province: "",
       city: "",
       barangay: "",
@@ -122,38 +127,43 @@ export function EnhancedRegisterForm() {
     },
   });
 
-  // Fetch Regions on Mount
+  // Fetch Regions + PSGC Regions on Mount
   useEffect(() => {
-    const fetchRegionsData = async () => {
-      const data = await getRegions();
-      setRegions(data as any);
+    const fetchData = async () => {
+      const [regionData, psgcData] = await Promise.all([
+        getRegions(),
+        fetchPsgcRegions(),
+      ]);
+      setRegions(regionData as any);
+      setPsgcRegions(psgcData);
     };
-    fetchRegionsData();
+    fetchData();
   }, []);
 
-  // Handler: When Region (TenantGroup) Changes
+  // Handler: When Kaban Region (TenantGroup/Branch) Changes
   const onRegionChange = async (regionId: string) => {
     form.setValue("regionId", regionId);
     form.setValue("tenantId", "");
+
+    if (regionId) {
+      const tenantData = await getTenantsByRegion(parseInt(regionId));
+      setTenants(tenantData);
+    } else {
+      setTenants([]);
+    }
+  };
+
+  // Handler: When PSGC Region Changes (for address)
+  const onPsgcRegionChange = async (regCode: string) => {
+    form.setValue("psgcRegion", regCode);
     form.setValue("province", "");
     form.setValue("city", "");
     form.setValue("barangay", "");
 
-    if (regionId) {
-      // 1. Fetch Tenants for this Region
-      const tenantData = await getTenantsByRegion(parseInt(regionId));
-      setTenants(tenantData);
-
-      // 2. Fetch Geo Provinces for this Region's reg_code via PSGC
-      const selected = regions.find((r) => r.id === parseInt(regionId));
-      if (selected) {
-        const provinceData = await fetchPsgcProvinces(selected.reg_code);
-        setGeoProvinces(
-          provinceData.map((p) => ({ code: p.code, name: p.name })),
-        );
-      }
+    if (regCode) {
+      const provinceData = await fetchPsgcProvinces(regCode);
+      setGeoProvinces(provinceData);
     } else {
-      setTenants([]);
       setGeoProvinces([]);
     }
     setGeoCities([]);
@@ -205,7 +215,14 @@ export function EnhancedRegisterForm() {
       case 2:
         return ["firstName", "middleName", "lastName", "birthdate", "gender"];
       case 3:
-        return ["regionId", "tenantId", "province", "city", "barangay"];
+        return [
+          "regionId",
+          "tenantId",
+          "psgcRegion",
+          "province",
+          "city",
+          "barangay",
+        ];
       case 4:
         return ["termsAccepted", "privacyAccepted"];
       default:
@@ -261,7 +278,7 @@ export function EnhancedRegisterForm() {
   };
 
   return (
-    <Card className="w-full max-w-2xl bg-white/80 backdrop-blur-xl border-slate-200/60 shadow-2xl rounded-[2rem] overflow-hidden">
+    <div className="w-full">
       <div className="bg-emerald-600 p-8 text-white relative overflow-hidden">
         <div className="relative z-10">
           <h2 className="text-3xl font-display font-bold italic">
@@ -483,20 +500,23 @@ export function EnhancedRegisterForm() {
 
             {step === 3 && (
               <div className="space-y-4 animate-in fade-in slide-in-from-right-4 duration-300">
+                <h4 className="text-sm font-semibold text-slate-500 uppercase tracking-wider">
+                  Kaban Cooperative
+                </h4>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <FormField
                     control={form.control}
                     name="regionId"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Area / Region</FormLabel>
+                        <FormLabel>Kaban Area</FormLabel>
                         <FormControl>
                           <select
                             {...field}
                             onChange={(e) => onRegionChange(e.target.value)}
                             className="w-full rounded-xl h-12 border border-slate-200 px-4 bg-white outline-none"
                           >
-                            <option value="">Select Region</option>
+                            <option value="">Select Kaban Area</option>
                             {regions.map((r) => (
                               <option key={r.id} value={r.id.toString()}>
                                 {r.name}
@@ -513,7 +533,7 @@ export function EnhancedRegisterForm() {
                     name="tenantId"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Cooperative Branch</FormLabel>
+                        <FormLabel>Branch</FormLabel>
                         <FormControl>
                           <select
                             {...field}
@@ -539,8 +559,30 @@ export function EnhancedRegisterForm() {
 
                 <div className="space-y-4 pt-4 border-t border-slate-100">
                   <h4 className="text-sm font-semibold text-slate-500 uppercase tracking-wider">
-                    Address Details
+                    Your Address (PSGC)
                   </h4>
+
+                  <FormField
+                    control={form.control}
+                    name="psgcRegion"
+                    render={({ field }) => (
+                      <FormItem className="flex flex-col">
+                        <FormLabel>Region</FormLabel>
+                        <FormControl>
+                          <LocationComboBox
+                            items={psgcRegions}
+                            value={field.value}
+                            onChange={(val) => {
+                              field.onChange(val);
+                              onPsgcRegionChange(val);
+                            }}
+                            placeholder="Select Region"
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
 
                   <FormField
                     control={form.control}
@@ -558,7 +600,7 @@ export function EnhancedRegisterForm() {
                             }}
                             placeholder="Select Province"
                             disabled={
-                              !form.getValues("regionId") ||
+                              !form.getValues("psgcRegion") ||
                               geoProvinces.length === 0
                             }
                           />
@@ -744,7 +786,7 @@ export function EnhancedRegisterForm() {
           </form>
         </Form>
       </div>
-    </Card>
+    </div>
   );
 }
 
