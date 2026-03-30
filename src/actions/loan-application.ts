@@ -7,8 +7,11 @@ import { revalidatePath } from "next/cache";
 
 const LoanApplicationSchema = z.object({
   product_id: z.coerce.number().min(1, "Product is required"),
-  amount: z.coerce.number().min(500, "Minimum ₱500 is required"),
+  amount: z.coerce.number().min(100, "Minimum ₱100 is required"),
   term_months: z.coerce.number().min(1, "Minimum 1 month is required"),
+  guarantor_ids: z
+    .array(z.coerce.number())
+    .min(3, "At least 3 guarantors are required for Paluwagan 2.0"),
 });
 
 export const applyForLoan = async (
@@ -24,7 +27,8 @@ export const applyForLoan = async (
     return { error: "Invalid fields!" };
   }
 
-  const { product_id, amount, term_months } = validatedFields.data;
+  const { product_id, amount, term_months, guarantor_ids } =
+    validatedFields.data;
 
   try {
     // 1. Double check the product exists and constraints are met
@@ -49,21 +53,36 @@ export const applyForLoan = async (
       return { error: `Max term is ${product.max_term_months} months.` };
     }
 
-    // 2. Create the loan record
-    await prisma.loan.create({
-      data: {
-        user_id: parseInt(session.user.id),
-        product_id,
-        term_months,
-        status: "pending",
-        tenant_id: session.user.tenantId,
-        loan_reference: `LN-${session.user.tenantId}-${Date.now()}`, // Added a temp reference logic
-        principal_amount: amount,
-        purpose: "General Purpose", // Added a temp purpose
-        interest_applied: 0,
-        total_payable: amount,
-        balance_remaining: amount,
-      },
+    // 2. Create the loan record and guarantees in a transaction
+    await prisma.$transaction(async (tx) => {
+      const loan = await tx.loan.create({
+        data: {
+          user_id: parseInt(session.user.id),
+          product_id,
+          term_months,
+          status: "pending",
+          tenant_id: session.user.tenantId,
+          loan_reference: `LN-${session.user.tenantId}-${Date.now()}`,
+          principal_amount: amount,
+          purpose: "General Purpose",
+          interest_applied: 0,
+          total_payable: amount,
+          balance_remaining: amount,
+        },
+      });
+
+      // 3. Create the LoanGuarantee records for the Paluwagan 2.0 group
+      if (guarantor_ids && guarantor_ids.length >= 3) {
+        const guaranteeData = guarantor_ids.map((gId) => ({
+          loan_id: loan.loan_id,
+          guarantor_id: gId,
+          status: "pending" as const,
+        }));
+
+        await tx.loanGuarantee.createMany({
+          data: guaranteeData,
+        });
+      }
     });
 
     revalidatePath("/pintuan");

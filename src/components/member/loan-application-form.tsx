@@ -17,11 +17,15 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { applyForLoan } from "@/actions/loan-application";
 import { Calculator, ArrowRightCircle } from "lucide-react";
+import { GuaranteeRequestPanel } from "./guarantee-request-panel";
 
 const LoanApplicationSchema = z.object({
   product_id: z.number(),
   amount: z.number().min(100, "Minimum ₱100"),
   term_months: z.number().min(1, "Minimum 1 month"),
+  guarantor_ids: z
+    .array(z.number())
+    .min(3, "At least 3 guarantors are required for Paluwagan 2.0"),
 });
 
 interface LoanApplicationFormProps {
@@ -46,6 +50,7 @@ export const LoanApplicationForm = ({
       product_id: product.product_id,
       amount: Number(product.min_amount),
       term_months: Math.min(6, product.max_term_months),
+      guarantor_ids: [],
     },
   });
 
@@ -132,6 +137,22 @@ export const LoanApplicationForm = ({
                     type="number"
                     disabled={isPending}
                     className="h-14 rounded-2xl border-slate-100 focus:border-emerald-500 focus:ring-emerald-500/20 text-xl font-bold font-display"
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="guarantor_ids"
+            render={({ field }) => (
+              <FormItem>
+                <FormControl>
+                  <GuaranteeRequestPanel
+                    selectedGuarantors={field.value}
+                    onChange={field.onChange}
                   />
                 </FormControl>
                 <FormMessage />
