@@ -81,6 +81,10 @@ export function EnhancedRegisterForm() {
   const [showPassword, setShowPassword] = useState(false);
   const [idFile, setIdFile] = useState<File | null>(null);
   const [idUrl, setIdUrl] = useState<string>("");
+  const [successData, setSuccessData] = useState<{
+    msg: string;
+    memberCode: string;
+  } | null>(null);
 
   // New State for Multi-Tenancy
   const [regions, setRegions] = useState<
@@ -276,7 +280,13 @@ export function EnhancedRegisterForm() {
         idPicture: idUrl,
       });
       if (res.error) toast.error(res.error);
-      if (res.success) toast.success(res.success);
+      if (res.success) {
+        toast.success(res.success);
+        setSuccessData({
+          msg: res.success,
+          memberCode: res.memberCode || "KBN-TEMP",
+        });
+      }
     });
   };
 
@@ -295,115 +305,66 @@ export function EnhancedRegisterForm() {
       </div>
 
       <div className="p-8">
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-            {step === 1 && (
-              <div className="space-y-4 animate-in fade-in slide-in-from-right-4 duration-300">
-                <FormField
-                  control={form.control}
-                  name="username"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Username</FormLabel>
-                      <FormControl>
-                        <div className="relative">
-                          <User className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-                          <Input
-                            {...field}
-                            placeholder="juan_treasures"
-                            className="pl-11 rounded-xl h-12"
-                          />
-                        </div>
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="email"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Gmail Account</FormLabel>
-                      <FormControl>
-                        <div className="relative">
-                          <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-                          <Input
-                            {...field}
-                            type="email"
-                            placeholder="example@gmail.com"
-                            className="pl-11 rounded-xl h-12"
-                          />
-                        </div>
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="phone"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Phone Number</FormLabel>
-                      <FormControl>
-                        <div className="relative">
-                          <Phone className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-                          <Input
-                            {...field}
-                            placeholder="09123456789"
-                            className="pl-11 rounded-xl h-12"
-                          />
-                        </div>
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {successData ? (
+          <div className="space-y-8 animate-in zoom-in duration-500 text-center py-8">
+            <div className="w-24 h-24 bg-emerald-100 rounded-full flex items-center justify-center mx-auto mb-6 shadow-xl shadow-emerald-500/10">
+              <CheckCircle2 className="w-12 h-12 text-emerald-600" />
+            </div>
+            <div className="space-y-2">
+              <h3 className="text-3xl font-display font-bold text-slate-900 leading-tight">
+                Mabuhay! Bienvenido sa Kaban.
+              </h3>
+              <p className="text-slate-500">
+                Ang iyong account ay matagumpay na nagawa.
+              </p>
+            </div>
+
+            <div className="bg-slate-50 border border-slate-100 rounded-[2rem] p-8 space-y-4">
+              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em]">
+                Your Member Code
+              </p>
+              <p className="text-4xl font-display font-black text-emerald-600 tracking-tighter">
+                {successData.memberCode}
+              </p>
+            </div>
+
+            <div className="space-y-4 pt-4">
+              <div className="p-4 bg-blue-50 border border-blue-100 rounded-2xl flex items-center gap-4 text-left">
+                <div className="w-10 h-10 rounded-full bg-blue-500/10 flex items-center justify-center text-blue-600 shrink-0">
+                  <Mail className="w-5 h-5" />
+                </div>
+                <p className="text-sm text-blue-700 leading-snug">
+                  <strong>I-check ang iyong email.</strong> Nagpadala kami ng
+                  verification link sa iyong Gmail inbox upang ma-activate ang
+                  iyong treasury.
+                </p>
+              </div>
+
+              <Button
+                onClick={() => window.location.reload()}
+                className="w-full h-14 rounded-2xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-lg transition-all"
+              >
+                Tapusin ang Registration
+              </Button>
+            </div>
+          </div>
+        ) : (
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+              {step === 1 && (
+                <div className="space-y-4 animate-in fade-in slide-in-from-right-4 duration-300">
                   <FormField
                     control={form.control}
-                    name="password"
+                    name="username"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Password</FormLabel>
+                        <FormLabel>Username</FormLabel>
                         <FormControl>
                           <div className="relative">
-                            <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                            <User className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
                             <Input
                               {...field}
-                              type={showPassword ? "text" : "password"}
-                              className="pl-11 pr-10 rounded-xl h-12"
-                            />
-                            <button
-                              type="button"
-                              onClick={() => setShowPassword(!showPassword)}
-                              className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400"
-                            >
-                              {showPassword ? (
-                                <EyeOff className="w-4 h-4" />
-                              ) : (
-                                <Eye className="w-4 h-4" />
-                              )}
-                            </button>
-                          </div>
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="confirmPassword"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Confirm Password</FormLabel>
-                        <FormControl>
-                          <div className="relative">
-                            <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-                            <Input
-                              {...field}
-                              type="password"
+                              placeholder="juan_treasures"
                               className="pl-11 rounded-xl h-12"
                             />
                           </div>
@@ -412,21 +373,22 @@ export function EnhancedRegisterForm() {
                       </FormItem>
                     )}
                   />
-                </div>
-              </div>
-            )}
-
-            {step === 2 && (
-              <div className="space-y-4 animate-in fade-in slide-in-from-right-4 duration-300">
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <FormField
                     control={form.control}
-                    name="firstName"
+                    name="email"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>First Name</FormLabel>
+                        <FormLabel>Gmail Account</FormLabel>
                         <FormControl>
-                          <Input {...field} className="rounded-xl h-12" />
+                          <div className="relative">
+                            <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                            <Input
+                              {...field}
+                              type="email"
+                              placeholder="example@gmail.com"
+                              className="pl-11 rounded-xl h-12"
+                            />
+                          </div>
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -434,224 +396,51 @@ export function EnhancedRegisterForm() {
                   />
                   <FormField
                     control={form.control}
-                    name="middleName"
+                    name="phone"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Middle Name</FormLabel>
+                        <FormLabel>Phone Number</FormLabel>
                         <FormControl>
-                          <Input {...field} className="rounded-xl h-12" />
+                          <div className="relative">
+                            <Phone className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                            <Input
+                              {...field}
+                              placeholder="09123456789"
+                              className="pl-11 rounded-xl h-12"
+                            />
+                          </div>
                         </FormControl>
                         <FormMessage />
                       </FormItem>
                     )}
                   />
-                  <FormField
-                    control={form.control}
-                    name="lastName"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Last Name</FormLabel>
-                        <FormControl>
-                          <Input {...field} className="rounded-xl h-12" />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <FormField
-                    control={form.control}
-                    name="birthdate"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Birthdate</FormLabel>
-                        <FormControl>
-                          <Input
-                            {...field}
-                            type="date"
-                            className="rounded-xl h-12"
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="gender"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Gender</FormLabel>
-                        <FormControl>
-                          <select
-                            {...field}
-                            className="w-full rounded-xl h-12 border border-slate-200 px-4 bg-white outline-none"
-                          >
-                            <option value="male">Lalaki (Male)</option>
-                            <option value="female">Babae (Female)</option>
-                            <option value="other">Iba pa</option>
-                          </select>
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-              </div>
-            )}
-
-            {step === 3 && (
-              <div className="space-y-4 animate-in fade-in slide-in-from-right-4 duration-300">
-                <h4 className="text-sm font-semibold text-slate-500 uppercase tracking-wider">
-                  Kaban Cooperative
-                </h4>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <FormField
-                    control={form.control}
-                    name="regionId"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Kaban Area</FormLabel>
-                        <FormControl>
-                          <select
-                            {...field}
-                            onChange={(e) => onRegionChange(e.target.value)}
-                            className="w-full rounded-xl h-12 border border-slate-200 px-4 bg-white outline-none"
-                          >
-                            <option value="">Select Kaban Area</option>
-                            {regions.map((r) => (
-                              <option key={r.id} value={r.id.toString()}>
-                                {r.name}
-                              </option>
-                            ))}
-                          </select>
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="tenantId"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Branch</FormLabel>
-                        <FormControl>
-                          <select
-                            {...field}
-                            disabled={!form.getValues("regionId")}
-                            className="w-full rounded-xl h-12 border border-slate-200 px-4 bg-white outline-none font-bold text-emerald-700"
-                          >
-                            <option value="">Select Branch</option>
-                            {tenants.map((t) => (
-                              <option
-                                key={t.tenant_id}
-                                value={t.tenant_id.toString()}
-                              >
-                                {t.name}
-                              </option>
-                            ))}
-                          </select>
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-
-                <div className="space-y-4 pt-4 border-t border-slate-100">
-                  <h4 className="text-sm font-semibold text-slate-500 uppercase tracking-wider">
-                    Your Address (PSGC)
-                  </h4>
-
-                  <FormField
-                    control={form.control}
-                    name="streetAddress"
-                    render={({ field }) => (
-                      <FormItem className="flex flex-col">
-                        <FormLabel>Street & House No.</FormLabel>
-                        <FormControl>
-                          <Input
-                            {...field}
-                            placeholder="Ex: 123 Rizal St., Phase 1"
-                            className="rounded-xl h-10 border-slate-200 focus:border-emerald-500 focus:ring-emerald-500/20"
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name="psgcRegion"
-                    render={({ field }) => (
-                      <FormItem className="flex flex-col">
-                        <FormLabel>Region</FormLabel>
-                        <FormControl>
-                          <LocationComboBox
-                            items={psgcRegions}
-                            value={field.value}
-                            onChange={(val) => {
-                              field.onChange(val);
-                              onPsgcRegionChange(val);
-                            }}
-                            placeholder="Select Region"
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name="province"
-                    render={({ field }) => (
-                      <FormItem className="flex flex-col">
-                        <FormLabel>Province</FormLabel>
-                        <FormControl>
-                          <LocationComboBox
-                            items={geoProvinces}
-                            value={field.value}
-                            onChange={(val) => {
-                              field.onChange(val);
-                              onProvinceChange(val);
-                            }}
-                            placeholder="Select Province"
-                            disabled={
-                              !form.getValues("psgcRegion") ||
-                              geoProvinces.length === 0
-                            }
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <FormField
                       control={form.control}
-                      name="city"
+                      name="password"
                       render={({ field }) => (
-                        <FormItem className="flex flex-col">
-                          <FormLabel>City / Municipality</FormLabel>
+                        <FormItem>
+                          <FormLabel>Password</FormLabel>
                           <FormControl>
-                            <LocationComboBox
-                              items={geoCities}
-                              value={field.value}
-                              onChange={(val) => {
-                                field.onChange(val);
-                                onCityChange(val);
-                              }}
-                              placeholder="Select City"
-                              disabled={
-                                !form.getValues("province") ||
-                                geoCities.length === 0
-                              }
-                            />
+                            <div className="relative">
+                              <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                              <Input
+                                {...field}
+                                type={showPassword ? "text" : "password"}
+                                className="pl-11 pr-10 rounded-xl h-12"
+                              />
+                              <button
+                                type="button"
+                                onClick={() => setShowPassword(!showPassword)}
+                                className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400"
+                              >
+                                {showPassword ? (
+                                  <EyeOff className="w-4 h-4" />
+                                ) : (
+                                  <Eye className="w-4 h-4" />
+                                )}
+                              </button>
+                            </div>
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -659,23 +448,19 @@ export function EnhancedRegisterForm() {
                     />
                     <FormField
                       control={form.control}
-                      name="barangay"
+                      name="confirmPassword"
                       render={({ field }) => (
-                        <FormItem className="flex flex-col">
-                          <FormLabel>Barangay</FormLabel>
+                        <FormItem>
+                          <FormLabel>Confirm Password</FormLabel>
                           <FormControl>
-                            <LocationComboBox
-                              items={geoBarangays}
-                              value={field.value}
-                              onChange={(val) => {
-                                field.onChange(val);
-                              }}
-                              placeholder="Select Barangay"
-                              disabled={
-                                !form.getValues("city") ||
-                                geoBarangays.length === 0
-                              }
-                            />
+                            <div className="relative">
+                              <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                              <Input
+                                {...field}
+                                type="password"
+                                className="pl-11 rounded-xl h-12"
+                              />
+                            </div>
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -683,129 +468,399 @@ export function EnhancedRegisterForm() {
                     />
                   </div>
                 </div>
-              </div>
-            )}
+              )}
 
-            {step === 4 && (
-              <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-300">
-                <div className="space-y-4">
-                  <FormLabel>Handa na ang iyong ID Picture</FormLabel>
-                  <Card
-                    className="border-dashed border-2 border-slate-200 p-8 flex flex-col items-center justify-center text-center space-y-4 cursor-pointer hover:bg-slate-50 transition-colors"
-                    onClick={() =>
-                      document.getElementById("id-upload")?.click()
-                    }
-                  >
-                    <input
-                      id="id-upload"
-                      type="file"
-                      accept="image/*"
-                      className="hidden"
-                      onChange={handleFileUpload}
+              {step === 2 && (
+                <div className="space-y-4 animate-in fade-in slide-in-from-right-4 duration-300">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <FormField
+                      control={form.control}
+                      name="firstName"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>First Name</FormLabel>
+                          <FormControl>
+                            <Input {...field} className="rounded-xl h-12" />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
                     />
-                    {idUrl ? (
-                      <div className="space-y-2">
-                        <CheckCircle2 className="w-12 h-12 text-emerald-500 mx-auto" />
-                        <p className="text-emerald-600 font-bold">
-                          Na-upload na ang ID!
-                        </p>
-                      </div>
-                    ) : (
-                      <>
-                        <IdCard className="w-12 h-12 text-slate-300" />
-                        <p className="text-sm text-slate-500">
-                          I-click upang mag-upload ng Valid ID (Passport, UMID,
-                          Driver&apos;s License, etc.)
-                        </p>
-                      </>
-                    )}
-                  </Card>
+                    <FormField
+                      control={form.control}
+                      name="middleName"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Middle Name</FormLabel>
+                          <FormControl>
+                            <Input {...field} className="rounded-xl h-12" />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="lastName"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Last Name</FormLabel>
+                          <FormControl>
+                            <Input {...field} className="rounded-xl h-12" />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <FormField
+                      control={form.control}
+                      name="birthdate"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Birthdate</FormLabel>
+                          <FormControl>
+                            <Input
+                              {...field}
+                              type="date"
+                              className="rounded-xl h-12"
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="gender"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Gender</FormLabel>
+                          <FormControl>
+                            <select
+                              {...field}
+                              className="w-full rounded-xl h-12 border border-slate-200 px-4 bg-white outline-none"
+                            >
+                              <option value="male">Lalaki (Male)</option>
+                              <option value="female">Babae (Female)</option>
+                              <option value="other">Iba pa</option>
+                            </select>
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
                 </div>
+              )}
 
-                <div className="space-y-4">
-                  <FormField
-                    control={form.control}
-                    name="termsAccepted"
-                    render={({ field }) => (
-                      <div className="flex items-center space-x-3">
-                        <input
-                          type="checkbox"
-                          checked={field.value}
-                          onChange={field.onChange}
-                          className="w-5 h-5 rounded border-slate-300 text-emerald-600 outline-none"
-                        />
-                        <span className="text-sm text-slate-600">
-                          Tinatanggap ko ang{" "}
-                          <a
-                            href="/terms"
-                            className="text-emerald-600 underline"
-                          >
-                            Terms of Service
-                          </a>
-                        </span>
-                      </div>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="privacyAccepted"
-                    render={({ field }) => (
-                      <div className="flex items-center space-x-3">
-                        <input
-                          type="checkbox"
-                          checked={field.value}
-                          onChange={field.onChange}
-                          className="w-5 h-5 rounded border-slate-300 text-emerald-600 outline-none"
-                        />
-                        <span className="text-sm text-slate-600">
-                          Sumasang-ayon ako sa{" "}
-                          <a
-                            href="/privacy"
-                            className="text-emerald-600 underline"
-                          >
-                            Privacy Policy
-                          </a>
-                        </span>
-                      </div>
-                    )}
-                  />
+              {step === 3 && (
+                <div className="space-y-4 animate-in fade-in slide-in-from-right-4 duration-300">
+                  <h4 className="text-sm font-semibold text-slate-500 uppercase tracking-wider">
+                    Kaban Cooperative
+                  </h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <FormField
+                      control={form.control}
+                      name="regionId"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Kaban Area</FormLabel>
+                          <FormControl>
+                            <select
+                              {...field}
+                              onChange={(e) => onRegionChange(e.target.value)}
+                              className="w-full rounded-xl h-12 border border-slate-200 px-4 bg-white outline-none"
+                            >
+                              <option value="">Select Kaban Area</option>
+                              {regions.map((r) => (
+                                <option key={r.id} value={r.id.toString()}>
+                                  {r.name}
+                                </option>
+                              ))}
+                            </select>
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="tenantId"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Branch</FormLabel>
+                          <FormControl>
+                            <select
+                              {...field}
+                              disabled={!form.getValues("regionId")}
+                              className="w-full rounded-xl h-12 border border-slate-200 px-4 bg-white outline-none font-bold text-emerald-700"
+                            >
+                              <option value="">Select Branch</option>
+                              {tenants.map((t) => (
+                                <option
+                                  key={t.tenant_id}
+                                  value={t.tenant_id.toString()}
+                                >
+                                  {t.name}
+                                </option>
+                              ))}
+                            </select>
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+
+                  <div className="space-y-4 pt-4 border-t border-slate-100">
+                    <h4 className="text-sm font-semibold text-slate-500 uppercase tracking-wider">
+                      Your Address (PSGC)
+                    </h4>
+
+                    <FormField
+                      control={form.control}
+                      name="streetAddress"
+                      render={({ field }) => (
+                        <FormItem className="flex flex-col">
+                          <FormLabel>Street & House No.</FormLabel>
+                          <FormControl>
+                            <Input
+                              {...field}
+                              placeholder="Ex: 123 Rizal St., Phase 1"
+                              className="rounded-xl h-10 border-slate-200 focus:border-emerald-500 focus:ring-emerald-500/20"
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="psgcRegion"
+                      render={({ field }) => (
+                        <FormItem className="flex flex-col">
+                          <FormLabel>Region</FormLabel>
+                          <FormControl>
+                            <LocationComboBox
+                              items={psgcRegions}
+                              value={field.value}
+                              onChange={(val) => {
+                                field.onChange(val);
+                                onPsgcRegionChange(val);
+                              }}
+                              placeholder="Select Region"
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="province"
+                      render={({ field }) => (
+                        <FormItem className="flex flex-col">
+                          <FormLabel>Province</FormLabel>
+                          <FormControl>
+                            <LocationComboBox
+                              items={geoProvinces}
+                              value={field.value}
+                              onChange={(val) => {
+                                field.onChange(val);
+                                onProvinceChange(val);
+                              }}
+                              placeholder="Select Province"
+                              disabled={
+                                !form.getValues("psgcRegion") ||
+                                geoProvinces.length === 0
+                              }
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <FormField
+                        control={form.control}
+                        name="city"
+                        render={({ field }) => (
+                          <FormItem className="flex flex-col">
+                            <FormLabel>City / Municipality</FormLabel>
+                            <FormControl>
+                              <LocationComboBox
+                                items={geoCities}
+                                value={field.value}
+                                onChange={(val) => {
+                                  field.onChange(val);
+                                  onCityChange(val);
+                                }}
+                                placeholder="Select City"
+                                disabled={
+                                  !form.getValues("province") ||
+                                  geoCities.length === 0
+                                }
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={form.control}
+                        name="barangay"
+                        render={({ field }) => (
+                          <FormItem className="flex flex-col">
+                            <FormLabel>Barangay</FormLabel>
+                            <FormControl>
+                              <LocationComboBox
+                                items={geoBarangays}
+                                value={field.value}
+                                onChange={(val) => {
+                                  field.onChange(val);
+                                }}
+                                placeholder="Select Barangay"
+                                disabled={
+                                  !form.getValues("city") ||
+                                  geoBarangays.length === 0
+                                }
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+                  </div>
                 </div>
+              )}
+
+              {step === 4 && (
+                <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-300">
+                  <div className="space-y-4">
+                    <FormLabel>Handa na ang iyong ID Picture</FormLabel>
+                    <Card
+                      className="border-dashed border-2 border-slate-200 p-8 flex flex-col items-center justify-center text-center space-y-4 cursor-pointer hover:bg-slate-50 transition-colors"
+                      onClick={() =>
+                        document.getElementById("id-upload")?.click()
+                      }
+                    >
+                      <input
+                        id="id-upload"
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={handleFileUpload}
+                      />
+                      {idUrl ? (
+                        <div className="space-y-2">
+                          <CheckCircle2 className="w-12 h-12 text-emerald-500 mx-auto" />
+                          <p className="text-emerald-600 font-bold">
+                            Na-upload na ang ID!
+                          </p>
+                        </div>
+                      ) : (
+                        <>
+                          <IdCard className="w-12 h-12 text-slate-300" />
+                          <p className="text-sm text-slate-500">
+                            I-click upang mag-upload ng Valid ID (Passport,
+                            UMID, Driver&apos;s License, etc.)
+                          </p>
+                        </>
+                      )}
+                    </Card>
+                  </div>
+
+                  <div className="space-y-4">
+                    <FormField
+                      control={form.control}
+                      name="termsAccepted"
+                      render={({ field }) => (
+                        <div className="flex items-center space-x-3">
+                          <input
+                            type="checkbox"
+                            checked={field.value}
+                            onChange={field.onChange}
+                            className="w-5 h-5 rounded border-slate-300 text-emerald-600 outline-none"
+                          />
+                          <span className="text-sm text-slate-600">
+                            Tinatanggap ko ang{" "}
+                            <a
+                              href="/terms"
+                              className="text-emerald-600 underline"
+                            >
+                              Terms of Service
+                            </a>
+                          </span>
+                        </div>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="privacyAccepted"
+                      render={({ field }) => (
+                        <div className="flex items-center space-x-3">
+                          <input
+                            type="checkbox"
+                            checked={field.value}
+                            onChange={field.onChange}
+                            className="w-5 h-5 rounded border-slate-300 text-emerald-600 outline-none"
+                          />
+                          <span className="text-sm text-slate-600">
+                            Sumasang-ayon ako sa{" "}
+                            <a
+                              href="/privacy"
+                              className="text-emerald-600 underline"
+                            >
+                              Privacy Policy
+                            </a>
+                          </span>
+                        </div>
+                      )}
+                    />
+                  </div>
+                </div>
+              )}
+
+              <div className="flex items-center justify-between pt-6 border-t border-slate-100">
+                {step > 1 && (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={prevStep}
+                    className="rounded-xl h-12 px-8 flex items-center gap-2"
+                  >
+                    <ChevronLeft className="w-4 h-4" />
+                    Mabalik
+                  </Button>
+                )}
+                {step < 4 ? (
+                  <Button
+                    type="button"
+                    onClick={nextStep}
+                    className="ml-auto rounded-xl h-12 px-8 bg-slate-900 hover:bg-slate-800 text-white flex items-center gap-2"
+                  >
+                    Susunod
+                    <ChevronRight className="w-4 h-4" />
+                  </Button>
+                ) : (
+                  <Button
+                    disabled={isPending}
+                    type="submit"
+                    className="ml-auto rounded-xl h-12 px-12 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-lg shadow-xl shadow-emerald-600/20"
+                  >
+                    {isPending ? "Nagrerehistro..." : "Magsimula Na!"}
+                  </Button>
+                )}
               </div>
-            )}
-
-            <div className="flex items-center justify-between pt-6 border-t border-slate-100">
-              {step > 1 && (
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={prevStep}
-                  className="rounded-xl h-12 px-8 flex items-center gap-2"
-                >
-                  <ChevronLeft className="w-4 h-4" />
-                  Mabalik
-                </Button>
-              )}
-              {step < 4 ? (
-                <Button
-                  type="button"
-                  onClick={nextStep}
-                  className="ml-auto rounded-xl h-12 px-8 bg-slate-900 hover:bg-slate-800 text-white flex items-center gap-2"
-                >
-                  Susunod
-                  <ChevronRight className="w-4 h-4" />
-                </Button>
-              ) : (
-                <Button
-                  disabled={isPending}
-                  type="submit"
-                  className="ml-auto rounded-xl h-12 px-12 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-lg shadow-xl shadow-emerald-600/20"
-                >
-                  {isPending ? "Nagrerehistro..." : "Magsimula Na!"}
-                </Button>
-              )}
-            </div>
-          </form>
-        </Form>
+            </form>
+          </Form>
+        )}
       </div>
     </div>
   );

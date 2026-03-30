@@ -37,7 +37,9 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           );
 
           if (passwordsMatch) {
-            if (user.status === "pending" || user.status === "suspended") {
+            // Block suspended users.
+            // We allow 'pending' users to login so we can show them a "Verify your Email" UI instead of "Invalid Credentials"
+            if (user.status === "suspended") {
               return null;
             }
 
