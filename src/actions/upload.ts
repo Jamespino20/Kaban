@@ -10,21 +10,18 @@ export async function uploadIdPicture(formData: FormData) {
     return { error: "No file provided" };
   }
 
-  const bytes = await file.arrayBuffer();
-  const buffer = Buffer.from(bytes);
-
-  const uploadDir = join(process.cwd(), "public/uploads/ids");
-
   try {
-    await mkdir(uploadDir, { recursive: true });
+    const bytes = await file.arrayBuffer();
+    const buffer = Buffer.from(bytes);
 
-    const filename = `${uuidv4()}-${file.name}`;
-    const path = join(uploadDir, filename);
-    await writeFile(path, buffer);
+    // Construct a Base64 Data URI instead of writing to the read-only Vercel filesystem
+    const mimeType = file.type || "image/jpeg";
+    const base64Data = buffer.toString("base64");
+    const dataUri = `data:${mimeType};base64,${base64Data}`;
 
-    return { success: true, url: `/uploads/ids/${filename}` };
+    return { success: true, url: dataUri };
   } catch (error) {
     console.error("Upload error:", error);
-    return { error: "Failed to upload file" };
+    return { error: "Failed to process file" };
   }
 }

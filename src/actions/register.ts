@@ -20,6 +20,7 @@ const RegisterSchema = z.object({
   province: z.string(),
   city: z.string(),
   barangay: z.string(),
+  streetAddress: z.string(),
   idPicture: z.string(),
   tenantId: z.number().int().positive("Please select a branch"),
 });
@@ -46,6 +47,7 @@ export const register = async (values: z.infer<typeof RegisterSchema>) => {
     province,
     city,
     barangay,
+    streetAddress,
     idPicture,
     tenantId,
   } = validatedFields.data;
@@ -92,6 +94,7 @@ export const register = async (values: z.infer<typeof RegisterSchema>) => {
       province,
       city,
       barangay,
+      address: streetAddress,
       photo_url: idPicture,
     },
   });

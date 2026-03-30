@@ -64,6 +64,7 @@ const EnhancedRegisterSchema = z
     province: z.string().min(1, "Province is required"),
     city: z.string().min(1, "City is required"),
     barangay: z.string().min(1, "Barangay is required"),
+    streetAddress: z.string().min(1, "Street address is required"),
     termsAccepted: z.boolean().refine((v) => v === true, "Must accept terms"),
     privacyAccepted: z
       .boolean()
@@ -122,6 +123,7 @@ export function EnhancedRegisterForm() {
       province: "",
       city: "",
       barangay: "",
+      streetAddress: "",
       termsAccepted: false,
       privacyAccepted: false,
     },
@@ -269,6 +271,7 @@ export function EnhancedRegisterForm() {
         province: selectedProv?.name || values.province,
         city: selectedCity?.name || values.city,
         barangay: selectedBarangay?.name || values.barangay,
+        streetAddress: values.streetAddress,
         tenantId: parseInt(values.tenantId),
         idPicture: idUrl,
       });
@@ -561,6 +564,24 @@ export function EnhancedRegisterForm() {
                   <h4 className="text-sm font-semibold text-slate-500 uppercase tracking-wider">
                     Your Address (PSGC)
                   </h4>
+
+                  <FormField
+                    control={form.control}
+                    name="streetAddress"
+                    render={({ field }) => (
+                      <FormItem className="flex flex-col">
+                        <FormLabel>Street & House No.</FormLabel>
+                        <FormControl>
+                          <Input
+                            {...field}
+                            placeholder="Ex: 123 Rizal St., Phase 1"
+                            className="rounded-xl h-10 border-slate-200 focus:border-emerald-500 focus:ring-emerald-500/20"
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
 
                   <FormField
                     control={form.control}
