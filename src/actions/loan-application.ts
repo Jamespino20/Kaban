@@ -53,6 +53,12 @@ export const applyForLoan = async (
       return { error: `Max term is ${product.max_term_months} months.` };
     }
 
+    // 2. Server-side calculation (must match client-side UI for transparency)
+    const rate = Number(product.interest_rate_percent) / 100;
+    const totalInterest = amount * rate * term_months;
+    const processingFee = Math.max(50, amount * 0.02);
+    const totalPayable = amount + totalInterest + processingFee;
+
     // 2. Create the loan record and guarantees in a transaction
     await prisma.$transaction(async (tx) => {
       const loan = await tx.loan.create({
@@ -65,9 +71,10 @@ export const applyForLoan = async (
           loan_reference: `LN-${session.user.tenantId}-${Date.now()}`,
           principal_amount: amount,
           purpose: "General Purpose",
-          interest_applied: 0,
-          total_payable: amount,
-          balance_remaining: amount,
+          interest_applied: totalInterest,
+          fees_applied: processingFee,
+          total_payable: totalPayable,
+          balance_remaining: totalPayable,
         },
       });
 

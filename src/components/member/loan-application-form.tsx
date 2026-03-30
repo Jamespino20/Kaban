@@ -16,7 +16,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { applyForLoan } from "@/actions/loan-application";
-import { Calculator, ArrowRightCircle } from "lucide-react";
+import { Calculator, ArrowRightCircle, CheckCircle2 } from "lucide-react";
 import { GuaranteeRequestPanel } from "./guarantee-request-panel";
 
 const LoanApplicationSchema = z.object({
@@ -42,6 +42,8 @@ export const LoanApplicationForm = ({
     monthly: 0,
     total: 0,
     interest: 0,
+    fees: 0,
+    totalCostOfCredit: 0,
   });
 
   const form = useForm<z.infer<typeof LoanApplicationSchema>>({
@@ -60,17 +62,22 @@ export const LoanApplicationForm = ({
   useEffect(() => {
     const amount = Number(watchAmount) || 0;
     const term = Number(watchTerm) || 0;
+    // Multi-Layered Cost Calculation (Anti-GCash Transparency)
     const rate = Number(product.interest_rate_percent) / 100;
-
-    // Simple Interest Calculation
     const totalInterest = amount * rate * term;
-    const totalRepayment = amount + totalInterest;
+
+    // Transparent Processing Fee (Simulating a flat 2% or min ₱50)
+    const processingFee = Math.max(50, amount * 0.02);
+
+    const totalRepayment = amount + totalInterest + processingFee;
     const monthlyAmortization = term > 0 ? totalRepayment / term : 0;
 
     setCalculation({
       monthly: monthlyAmortization,
       total: totalRepayment,
       interest: totalInterest,
+      fees: processingFee,
+      totalCostOfCredit: totalInterest + processingFee,
     });
   }, [watchAmount, watchTerm, product]);
 
@@ -160,36 +167,72 @@ export const LoanApplicationForm = ({
             )}
           />
 
-          <div className="bg-emerald-50/50 p-6 rounded-3xl border border-emerald-100 space-y-4">
-            <div className="flex justify-between items-center text-sm">
-              <span className="text-slate-500 font-medium">
-                Monthly Payment
-              </span>
-              <span className="text-emerald-700 font-display font-bold text-2xl">
-                ₱
-                {calculation.monthly.toLocaleString(undefined, {
-                  minimumFractionDigits: 2,
-                  maximumFractionDigits: 2,
-                })}
-              </span>
+          <div className="bg-slate-900 rounded-[2.5rem] p-8 text-white space-y-6 shadow-2xl relative overflow-hidden group">
+            <div className="absolute top-0 right-0 p-4">
+              <div className="bg-emerald-500 text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-tighter animate-pulse">
+                Total Cost Guarantee
+              </div>
             </div>
-            <div className="pt-4 border-t border-emerald-100/50 space-y-2">
-              <div className="flex justify-between text-xs">
-                <span className="text-slate-400 font-medium uppercase tracking-widest">
-                  Total Interest
+
+            <div className="space-y-1">
+              <span className="text-slate-400 text-xs font-bold uppercase tracking-widest">
+                Monthly Amortization
+              </span>
+              <div className="flex items-baseline gap-2">
+                <span className="text-4xl font-display font-bold text-emerald-400">
+                  ₱
+                  {calculation.monthly.toLocaleString(undefined, {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2,
+                  })}
                 </span>
-                <span className="text-slate-600 font-bold">
-                  ₱{calculation.interest.toLocaleString()}
-                </span>
+                <span className="text-slate-500 text-sm">/ month</span>
               </div>
-              <div className="flex justify-between text-xs">
-                <span className="text-slate-400 font-medium uppercase tracking-widest">
+            </div>
+
+            <div className="grid grid-cols-2 gap-4 py-6 border-y border-white/10">
+              <div className="space-y-1">
+                <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">
+                  Principal
+                </p>
+                <p className="text-sm font-bold">
+                  ₱{Number(watchAmount).toLocaleString()}
+                </p>
+              </div>
+              <div className="space-y-1 text-right">
+                <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">
+                  Interest ({product.interest_rate_percent}%)
+                </p>
+                <p className="text-sm font-bold text-emerald-400">
+                  +₱{calculation.interest.toLocaleString()}
+                </p>
+              </div>
+              <div className="space-y-1">
+                <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">
+                  Service Fees
+                </p>
+                <p className="text-sm font-bold text-amber-400">
+                  +₱{calculation.fees.toLocaleString()}
+                </p>
+              </div>
+              <div className="space-y-1 text-right">
+                <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest text-emerald-500">
                   Total Repayment
-                </span>
-                <span className="text-slate-600 font-bold">
+                </p>
+                <p className="text-sm font-black text-white">
                   ₱{calculation.total.toLocaleString()}
-                </span>
+                </p>
               </div>
+            </div>
+
+            <div className="flex items-center gap-3 bg-white/5 p-4 rounded-2xl border border-white/10 group-hover:bg-white/10 transition-colors">
+              <div className="w-8 h-8 rounded-full bg-emerald-500/20 flex items-center justify-center text-emerald-400">
+                <CheckCircle2 className="w-4 h-4" />
+              </div>
+              <p className="text-[10px] leading-relaxed text-slate-400">
+                <strong>Walang hidden charges.</strong> Ang halagang ito ay
+                final at hindi magbabago sa buong duration ng iyong loan.
+              </p>
             </div>
           </div>
 

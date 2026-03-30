@@ -225,6 +225,7 @@ model Loan {
   purpose           String     @db.Text
   term_months       Int
   interest_applied  Decimal    @db.Decimal(15, 2)
+  fees_applied      Decimal    @db.Decimal(15, 2) @default(0)
   total_payable     Decimal    @db.Decimal(15, 2)
   balance_remaining Decimal    @db.Decimal(15, 2)
   status            LoanStatus @default(pending)
