@@ -3,7 +3,7 @@
 **Iyong pondo, ating Asenso.**  
 A modern, microfinancing digital lending SaaS platform designed for Filipino cooperatives and micro-entrepreneurs. Kaban provides low-interest, transparent, and secure financial services with a focus on community and growth.
 
-![Kaban Hero Preview](file:///c:/xampp/htdocs/Kaban/kaban-web/public/images/kaban_growth.png)
+![Kaban Hero Preview](kaban-web/public/images/kaban_growth.png)
 
 ## 🚀 Quick Start
 
@@ -18,8 +18,8 @@ A modern, microfinancing digital lending SaaS platform designed for Filipino coo
 1. **Clone and Install:**
 
    ```bash
-   git clone https://github.com/Jamespino20/Kaban.git
-   cd kaban-web
+   git clone https://github.com/Jamespino20/Asenso.git
+   cd asenso-web
    npm install --legacy-peer-deps
    ```
 
