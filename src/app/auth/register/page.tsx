@@ -18,7 +18,7 @@ export default function RegisterPage() {
             </h1>
             <p className="text-lg text-slate-500 italic">
               Sumali sa libo-libong Pilipinong naniniwala sa Shared Treasury ng
-              Kaban. Sama-samang pag-unlad, walang iwanan.
+              Asenso. Sama-samang pag-unlad, walang iwanan.
             </p>
           </div>
 

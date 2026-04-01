@@ -37,7 +37,7 @@ export default async function SibolPage() {
               Sibol Growth Engine
             </h1>
             <p className="text-slate-500 font-sans">
-              Central Command for Kaban Financial Operations
+              Central Command for Asenso Financial Operations
             </p>
           </div>
           <div className="flex items-center gap-6">
@@ -110,7 +110,7 @@ export default async function SibolPage() {
 
             <div className="hidden md:block px-4">
               <span className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em]">
-                Kaban Administrative Tier
+                Asenso Administrative Tier
               </span>
             </div>
           </div>

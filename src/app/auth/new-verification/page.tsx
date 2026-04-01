@@ -57,10 +57,10 @@ function NewVerificationForm() {
 
       <h1 className="text-3xl font-bold text-slate-900 mb-2">
         {success
-          ? "Kaban Secured!"
+          ? "Asenso Secured!"
           : error
             ? "Verification Error"
-            : "Securing your Kaban..."}
+            : "Securing your Asenso..."}
       </h1>
 
       <p className="text-slate-500 mb-8">

@@ -34,7 +34,7 @@ export default async function PintuanPage() {
               <span className="text-emerald-600">{userName}</span>
             </h1>
             <p className="text-slate-500 font-sans text-lg">
-              Ang iyong Kaban ay protektado at handang palaguin ang iyong
+              Ang iyong Asenso ay protektado at handang palaguin ang iyong
               kinabukasan.
             </p>
           </div>
@@ -144,7 +144,7 @@ export default async function PintuanPage() {
               </div>
               <div className="space-y-2">
                 <h2 className="text-2xl font-display font-bold text-slate-800">
-                  Magsimula sa iyong Kaban
+                  Magsimula sa iyong Asenso
                 </h2>
                 <p className="text-slate-500 max-w-md mx-auto">
                   Wala ka pang aktibong transaksyon sa kasalukuyan. Maaari kang

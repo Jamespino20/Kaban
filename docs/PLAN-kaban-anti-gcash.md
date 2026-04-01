@@ -1,8 +1,8 @@
-# PLAN: Kaban Anti-GCash Features & PSGC Rollback
+# PLAN: Asenso Anti-GCash Features & PSGC Rollback
 
 ## Phase -1: Context Check
 
-**Goal**: Transform Kaban into a "Business Operating System" with cooperative features (Paluwagan 2.0, Social Verification) while finalizing the `@jobuntux/psgc` Option B integration and applying SEO best practices.
+**Goal**: Transform Asenso into a "Business Operating System" with cooperative features (Paluwagan 2.0, Social Verification) while finalizing the `@jobuntux/psgc` Option B integration and applying SEO best practices.
 
 ## Phase 0: Socratic Gate / Questions
 

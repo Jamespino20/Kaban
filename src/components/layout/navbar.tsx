@@ -27,7 +27,7 @@ export function Navbar({ forceSolid = false }: NavbarProps) {
   }, [forceSolid]);
 
   const navItems = [
-    { en: "Why Kaban", ph: "Bakit Kaban", href: "/#why-kaban" },
+    { en: "Why Asenso", ph: "Bakit Asenso", href: "/#why-asenso" },
     { en: "Features", ph: "Mga Tampok", href: "/#features" },
     { en: "Testimonials", ph: "Patotoo", href: "/#testimonials" },
     { en: "FAQs", ph: "Katanungan", href: "/#faqs" },
@@ -46,8 +46,8 @@ export function Navbar({ forceSolid = false }: NavbarProps) {
         <Link href="/" className="flex items-center gap-4 group cursor-pointer">
           <div className="w-12 h-12 flex items-center justify-center transition-transform group-hover:scale-105">
             <img
-              src="/images/kaban_solo.png"
-              alt="Kaban"
+              src="/images/asenso_solo.png"
+              alt="Asenso"
               className="w-12 h-12 object-contain"
             />
           </div>
@@ -56,7 +56,7 @@ export function Navbar({ forceSolid = false }: NavbarProps) {
               isScrolled || isMenuOpen ? "text-slate-900" : "text-white"
             }`}
           >
-            Kaban
+            Asenso
           </span>
         </Link>
 

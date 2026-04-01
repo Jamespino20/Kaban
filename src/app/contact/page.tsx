@@ -39,13 +39,13 @@ export default function ContactPage() {
           <ContactMethod
             icon={<Phone className="w-8 h-8 text-emerald-600" />}
             title="Tawagan Kami"
-            detail="+63 (02) 8888-KABAN"
+            detail="+63 (02) 8888-ASENSO"
             actionLabel="Call Now"
           />
           <ContactMethod
             icon={<Mail className="w-8 h-8 text-emerald-600" />}
             title="Email Support"
-            detail="support@kaban.com.ph"
+            detail="support@asenso.com.ph"
             actionLabel="Send Email"
           />
           <ContactMethod

@@ -21,7 +21,7 @@ export default function PricingPage() {
               Presyong <span className="text-emerald-600">Makatao.</span>
             </h1>
             <p className="text-xl md:text-2xl font-medium text-slate-600 mb-12 leading-relaxed max-w-3xl">
-              Naniniwala kami sa transparency. Sa Kaban, makikita mo ang bawat
+              Naniniwala kami sa transparency. Sa Asenso, makikita mo ang bawat
               sentimo na babayaran mo bago mo tanggapin ang pondo.
             </p>
           </div>

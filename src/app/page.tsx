@@ -107,7 +107,7 @@ export default function Home() {
             >
               Iyong yaman,{" "}
               <span className="text-emerald-600 drop-shadow-sm">
-                ating Kaban.
+                ating Asenso.
               </span>
             </h1>
             <p
@@ -131,15 +131,15 @@ export default function Home() {
 
         {/* Info Wrapper with solid background */}
         <div className="w-full bg-slate-50 flex flex-col items-center">
-          {/* Why Choose Kaban */}
+          {/* Why Choose Asenso */}
           <section
-            id="why-kaban"
+            id="why-asenso"
             ref={addToRefs}
             className="reveal w-full py-40 px-6 max-w-7xl"
           >
             <div className="text-center mb-24">
               <h2 className="text-4xl md:text-6xl font-black text-slate-950 mb-6 italic tracking-tight">
-                Bakit pipiliin ang Kaban?
+                Bakit pipiliin ang Asenso?
               </h2>
               <p className="text-slate-500 max-w-2xl mx-auto font-medium text-lg text-balance">
                 Walang nakatagong bayarin. Walang sorpresa. Ang iyong pera,
@@ -195,7 +195,7 @@ export default function Home() {
             <div className="order-1 lg:order-2">
               <div className="relative rounded-[3rem] overflow-hidden shadow-[0_32px_80px_rgba(0,0,0,0.12)] bg-slate-200 group aspect-[4/3] border border-white">
                 <img
-                  src="/images/kaban_growth.png"
+                  src="/images/asenso_growth.png"
                   alt="Tracking"
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-1000"
                 />
@@ -210,7 +210,7 @@ export default function Home() {
           >
             <div className="relative rounded-[3rem] overflow-hidden shadow-[0_32px_80px_rgba(0,0,0,0.12)] bg-slate-200 group aspect-[4/3] border border-white">
               <img
-                src="/images/kaban_security.png"
+                src="/images/asenso_security.png"
                 alt="Flexible"
                 className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-1000"
               />
@@ -255,7 +255,7 @@ export default function Home() {
           >
             <div className="text-center mb-20 px-6 z-10 relative">
               <h2 className="text-4xl md:text-5xl font-black mb-6 italic tracking-tight">
-                Mula sa komunidad ng Kaban
+                Mula sa komunidad ng Asenso
               </h2>
               <p className="text-emerald-200/80 max-w-2xl mx-auto font-medium text-lg">
                 Huwag lang sa amin manggaling. Pakinggan ang mga kwento ng
@@ -285,18 +285,18 @@ export default function Home() {
             </h2>
             <div className="space-y-6">
               <AccordionItem
-                question="Ano ang Kaban?"
-                answer="Ang Kaban ay isang microfinancing digital lending SaaS (software as a service) platform na nagbibigay ng pondo sa mga negosyante na nangangailangan ng kapital para mapalago ang kanilang negosyo. Sa pamamagitan ng Kaban, ang mga negosyante ay maaaring humiram ng pondo at bayaran ito sa pamamagitan ng daily, weekly, o monthly installments.
+                question="Ano ang Asenso?"
+                answer="Ang Asenso ay isang microfinancing digital lending SaaS (software as a service) platform na nagbibigay ng pondo sa mga negosyante na nangangailangan ng kapital para mapalago ang kanilang negosyo. Sa pamamagitan ng Asenso, ang mga negosyante ay maaaring humiram ng pondo at bayaran ito sa pamamagitan ng daily, weekly, o monthly installments.
 
-                Sa kahulugan ng Kaban na “ipon” o “lalagyan ng yaman,” layunin nitong magsilbing ligtas at maaasahang sistema kung saan maaaring pamahalaan ang pondo, pautang, at bayarin ng mga miyembro sa isang organisado at digital na paraan."
+                Sa kahulugan ng Asenso na “ipon” o “lalagyan ng yaman,” layunin nitong magsilbing ligtas at maaasahang sistema kung saan maaaring pamahalaan ang pondo, pautang, at bayarin ng mga miyembro sa isang organisado at digital na paraan."
               />
               <AccordionItem
-                question="Sino ang maaaring gumamit ng Kaban??"
-                answer="Kahit sino na kailangan ng sarili nilang Kaban. Mapakooperatiba, microfinance institution, lending business, o mga negosyanteng nangangailangan ng pondo o kapital, ang Kaban ay para sa inyo."
+                question="Sino ang maaaring gumamit ng Asenso??"
+                answer="Kahit sino na kailangan ng sarili nilang Asenso. Mapakooperatiba, microfinance institution, lending business, o mga negosyanteng nangangailangan ng pondo o kapital, ang Asenso ay para sa inyo."
               />
               <AccordionItem
                 question="Paano ang application process?"
-                answer="Mabilis at digital ang lahat. I-click lamang ang 'Gumawa ng Kaban', punan ang impormasyon ng iyong negosyo, at susuriin namin ito sa loob ng 24 oras."
+                answer="Mabilis at digital ang lahat. I-click lamang ang 'Gumawa ng Asenso', punan ang impormasyon ng iyong negosyo, at susuriin namin ito sa loob ng 24 oras."
               />
               <AccordionItem
                 question="Ano ang mga requirements?"
@@ -307,21 +307,21 @@ export default function Home() {
                 answer="Wala. Naniniwala kami sa katapatan. Makikita mo ang lahat ng charges at interes bago mo pirmahan ang agreement."
               />
               <AccordionItem
-                question="Ganoong kaligtas ba ang Kaban?"
-                answer="Ligtas talaga ang Kaban sa paggamit nito ng secure na database, user authentication, at role-based access control (RBAC) upang matiyak na protektado ang datos ng bawat user at organisasyon."
+                question="Ganoong kaligtas ba ang Asenso?"
+                answer="Ligtas talaga ang Asenso sa paggamit nito ng secure na database, user authentication, at role-based access control (RBAC) upang matiyak na protektado ang datos ng bawat user at organisasyon."
               />
               <AccordionItem
-                question="May mobile access ba ang Kaban?"
-                answer="Oo. May mobile application ang Kaban kung saan maaaring tingnan ang loan balance, subaybayan ang hulog at makakita ng transaction history habang nasa biyahe."
+                question="May mobile access ba ang Asenso?"
+                answer="Oo. May mobile application ang Asenso kung saan maaaring tingnan ang loan balance, subaybayan ang hulog at makakita ng transaction history habang nasa biyahe."
               />
               <AccordionItem
-                question="Maaari bang gamitin ang Kaban sa maraming branch?"
-                answer="Oo. Sinusuportahan ng Kaban ang multiple branches kung saan bawat branch ay may sariling miyembro at records at ang head office ay may access sa consolidated reports."
+                question="Maaari bang gamitin ang Asenso sa maraming branch?"
+                answer="Oo. Sinusuportahan ng Asenso ang multiple branches kung saan bawat branch ay may sariling miyembro at records at ang head office ay may access sa consolidated reports."
               />
               <AccordionItem
-                question="Ano ang pinagkaiba ng Kaban sa tradisyonal na lending system?"
-                answer="Sa halip na manual na proseso (papel, ledger, at mano-manong computation), ang Kaban ay: Digital, Automated, Mas mabilis at mas accurate.
-                Ang iyong yaman, ating Kaban talaga."
+                question="Ano ang pinagkaiba ng Asenso sa tradisyonal na lending system?"
+                answer="Sa halip na manual na proseso (papel, ledger, at mano-manong computation), ang Asenso ay: Digital, Automated, Mas mabilis at mas accurate.
+                Ang iyong yaman, ating Asenso talaga."
               />
             </div>
           </section>
@@ -339,7 +339,7 @@ export default function Home() {
                   Simulan na ang pag-asenso
                 </h2>
                 <p className="text-xl md:text-2xl font-medium text-emerald-50 mb-16 max-w-2xl opacity-90 leading-relaxed text-balance">
-                  Sumama sa libu-libong negosyante na pinili ang Kaban bilang
+                  Sumama sa libu-libong negosyante na pinili ang Asenso bilang
                   katuwang sa paglago.
                 </p>
                 <div className="flex flex-wrap gap-6 justify-center">
@@ -415,7 +415,7 @@ const TESTIMONIALS = [
     role: "Sari-sari Store Owner",
     photo: "/images/testimonial_1.png",
     content:
-      "Umuutang ako dati sa 5-6 na 20% interest. Sa Kaban, 1.5% lang bawat buwan at may digital receipt pa. Hindi na ako pinagtatakpan ng collector.",
+      "Umuutang ako dati sa 5-6 na 20% interest. Sa Asenso, 1.5% lang bawat buwan at may digital receipt pa. Hindi na ako pinagtatakpan ng collector.",
   },
   {
     name: "Juanito Reyes",

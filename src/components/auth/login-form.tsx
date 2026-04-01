@@ -78,7 +78,7 @@ export const LoginForm = () => {
           Access Treasury
         </h1>
         <p className="text-sm text-muted-foreground">
-          Enter your credentials to manage your Kaban
+          Enter your credentials to manage your Asenso
         </p>
       </div>
       <Form {...form}>
@@ -115,7 +115,7 @@ export const LoginForm = () => {
                       <Input
                         {...field}
                         disabled={isPending}
-                        placeholder="juan.kaban"
+                        placeholder="juan.asenso"
                         className="rounded-xl h-12"
                       />
                     </FormControl>

@@ -6,11 +6,11 @@ import "dotenv/config";
 
 const connectionString =
   process.env.DATABASE_URL_UNPOOLED ||
-  process.env.KABANSTORAGE_DATABASE_URL_UNPOOLED ||
+  process.env.ASENSOSTORAGE_DATABASE_URL_UNPOOLED ||
   process.env.DATABASE_URL ||
-  process.env.KABANSTORAGE_DATABASE_URL ||
-  process.env.KABANSTORAGE_URL ||
-  process.env.KABANSTORAGE_PRISMA_URL;
+  process.env.ASENSOSTORAGE_DATABASE_URL ||
+  process.env.ASENSOSTORAGE_URL ||
+  process.env.ASENSOSTORAGE_PRISMA_URL;
 
 const adapter = new PrismaNeon({
   connectionString,
@@ -54,7 +54,7 @@ async function main() {
     where: { reg_code: "HQ-001" },
     update: {},
     create: {
-      name: "Kaban Headquarters",
+      name: "Asenso Headquarters",
       reg_code: "HQ-001",
     },
   });
@@ -72,11 +72,11 @@ async function main() {
 
   // 3. Create Superadmin
   await prisma.user.upsert({
-    where: { email: "superadmin@kaban.com" },
+    where: { email: "superadmin@asenso.com" },
     update: { tenant_id: tenant.tenant_id },
     create: {
       username: "superadmin",
-      email: "superadmin@kaban.com",
+      email: "superadmin@asenso.com",
       password_hash: hashedPassword,
       role: Role.superadmin,
       status: UserStatus.active,
@@ -93,18 +93,18 @@ async function main() {
 
   // 4. Create Admin
   await prisma.user.upsert({
-    where: { email: "admin@kaban.com" },
+    where: { email: "admin@asenso.com" },
     update: { tenant_id: tenant.tenant_id },
     create: {
       username: "admin",
-      email: "admin@kaban.com",
+      email: "admin@asenso.com",
       password_hash: hashedPassword,
       role: Role.admin,
       status: UserStatus.active,
       tenant_id: tenant.tenant_id,
       profile: {
         create: {
-          first_name: "Kaban",
+          first_name: "Asenso",
           last_name: "Admin",
           occupation: "Cooperative Manager",
         },
@@ -114,11 +114,11 @@ async function main() {
 
   // 5. Create Sample Member
   await prisma.user.upsert({
-    where: { email: "juan@kaban.com" },
+    where: { email: "juan@asenso.com" },
     update: { tenant_id: tenant.tenant_id },
     create: {
       username: "juan.delacruz",
-      email: "juan@kaban.com",
+      email: "juan@asenso.com",
       password_hash: hashedPassword,
       role: Role.member,
       status: UserStatus.active,

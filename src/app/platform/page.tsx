@@ -25,7 +25,7 @@ export default function PlatformPage() {
             </h1>
             <p className="text-xl md:text-2xl font-medium text-slate-600 mb-12 leading-relaxed max-w-3xl">
               Isang high-end na ecosystem na binuo para sa seguridad at mabilis
-              na pag-asenso. Tunghayan ang bawat teknolohiya sa likod ng Kaban.
+              na pag-asenso. Tunghayan ang bawat teknolohiya sa likod ng Asenso.
             </p>
           </div>
         </section>
@@ -36,7 +36,7 @@ export default function PlatformPage() {
             id="security"
             icon={<Lock className="w-10 h-10 text-emerald-600" />}
             title="Military-Grade Security"
-            description="Ang bawat kaban ay pinoprotektahan ng advanced encryption at Role-Based Access Control (RBAC). Ang iyong data ay sa iyo lamang."
+            description="Ang bawat asenso ay pinoprotektahan ng advanced encryption at Role-Based Access Control (RBAC). Ang iyong data ay sa iyo lamang."
             points={[
               "End-to-end data encryption",
               "Automated daily backups",

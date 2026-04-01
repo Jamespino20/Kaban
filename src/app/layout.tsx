@@ -13,10 +13,10 @@ const fraunces = Fraunces({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://kaban-iatk.vercel.app"),
+  metadataBase: new URL("https://asenso-iatk.vercel.app"),
   title: {
-    default: "Kaban | The Shared Treasury — SEC-Registered Microfinance",
-    template: "%s | Kaban",
+    default: "Asenso | The Shared Treasury — SEC-Registered Microfinance",
+    template: "%s | Asenso",
   },
   description:
     "SEC-Registered, BSP-Supervised microfinancing for Filipino entrepreneurs. Rates from 1.5% monthly. The community-driven Paluwagan 2.0 alternative to GCash.",
@@ -27,20 +27,20 @@ export const metadata: Metadata = {
     "business loan options philippines",
     "gcash alternative",
   ],
-  authors: [{ name: "Kaban Cooperative Board" }],
-  creator: "Kaban Technologies",
+  authors: [{ name: "Asenso Cooperative Board" }],
+  creator: "Asenso Technologies",
   openGraph: {
     type: "website",
     locale: "en_PH",
-    url: "https://kaban-iatk.vercel.app",
-    title: "Kaban | The Shared Treasury",
+    url: "https://asenso-iatk.vercel.app",
+    title: "Asenso | The Shared Treasury",
     description:
       "The Business Operating System for Filipino Entrepreneurs. Transparent, cooperative-backed credit designed for the real world.",
-    siteName: "Kaban Microfinance",
+    siteName: "Asenso Microfinance",
   },
   twitter: {
     card: "summary_large_image",
-    title: "Kaban | The Shared Treasury",
+    title: "Asenso | The Shared Treasury",
     description: "The Business Operating System for Filipino Entrepreneurs.",
   },
   robots: {
