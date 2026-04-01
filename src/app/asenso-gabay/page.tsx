@@ -16,7 +16,7 @@ import { TwoFactorSetup } from "@/components/auth/two-factor-setup";
 import prisma from "@/lib/prisma";
 import { History } from "lucide-react";
 
-export default async function Asenso GabayPage() {
+export default async function AsensoGabayPage() {
   const tenants = await getTenants();
   const session = await auth();
   const userName = session?.user?.username || "Admin";

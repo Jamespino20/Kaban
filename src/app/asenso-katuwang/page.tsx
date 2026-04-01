@@ -13,7 +13,7 @@ import { TwoFactorSetup } from "@/components/auth/two-factor-setup";
 import prisma from "@/lib/prisma";
 import { Settings2 } from "lucide-react";
 
-export default async function Asenso KatuwangPage() {
+export default async function AsensoKatuwangPage() {
   const session = await auth();
   const userName = session?.user?.username || "Member";
 
