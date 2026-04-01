@@ -1,7 +1,7 @@
 # Asenso | The Shared Treasury
 
 **Iyong pondo, ating Asenso.**  
-A modern, microfinancing digital lending SaaS platform designed for Filipino cooperatives and micro-entrepreneurs. Kaban provides low-interest, transparent, and secure financial services with a focus on community and growth.
+A modern, microfinancing digital lending SaaS platform designed for Filipino cooperatives and micro-entrepreneurs. Asenso provides low-interest, transparent, and secure financial services with a focus on community and growth.
 
 ![Kaban Hero Preview](kaban-web/public/images/kaban_growth.png)
 
