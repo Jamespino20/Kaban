@@ -51,7 +51,7 @@ export const createLoanProduct = async (
       },
     });
 
-    revalidatePath("/sibol");
+    revalidatePath("/asenso-gabay");
     return { success: "Loan product created!" };
   } catch (error) {
     return { error: "Something went wrong!" };

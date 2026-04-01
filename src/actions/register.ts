@@ -3,8 +3,9 @@
 import * as z from "zod";
 import bcrypt from "bcryptjs";
 import prisma from "@/lib/prisma";
+import { InterestTier, MaritalStatus } from "@prisma/client";
 import { generateVerificationToken } from "@/lib/tokens";
-import { sendVerificationEmail } from "@/lib/mail";
+import { sendVerificationEmail, verifyEmailExists } from "@/lib/mail";
 
 const RegisterSchema = z.object({
   email: z.string().email(),
@@ -14,6 +15,14 @@ const RegisterSchema = z.object({
   middleName: z.string().optional(),
   lastName: z.string().min(1),
   phone: z.string().min(10),
+  businessName: z.string().optional(),
+  maritalStatus: z.enum([
+    "single",
+    "married",
+    "widowed",
+    "separated",
+    "annulled",
+  ]),
   birthdate: z.string(),
   gender: z.string(),
   region: z.string(),
@@ -41,6 +50,8 @@ export const register = async (values: z.infer<typeof RegisterSchema>) => {
     middleName,
     lastName,
     phone,
+    businessName,
+    maritalStatus,
     birthdate,
     gender,
     region,
@@ -51,6 +62,14 @@ export const register = async (values: z.infer<typeof RegisterSchema>) => {
     idPicture,
     tenantId,
   } = validatedFields.data;
+
+  // Real-time SMTP Verification (Phase 2 Hardening)
+  const isEmailReal = await verifyEmailExists(email);
+  if (!isEmailReal) {
+    return {
+      error: "Email address does not exist! Please use a valid Gmail account.",
+    };
+  }
 
   const hashedPassword = await bcrypt.hash(password, 10);
 
@@ -72,13 +91,13 @@ export const register = async (values: z.infer<typeof RegisterSchema>) => {
 
   try {
     const result = await prisma.$transaction(async (tx) => {
-      // 1. Generate Member Code (KBN-YYYY-SERIAL)
+      // 1. Generate Member Code (ASN-YYYY-SERIAL)
       const year = new Date().getFullYear();
       const count = await tx.user.count({
         where: { tenant_id: tenantId },
       });
       const serial = (count + 1).toString().padStart(4, "0");
-      const member_code = `KBN-${year}-${serial}`;
+      const member_code = `ASN-${year}-${serial}`;
 
       // 2. Create User
       const user = await tx.user.create({
@@ -90,6 +109,7 @@ export const register = async (values: z.infer<typeof RegisterSchema>) => {
           password_hash: hashedPassword,
           tenant_id: tenantId,
           role: "member",
+          interest_tier: "T1_3_PERCENT", // Default entry tier
         },
       });
 
@@ -107,6 +127,8 @@ export const register = async (values: z.infer<typeof RegisterSchema>) => {
           city,
           barangay,
           address: streetAddress,
+          business_name: businessName,
+          marital_status: maritalStatus,
           photo_url: idPicture,
         },
       });

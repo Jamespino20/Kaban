@@ -27,10 +27,10 @@ export function Navbar({ forceSolid = false }: NavbarProps) {
   }, [forceSolid]);
 
   const navItems = [
-    { en: "Why Asenso", ph: "Bakit Asenso", href: "/#why-asenso" },
-    { en: "Features", ph: "Mga Tampok", href: "/#features" },
-    { en: "Testimonials", ph: "Patotoo", href: "/#testimonials" },
-    { en: "FAQs", ph: "Katanungan", href: "/#faqs" },
+    { ph: "Bakit Asenso", href: "/#why-asenso" },
+    { ph: "Mga Tampok", href: "/#features" },
+    { ph: "Mga Patotoo", href: "/#testimonials" },
+    { ph: "FAQs", href: "/#faqs" },
   ];
 
   return (
@@ -64,7 +64,7 @@ export function Navbar({ forceSolid = false }: NavbarProps) {
         <nav className="hidden md:flex items-center gap-10">
           {navItems.map((item) => (
             <Link
-              key={item.en}
+              key={item.ph}
               href={item.href}
               className={`text-sm font-bold transition-colors flex flex-col items-center group ${
                 isScrolled
@@ -73,7 +73,7 @@ export function Navbar({ forceSolid = false }: NavbarProps) {
               }`}
             >
               <span className="group-hover:translate-y-[-2px] transition-transform">
-                {item.en}
+                {item.ph}
               </span>
               <span
                 className={`text-[10px] font-black uppercase tracking-widest transition-opacity ${
@@ -112,13 +112,13 @@ export function Navbar({ forceSolid = false }: NavbarProps) {
           <nav className="flex flex-col gap-6">
             {navItems.map((item) => (
               <Link
-                key={item.en}
+                key={item.ph}
                 href={item.href}
                 onClick={() => setIsMenuOpen(false)}
-                className="flex flex-col items-start p-4 rounded-2xl hover:bg-slate-50 transition-colors border border-transparent hover:border-slate-100"
+                className="flex flex-col items-start p-4 rozunded-2xl hover:bg-slate-50 transition-colors border border-transparent hover:border-slate-100"
               >
                 <span className="text-lg font-black text-slate-900 italic">
-                  {item.en}
+                  {item.ph}
                 </span>
                 <span className="text-xs font-bold text-emerald-600 uppercase tracking-widest">
                   {item.ph}

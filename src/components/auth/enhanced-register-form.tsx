@@ -54,6 +54,14 @@ const EnhancedRegisterSchema = z
       .email("Invalid Gmail account")
       .refine((e) => e.endsWith("@gmail.com"), "Must be a Gmail account"),
     phone: z.string().min(10, "Invalid phone number"),
+    businessName: z.string().optional(),
+    maritalStatus: z.enum([
+      "single",
+      "married",
+      "widowed",
+      "separated",
+      "annulled",
+    ]),
     password: z.string().min(6, "Min 6 characters"),
     confirmPassword: z.string(),
     birthdate: z.string().min(1, "Birthdate is required"),
@@ -117,6 +125,8 @@ export function EnhancedRegisterForm() {
       username: "",
       email: "",
       phone: "",
+      businessName: "",
+      maritalStatus: "single",
       password: "",
       confirmPassword: "",
       birthdate: "",
@@ -219,7 +229,15 @@ export function EnhancedRegisterForm() {
       case 1:
         return ["username", "email", "phone", "password", "confirmPassword"];
       case 2:
-        return ["firstName", "middleName", "lastName", "birthdate", "gender"];
+        return [
+          "firstName",
+          "middleName",
+          "lastName",
+          "birthdate",
+          "gender",
+          "maritalStatus",
+          "businessName",
+        ];
       case 3:
         return [
           "regionId",
@@ -284,7 +302,7 @@ export function EnhancedRegisterForm() {
         toast.success(res.success);
         setSuccessData({
           msg: res.success,
-          memberCode: res.memberCode || "KBN-TEMP",
+          memberCode: res.memberCode || "ASN-TEMP",
         });
       }
     });
@@ -336,7 +354,7 @@ export function EnhancedRegisterForm() {
                 <p className="text-sm text-blue-700 leading-snug">
                   <strong>I-check ang iyong email.</strong> Nagpadala kami ng
                   verification link sa iyong Gmail inbox upang ma-activate ang
-                  iyong treasury.
+                  iyong Asenso account.
                 </p>
               </div>
 
@@ -540,12 +558,56 @@ export function EnhancedRegisterForm() {
                           <FormControl>
                             <select
                               {...field}
-                              className="w-full rounded-xl h-12 border border-slate-200 px-4 bg-white outline-none"
+                              className="w-full rounded-xl h-12 border border-slate-200 px-4 bg-white outline-none font-bold text-slate-700"
                             >
                               <option value="male">Lalaki (Male)</option>
                               <option value="female">Babae (Female)</option>
                               <option value="other">Iba pa</option>
                             </select>
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <FormField
+                      control={form.control}
+                      name="maritalStatus"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Marital Status</FormLabel>
+                          <FormControl>
+                            <select
+                              {...field}
+                              className="w-full rounded-xl h-12 border border-slate-200 px-4 bg-white outline-none font-bold text-slate-700"
+                            >
+                              <option value="single">Single</option>
+                              <option value="married">Married</option>
+                              <option value="widowed">Widowed</option>
+                              <option value="separated">Separated</option>
+                              <option value="annulled">Annulled</option>
+                            </select>
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="businessName"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Business Name (Optional)</FormLabel>
+                          <FormControl>
+                            <div className="relative">
+                              <Building2 className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                              <Input
+                                {...field}
+                                placeholder="Pangalan ng iyong Negosyo"
+                                className="pl-11 rounded-xl h-12 font-bold"
+                              />
+                            </div>
                           </FormControl>
                           <FormMessage />
                         </FormItem>

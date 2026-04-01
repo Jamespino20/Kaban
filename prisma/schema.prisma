@@ -9,9 +9,22 @@ datasource db {
 enum Role {
   superadmin
   admin
-  loan_officer
-  teller
+  staff
   member
+}
+
+enum MaritalStatus {
+  single
+  married
+  widowed
+  separated
+  annulled
+}
+
+enum InterestTier {
+  T1_3_PERCENT
+  T2_2_5_PERCENT
+  T3_2_PERCENT
 }
 
 model TenantGroup {
@@ -126,11 +139,13 @@ model User {
   email         String     @unique @db.VarChar(150)
   phone         String?    @db.VarChar(20)
   password_hash String     @db.VarChar(255)
-  tenant_id     Int
-  role          Role       @default(member)
-  status        UserStatus @default(pending)
-  created_at    DateTime   @default(now())
-  updated_at    DateTime   @updatedAt
+  tenant_id              Int
+  role                   Role            @default(member)
+  status                 UserStatus      @default(pending)
+  interest_tier          InterestTier    @default(T1_3_PERCENT)
+  is_deactivation_locked Boolean         @default(false)
+  created_at             DateTime        @default(now())
+  updated_at             DateTime        @updatedAt
 
   tenant                  Tenant                  @relation(fields: [tenant_id], references: [tenant_id])
   profile                 UserProfile?
@@ -159,13 +174,15 @@ model UserProfile {
   last_name   String    @db.VarChar(100)
   gender      String?   @db.VarChar(20)
   birthdate   DateTime? @db.Date
-  address     String?   @db.Text
-  occupation  String?   @db.VarChar(150)
-  region      String?   @db.VarChar(100)
-  province    String?   @db.VarChar(100)
-  city        String?   @db.VarChar(100)
-  barangay    String?   @db.VarChar(100)
-  photo_url   String?   @db.VarChar(255)
+  address       String?   @db.Text
+  business_name String?   @db.VarChar(150)
+  marital_status MaritalStatus? @default(single)
+  occupation    String?   @db.VarChar(150)
+  region        String?   @db.VarChar(100)
+  province      String?   @db.VarChar(100)
+  city          String?   @db.VarChar(100)
+  barangay      String?   @db.VarChar(100)
+  photo_url     String?   @db.VarChar(255)
 
   user User @relation(fields: [user_id], references: [user_id], onDelete: Cascade)
 
@@ -224,11 +241,13 @@ model Loan {
   principal_amount  Decimal    @db.Decimal(15, 2)
   purpose           String     @db.Text
   term_months       Int
-  interest_applied  Decimal    @db.Decimal(15, 2)
-  fees_applied      Decimal    @db.Decimal(15, 2) @default(0)
-  total_payable     Decimal    @db.Decimal(15, 2)
-  balance_remaining Decimal    @db.Decimal(15, 2)
-  status            LoanStatus @default(pending)
+  interest_applied      Decimal    @db.Decimal(15, 2)
+  principal_receivable  Decimal    @db.Decimal(15, 2) @default(0)
+  interest_receivable   Decimal    @db.Decimal(15, 2) @default(0)
+  fees_applied          Decimal    @db.Decimal(15, 2) @default(0)
+  total_payable         Decimal    @db.Decimal(15, 2)
+  balance_remaining     Decimal    @db.Decimal(15, 2)
+  status                LoanStatus @default(pending)
   applied_at        DateTime   @default(now())
   approved_at       DateTime?
   approved_by       Int?
@@ -430,6 +449,7 @@ model BusinessLedger {
   debit          Decimal  @default(0) @db.Decimal(15, 2)
   credit         Decimal  @default(0) @db.Decimal(15, 2)
   description    String   @db.Text
+  ledger_hash    String?  @db.VarChar(255) // Tamper-evident Audit Engine
   created_at     DateTime @default(now())
   created_by     Int?
 

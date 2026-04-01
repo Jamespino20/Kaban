@@ -16,7 +16,7 @@ import { TwoFactorSetup } from "@/components/auth/two-factor-setup";
 import prisma from "@/lib/prisma";
 import { History } from "lucide-react";
 
-export default async function SibolPage() {
+export default async function Asenso GabayPage() {
   const tenants = await getTenants();
   const session = await auth();
   const userName = session?.user?.username || "Admin";
@@ -34,7 +34,7 @@ export default async function SibolPage() {
         <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4">
           <div className="space-y-1">
             <h1 className="text-4xl font-display font-bold text-slate-900 tracking-tight italic">
-              Sibol Growth Engine
+              Asenso Gabay Growth Engine
             </h1>
             <p className="text-slate-500 font-sans">
               Central Command for Asenso Financial Operations

@@ -13,7 +13,7 @@ import { TwoFactorSetup } from "@/components/auth/two-factor-setup";
 import prisma from "@/lib/prisma";
 import { Settings2 } from "lucide-react";
 
-export default async function PintuanPage() {
+export default async function Asenso KatuwangPage() {
   const session = await auth();
   const userName = session?.user?.username || "Member";
 
@@ -161,7 +161,7 @@ export default async function PintuanPage() {
                   Security Settings
                 </h2>
                 <p className="text-slate-500">
-                  I-secure ang iyong Pintuan access gamit ang 2FA.
+                  I-secure ang iyong Asenso Katuwang access gamit ang 2FA.
                 </p>
               </div>
               <TwoFactorSetup isEnabledInitial={is2FAEnabled} />

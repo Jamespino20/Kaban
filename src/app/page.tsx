@@ -105,7 +105,7 @@ export default function Home() {
             <h1
               className={`text-6xl md:text-9xl font-display font-black tracking-tight italic mb-8 leading-[0.95] transition-colors duration-500 ${isScrolled ? "text-slate-950" : "text-white"}`}
             >
-              Iyong yaman,{" "}
+              Iyong pondo,{" "}
               <span className="text-emerald-600 drop-shadow-sm">
                 ating Asenso.
               </span>
@@ -288,7 +288,7 @@ export default function Home() {
                 question="Ano ang Asenso?"
                 answer="Ang Asenso ay isang microfinancing digital lending SaaS (software as a service) platform na nagbibigay ng pondo sa mga negosyante na nangangailangan ng kapital para mapalago ang kanilang negosyo. Sa pamamagitan ng Asenso, ang mga negosyante ay maaaring humiram ng pondo at bayaran ito sa pamamagitan ng daily, weekly, o monthly installments.
 
-                Sa kahulugan ng Asenso na “ipon” o “lalagyan ng yaman,” layunin nitong magsilbing ligtas at maaasahang sistema kung saan maaaring pamahalaan ang pondo, pautang, at bayarin ng mga miyembro sa isang organisado at digital na paraan."
+                Sa kahulugan ng Asenso na “ipon” o “lalagyan ng pondo,” layunin nitong magsilbing ligtas at maaasahang sistema kung saan maaaring pamahalaan ang pondo, pautang, at bayarin ng mga miyembro sa isang organisado at digital na paraan."
               />
               <AccordionItem
                 question="Sino ang maaaring gumamit ng Asenso??"
@@ -321,7 +321,7 @@ export default function Home() {
               <AccordionItem
                 question="Ano ang pinagkaiba ng Asenso sa tradisyonal na lending system?"
                 answer="Sa halip na manual na proseso (papel, ledger, at mano-manong computation), ang Asenso ay: Digital, Automated, Mas mabilis at mas accurate.
-                Ang iyong yaman, ating Asenso talaga."
+                Ang iyong pondo, ating Asenso talaga."
               />
             </div>
           </section>
