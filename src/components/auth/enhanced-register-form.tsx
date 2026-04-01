@@ -313,7 +313,7 @@ export function EnhancedRegisterForm() {
       <div className="bg-emerald-600 p-8 text-white relative overflow-hidden">
         <div className="relative z-10">
           <h2 className="text-3xl font-display font-bold italic">
-            Buksan ang Asenso
+            Simulan ang Asenso
           </h2>
           <p className="text-emerald-50 text-sm mt-1">
             Hakbang {step} ng 4: {getStepTitle(step)}

@@ -24,7 +24,7 @@ export default function ContactPage() {
               <BadgeCheck className="w-4 h-4" /> Narito Kami Para Sayo
             </span>
             <h1 className="text-5xl md:text-8xl font-black tracking-tight italic mb-8 leading-[0.95] text-slate-900 text-balance">
-              Buksan ang Inyong{" "}
+              Simulan ang Inyong{" "}
               <span className="text-emerald-600">Komunikasyon.</span>
             </h1>
             <p className="text-xl md:text-2xl font-medium text-slate-600 mb-12 leading-relaxed max-w-3xl mx-auto">
