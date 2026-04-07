@@ -64,7 +64,6 @@ export function Navbar({ forceSolid = false }: NavbarProps) {
         <nav className="hidden md:flex items-center gap-10">
           {navItems.map((item) => (
             <Link
-              key={item.ph}
               href={item.href}
               className={`text-sm font-bold transition-colors flex flex-col items-center group ${
                 isScrolled
@@ -73,13 +72,6 @@ export function Navbar({ forceSolid = false }: NavbarProps) {
               }`}
             >
               <span className="group-hover:translate-y-[-2px] transition-transform">
-                {item.ph}
-              </span>
-              <span
-                className={`text-[10px] font-black uppercase tracking-widest transition-opacity ${
-                  isScrolled ? "opacity-50" : "opacity-80"
-                }`}
-              >
                 {item.ph}
               </span>
             </Link>
