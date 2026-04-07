@@ -103,7 +103,7 @@ export default function Home() {
               <BadgeCheck className="w-4 h-4" /> SEC-REGISTERED · BSP-SUPERVISED
             </span>
             <h1
-              className={`text-6xl md:text-9xl font-display font-black tracking-tight italic mb-8 leading-[0.95] transition-colors duration-500 ${isScrolled ? "text-slate-950" : "text-white"}`}
+              className={`text-6xl md:text-8xl font-display font-black tracking-tight italic mb-8 leading-[0.95] transition-colors duration-500 ${isScrolled ? "text-slate-950" : "text-white"}`}
             >
               Iyong Agapay,{" "}
               <span className="text-emerald-600 drop-shadow-sm">
