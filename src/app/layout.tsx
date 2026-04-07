@@ -13,10 +13,10 @@ const fraunces = Fraunces({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://asenso-iatk.vercel.app"),
+  metadataBase: new URL("https://agapay-iatk.vercel.app"),
   title: {
-    default: "Asenso | The Shared Treasury — SEC-Registered Microfinance",
-    template: "%s | Asenso",
+    default: "Agapay | The Shared Treasury — SEC-Registered Microfinance",
+    template: "%s | Agapay",
   },
   description:
     "SEC-Registered, BSP-Supervised microfinancing for Filipino entrepreneurs. Rates from 1.5% monthly. The community-driven Paluwagan 2.0 alternative to GCash.",
@@ -27,20 +27,20 @@ export const metadata: Metadata = {
     "business loan options philippines",
     "gcash alternative",
   ],
-  authors: [{ name: "Asenso Cooperative Board" }],
-  creator: "Asenso Technologies",
+  authors: [{ name: "Agapay Cooperative Board" }],
+  creator: "Agapay Technologies",
   openGraph: {
     type: "website",
     locale: "en_PH",
-    url: "https://asenso-iatk.vercel.app",
-    title: "Asenso | The Shared Treasury",
+    url: "https://agapay-iatk.vercel.app",
+    title: "Agapay | The Shared Treasury",
     description:
       "The Business Operating System for Filipino Entrepreneurs. Transparent, cooperative-backed credit designed for the real world.",
-    siteName: "Asenso Microfinance",
+    siteName: "Agapay Microfinance",
   },
   twitter: {
     card: "summary_large_image",
-    title: "Asenso | The Shared Treasury",
+    title: "Agapay | The Shared Treasury",
     description: "The Business Operating System for Filipino Entrepreneurs.",
   },
   robots: {

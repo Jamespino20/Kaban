@@ -1,9 +1,9 @@
-# Asenso | The Shared Treasury
+# Agapay | The Shared Treasury
 
-**Iyong pondo, ating Asenso.**  
-A modern, microfinancing digital lending SaaS platform designed for Filipino cooperatives and micro-entrepreneurs. Asenso provides low-interest, transparent, and secure financial services with a focus on community and growth.
+**Iyong Agapay, ating Tagumpay.**  
+A modern, microfinancing digital lending SaaS platform designed for Filipino cooperatives and micro-entrepreneurs. Agapay provides low-interest, transparent, and secure financial services with a focus on community and growth.
 
-![Asenso Hero Preview](file:///c:/xampp/htdocs/Asenso/asenso-web/public/images/asenso_growth.png)
+![Agapay Hero Preview](file:///c:/xampp/htdocs/Agapay/agapay-web/public/images/agapay_growth.png)
 
 ## 🚀 Quick Start
 
@@ -18,8 +18,8 @@ A modern, microfinancing digital lending SaaS platform designed for Filipino coo
 1. **Clone and Install:**
 
    ```bash
-   git clone https://github.com/Jamespino20/Asenso.git
-   cd asenso-web
+   git clone https://github.com/Jamespino20/Agapay.git
+   cd agapay-web
    npm install --legacy-peer-deps
    ```
 
@@ -87,4 +87,4 @@ A modern, microfinancing digital lending SaaS platform designed for Filipino coo
 
 ## ⚖️ License
 
-MIT License. Copyright (c) 2026 Asenso.
+MIT License. Copyright (c) 2026 Agapay.

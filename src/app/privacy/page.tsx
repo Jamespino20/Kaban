@@ -14,7 +14,7 @@ export default function PrivacyPage() {
           </h1>
           <div className="prose prose-slate max-w-none text-slate-600 font-medium leading-relaxed space-y-8">
             <p>
-              Ang iyong privacy ay mahalaga sa amin. Ang Asenso ay sumusunod sa
+              Ang iyong privacy ay mahalaga sa amin. Ang Agapay ay sumusunod sa
               Data Privacy Act of 2012 upang matiyak na ang iyong impormasyon ay
               ligtas.
             </p>
@@ -29,7 +29,7 @@ export default function PrivacyPage() {
               2. Paggamit ng Datos
             </h2>
             <p>
-              Ang iyong datos ay gagamitin lamang sa loob ng Asenso system at
+              Ang iyong datos ay gagamitin lamang sa loob ng Agapay system at
               hindi ibabahagi sa mga third-party nang walang pahintulot.
             </p>
           </div>

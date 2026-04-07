@@ -6,7 +6,7 @@
 
 ---
 
-**Project:** Asenso SaaS
+**Project:** Agapay SaaS
 **Generated:** 2026-03-19 14:22:57
 **Category:** Fintech/Crypto
 

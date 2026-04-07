@@ -13,7 +13,7 @@ import { TwoFactorSetup } from "@/components/auth/two-factor-setup";
 import prisma from "@/lib/prisma";
 import { Settings2 } from "lucide-react";
 
-export default async function AsensoKatuwangPage() {
+export default async function AgapayKatuwangPage() {
   const session = await auth();
   const userName = session?.user?.username || "Member";
 
@@ -34,7 +34,7 @@ export default async function AsensoKatuwangPage() {
               <span className="text-emerald-600">{userName}</span>
             </h1>
             <p className="text-slate-500 font-sans text-lg">
-              Ang iyong Asenso ay protektado at handang palaguin ang iyong
+              Ang iyong Agapay ay protektado at handang palaguin ang iyong
               kinabukasan.
             </p>
           </div>
@@ -144,7 +144,7 @@ export default async function AsensoKatuwangPage() {
               </div>
               <div className="space-y-2">
                 <h2 className="text-2xl font-display font-bold text-slate-800">
-                  Magsimula sa iyong Asenso
+                  Magsimula sa iyong Agapay
                 </h2>
                 <p className="text-slate-500 max-w-md mx-auto">
                   Wala ka pang aktibong transaksyon sa kasalukuyan. Maaari kang
@@ -161,7 +161,7 @@ export default async function AsensoKatuwangPage() {
                   Security Settings
                 </h2>
                 <p className="text-slate-500">
-                  I-secure ang iyong Asenso Katuwang access gamit ang 2FA.
+                  I-secure ang iyong Agapay Katuwang access gamit ang 2FA.
                 </p>
               </div>
               <TwoFactorSetup isEnabledInitial={is2FAEnabled} />

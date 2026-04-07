@@ -14,14 +14,14 @@ export default function TermsPage() {
           </h1>
           <div className="prose prose-slate max-w-none text-slate-600 font-medium leading-relaxed space-y-8">
             <p>
-              Sa paggamit ng Asenso, sumasang-ayon ka sa mga sumusunod na
+              Sa paggamit ng Agapay, sumasang-ayon ka sa mga sumusunod na
               tuntunin.
             </p>
             <h2 className="text-2xl font-black italic text-slate-900">
               1. Paggamit ng Serbisyo
             </h2>
             <p>
-              Ang Asenso ay para lamang sa mga lehitimong negosyante at
+              Ang Agapay ay para lamang sa mga lehitimong negosyante at
               organisasyon.
             </p>
             <h2 className="text-2xl font-black italic text-slate-900">

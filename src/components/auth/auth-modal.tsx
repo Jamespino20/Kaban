@@ -20,7 +20,7 @@ export function AuthModal() {
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <Button className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold h-12 px-8 rounded-full shadow-lg shadow-emerald-900/20 transition-all">
-          Simulan ang Asenso (Get Started)
+          Simulan ang Agapay (Get Started)
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-[750px] bg-white border-slate-200 p-0 rounded-3xl overflow-hidden overflow-y-auto max-h-[95vh] border-none shadow-none">

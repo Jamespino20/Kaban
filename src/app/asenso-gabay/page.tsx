@@ -16,7 +16,7 @@ import { TwoFactorSetup } from "@/components/auth/two-factor-setup";
 import prisma from "@/lib/prisma";
 import { History } from "lucide-react";
 
-export default async function AsensoGabayPage() {
+export default async function AgapayGabayPage() {
   const tenants = await getTenants();
   const session = await auth();
   const userName = session?.user?.username || "Admin";
@@ -34,10 +34,10 @@ export default async function AsensoGabayPage() {
         <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4">
           <div className="space-y-1">
             <h1 className="text-4xl font-display font-bold text-slate-900 tracking-tight italic">
-              Asenso Gabay Growth Engine
+              Agapay Gabay Growth Engine
             </h1>
             <p className="text-slate-500 font-sans">
-              Central Command for Asenso Financial Operations
+              Central Command for Agapay Financial Operations
             </p>
           </div>
           <div className="flex items-center gap-6">
@@ -110,7 +110,7 @@ export default async function AsensoGabayPage() {
 
             <div className="hidden md:block px-4">
               <span className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em]">
-                Asenso Administrative Tier
+                Agapay Administrative Tier
               </span>
             </div>
           </div>

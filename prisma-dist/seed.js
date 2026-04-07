@@ -13,11 +13,11 @@ async function main() {
   }
   // 1. Create Superadmin
   const superadmin = await prisma.user.upsert({
-    where: { email: "superadmin@asenso.com" },
+    where: { email: "superadmin@agapay.com" },
     update: {},
     create: {
       username: "superadmin",
-      email: "superadmin@asenso.com",
+      email: "superadmin@agapay.com",
       password_hash: hashedPassword,
       role: Role.superadmin,
       status: UserStatus.active,
@@ -36,17 +36,17 @@ async function main() {
   });
   // 2. Create Admin
   const admin = await prisma.user.upsert({
-    where: { email: "admin@asenso.com" },
+    where: { email: "admin@agapay.com" },
     update: {},
     create: {
       username: "admin",
-      email: "admin@asenso.com",
+      email: "admin@agapay.com",
       password_hash: hashedPassword,
       role: Role.admin,
       status: UserStatus.active,
       profile: {
         create: {
-          first_name: "Asenso",
+          first_name: "Agapay",
           last_name: "Admin",
           occupation: "Cooperative Manager",
         },
@@ -55,11 +55,11 @@ async function main() {
   });
   // 3. Create Sample Members
   const member1 = await prisma.user.upsert({
-    where: { email: "juan@asenso.com" },
+    where: { email: "juan@agapay.com" },
     update: {},
     create: {
       username: "juan.delacruz",
-      email: "juan@asenso.com",
+      email: "juan@agapay.com",
       password_hash: hashedPassword,
       role: Role.member,
       status: UserStatus.active,

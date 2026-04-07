@@ -18,7 +18,7 @@ export async function generateTwoFactorSecret() {
   const email = session.user.email || "";
   const uri = totp.toURI({
     label: email,
-    issuer: "Asenso Treasury",
+    issuer: "Agapay Treasury",
     secret,
   });
   const qrCodeUrl = await qrcode.toDataURL(uri);

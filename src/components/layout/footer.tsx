@@ -10,13 +10,13 @@ export function Footer() {
           <div className="flex items-center gap-3">
             <div className="w-8 h-8 bg-emerald-600 rounded-lg flex items-center justify-center">
               <img
-                src="/images/asenso_solo.png"
-                alt="Asenso"
+                src="/images/agapay_solo.png"
+                alt="Agapay"
                 className="w-5 h-5 object-contain"
               />
             </div>
             <span className="text-2xl font-black tracking-tighter italic text-slate-900">
-              Asenso
+              Agapay
             </span>
           </div>
           <p className="text-slate-500 font-medium leading-relaxed">
@@ -56,7 +56,7 @@ export function Footer() {
         </div>
       </div>
       <div className="max-w-7xl mx-auto pt-20 mt-20 border-t border-slate-200/60 flex flex-col md:flex-row justify-between items-center gap-6 text-slate-400 text-xs font-bold uppercase tracking-widest">
-        <span>© 2026 Asenso Microfinance SaaS. All rights reserved.</span>
+        <span>© 2026 Agapay Microfinance SaaS. All rights reserved.</span>
         <span>Made with Precision in the Philippines</span>
       </div>
     </footer>

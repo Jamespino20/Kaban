@@ -51,7 +51,7 @@ export const createLoanProduct = async (
       },
     });
 
-    revalidatePath("/asenso-gabay");
+    revalidatePath("/agapay-gabay");
     return { success: "Loan product created!" };
   } catch (error) {
     return { error: "Something went wrong!" };

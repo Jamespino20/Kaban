@@ -27,7 +27,7 @@ export function Navbar({ forceSolid = false }: NavbarProps) {
   }, [forceSolid]);
 
   const navItems = [
-    { ph: "Bakit Asenso", href: "/#why-asenso" },
+    { ph: "Bakit Agapay", href: "/#why-agapay" },
     { ph: "Mga Tampok", href: "/#features" },
     { ph: "Mga Patotoo", href: "/#testimonials" },
     { ph: "FAQs", href: "/#faqs" },
@@ -46,8 +46,8 @@ export function Navbar({ forceSolid = false }: NavbarProps) {
         <Link href="/" className="flex items-center gap-4 group cursor-pointer">
           <div className="w-12 h-12 flex items-center justify-center transition-transform group-hover:scale-105">
             <img
-              src="/images/asenso_solo.png"
-              alt="Asenso"
+              src="/images/agapay_solo.png"
+              alt="Agapay"
               className="w-12 h-12 object-contain"
             />
           </div>
@@ -56,7 +56,7 @@ export function Navbar({ forceSolid = false }: NavbarProps) {
               isScrolled || isMenuOpen ? "text-slate-900" : "text-white"
             }`}
           >
-            Asenso
+            Agapay
           </span>
         </Link>
 
@@ -64,6 +64,7 @@ export function Navbar({ forceSolid = false }: NavbarProps) {
         <nav className="hidden md:flex items-center gap-10">
           {navItems.map((item) => (
             <Link
+              key={item.ph}
               href={item.href}
               className={`text-sm font-bold transition-colors flex flex-col items-center group ${
                 isScrolled

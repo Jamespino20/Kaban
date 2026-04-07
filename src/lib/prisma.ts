@@ -5,11 +5,11 @@ import { prismaAuditExtension } from "./prisma-audit";
 const prismaClientSingleton = () => {
   const connectionString =
     process.env.DATABASE_URL ||
-    process.env.ASENSO_DATABASE_URL ||
+    process.env.AGAPAY_DATABASE_URL ||
     process.env.POSTGRES_PRISMA_URL ||
     process.env.POSTGRES_URL ||
-    process.env.ASENSO_URL ||
-    process.env.ASENSO_PRISMA_URL;
+    process.env.AGAPAY_URL ||
+    process.env.AGAPAY_PRISMA_URL;
 
   const adapter = new PrismaNeon({ connectionString });
   return new PrismaClient({ adapter }).$extends(prismaAuditExtension);

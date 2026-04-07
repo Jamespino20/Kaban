@@ -60,11 +60,11 @@ export default function AboutPage() {
               <BadgeCheck className="w-4 h-4" /> Higit Pa sa Pondo
             </span>
             <h1 className="text-5xl md:text-8xl font-black tracking-tight italic mb-8 leading-[0.95] text-slate-900">
-              Ang Kwento ng <span className="text-emerald-600">Asenso.</span>
+              Ang Kwento ng <span className="text-emerald-600">Agapay.</span>
             </h1>
             <p className="text-xl md:text-2xl font-medium text-slate-600 mb-12 leading-relaxed max-w-3xl">
               Nagsimula kami sa isang simpleng pangarap: Ang bigyan ang bawat
-              Pilipinong negosyante ng pagkakataong umasenso nang walang takot
+              Pilipinong negosyante ng pagkakataong umagapay nang walang takot
               sa mapang-abusong patubuan.
             </p>
           </div>

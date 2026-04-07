@@ -30,7 +30,7 @@ export async function generate2FASecret() {
   const otpauth = generateURI({
     secret: secret as string,
     label: user.email,
-    issuer: "Asenso Treasury",
+    issuer: "Agapay Treasury",
   });
 
   const qrCodeUrl = await QRCode.toDataURL(otpauth);

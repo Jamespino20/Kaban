@@ -11,6 +11,6 @@ export default defineConfig({
   },
 
   datasource: {
-    url: process.env.ASENSODATABASE_URL_UNPOOLED,
+    url: process.env.AGAPAYSTORAGE_DATABASE_URL_UNPOOLED,
   },
 });

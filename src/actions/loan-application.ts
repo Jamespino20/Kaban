@@ -92,7 +92,7 @@ export const applyForLoan = async (
       }
     });
 
-    revalidatePath("/asenso-katuwang");
+    revalidatePath("/agapay-katuwang");
     return { success: "Application submitted successfully!" };
   } catch (error) {
     console.error(error);

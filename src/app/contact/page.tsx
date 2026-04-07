@@ -39,13 +39,13 @@ export default function ContactPage() {
           <ContactMethod
             icon={<Phone className="w-8 h-8 text-emerald-600" />}
             title="Tawagan Kami"
-            detail="+63 (02) 8888-ASENSO"
+            detail="+63 (02) 8888-AGAPAY"
             actionLabel="Call Now"
           />
           <ContactMethod
             icon={<Mail className="w-8 h-8 text-emerald-600" />}
             title="Email Support"
-            detail="support@asenso.com.ph"
+            detail="support@agapay.com.ph"
             actionLabel="Send Email"
           />
           <ContactMethod

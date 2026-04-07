@@ -156,7 +156,7 @@ export function EnhancedRegisterForm() {
     fetchData();
   }, []);
 
-  // Handler: When Asenso Region (TenantGroup/Branch) Changes
+  // Handler: When Agapay Region (TenantGroup/Branch) Changes
   const onRegionChange = async (regionId: string) => {
     form.setValue("regionId", regionId);
     form.setValue("tenantId", "");
@@ -313,7 +313,7 @@ export function EnhancedRegisterForm() {
       <div className="bg-emerald-600 p-8 text-white relative overflow-hidden">
         <div className="relative z-10">
           <h2 className="text-3xl font-display font-bold italic">
-            Simulan ang Asenso
+            Simulan ang Agapay
           </h2>
           <p className="text-emerald-50 text-sm mt-1">
             Hakbang {step} ng 4: {getStepTitle(step)}
@@ -330,7 +330,7 @@ export function EnhancedRegisterForm() {
             </div>
             <div className="space-y-2">
               <h3 className="text-3xl font-display font-bold text-slate-900 leading-tight">
-                Mabuhay! Bienvenido sa Asenso.
+                Mabuhay! Bienvenido sa Agapay.
               </h3>
               <p className="text-slate-500">
                 Ang iyong account ay matagumpay na nagawa.
@@ -354,7 +354,7 @@ export function EnhancedRegisterForm() {
                 <p className="text-sm text-blue-700 leading-snug">
                   <strong>I-check ang iyong email.</strong> Nagpadala kami ng
                   verification link sa iyong Gmail inbox upang ma-activate ang
-                  iyong Asenso account.
+                  iyong Agapay account.
                 </p>
               </div>
 
@@ -620,7 +620,7 @@ export function EnhancedRegisterForm() {
               {step === 3 && (
                 <div className="space-y-4 animate-in fade-in slide-in-from-right-4 duration-300">
                   <h4 className="text-sm font-semibold text-slate-500 uppercase tracking-wider">
-                    Asenso Cooperative
+                    Agapay Cooperative
                   </h4>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <FormField
@@ -628,14 +628,14 @@ export function EnhancedRegisterForm() {
                       name="regionId"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Asenso Area</FormLabel>
+                          <FormLabel>Agapay Area</FormLabel>
                           <FormControl>
                             <select
                               {...field}
                               onChange={(e) => onRegionChange(e.target.value)}
                               className="w-full rounded-xl h-12 border border-slate-200 px-4 bg-white outline-none"
                             >
-                              <option value="">Select Asenso Area</option>
+                              <option value="">Select Agapay Area</option>
                               {regions.map((r) => (
                                 <option key={r.id} value={r.id.toString()}>
                                   {r.name}

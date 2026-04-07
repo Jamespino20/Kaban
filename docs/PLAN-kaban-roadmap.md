@@ -1,22 +1,22 @@
-# PLAN: Asenso Comprehensive Roadmap (`asenso-roadmap`)
+# PLAN: Agapay Comprehensive Roadmap (`agapay-roadmap`)
 
-This document outlines the strategic pivot of Asenso into **Asenso**, a Business Operating System designed for the "Urban Grit" of the Filipino market vendor.
+This document outlines the strategic pivot of Agapay into **Agapay**, a Business Operating System designed for the "Urban Grit" of the Filipino market vendor.
 
-## 🏗️ Phase 4: The "Asenso" Refactor (Identity & Logic)
+## 🏗️ Phase 4: The "Agapay" Refactor (Identity & Logic)
 
 _Goal: Rebrand and harden the core models to support risk-based pricing._
 
 ### [MODIFY] `prisma/schema.prisma`
 
-- **[REBRAND]** Models: `Asenso` terminology to `Asenso`. (e.g., `AsensoVault` -> `AsensoTreasury`).
+- **[REBRAND]** Models: `Agapay` terminology to `Agapay`. (e.g., `AgapayVault` -> `AgapayTreasury`).
 - **[REFAC]** `User`: Add `business_name`, `interest_tier` (T1, T2, T3), `verification_level`.
 - **[REFAC]** `Loan`: Explicitly track `principal_receivable` and `interest_receivable` divisions.
 - **[NEW]** `BusinessPermit`: Model for T2 verification (Mayors/DTI).
 
 ### [UPDATE] Portal Identity
 
-- **Dashboard**: "Asenso Gabay" (Guide to Growth).
-- **Member Portal**: "Asenso Katuwang" (Partner in Progress).
+- **Dashboard**: "Agapay Gabay" (Guide to Growth).
+- **Member Portal**: "Agapay Katuwang" (Partner in Progress).
 - **Greetings**: Personalized "Magandang umaga, Ma'am [Name]!" based on business profile.
 
 ---
