@@ -73,6 +73,9 @@ const EnhancedRegisterSchema = z
     city: z.string().min(1, "City is required"),
     barangay: z.string().min(1, "Barangay is required"),
     streetAddress: z.string().min(1, "Street address is required"),
+    mothersMaidenName: z.string().min(1, "Mother's maiden name is required"),
+    placeOfBirth: z.string().min(1, "Place of birth is required"),
+    tin: z.string().optional(),
     termsAccepted: z.boolean().refine((v) => v === true, "Must accept terms"),
     privacyAccepted: z
       .boolean()
@@ -89,6 +92,8 @@ export function EnhancedRegisterForm() {
   const [showPassword, setShowPassword] = useState(false);
   const [idFile, setIdFile] = useState<File | null>(null);
   const [idUrl, setIdUrl] = useState<string>("");
+  const [brgyCertUrl, setBrgyCertUrl] = useState<string>("");
+  const [businessPermitUrl, setBusinessPermitUrl] = useState<string>("");
   const [successData, setSuccessData] = useState<{
     msg: string;
     memberCode: string;
@@ -138,6 +143,9 @@ export function EnhancedRegisterForm() {
       city: "",
       barangay: "",
       streetAddress: "",
+      mothersMaidenName: "",
+      placeOfBirth: "",
+      tin: "",
       termsAccepted: false,
       privacyAccepted: false,
     },
@@ -150,6 +158,9 @@ export function EnhancedRegisterForm() {
         getRegions(),
         fetchPsgcRegions(),
       ]);
+      if (regionData.length === 0) {
+        console.warn("No Agapay Areas found in database.");
+      }
       setRegions(regionData as any);
       setPsgcRegions(psgcData);
     };
@@ -236,6 +247,8 @@ export function EnhancedRegisterForm() {
           "birthdate",
           "gender",
           "maritalStatus",
+          "mothersMaidenName",
+          "placeOfBirth",
           "businessName",
         ];
       case 3:
@@ -254,16 +267,20 @@ export function EnhancedRegisterForm() {
     }
   };
 
-  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileUpload = async (
+    e: React.ChangeEvent<HTMLInputElement>,
+    type: "id" | "brgy" | "business",
+  ) => {
     const file = e.target.files?.[0];
     if (file) {
-      setIdFile(file);
       const formData = new FormData();
       formData.append("file", file);
       const res = await uploadIdPicture(formData);
       if (res.success) {
-        setIdUrl(res.url!);
-        toast.success("ID Picture uploaded");
+        if (type === "id") setIdUrl(res.url!);
+        if (type === "brgy") setBrgyCertUrl(res.url!);
+        if (type === "business") setBusinessPermitUrl(res.url!);
+        toast.success(`${type.toUpperCase()} Picture uploaded`);
       } else {
         toast.error(res.error || "Upload failed");
       }
@@ -296,6 +313,11 @@ export function EnhancedRegisterForm() {
         streetAddress: values.streetAddress,
         tenantId: parseInt(values.tenantId),
         idPicture: idUrl,
+        brgyCertUrl,
+        businessPermitUrl,
+        mothersMaidenName: values.mothersMaidenName,
+        placeOfBirth: values.placeOfBirth,
+        tin: values.tin,
       });
       if (res.error) toast.error(res.error);
       if (res.success) {
@@ -595,6 +617,61 @@ export function EnhancedRegisterForm() {
                     />
                     <FormField
                       control={form.control}
+                      name="mothersMaidenName"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>
+                            Pangalan ng Ina (Mother's Maiden Name)
+                          </FormLabel>
+                          <FormControl>
+                            <Input
+                              {...field}
+                              placeholder="Pangalan bago ikinasal"
+                              className="rounded-xl h-12"
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="placeOfBirth"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>
+                            Lugar ng Kapanganakan (Place of Birth)
+                          </FormLabel>
+                          <FormControl>
+                            <Input
+                              {...field}
+                              placeholder="Lungsod o Probinsya"
+                              className="rounded-xl h-12"
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="tin"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>TIN (Optional)</FormLabel>
+                          <FormControl>
+                            <Input
+                              {...field}
+                              placeholder="000-000-000-000"
+                              className="rounded-xl h-12"
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
                       name="businessName"
                       render={({ field }) => (
                         <FormItem>
@@ -804,39 +881,120 @@ export function EnhancedRegisterForm() {
 
               {step === 4 && (
                 <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-300">
-                  <div className="space-y-4">
-                    <FormLabel>Handa na ang iyong ID Picture</FormLabel>
-                    <Card
-                      className="border-dashed border-2 border-slate-200 p-8 flex flex-col items-center justify-center text-center space-y-4 cursor-pointer hover:bg-slate-50 transition-colors"
-                      onClick={() =>
-                        document.getElementById("id-upload")?.click()
-                      }
-                    >
-                      <input
-                        id="id-upload"
-                        type="file"
-                        accept="image/*"
-                        className="hidden"
-                        onChange={handleFileUpload}
-                      />
-                      {idUrl ? (
-                        <div className="space-y-2">
-                          <CheckCircle2 className="w-12 h-12 text-emerald-500 mx-auto" />
-                          <p className="text-emerald-600 font-bold">
-                            Na-upload na ang ID!
-                          </p>
-                        </div>
-                      ) : (
-                        <>
-                          <IdCard className="w-12 h-12 text-slate-300" />
-                          <p className="text-sm text-slate-500">
-                            I-click upang mag-upload ng Valid ID (Passport,
-                            UMID, Driver&apos;s License, etc.)
-                          </p>
-                        </>
-                      )}
-                    </Card>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-4">
+                      <FormLabel>ID Picture</FormLabel>
+                      <Card
+                        className="border-dashed border-2 border-slate-200 p-6 flex flex-col items-center justify-center text-center space-y-4 cursor-pointer hover:bg-slate-50 transition-colors"
+                        onClick={() =>
+                          document.getElementById("id-upload")?.click()
+                        }
+                      >
+                        <input
+                          id="id-upload"
+                          type="file"
+                          accept="image/*"
+                          className="hidden"
+                          onChange={(e) => handleFileUpload(e, "id")}
+                        />
+                        {idUrl ? (
+                          <div className="space-y-2">
+                            <img
+                              src={idUrl}
+                              alt="ID Preview"
+                              className="w-16 h-16 object-cover rounded-xl mx-auto shadow-md"
+                            />
+                            <p className="text-emerald-600 text-[10px] font-bold">
+                              Palitan
+                            </p>
+                          </div>
+                        ) : (
+                          <>
+                            <IdCard className="w-8 h-8 text-slate-300" />
+                            <p className="text-[10px] text-slate-500">
+                              I-click para sa ID
+                            </p>
+                          </>
+                        )}
+                      </Card>
+                    </div>
+
+                    <div className="space-y-4">
+                      <FormLabel>Barangay Certificate</FormLabel>
+                      <Card
+                        className="border-dashed border-2 border-slate-200 p-6 flex flex-col items-center justify-center text-center space-y-4 cursor-pointer hover:bg-slate-50 transition-colors"
+                        onClick={() =>
+                          document.getElementById("brgy-upload")?.click()
+                        }
+                      >
+                        <input
+                          id="brgy-upload"
+                          type="file"
+                          accept="image/*"
+                          className="hidden"
+                          onChange={(e) => handleFileUpload(e, "brgy")}
+                        />
+                        {brgyCertUrl ? (
+                          <div className="space-y-2">
+                            <img
+                              src={brgyCertUrl}
+                              alt="Brgy Preview"
+                              className="w-16 h-16 object-cover rounded-xl mx-auto shadow-md"
+                            />
+                            <p className="text-emerald-600 text-[10px] font-bold">
+                              Palitan
+                            </p>
+                          </div>
+                        ) : (
+                          <>
+                            <FileText className="w-8 h-8 text-slate-300" />
+                            <p className="text-[10px] text-slate-500">
+                              I-click para sa Brgy Cert
+                            </p>
+                          </>
+                        )}
+                      </Card>
+                    </div>
                   </div>
+
+                  {form.getValues("businessName") && (
+                    <div className="space-y-4">
+                      <FormLabel>Business Permit</FormLabel>
+                      <Card
+                        className="border-dashed border-2 border-slate-200 p-6 flex flex-col items-center justify-center text-center space-y-4 cursor-pointer hover:bg-slate-50 transition-colors"
+                        onClick={() =>
+                          document.getElementById("business-upload")?.click()
+                        }
+                      >
+                        <input
+                          id="business-upload"
+                          type="file"
+                          accept="image/*"
+                          className="hidden"
+                          onChange={(e) => handleFileUpload(e, "business")}
+                        />
+                        {businessPermitUrl ? (
+                          <div className="space-y-2">
+                            <img
+                              src={businessPermitUrl}
+                              alt="Business Preview"
+                              className="w-16 h-16 object-cover rounded-xl mx-auto shadow-md"
+                            />
+                            <p className="text-emerald-600 text-[10px] font-bold">
+                              Palitan
+                            </p>
+                          </div>
+                        ) : (
+                          <>
+                            <Building2 className="w-8 h-8 text-slate-300" />
+                            <p className="text-[10px] text-slate-500">
+                              I-click para sa Business Permit
+                            </p>
+                          </>
+                        )}
+                      </Card>
+                    </div>
+                  )}
 
                   <div className="space-y-4">
                     <FormField

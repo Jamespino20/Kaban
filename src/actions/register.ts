@@ -31,6 +31,11 @@ const RegisterSchema = z.object({
   barangay: z.string(),
   streetAddress: z.string(),
   idPicture: z.string(),
+  brgyCertUrl: z.string().optional(),
+  businessPermitUrl: z.string().optional(),
+  mothersMaidenName: z.string().optional(),
+  placeOfBirth: z.string().optional(),
+  tin: z.string().optional(),
   tenantId: z.number().int().positive("Please select a branch"),
 });
 
@@ -60,6 +65,11 @@ export const register = async (values: z.infer<typeof RegisterSchema>) => {
     barangay,
     streetAddress,
     idPicture,
+    brgyCertUrl,
+    businessPermitUrl,
+    mothersMaidenName,
+    placeOfBirth,
+    tin,
     tenantId,
   } = validatedFields.data;
 
@@ -129,11 +139,14 @@ export const register = async (values: z.infer<typeof RegisterSchema>) => {
           address: streetAddress,
           business_name: businessName,
           marital_status: maritalStatus,
+          mothers_maiden_name: mothersMaidenName,
+          place_of_birth: placeOfBirth,
+          tin: tin,
           photo_url: idPicture,
         },
       });
 
-      // 4. Create ID Document entry
+      // 4. Create Documents
       await tx.userDocument.create({
         data: {
           user_id: user.user_id,
@@ -142,6 +155,28 @@ export const register = async (values: z.infer<typeof RegisterSchema>) => {
           verification_status: "pending",
         },
       });
+
+      if (brgyCertUrl) {
+        await tx.userDocument.create({
+          data: {
+            user_id: user.user_id,
+            document_type: "brgy_cert",
+            file_url: brgyCertUrl,
+            verification_status: "pending",
+          },
+        });
+      }
+
+      if (businessPermitUrl) {
+        await tx.userDocument.create({
+          data: {
+            user_id: user.user_id,
+            document_type: "business_permit",
+            file_url: businessPermitUrl,
+            verification_status: "pending",
+          },
+        });
+      }
 
       return user;
     });
