@@ -15,12 +15,18 @@ import { UserAccountNav } from "@/components/layout/user-account-nav";
 import { TwoFactorSetup } from "@/components/auth/two-factor-setup";
 import prisma from "@/lib/prisma";
 import { History } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 import { TrustDistributionChart } from "@/components/analytics/trust-distribution-chart";
 
 import { MemberDirectoryTab } from "@/components/admin/member-directory-tab";
 import { VerificationQueueTab } from "@/components/admin/verification-queue-tab";
-import { getTenantMembers, getPendingApprovals } from "@/actions/admin-actions";
+import {
+  getTenantMembers,
+  getPendingApprovals,
+  getDashboardMetrics,
+  getTenantTrustMetrics,
+} from "@/actions/admin-actions";
 
 import { TrustMeter } from "@/components/analytics/trust-meter";
 import { KPIMetricCard } from "@/components/analytics/kpi-metric-card";
@@ -47,23 +53,8 @@ export default async function AgapayTanawPage() {
   // Data fetching for administrative views
   const members = await getTenantMembers();
   const pendingData = await getPendingApprovals();
-
-  // Mock aggregate stats for the cooperative
-  const aggregateTrust = {
-    score: 78,
-    paymentScore: 82,
-    businessScore: 65,
-    peerScore: 88,
-    guarantorScore: 75,
-    tier: "T2_2_5_PERCENT" as any,
-  };
-
-  const trustDistribution = {
-    elite: 24,
-    growth: 56,
-    starter: 42,
-    atRisk: 12,
-  };
+  const metrics = await getDashboardMetrics();
+  const trustData = await getTenantTrustMetrics();
 
   const isStaff = userRole === "staff";
 
@@ -125,7 +116,7 @@ export default async function AgapayTanawPage() {
                 <span>Members</span>
               </TabsTrigger>
 
-              {!isStaff && (
+              {isAdmin && (
                 <>
                   <TabsTrigger
                     value="products"
@@ -139,7 +130,9 @@ export default async function AgapayTanawPage() {
                     className="rounded-xl data-[state=active]:bg-red-600 data-[state=active]:text-white transition-all px-6 py-2.5 flex items-center gap-2 text-red-600 hover:bg-red-50"
                   >
                     <ShieldAlert className="w-4 h-4" />
-                    <span>Branch Ops</span>
+                    <span>
+                      {isSuperAdmin ? "Global Tenant Mgmt" : "Branch Ops"}
+                    </span>
                   </TabsTrigger>
                 </>
               )}
@@ -152,7 +145,7 @@ export default async function AgapayTanawPage() {
                 <span>Settings</span>
               </TabsTrigger>
 
-              {!isStaff && (
+              {isAdmin && (
                 <TabsTrigger
                   value="audit"
                   className="rounded-xl data-[state=active]:bg-slate-900 data-[state=active]:text-white transition-all px-6 py-2.5 flex items-center gap-2"
@@ -168,26 +161,28 @@ export default async function AgapayTanawPage() {
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
               <KPIMetricCard
                 label="Total Liquidity"
-                value="₱2.4M"
-                icon={Wallet}
+                value={`₱${(metrics.totalLiquidity / 1000000).toFixed(1)}M`}
+                description={`Kabuuan: ₱${metrics.totalLiquidity.toLocaleString()}`}
+                iconName="wallet"
                 trend={{ value: 12.5, isPositive: true }}
               />
               <KPIMetricCard
                 label="Active Loans"
-                value="142"
-                icon={Activity}
+                value={metrics.activeLoans}
+                iconName="activity"
                 trend={{ value: 8.2, isPositive: true }}
               />
               <KPIMetricCard
                 label="Repayment Rate"
-                value="94.2%"
-                icon={CheckCircle2}
+                value={`${metrics.repaymentRate.toFixed(1)}%`}
+                iconName="check"
                 trend={{ value: 1.4, isPositive: true }}
               />
               <KPIMetricCard
                 label="Risk Exposure"
-                value="₱128K"
-                icon={AlertTriangle}
+                value={`₱${(metrics.riskExposure / 1000).toFixed(0)}K`}
+                description={`Delinquent: ₱${metrics.riskExposure.toLocaleString()}`}
+                iconName="alert"
                 trend={{ value: 3.1, isPositive: false }}
                 variant="ghost"
               />
@@ -202,13 +197,15 @@ export default async function AgapayTanawPage() {
                   <p className="text-slate-500 text-sm mt-1 mb-8">
                     Kasalukuyang katayuan ng trust network
                   </p>
-                  {!isStaff ? (
-                    <TrustDistributionChart distribution={trustDistribution} />
+                  {isAdmin ? (
+                    <TrustDistributionChart
+                      distribution={trustData.distribution}
+                    />
                   ) : (
                     <div className="space-y-4">
                       <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100 italic text-slate-500 text-xs">
-                        "Your branch is performing 15% better than last month.
-                        Keep building trust!"
+                        "Ang iyong branch ay lumalago. Patuloy na i-verify ang
+                        trust status ng mga miyembro."
                       </div>
                       <div className="grid grid-cols-2 gap-4">
                         <div className="p-4 bg-emerald-50 rounded-2xl border border-emerald-100">
@@ -232,7 +229,7 @@ export default async function AgapayTanawPage() {
                   )}
                 </div>
                 <div className="flex-shrink-0 scale-110 md:scale-125">
-                  <TrustMeter data={aggregateTrust} />
+                  <TrustMeter data={trustData.aggregateTrust} />
                 </div>
               </div>
 

@@ -2,13 +2,20 @@
 
 import React from "react";
 import { cn } from "@/lib/utils";
-import { LucideIcon } from "lucide-react";
+import {
+  LucideIcon,
+  Wallet,
+  Activity,
+  CheckCircle2,
+  AlertTriangle,
+  TrendingUp,
+} from "lucide-react";
 
 interface KPIMetricCardProps {
   label: string;
   value: string | number;
   description?: string;
-  icon?: LucideIcon;
+  iconName?: "wallet" | "activity" | "check" | "alert" | "trending";
   trend?: {
     value: number;
     isPositive: boolean;
@@ -21,11 +28,20 @@ export function KPIMetricCard({
   label,
   value,
   description,
-  icon: Icon,
+  iconName,
   trend,
   className,
   variant = "glass",
 }: KPIMetricCardProps) {
+  const IconMap = {
+    wallet: Wallet,
+    activity: Activity,
+    check: CheckCircle2,
+    alert: AlertTriangle,
+    trending: TrendingUp,
+  };
+
+  const Icon = iconName ? IconMap[iconName] : null;
   return (
     <div
       className={cn(

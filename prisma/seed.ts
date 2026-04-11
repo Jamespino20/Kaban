@@ -4,6 +4,7 @@ import { PrismaNeon } from "@prisma/adapter-neon";
 import bcrypt from "bcryptjs";
 
 // @ts-ignore - PrismaNeon takes a pool or config object
+const connectionString = process.env.DATABASE_URL;
 const adapter = new PrismaNeon({ connectionString });
 const prisma = new PrismaClient({ adapter });
 
@@ -66,7 +67,16 @@ async function main() {
     },
   });
 
-  // 5. Members & Guarantor Network
+  // Default Payment Method for demonstrations
+  const defaultMethod = await prisma.paymentMethod.create({
+    data: {
+      provider_name: "Agapay Counter",
+      tenant_id: branch.tenant_id,
+      is_active: true,
+    },
+  });
+
+  // ... (Members logic remains same)
   console.log("👥 Seeding Members (Standardized Member Codes)...");
 
   const genCode = (i: number) =>
@@ -159,7 +169,62 @@ async function main() {
     },
   });
 
-  console.log("✅ Seed v5 (TypeScript) Complete! Ecosystem active.");
+  // 7. Dashboard Data: Savings & Liquidity
+  console.log("💰 Seeding Liquidity (Savings Accounts)...");
+  for (const username of Object.keys(userIds)) {
+    await prisma.savingsAccount.create({
+      data: {
+        user_id: userIds[username],
+        tenant_id: branch.tenant_id,
+        account_type: "regular_savings",
+        balance: Math.floor(Math.random() * 5000) + 1000,
+      },
+    });
+  }
+
+  // 8. Dashboard Data: Schedules & Payments (Repayment Rate)
+  console.log("📅 Generating Loan Schedules & Repayment History...");
+  const firstDueDate = new Date();
+  firstDueDate.setMonth(firstDueDate.getMonth() - 1); // 1 month ago
+
+  const schedules = [];
+  for (let m = 1; m <= 6; m++) {
+    const dueDate = new Date(firstDueDate);
+    dueDate.setMonth(dueDate.getMonth() + m - 1);
+
+    schedules.push({
+      loan_id: ricardoLoan.loan_id,
+      installment_number: m,
+      due_date: dueDate,
+      principal_amount: 20000 / 6,
+      interest_amount: 3000 / 6,
+      total_due: 23000 / 6,
+      status:
+        m === 1
+          ? ("paid" as const)
+          : m === 2
+            ? ("overdue" as const)
+            : ("pending" as const),
+      paid_at: m === 1 ? new Date(firstDueDate) : null,
+    });
+  }
+
+  await prisma.loanSchedule.createMany({ data: schedules });
+
+  // Add one verified payment for Ricardo
+  await prisma.payment.create({
+    data: {
+      loan_id: ricardoLoan.loan_id,
+      payment_reference: "PAY-RIC-001",
+      amount_paid: 23000 / 6,
+      status: "verified",
+      method_id: defaultMethod.method_id,
+      submitted_at: new Date(firstDueDate),
+      verified_at: new Date(firstDueDate),
+    },
+  });
+
+  console.log("✅ Seed v6 (High-Fidelity Analytics) Complete!");
 }
 
 main()
