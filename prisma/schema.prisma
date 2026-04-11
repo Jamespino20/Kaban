@@ -76,6 +76,8 @@ enum DocumentType {
   valid_id
   proof_of_billing
   residency_cert
+  brgy_cert
+  business_permit
 }
 
 enum VerificationStatus {
@@ -178,6 +180,9 @@ model UserProfile {
   business_name String?   @db.VarChar(150)
   marital_status MaritalStatus? @default(single)
   occupation    String?   @db.VarChar(150)
+  mothers_maiden_name String? @db.VarChar(150)
+  place_of_birth      String? @db.VarChar(150)
+  tin                String? @db.VarChar(20)
   region        String?   @db.VarChar(100)
   province      String?   @db.VarChar(100)
   city          String?   @db.VarChar(100)

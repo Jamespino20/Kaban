@@ -56,6 +56,8 @@ export default async function AgapayTanawPage() {
   const metrics = await getDashboardMetrics();
   const trustData = await getTenantTrustMetrics();
 
+  const isSuperAdmin = userRole === "superadmin";
+  const isAdmin = userRole === "admin" || isSuperAdmin;
   const isStaff = userRole === "staff";
 
   return (
