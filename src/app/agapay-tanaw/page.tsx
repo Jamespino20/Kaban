@@ -16,16 +16,56 @@ import { TwoFactorSetup } from "@/components/auth/two-factor-setup";
 import prisma from "@/lib/prisma";
 import { History } from "lucide-react";
 
+import { TrustDistributionChart } from "@/components/analytics/trust-distribution-chart";
+
+import { MemberDirectoryTab } from "@/components/admin/member-directory-tab";
+import { VerificationQueueTab } from "@/components/admin/verification-queue-tab";
+import { getTenantMembers, getPendingApprovals } from "@/actions/admin-actions";
+
+import { TrustMeter } from "@/components/analytics/trust-meter";
+import { KPIMetricCard } from "@/components/analytics/kpi-metric-card";
+import {
+  TrendingUp,
+  Wallet,
+  CheckCircle2,
+  AlertTriangle,
+  Activity,
+} from "lucide-react";
+
 export default async function AgapayTanawPage() {
   const tenants = await getTenants();
   const session = await auth();
   const userName = session?.user?.username || "Admin";
+  const userRole = session?.user?.role || "staff";
 
   const userWith2FA = await prisma.user.findUnique({
     where: { user_id: parseInt(session?.user?.id || "0") },
     include: { two_factor_auth: true },
   });
   const is2FAEnabled = userWith2FA?.two_factor_auth?.is_enabled || false;
+
+  // Data fetching for administrative views
+  const members = await getTenantMembers();
+  const pendingData = await getPendingApprovals();
+
+  // Mock aggregate stats for the cooperative
+  const aggregateTrust = {
+    score: 78,
+    paymentScore: 82,
+    businessScore: 65,
+    peerScore: 88,
+    guarantorScore: 75,
+    tier: "T2_2_5_PERCENT" as any,
+  };
+
+  const trustDistribution = {
+    elite: 24,
+    growth: 56,
+    starter: 42,
+    atRisk: 12,
+  };
+
+  const isStaff = userRole === "staff";
 
   return (
     <div className="min-h-screen bg-slate-50/50 p-6 md:p-10">
@@ -37,14 +77,16 @@ export default async function AgapayTanawPage() {
               Agapay Tanaw Command Center
             </h1>
             <p className="text-slate-500 font-sans">
-              Oversight and Risk Governance for Agapay Financial Operations
+              {isStaff
+                ? "Cooperative Operational Dashboard"
+                : "Oversight and Risk Governance for Agapay Financial Operations"}
             </p>
           </div>
           <div className="flex items-center gap-6">
-            <div className="px-4 py-2 bg-emerald-500/10 border border-emerald-500/20 rounded-full flex items-center gap-2">
+            <div className="px-4 py-2 bg-emerald-500/10 border border-emerald-500/20 rounded-full flex items-center gap-2 text-emerald-600 shadow-sm">
               <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-              <span className="text-xs font-bold text-emerald-600 uppercase tracking-widest">
-                System Active
+              <span className="text-xs font-bold uppercase tracking-widest whitespace-nowrap">
+                {userRole.toUpperCase()} PORTAL
               </span>
             </div>
             <UserAccountNav name={userName} />
@@ -62,26 +104,17 @@ export default async function AgapayTanawPage() {
                 <BarChart3 className="w-4 h-4" />
                 <span>Overview</span>
               </TabsTrigger>
-              <TabsTrigger
-                value="products"
-                className="rounded-xl data-[state=active]:bg-slate-900 data-[state=active]:text-white transition-all px-6 py-2.5 flex items-center gap-2"
-              >
-                <Settings2 className="w-4 h-4" />
-                <span>Loan Products</span>
-              </TabsTrigger>
-              <TabsTrigger
-                value="branches"
-                className="rounded-xl data-[state=active]:bg-red-600 data-[state=active]:text-white transition-all px-6 py-2.5 flex items-center gap-2 text-red-600 hover:bg-red-50"
-              >
-                <ShieldAlert className="w-4 h-4" />
-                <span>Branch Ops</span>
-              </TabsTrigger>
+
               <TabsTrigger
                 value="approvals"
                 className="rounded-xl data-[state=active]:bg-slate-900 data-[state=active]:text-white transition-all px-6 py-2.5 flex items-center gap-2"
               >
                 <FileText className="w-4 h-4" />
                 <span>Approvals</span>
+                {pendingData.loans.length + pendingData.verifications.length >
+                  0 && (
+                  <span className="w-2 h-2 rounded-full bg-rose-500 shadow-[0_0_8px_rgba(244,63,94,0.6)]" />
+                )}
               </TabsTrigger>
 
               <TabsTrigger
@@ -91,6 +124,26 @@ export default async function AgapayTanawPage() {
                 <Users2 className="w-4 h-4" />
                 <span>Members</span>
               </TabsTrigger>
+
+              {!isStaff && (
+                <>
+                  <TabsTrigger
+                    value="products"
+                    className="rounded-xl data-[state=active]:bg-slate-900 data-[state=active]:text-white transition-all px-6 py-2.5 flex items-center gap-2"
+                  >
+                    <Settings2 className="w-4 h-4" />
+                    <span>Loan Products</span>
+                  </TabsTrigger>
+                  <TabsTrigger
+                    value="branches"
+                    className="rounded-xl data-[state=active]:bg-red-600 data-[state=active]:text-white transition-all px-6 py-2.5 flex items-center gap-2 text-red-600 hover:bg-red-50"
+                  >
+                    <ShieldAlert className="w-4 h-4" />
+                    <span>Branch Ops</span>
+                  </TabsTrigger>
+                </>
+              )}
+
               <TabsTrigger
                 value="settings"
                 className="rounded-xl data-[state=active]:bg-slate-900 data-[state=active]:text-white transition-all px-6 py-2.5 flex items-center gap-2"
@@ -99,47 +152,127 @@ export default async function AgapayTanawPage() {
                 <span>Settings</span>
               </TabsTrigger>
 
-              <TabsTrigger
-                value="audit"
-                className="rounded-xl data-[state=active]:bg-slate-900 data-[state=active]:text-white transition-all px-6 py-2.5 flex items-center gap-2"
-              >
-                <History className="w-4 h-4" />
-                <span>Audit Logs</span>
-              </TabsTrigger>
+              {!isStaff && (
+                <TabsTrigger
+                  value="audit"
+                  className="rounded-xl data-[state=active]:bg-slate-900 data-[state=active]:text-white transition-all px-6 py-2.5 flex items-center gap-2"
+                >
+                  <History className="w-4 h-4" />
+                  <span>Audit Logs</span>
+                </TabsTrigger>
+              )}
             </TabsList>
-
-            <div className="hidden md:block px-4">
-              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em]">
-                Agapay Administrative Tier
-              </span>
-            </div>
           </div>
 
           <TabsContent value="overview" className="space-y-6 outline-none">
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-              {[
-                "Total Liquidity",
-                "Active Loans",
-                "Pending Verification",
-                "Portfolio Yield",
-              ].map((stat) => (
-                <div
-                  key={stat}
-                  className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-all"
-                >
-                  <h3 className="text-slate-400 text-xs font-bold uppercase tracking-wider mb-1">
-                    {stat}
+              <KPIMetricCard
+                label="Total Liquidity"
+                value="₱2.4M"
+                icon={Wallet}
+                trend={{ value: 12.5, isPositive: true }}
+              />
+              <KPIMetricCard
+                label="Active Loans"
+                value="142"
+                icon={Activity}
+                trend={{ value: 8.2, isPositive: true }}
+              />
+              <KPIMetricCard
+                label="Repayment Rate"
+                value="94.2%"
+                icon={CheckCircle2}
+                trend={{ value: 1.4, isPositive: true }}
+              />
+              <KPIMetricCard
+                label="Risk Exposure"
+                value="₱128K"
+                icon={AlertTriangle}
+                trend={{ value: 3.1, isPositive: false }}
+                variant="ghost"
+              />
+            </div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              <div className="lg:col-span-2 bg-white/70 backdrop-blur-xl p-8 rounded-[2.5rem] border border-slate-200/60 shadow-sm flex flex-col md:flex-row items-center gap-12">
+                <div className="flex-1 text-center md:text-left">
+                  <h3 className="text-xl font-display font-bold text-slate-900">
+                    Cooperative Trust Index
                   </h3>
-                  <p className="text-2xl font-display font-bold text-slate-900">
-                    ₱0.00
+                  <p className="text-slate-500 text-sm mt-1 mb-8">
+                    Kasalukuyang katayuan ng trust network
+                  </p>
+                  {!isStaff ? (
+                    <TrustDistributionChart distribution={trustDistribution} />
+                  ) : (
+                    <div className="space-y-4">
+                      <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100 italic text-slate-500 text-xs">
+                        "Your branch is performing 15% better than last month.
+                        Keep building trust!"
+                      </div>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="p-4 bg-emerald-50 rounded-2xl border border-emerald-100">
+                          <p className="text-[10px] font-bold text-emerald-600 uppercase">
+                            Collections
+                          </p>
+                          <p className="text-lg font-bold text-slate-900">
+                            ₱42.5K
+                          </p>
+                        </div>
+                        <div className="p-4 bg-indigo-50 rounded-2xl border border-indigo-100">
+                          <p className="text-[10px] font-bold text-indigo-600 uppercase">
+                            Growth
+                          </p>
+                          <p className="text-lg font-bold text-slate-900">
+                            +8 Members
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+                <div className="flex-shrink-0 scale-110 md:scale-125">
+                  <TrustMeter data={aggregateTrust} />
+                </div>
+              </div>
+
+              <div className="bg-slate-900 p-8 rounded-[2.5rem] text-white flex flex-col justify-between overflow-hidden relative group">
+                <div className="relative z-10 space-y-4">
+                  <div className="w-12 h-12 rounded-2xl bg-emerald-500 shadow-[0_0_20px_rgba(16,185,129,0.3)] flex items-center justify-center mb-6">
+                    <TrendingUp className="w-6 h-6 text-white" />
+                  </div>
+                  <h3 className="text-2xl font-display font-medium leading-tight">
+                    Portfolio <br />
+                    Performance
+                  </h3>
+                  <p className="text-slate-400 text-xs leading-relaxed font-sans">
+                    Ang koleksyon ngayong buwan ay tumaas ng 12% dahil sa
+                    implementasyon ng Trust-Based Incentives. Ang elite tier ay
+                    lumaki ng 5%.
                   </p>
                 </div>
-              ))}
+
+                <div className="relative z-10 pt-8 border-t border-white/10 mt-8">
+                  <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2">
+                    Platform Health
+                  </p>
+                  <div className="h-1.5 w-full bg-white/10 rounded-full overflow-hidden">
+                    <div className="h-full w-[88%] bg-emerald-500 rounded-full shadow-[0_0_10px_rgba(16,185,129,0.5)]" />
+                  </div>
+                </div>
+
+                {/* Abstract background shape */}
+                <div className="absolute -bottom-10 -right-10 w-48 h-48 bg-emerald-500/10 rounded-full blur-3xl group-hover:bg-emerald-500/20 transition-all duration-500" />
+              </div>
             </div>
-            {/* Placeholder for real charts later */}
-            <div className="h-[400px] w-full bg-slate-900/5 border border-dashed border-slate-200 rounded-3xl flex items-center justify-center text-slate-400 font-medium">
-              Primary Analytics Engine - Ready for Deployment
-            </div>
+          </TabsContent>
+
+          <TabsContent value="approvals" className="outline-none">
+            <VerificationQueueTab data={pendingData} />
+          </TabsContent>
+
+          <TabsContent value="members" className="outline-none">
+            <MemberDirectoryTab members={members} />
           </TabsContent>
 
           <TabsContent value="products" className="outline-none">
