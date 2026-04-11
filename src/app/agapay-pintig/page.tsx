@@ -13,7 +13,7 @@ import { TwoFactorSetup } from "@/components/auth/two-factor-setup";
 import prisma from "@/lib/prisma";
 import { Settings2 } from "lucide-react";
 
-export default async function AgapayKatuwangPage() {
+export default async function AgapayPintigPage() {
   const session = await auth();
   const userName = session?.user?.username || "Member";
 
@@ -30,12 +30,11 @@ export default async function AgapayKatuwangPage() {
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
           <div className="space-y-2">
             <h1 className="text-4xl md:text-5xl font-display font-bold text-slate-900 tracking-tight italic">
-              Maligayang pagbabalik,{" "}
-              <span className="text-emerald-600">{userName}</span>
+              Maligayang pagbabalik sa{" "}
+              <span className="text-emerald-600">Agapay Pintig</span>
             </h1>
             <p className="text-slate-500 font-sans text-lg">
-              Ang iyong Agapay ay protektado at handang palaguin ang iyong
-              kinabukasan.
+              Ang iyong katuwang sa mas mabilis at mas siguradong asenso.
             </p>
           </div>
 
@@ -144,7 +143,7 @@ export default async function AgapayKatuwangPage() {
               </div>
               <div className="space-y-2">
                 <h2 className="text-2xl font-display font-bold text-slate-800">
-                  Magsimula sa iyong Agapay
+                  Magsimula sa iyong Pintig
                 </h2>
                 <p className="text-slate-500 max-w-md mx-auto">
                   Wala ka pang aktibong transaksyon sa kasalukuyan. Maaari kang
@@ -161,7 +160,7 @@ export default async function AgapayKatuwangPage() {
                   Security Settings
                 </h2>
                 <p className="text-slate-500">
-                  I-secure ang iyong Agapay Katuwang access gamit ang 2FA.
+                  I-secure ang iyong Agapay Pintig access gamit ang 2FA.
                 </p>
               </div>
               <TwoFactorSetup isEnabledInitial={is2FAEnabled} />

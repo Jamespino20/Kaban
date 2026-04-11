@@ -1,17 +1,22 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Menu, X } from "lucide-react";
+import { Menu, X, LayoutDashboard } from "lucide-react";
 import { AuthModal } from "@/components/auth/auth-modal";
 import Link from "next/link";
+import { useSession } from "next-auth/react";
 
 interface NavbarProps {
   forceSolid?: boolean;
 }
 
 export function Navbar({ forceSolid = false }: NavbarProps) {
+  const { data: session } = useSession();
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+
+  const dashboardHref =
+    session?.user?.role === "member" ? "/agapay-pintig" : "/agapay-tanaw";
 
   useEffect(() => {
     if (forceSolid) {
@@ -82,7 +87,16 @@ export function Navbar({ forceSolid = false }: NavbarProps) {
         {/* Auth & Mobile Toggle */}
         <div className="flex items-center gap-4">
           <div className="hidden md:block">
-            <AuthModal />
+            {session ? (
+              <Link
+                href={dashboardHref}
+                className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold h-12 px-8 rounded-full shadow-lg shadow-emerald-900/20 transition-all flex items-center gap-2"
+              >
+                <LayoutDashboard className="w-4 h-4" /> Dashboard
+              </Link>
+            ) : (
+              <AuthModal />
+            )}
           </div>
           <button
             onClick={() => setIsMenuOpen(!isMenuOpen)}
@@ -119,7 +133,17 @@ export function Navbar({ forceSolid = false }: NavbarProps) {
               </Link>
             ))}
             <div className="pt-4 border-t border-slate-100 w-full">
-              <AuthModal />
+              {session ? (
+                <Link
+                  href={dashboardHref}
+                  onClick={() => setIsMenuOpen(false)}
+                  className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold h-12 px-8 rounded-2xl flex items-center justify-center gap-2"
+                >
+                  <LayoutDashboard className="w-4 h-4" /> Go to Dashboard
+                </Link>
+              ) : (
+                <AuthModal />
+              )}
             </div>
           </nav>
         </div>

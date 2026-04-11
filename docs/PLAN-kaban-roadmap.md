@@ -15,8 +15,8 @@ _Goal: Rebrand and harden the core models to support risk-based pricing._
 
 ### [UPDATE] Portal Identity
 
-- **Dashboard**: "Agapay Gabay" (Guide to Growth).
-- **Member Portal**: "Agapay Katuwang" (Partner in Progress).
+- **Dashboard**: "Agapay Pintig" (Guide to Growth).
+- **Member Portal**: "Agapay Tanaw" (Partner in Progress).
 - **Greetings**: Personalized "Magandang umaga, Ma'am [Name]!" based on business profile.
 
 ---

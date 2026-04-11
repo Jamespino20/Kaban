@@ -33,7 +33,7 @@ const authProxy = auth((req) => {
     if (isLoggedIn) {
       return NextResponse.redirect(
         new URL(
-          role === "member" ? "/agapay-katuwang" : "/agapay-gabay",
+          role === "member" ? "/agapay-pintig" : "/agapay-tanaw",
           nextUrl,
         ),
       );
@@ -43,10 +43,7 @@ const authProxy = auth((req) => {
 
   if (isLoggedIn && isLandingPage) {
     return NextResponse.redirect(
-      new URL(
-        role === "member" ? "/agapay-katuwang" : "/agapay-gabay",
-        nextUrl,
-      ),
+      new URL(role === "member" ? "/agapay-pintig" : "/agapay-tanaw", nextUrl),
     );
   }
 
