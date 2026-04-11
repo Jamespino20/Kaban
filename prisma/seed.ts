@@ -3,10 +3,6 @@ import { PrismaClient } from "@prisma/client";
 import { PrismaNeon } from "@prisma/adapter-neon";
 import bcrypt from "bcryptjs";
 
-const connectionString =
-  process.env.AGAPAYSTORAGE_DATABASE_URL ||
-  "postgresql://neondb_owner:npg_Zi2m9NUxgIrC@ep-damp-river-a1bkchuk-pooler.ap-southeast-1.aws.neon.tech/neondb?channel_binding=require&sslmode=require";
-
 // @ts-ignore - PrismaNeon takes a pool or config object
 const adapter = new PrismaNeon({ connectionString });
 const prisma = new PrismaClient({ adapter });
