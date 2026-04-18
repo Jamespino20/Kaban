@@ -22,6 +22,9 @@ export const applyForLoan = async (
     return { error: "Not authenticated or tenant not found!" };
   }
 
+  const tenantId = session.user.tenantId;
+  const userId = parseInt(session.user.id);
+
   const validatedFields = LoanApplicationSchema.safeParse(values);
   if (!validatedFields.success) {
     return { error: "Invalid fields!" };
@@ -63,12 +66,12 @@ export const applyForLoan = async (
     await prisma.$transaction(async (tx) => {
       const loan = await tx.loan.create({
         data: {
-          user_id: parseInt(session.user.id),
+          user_id: userId,
           product_id,
           term_months,
           status: "pending",
-          tenant_id: session.user.tenantId,
-          loan_reference: `LN-${session.user.tenantId}-${Date.now()}`,
+          tenant_id: tenantId,
+          loan_reference: `LN-${tenantId}-${Date.now()}`,
           principal_amount: amount,
           purpose: "General Purpose",
           interest_applied: totalInterest,

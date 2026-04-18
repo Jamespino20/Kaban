@@ -127,11 +127,11 @@ export function TrustMeter({ data, className, size = "md" }: TrustMeterProps) {
       >
         <span className="w-2 h-2 rounded-full bg-current animate-pulse" />
         Tier:{" "}
-        {tier === InterestTier.T3_2_PERCENT
-          ? "Elite (2%)"
-          : tier === InterestTier.T2_2_5_PERCENT
-            ? "Growth (2.5%)"
-            : "Starter (3%)"}
+        {tier === InterestTier.T5_3_PERCENT
+          ? "Elite (3%)"
+          : tier === InterestTier.T4_3_5_PERCENT
+            ? "Growth (3.5%)"
+            : "Starter (5%)"}
       </div>
 
       {/* Factor Breakdown */}
