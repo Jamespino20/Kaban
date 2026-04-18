@@ -89,9 +89,9 @@ export async function calculateTrustScore(
     guarantorScore * 0.2;
 
   // Determine Tier (AGAPAY.md 3.3)
-  let tier: InterestTier = InterestTier.T1_3_PERCENT;
-  if (finalScore >= 85) tier = InterestTier.T3_2_PERCENT;
-  else if (finalScore >= 70) tier = InterestTier.T2_2_5_PERCENT;
+  let tier: InterestTier = InterestTier.T1_5_PERCENT;
+  if (finalScore >= 85) tier = InterestTier.T5_3_PERCENT;
+  else if (finalScore >= 70) tier = InterestTier.T4_3_5_PERCENT;
 
   return {
     score: Math.round(finalScore),

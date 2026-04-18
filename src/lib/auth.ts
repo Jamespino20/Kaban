@@ -14,16 +14,18 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           .object({
             username: z.string(),
             password: z.string().min(6),
+            tenantId: z.string(),
             // We add an optional 2fa field
             code: z.string().optional(),
           })
           .safeParse(credentials);
 
         if (parsedCredentials.success) {
-          const { username, password, code } = parsedCredentials.data;
+          const { username, password, code, tenantId } = parsedCredentials.data;
 
           const user = await prisma.user.findFirst({
             where: {
+              tenant_id: parseInt(tenantId),
               OR: [{ email: username }, { username: username }],
             },
             include: { two_factor_auth: true },

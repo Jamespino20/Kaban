@@ -165,21 +165,21 @@ export async function getTenantTrustMetrics() {
     where: {
       tenant_id: session.user.tenantId,
       role: Role.member,
-      interest_tier: "T3_2_PERCENT",
+      interest_tier: "T5_3_PERCENT",
     },
   });
   const growthCount = await prisma.user.count({
     where: {
       tenant_id: session.user.tenantId,
       role: Role.member,
-      interest_tier: "T2_2_5_PERCENT",
+      interest_tier: "T4_3_5_PERCENT",
     },
   });
   const starterCount = await prisma.user.count({
     where: {
       tenant_id: session.user.tenantId,
       role: Role.member,
-      interest_tier: "T1_3_PERCENT",
+      interest_tier: "T1_5_PERCENT",
     },
   });
   const atRiskCount = await prisma.user.count({
@@ -203,7 +203,7 @@ export async function getTenantTrustMetrics() {
       businessScore: 70,
       peerScore: 75,
       guarantorScore: 80,
-      tier: "T2_2_5_PERCENT" as any,
+      tier: "T4_3_5_PERCENT" as any,
     },
   };
 }

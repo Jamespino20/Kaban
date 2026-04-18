@@ -19,6 +19,7 @@ import {
   Eye,
   EyeOff,
   Building2,
+  FileText,
 } from "lucide-react";
 
 import {

@@ -3,10 +3,18 @@
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { useState, useTransition } from "react";
+import { useState, useTransition, useEffect } from "react";
 import { signIn } from "next-auth/react";
 import { toast } from "sonner";
 import { Eye, EyeOff } from "lucide-react";
+import { getTenants } from "@/actions/tenant";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 import {
   Form,
@@ -20,6 +28,9 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 
 const LoginSchema = z.object({
+  tenantId: z.string().min(1, {
+    message: "Cooperative branch is required",
+  }),
   username: z.string().min(1, {
     message: "Username is required",
   }),
@@ -33,10 +44,18 @@ export const LoginForm = () => {
   const [showTwoFactor, setShowTwoFactor] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [isPending, startTransition] = useTransition();
+  const [tenants, setTenants] = useState<
+    Awaited<ReturnType<typeof getTenants>>
+  >([]);
+
+  useEffect(() => {
+    getTenants().then(setTenants);
+  }, []);
 
   const form = useForm<z.infer<typeof LoginSchema>>({
     resolver: zodResolver(LoginSchema),
     defaultValues: {
+      tenantId: "",
       username: "",
       password: "",
       code: "",
@@ -47,6 +66,7 @@ export const LoginForm = () => {
     startTransition(async () => {
       try {
         const result = await signIn("credentials", {
+          tenantId: values.tenantId,
           username: values.username,
           password: values.password,
           code: values.code,
@@ -105,6 +125,37 @@ export const LoginForm = () => {
           )}
           {!showTwoFactor && (
             <>
+              <FormField
+                control={form.control}
+                name="tenantId"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Cooperative Branch</FormLabel>
+                    <Select
+                      onValueChange={field.onChange}
+                      defaultValue={field.value}
+                      disabled={isPending}
+                    >
+                      <FormControl>
+                        <SelectTrigger className="rounded-xl h-12">
+                          <SelectValue placeholder="Select your branch" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {tenants.map((t) => (
+                          <SelectItem
+                            key={t.tenant_id}
+                            value={t.tenant_id.toString()}
+                          >
+                            {t.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
               <FormField
                 control={form.control}
                 name="username"

@@ -83,16 +83,16 @@ export const register = async (values: z.infer<typeof RegisterSchema>) => {
 
   const hashedPassword = await bcrypt.hash(password, 10);
 
-  const existingUser = await prisma.user.findUnique({
-    where: { email },
+  const existingUser = await prisma.user.findFirst({
+    where: { email, tenant_id: tenantId },
   });
 
   if (existingUser) {
     return { error: "Email already in use!" };
   }
 
-  const existingUsername = await prisma.user.findUnique({
-    where: { username },
+  const existingUsername = await prisma.user.findFirst({
+    where: { username, tenant_id: tenantId },
   });
 
   if (existingUsername) {
@@ -119,7 +119,7 @@ export const register = async (values: z.infer<typeof RegisterSchema>) => {
           password_hash: hashedPassword,
           tenant_id: tenantId,
           role: "member",
-          interest_tier: "T1_3_PERCENT", // Default entry tier
+          interest_tier: "T1_5_PERCENT", // Default entry tier
         },
       });
 
