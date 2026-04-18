@@ -23,9 +23,11 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         if (parsedCredentials.success) {
           const { username, password, code, tenantId } = parsedCredentials.data;
 
-          const user = await prisma.user.findFirst({
+          const user: any = await prisma.user.findFirst({
             where: {
-              tenant_id: parseInt(tenantId),
+              tenant_id: (tenantId === "global"
+                ? null
+                : parseInt(tenantId)) as any,
               OR: [{ email: username }, { username: username }],
             },
             include: { two_factor_auth: true },

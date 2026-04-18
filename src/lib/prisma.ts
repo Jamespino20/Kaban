@@ -10,6 +10,8 @@ if (typeof WebSocket === "undefined") {
 
 const prismaClientSingleton = () => {
   const connectionString =
+    process.env.DATABASE_URL ||
+    process.env.AGAPAY_DATABASE_URL ||
     process.env.AGAPAYSTORAGE_DATABASE_URL ||
     process.env.AGAPAYSTORAGE_AGAPAY_DATABASE_URL ||
     process.env.AGAPAYSTORAGE_POSTGRES_PRISMA_URL ||
