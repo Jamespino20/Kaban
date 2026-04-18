@@ -1,6 +1,12 @@
 import { PrismaClient } from "@prisma/client";
 import { PrismaNeon } from "@prisma/adapter-neon";
+import { Pool, neonConfig } from "@neondatabase/serverless";
+import ws from "ws";
 import { prismaAuditExtension } from "./prisma-audit";
+
+if (typeof WebSocket === "undefined") {
+  neonConfig.webSocketConstructor = ws;
+}
 
 const prismaClientSingleton = () => {
   const connectionString =
@@ -11,7 +17,12 @@ const prismaClientSingleton = () => {
     process.env.AGAPAY_URL ||
     process.env.AGAPAY_PRISMA_URL;
 
-  const adapter = new PrismaNeon({ connectionString });
+  if (!connectionString) {
+    throw new Error("Missing Database URL");
+  }
+
+  const pool = new Pool({ connectionString });
+  const adapter = new PrismaNeon(pool as any);
   return new PrismaClient({ adapter }).$extends(prismaAuditExtension);
 };
 
