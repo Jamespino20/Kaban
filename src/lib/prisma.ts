@@ -10,12 +10,12 @@ if (typeof WebSocket === "undefined") {
 
 const prismaClientSingleton = () => {
   const connectionString =
-    process.env.DATABASE_URL ||
-    process.env.AGAPAY_DATABASE_URL ||
-    process.env.POSTGRES_PRISMA_URL ||
-    process.env.POSTGRES_URL ||
-    process.env.AGAPAY_URL ||
-    process.env.AGAPAY_PRISMA_URL;
+    process.env.AGAPAYSTORAGE_DATABASE_URL ||
+    process.env.AGAPAYSTORAGE_AGAPAY_DATABASE_URL ||
+    process.env.AGAPAYSTORAGE_POSTGRES_PRISMA_URL ||
+    process.env.AGAPAYSTORAGE_POSTGRES_URL ||
+    process.env.AGAPAYSTORAGE_AGAPAY_URL ||
+    process.env.AGAPAYSTORAGE_AGAPAY_PRISMA_URL;
 
   if (!connectionString) {
     throw new Error("Missing Database URL");
