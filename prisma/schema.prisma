@@ -7,6 +7,393 @@ datasource db {
   provider = "postgresql"
 }
 
+model TenantGroup {
+  id         Int      @id @default(autoincrement())
+  name       String   @db.VarChar(100)
+  reg_code   String   @unique @db.VarChar(10)
+  is_active  Boolean  @default(true)
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+  tenants    Tenant[]
+
+  @@map("tenant_groups")
+}
+
+model Tenant {
+  tenant_id              Int                     @id @default(autoincrement())
+  tenant_group_id        Int?
+  name                   String                  @db.VarChar(100)
+  slug                   String                  @unique @db.VarChar(50)
+  brand_color            String?                 @db.VarChar(20)
+  logo_url               String?                 @db.VarChar(255)
+  is_active              Boolean                 @default(true)
+  created_at             DateTime                @default(now())
+  updated_at             DateTime                @updatedAt
+  audit_logs             AuditLog[]
+  transfers_out          BranchTransferRequest[] @relation("TransferOut")
+  transfers_in           BranchTransferRequest[] @relation("TransferIn")
+  decommissioned_backups DecommissionedBackup[]
+  products               LoanProduct[]
+  loans                  Loan[]
+  messages               Message[]
+  payment_methods        PaymentMethod[]
+  savings                SavingsAccount[]
+  tenant_group           TenantGroup?            @relation(fields: [tenant_group_id], references: [id])
+  users                  User[]
+
+  @@map("tenants")
+}
+
+model User {
+  user_id                 Int                     @id @default(autoincrement())
+  member_code             String?                 @db.VarChar(20)
+  username                String                  @db.VarChar(50)
+  email                   String                  @db.VarChar(150)
+  phone                   String?                 @db.VarChar(20)
+  password_hash           String                  @db.VarChar(255)
+  tenant_id               Int?
+  role                    Role                    @default(member)
+  status                  UserStatus              @default(pending)
+  interest_tier           InterestTier            @default(T1_5_PERCENT)
+  is_deactivation_locked  Boolean                 @default(false)
+  created_at              DateTime                @default(now())
+  updated_at              DateTime                @updatedAt
+  audit_logs              AuditLog[]
+  transfer_requests       BranchTransferRequest[]
+  guarantees              LoanGuarantee[]         @relation("Guarantor")
+  approved_loans          Loan[]                  @relation("ApprovedLoans")
+  loans                   Loan[]                  @relation("UserLoans")
+  sent_messages           Message[]               @relation("SentMessages")
+  verified_payments       Payment[]               @relation("VerifiedPayments")
+  savings_accounts        SavingsAccount[]
+  processed_savings       SavingsTransaction[]    @relation("ProcessedSavings")
+  social_vouches_received SocialVouch[]           @relation("Vouchee")
+  social_vouches_sent     SocialVouch[]           @relation("Voucher")
+  two_factor_auth         TwoFactorAuth?
+  documents               UserDocument[]
+  profile                 UserProfile?
+  tenant                  Tenant?                 @relation(fields: [tenant_id], references: [tenant_id])
+
+  @@unique([email, tenant_id])
+  @@unique([username, tenant_id])
+  @@unique([member_code, tenant_id])
+  @@map("users")
+}
+
+model UserProfile {
+  profile_id          Int            @id @default(autoincrement())
+  user_id             Int            @unique
+  first_name          String         @db.VarChar(100)
+  middle_name         String?        @db.VarChar(100)
+  last_name           String         @db.VarChar(100)
+  gender              String?        @db.VarChar(20)
+  birthdate           DateTime?      @db.Date
+  address             String?
+  business_name       String?        @db.VarChar(150)
+  marital_status      MaritalStatus? @default(single)
+  occupation          String?        @db.VarChar(150)
+  mothers_maiden_name String?        @db.VarChar(150)
+  place_of_birth      String?        @db.VarChar(150)
+  tin                 String?        @db.VarChar(20)
+  region              String?        @db.VarChar(100)
+  province            String?        @db.VarChar(100)
+  city                String?        @db.VarChar(100)
+  barangay            String?        @db.VarChar(100)
+  photo_url           String?        @db.VarChar(255)
+  user                User           @relation(fields: [user_id], references: [user_id], onDelete: Cascade)
+
+  @@map("user_profiles")
+}
+
+model UserDocument {
+  document_id         Int                @id @default(autoincrement())
+  user_id             Int
+  document_type       DocumentType
+  id_type_name        String?            @db.VarChar(100)
+  file_url            String             @db.VarChar(255)
+  verification_status VerificationStatus @default(pending)
+  uploaded_at         DateTime           @default(now())
+  user                User               @relation(fields: [user_id], references: [user_id], onDelete: Cascade)
+
+  @@map("user_documents")
+}
+
+model TwoFactorAuth {
+  tfa_id         Int     @id @default(autoincrement())
+  user_id        Int     @unique
+  totp_secret    String  @db.VarChar(255)
+  is_enabled     Boolean @default(false)
+  recovery_codes String?
+  user           User    @relation(fields: [user_id], references: [user_id], onDelete: Cascade)
+
+  @@map("two_factor_auth")
+}
+
+model LoanProduct {
+  product_id            Int     @id @default(autoincrement())
+  name                  String  @db.VarChar(100)
+  description           String?
+  min_amount            Decimal @db.Decimal(15, 2)
+  max_amount            Decimal @db.Decimal(15, 2)
+  interest_rate_percent Decimal @db.Decimal(5, 2)
+  max_term_months       Int
+  is_active             Boolean @default(true)
+  tenant_id             Int
+  tenant                Tenant  @relation(fields: [tenant_id], references: [tenant_id])
+  loans                 Loan[]
+
+  @@map("loan_products")
+}
+
+model Loan {
+  loan_id              Int             @id @default(autoincrement())
+  tenant_id            Int
+  user_id              Int
+  product_id           Int
+  loan_reference       String          @unique @db.VarChar(50)
+  principal_amount     Decimal         @db.Decimal(15, 2)
+  purpose              String
+  term_months          Int
+  interest_applied     Decimal         @db.Decimal(15, 2)
+  principal_receivable Decimal         @default(0) @db.Decimal(15, 2)
+  interest_receivable  Decimal         @default(0) @db.Decimal(15, 2)
+  fees_applied         Decimal         @default(0) @db.Decimal(15, 2)
+  total_payable        Decimal         @db.Decimal(15, 2)
+  balance_remaining    Decimal         @db.Decimal(15, 2)
+  status               LoanStatus      @default(pending)
+  applied_at           DateTime        @default(now())
+  approved_at          DateTime?
+  approved_by          Int?
+  interest_audit       InterestAudit?
+  guarantees           LoanGuarantee[]
+  schedules            LoanSchedule[]
+  approver             User?           @relation("ApprovedLoans", fields: [approved_by], references: [user_id])
+  product              LoanProduct     @relation(fields: [product_id], references: [product_id])
+  tenant               Tenant          @relation(fields: [tenant_id], references: [tenant_id])
+  user                 User            @relation("UserLoans", fields: [user_id], references: [user_id])
+  payments             Payment[]
+
+  @@map("loans")
+}
+
+model LoanSchedule {
+  schedule_id        Int            @id @default(autoincrement())
+  loan_id            Int
+  installment_number Int
+  due_date           DateTime       @db.Date
+  principal_amount   Decimal        @db.Decimal(15, 2)
+  interest_amount    Decimal        @db.Decimal(15, 2)
+  total_due          Decimal        @db.Decimal(15, 2)
+  status             ScheduleStatus @default(pending)
+  paid_at            DateTime?
+  loan               Loan           @relation(fields: [loan_id], references: [loan_id], onDelete: Cascade)
+
+  @@map("loan_schedules")
+}
+
+model PaymentMethod {
+  method_id      Int       @id @default(autoincrement())
+  provider_name  String    @db.VarChar(100)
+  account_number String?   @db.VarChar(100)
+  is_active      Boolean   @default(true)
+  tenant_id      Int
+  tenant         Tenant    @relation(fields: [tenant_id], references: [tenant_id])
+  payments       Payment[]
+
+  @@map("payment_methods")
+}
+
+model Payment {
+  payment_id        Int           @id @default(autoincrement())
+  loan_id           Int
+  method_id         Int
+  payment_reference String        @unique @db.VarChar(100)
+  amount_paid       Decimal       @db.Decimal(15, 2)
+  receipt_url       String?       @db.VarChar(255)
+  status            PaymentStatus @default(pending)
+  submitted_at      DateTime      @default(now())
+  verified_at       DateTime?
+  verified_by       Int?
+  notes             String?
+  loan              Loan          @relation(fields: [loan_id], references: [loan_id])
+  payment_method    PaymentMethod @relation(fields: [method_id], references: [method_id])
+  verifier          User?         @relation("VerifiedPayments", fields: [verified_by], references: [user_id])
+
+  @@map("payments")
+}
+
+model SavingsAccount {
+  account_id   Int                  @id @default(autoincrement())
+  tenant_id    Int
+  user_id      Int
+  account_type AccountType
+  balance      Decimal              @default(0) @db.Decimal(15, 2)
+  opened_at    DateTime             @default(now())
+  tenant       Tenant               @relation(fields: [tenant_id], references: [tenant_id])
+  user         User                 @relation(fields: [user_id], references: [user_id], onDelete: Cascade)
+  transactions SavingsTransaction[]
+
+  @@unique([user_id, account_type])
+  @@map("savings_accounts")
+}
+
+model SavingsTransaction {
+  transaction_id   Int             @id @default(autoincrement())
+  account_id       Int
+  transaction_type TransactionType
+  amount           Decimal         @db.Decimal(15, 2)
+  reference        String?         @db.VarChar(100)
+  processed_at     DateTime        @default(now())
+  processed_by     Int?
+  account          SavingsAccount  @relation(fields: [account_id], references: [account_id])
+  processor        User?           @relation("ProcessedSavings", fields: [processed_by], references: [user_id])
+
+  @@map("savings_transactions")
+}
+
+model AuditLog {
+  log_id      Int      @id @default(autoincrement())
+  tenant_id   Int?
+  user_id     Int?
+  action      String   @db.VarChar(100)
+  entity_type String   @db.VarChar(50)
+  entity_id   Int?
+  old_values  Json?
+  new_values  Json?
+  ip_address  String?  @db.VarChar(45)
+  user_agent  String?
+  created_at  DateTime @default(now())
+  tenant      Tenant?  @relation(fields: [tenant_id], references: [tenant_id])
+  user        User?    @relation(fields: [user_id], references: [user_id])
+
+  @@map("audit_logs")
+}
+
+model VerificationToken {
+  id      Int      @id @default(autoincrement())
+  email   String
+  token   String   @unique
+  expires DateTime
+
+  @@unique([email, token])
+  @@map("verification_tokens")
+}
+
+model TwoFactorToken {
+  id      Int      @id @default(autoincrement())
+  email   String
+  token   String   @unique
+  expires DateTime
+
+  @@unique([email, token])
+  @@map("two_factor_tokens")
+}
+
+model Message {
+  id           String   @id @default(cuid())
+  tenant_id    Int
+  sender_id    Int
+  content      String
+  is_broadcast Boolean  @default(false)
+  created_at   DateTime @default(now())
+  sender       User     @relation("SentMessages", fields: [sender_id], references: [user_id], onDelete: Cascade)
+  tenant       Tenant   @relation(fields: [tenant_id], references: [tenant_id], onDelete: Cascade)
+
+  @@map("messages")
+}
+
+model BranchTransferRequest {
+  id             String   @id @default(cuid())
+  user_id        Int
+  from_tenant_id Int
+  to_tenant_id   Int
+  status         String   @default("PENDING")
+  reason         String?
+  created_at     DateTime @default(now())
+  updated_at     DateTime @updatedAt
+  from_tenant    Tenant   @relation("TransferOut", fields: [from_tenant_id], references: [tenant_id], onDelete: Cascade)
+  to_tenant      Tenant   @relation("TransferIn", fields: [to_tenant_id], references: [tenant_id], onDelete: Cascade)
+  user           User     @relation(fields: [user_id], references: [user_id], onDelete: Cascade)
+
+  @@index([status])
+  @@map("branch_transfer_requests")
+}
+
+model DecommissionedBackup {
+  id            String   @id @default(cuid())
+  tenant_id     Int
+  file_url      String   @db.VarChar(255)
+  snapshot_date DateTime @default(now())
+  created_at    DateTime @default(now())
+  tenant        Tenant   @relation(fields: [tenant_id], references: [tenant_id])
+
+  @@map("decommissioned_backups")
+}
+
+model LoanGuarantee {
+  id             Int             @id @default(autoincrement())
+  loan_id        Int
+  guarantor_id   Int
+  status         GuaranteeStatus @default(pending)
+  vouched_at     DateTime?
+  soft_freeze_at DateTime?
+  hard_freeze_at DateTime?
+  guarantor      User            @relation("Guarantor", fields: [guarantor_id], references: [user_id])
+  loan           Loan            @relation(fields: [loan_id], references: [loan_id], onDelete: Cascade)
+
+  @@map("loan_guarantees")
+}
+
+model BusinessLedger {
+  id             Int           @id @default(autoincrement())
+  transaction_id String        @default(cuid())
+  account_id     Int
+  debit          Decimal       @default(0) @db.Decimal(15, 2)
+  credit         Decimal       @default(0) @db.Decimal(15, 2)
+  description    String
+  ledger_hash    String?       @db.VarChar(255)
+  created_at     DateTime      @default(now())
+  created_by     Int?
+  account        LedgerAccount @relation(fields: [account_id], references: [id])
+
+  @@map("business_ledger")
+}
+
+model LedgerAccount {
+  id             Int               @id @default(autoincrement())
+  name           String            @db.VarChar(100)
+  code           String            @unique @db.VarChar(20)
+  type           LedgerAccountType
+  tenant_id      Int?
+  ledger_entries BusinessLedger[]
+
+  @@map("ledger_accounts")
+}
+
+model SocialVouch {
+  id         Int      @id @default(autoincrement())
+  voucher_id Int
+  vouchee_id Int
+  score      Int      @default(5)
+  comment    String?
+  created_at DateTime @default(now())
+  vouchee    User     @relation("Vouchee", fields: [vouchee_id], references: [user_id])
+  voucher    User     @relation("Voucher", fields: [voucher_id], references: [user_id])
+
+  @@map("social_vouches")
+}
+
+model InterestAudit {
+  id               Int      @id @default(autoincrement())
+  loan_id          Int      @unique
+  formula_snapshot Json
+  rate_applied     Decimal  @db.Decimal(5, 2)
+  created_at       DateTime @default(now())
+  loan             Loan     @relation(fields: [loan_id], references: [loan_id], onDelete: Cascade)
+
+  @@map("interest_audit")
+}
+
 enum Role {
   superadmin
   admin
@@ -28,46 +415,6 @@ enum InterestTier {
   T3_4_PERCENT
   T4_3_5_PERCENT
   T5_3_PERCENT
-}
-
-model TenantGroup {
-  id         Int      @id @default(autoincrement())
-  name       String   @db.VarChar(100)
-  reg_code   String   @unique @db.VarChar(10)
-  is_active  Boolean  @default(true)
-  created_at DateTime @default(now())
-  updated_at DateTime @updatedAt
-
-  tenants Tenant[]
-
-  @@map("tenant_groups")
-}
-
-model Tenant {
-  tenant_id       Int      @id @default(autoincrement())
-  tenant_group_id Int?
-  name            String   @db.VarChar(100)
-  slug            String   @unique @db.VarChar(50)
-  brand_color     String?  @db.VarChar(20)
-  logo_url        String?  @db.VarChar(255)
-  is_active       Boolean  @default(true)
-  created_at      DateTime @default(now())
-  updated_at      DateTime @updatedAt
-
-  tenant_group TenantGroup? @relation(fields: [tenant_group_id], references: [id])
-
-  users                  User[]
-  products               LoanProduct[]
-  loans                  Loan[]
-  savings                SavingsAccount[]
-  payment_methods        PaymentMethod[]
-  audit_logs             AuditLog[]
-  messages               Message[]
-  transfers_out          BranchTransferRequest[] @relation("TransferOut")
-  transfers_in           BranchTransferRequest[] @relation("TransferIn")
-  decommissioned_backups DecommissionedBackup[]
-
-  @@map("tenants")
 }
 
 enum UserStatus {
@@ -137,374 +484,4 @@ enum TransactionType {
   withdrawal
   dividend
   fee
-}
-
-model User {
-  user_id       Int        @id @default(autoincrement())
-  member_code   String?    @db.VarChar(20)
-  username      String     @db.VarChar(50)
-  email         String     @db.VarChar(150)
-  phone         String?    @db.VarChar(20)
-  password_hash String     @db.VarChar(255)
-  tenant_id              Int?
-  role                   Role            @default(member)
-  status                 UserStatus      @default(pending)
-  interest_tier          InterestTier    @default(T1_5_PERCENT)
-  is_deactivation_locked Boolean         @default(false)
-  created_at             DateTime        @default(now())
-  updated_at             DateTime        @updatedAt
-
-  tenant                  Tenant?                 @relation(fields: [tenant_id], references: [tenant_id])
-  profile                 UserProfile?
-  documents               UserDocument[]
-  two_factor_auth         TwoFactorAuth?
-  loans                   Loan[]                  @relation("UserLoans")
-  approved_loans          Loan[]                  @relation("ApprovedLoans")
-  savings_accounts        SavingsAccount[]
-  verified_payments       Payment[]               @relation("VerifiedPayments")
-  processed_savings       SavingsTransaction[]    @relation("ProcessedSavings")
-  audit_logs              AuditLog[]
-  sent_messages           Message[]               @relation("SentMessages")
-  transfer_requests       BranchTransferRequest[]
-  guarantees              LoanGuarantee[]         @relation("Guarantor")
-  social_vouches_sent     SocialVouch[]           @relation("Voucher")
-  social_vouches_received SocialVouch[]           @relation("Vouchee")
-
-  @@unique([email, tenant_id])
-  @@unique([username, tenant_id])
-  @@unique([member_code, tenant_id])
-  @@map("users")
-}
-
-model UserProfile {
-  profile_id  Int       @id @default(autoincrement())
-  user_id     Int       @unique
-  first_name  String    @db.VarChar(100)
-  middle_name String?   @db.VarChar(100)
-  last_name   String    @db.VarChar(100)
-  gender      String?   @db.VarChar(20)
-  birthdate   DateTime? @db.Date
-  address       String?   @db.Text
-  business_name String?   @db.VarChar(150)
-  marital_status MaritalStatus? @default(single)
-  occupation    String?   @db.VarChar(150)
-  mothers_maiden_name String? @db.VarChar(150)
-  place_of_birth      String? @db.VarChar(150)
-  tin                String? @db.VarChar(20)
-  region        String?   @db.VarChar(100)
-  province      String?   @db.VarChar(100)
-  city          String?   @db.VarChar(100)
-  barangay      String?   @db.VarChar(100)
-  photo_url     String?   @db.VarChar(255)
-
-  user User @relation(fields: [user_id], references: [user_id], onDelete: Cascade)
-
-  @@map("user_profiles")
-}
-
-model UserDocument {
-  document_id         Int                @id @default(autoincrement())
-  user_id             Int
-  document_type       DocumentType
-  id_type_name        String?            @db.VarChar(100)
-  file_url            String             @db.VarChar(255)
-  verification_status VerificationStatus @default(pending)
-  uploaded_at         DateTime           @default(now())
-
-  user User @relation(fields: [user_id], references: [user_id], onDelete: Cascade)
-
-  @@map("user_documents")
-}
-
-model TwoFactorAuth {
-  tfa_id         Int     @id @default(autoincrement())
-  user_id        Int     @unique
-  totp_secret    String  @db.VarChar(255)
-  is_enabled     Boolean @default(false)
-  recovery_codes String? @db.Text
-
-  user User @relation(fields: [user_id], references: [user_id], onDelete: Cascade)
-
-  @@map("two_factor_auth")
-}
-
-model LoanProduct {
-  product_id            Int     @id @default(autoincrement())
-  name                  String  @db.VarChar(100)
-  description           String? @db.Text
-  min_amount            Decimal @db.Decimal(15, 2)
-  max_amount            Decimal @db.Decimal(15, 2)
-  interest_rate_percent Decimal @db.Decimal(5, 2)
-  max_term_months       Int
-  is_active             Boolean @default(true)
-  tenant_id             Int
-
-  tenant Tenant @relation(fields: [tenant_id], references: [tenant_id])
-  loans  Loan[]
-
-  @@map("loan_products")
-}
-
-model Loan {
-  loan_id           Int        @id @default(autoincrement())
-  tenant_id         Int
-  user_id           Int
-  product_id        Int
-  loan_reference    String     @unique @db.VarChar(50)
-  principal_amount  Decimal    @db.Decimal(15, 2)
-  purpose           String     @db.Text
-  term_months       Int
-  interest_applied      Decimal    @db.Decimal(15, 2)
-  principal_receivable  Decimal    @db.Decimal(15, 2) @default(0)
-  interest_receivable   Decimal    @db.Decimal(15, 2) @default(0)
-  fees_applied          Decimal    @db.Decimal(15, 2) @default(0)
-  total_payable         Decimal    @db.Decimal(15, 2)
-  balance_remaining     Decimal    @db.Decimal(15, 2)
-  status                LoanStatus @default(pending)
-  applied_at        DateTime   @default(now())
-  approved_at       DateTime?
-  approved_by       Int?
-
-  tenant         Tenant          @relation(fields: [tenant_id], references: [tenant_id])
-  user           User            @relation("UserLoans", fields: [user_id], references: [user_id])
-  product        LoanProduct     @relation(fields: [product_id], references: [product_id])
-  approver       User?           @relation("ApprovedLoans", fields: [approved_by], references: [user_id], onDelete: SetNull)
-  schedules      LoanSchedule[]
-  payments       Payment[]
-  guarantees     LoanGuarantee[]
-  interest_audit InterestAudit?
-
-  @@map("loans")
-}
-
-model LoanSchedule {
-  schedule_id        Int            @id @default(autoincrement())
-  loan_id            Int
-  installment_number Int
-  due_date           DateTime       @db.Date
-  principal_amount   Decimal        @db.Decimal(15, 2)
-  interest_amount    Decimal        @db.Decimal(15, 2)
-  total_due          Decimal        @db.Decimal(15, 2)
-  status             ScheduleStatus @default(pending)
-  paid_at            DateTime?
-
-  loan Loan @relation(fields: [loan_id], references: [loan_id], onDelete: Cascade)
-
-  @@map("loan_schedules")
-}
-
-model PaymentMethod {
-  method_id      Int     @id @default(autoincrement())
-  provider_name  String  @db.VarChar(100)
-  account_number String? @db.VarChar(100)
-  is_active      Boolean @default(true)
-  tenant_id      Int
-
-  tenant   Tenant    @relation(fields: [tenant_id], references: [tenant_id])
-  payments Payment[]
-
-  @@map("payment_methods")
-}
-
-model Payment {
-  payment_id        Int           @id @default(autoincrement())
-  loan_id           Int
-  method_id         Int
-  payment_reference String        @unique @db.VarChar(100)
-  amount_paid       Decimal       @db.Decimal(15, 2)
-  receipt_url       String?       @db.VarChar(255)
-  status            PaymentStatus @default(pending)
-  submitted_at      DateTime      @default(now())
-  verified_at       DateTime?
-  verified_by       Int?
-  notes             String?       @db.Text
-
-  loan           Loan          @relation(fields: [loan_id], references: [loan_id])
-  payment_method PaymentMethod @relation(fields: [method_id], references: [method_id])
-  verifier       User?         @relation("VerifiedPayments", fields: [verified_by], references: [user_id], onDelete: SetNull)
-
-  @@map("payments")
-}
-
-model SavingsAccount {
-  account_id   Int         @id @default(autoincrement())
-  tenant_id    Int
-  user_id      Int
-  account_type AccountType
-  balance      Decimal     @default(0) @db.Decimal(15, 2)
-  opened_at    DateTime    @default(now())
-
-  tenant       Tenant               @relation(fields: [tenant_id], references: [tenant_id])
-  user         User                 @relation(fields: [user_id], references: [user_id], onDelete: Cascade)
-  transactions SavingsTransaction[]
-
-  @@unique([user_id, account_type])
-  @@map("savings_accounts")
-}
-
-model SavingsTransaction {
-  transaction_id   Int             @id @default(autoincrement())
-  account_id       Int
-  transaction_type TransactionType
-  amount           Decimal         @db.Decimal(15, 2)
-  reference        String?         @db.VarChar(100)
-  processed_at     DateTime        @default(now())
-  processed_by     Int?
-
-  account   SavingsAccount @relation(fields: [account_id], references: [account_id])
-  processor User?          @relation("ProcessedSavings", fields: [processed_by], references: [user_id], onDelete: SetNull)
-
-  @@map("savings_transactions")
-}
-
-model AuditLog {
-  log_id      Int      @id @default(autoincrement())
-  tenant_id   Int?
-  user_id     Int?
-  action      String   @db.VarChar(100)
-  entity_type String   @db.VarChar(50)
-  entity_id   Int?
-  old_values  Json?
-  new_values  Json?
-  ip_address  String?  @db.VarChar(45)
-  user_agent  String?  @db.Text
-  created_at  DateTime @default(now())
-
-  tenant Tenant? @relation(fields: [tenant_id], references: [tenant_id])
-  user   User?   @relation(fields: [user_id], references: [user_id], onDelete: SetNull)
-
-  @@map("audit_logs")
-}
-
-model VerificationToken {
-  id      Int      @id @default(autoincrement())
-  email   String
-  token   String   @unique
-  expires DateTime
-
-  @@unique([email, token])
-  @@map("verification_tokens")
-}
-
-model TwoFactorToken {
-  id      Int      @id @default(autoincrement())
-  email   String
-  token   String   @unique
-  expires DateTime
-
-  @@unique([email, token])
-  @@map("two_factor_tokens")
-}
-
-model Message {
-  id           String   @id @default(cuid())
-  tenant_id    Int
-  sender_id    Int
-  content      String   @db.Text
-  is_broadcast Boolean  @default(false)
-  created_at   DateTime @default(now())
-
-  tenant Tenant @relation(fields: [tenant_id], references: [tenant_id], onDelete: Cascade)
-  sender User   @relation("SentMessages", fields: [sender_id], references: [user_id], onDelete: Cascade)
-
-  @@map("messages")
-}
-
-model BranchTransferRequest {
-  id             String   @id @default(cuid())
-  user_id        Int
-  from_tenant_id Int
-  to_tenant_id   Int
-  status         String   @default("PENDING") // PENDING, APPROVED, REJECTED
-  reason         String?  @db.Text
-  created_at     DateTime @default(now())
-  updated_at     DateTime @updatedAt
-
-  user        User   @relation(fields: [user_id], references: [user_id], onDelete: Cascade)
-  from_tenant Tenant @relation("TransferOut", fields: [from_tenant_id], references: [tenant_id], onDelete: Cascade)
-  to_tenant   Tenant @relation("TransferIn", fields: [to_tenant_id], references: [tenant_id], onDelete: Cascade)
-
-  @@index([status])
-  @@map("branch_transfer_requests")
-}
-
-model DecommissionedBackup {
-  id            String   @id @default(cuid())
-  tenant_id     Int
-  file_url      String   @db.VarChar(255)
-  snapshot_date DateTime @default(now())
-  created_at    DateTime @default(now())
-
-  tenant Tenant @relation(fields: [tenant_id], references: [tenant_id], onDelete: Restrict)
-
-  @@map("decommissioned_backups")
-}
-
-model LoanGuarantee {
-  id             Int             @id @default(autoincrement())
-  loan_id        Int
-  guarantor_id   Int
-  status         GuaranteeStatus @default(pending)
-  vouched_at     DateTime?
-  soft_freeze_at DateTime?
-  hard_freeze_at DateTime?
-
-  loan      Loan @relation(fields: [loan_id], references: [loan_id], onDelete: Cascade)
-  guarantor User @relation("Guarantor", fields: [guarantor_id], references: [user_id])
-
-  @@map("loan_guarantees")
-}
-
-model BusinessLedger {
-  id             Int      @id @default(autoincrement())
-  transaction_id String   @default(cuid()) // Links the debit and credit sides
-  account_id     Int
-  debit          Decimal  @default(0) @db.Decimal(15, 2)
-  credit         Decimal  @default(0) @db.Decimal(15, 2)
-  description    String   @db.Text
-  ledger_hash    String?  @db.VarChar(255) // Tamper-evident Audit Engine
-  created_at     DateTime @default(now())
-  created_by     Int?
-
-  account LedgerAccount @relation(fields: [account_id], references: [id])
-
-  @@map("business_ledger")
-}
-
-model LedgerAccount {
-  id        Int               @id @default(autoincrement())
-  name      String            @db.VarChar(100)
-  code      String            @unique @db.VarChar(20) // e.g. TREASURY_VAULT, MEMBER_SAVINGS
-  type      LedgerAccountType
-  tenant_id Int?
-
-  ledger_entries BusinessLedger[]
-
-  @@map("ledger_accounts")
-}
-
-model SocialVouch {
-  id         Int      @id @default(autoincrement())
-  voucher_id Int
-  vouchee_id Int
-  score      Int      @default(5)
-  comment    String?  @db.Text
-  created_at DateTime @default(now())
-
-  voucher User @relation("Voucher", fields: [voucher_id], references: [user_id])
-  vouchee User @relation("Vouchee", fields: [vouchee_id], references: [user_id])
-
-  @@map("social_vouches")
-}
-
-model InterestAudit {
-  id               Int      @id @default(autoincrement())
-  loan_id          Int      @unique
-  formula_snapshot Json
-  rate_applied     Decimal  @db.Decimal(5, 2)
-  created_at       DateTime @default(now())
-
-  loan Loan @relation(fields: [loan_id], references: [loan_id], onDelete: Cascade)
-
-  @@map("interest_audit")
 }

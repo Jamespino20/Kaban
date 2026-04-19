@@ -2,38 +2,52 @@ import { PrismaClient } from "@prisma/client";
 import { PrismaNeon } from "@prisma/adapter-neon";
 import { Pool, neonConfig } from "@neondatabase/serverless";
 import ws from "ws";
-import { prismaAuditExtension } from "./prisma-audit";
-
-if (typeof WebSocket === "undefined") {
-  neonConfig.webSocketConstructor = ws;
-}
 
 const prismaClientSingleton = () => {
-  const connectionString =
-    process.env.DATABASE_URL ||
-    process.env.AGAPAY_DATABASE_URL ||
-    process.env.AGAPAYSTORAGE_DATABASE_URL ||
-    process.env.AGAPAYSTORAGE_AGAPAY_DATABASE_URL ||
-    process.env.AGAPAYSTORAGE_POSTGRES_PRISMA_URL ||
-    process.env.AGAPAYSTORAGE_POSTGRES_URL ||
-    process.env.AGAPAYSTORAGE_AGAPAY_URL ||
-    process.env.AGAPAYSTORAGE_AGAPAY_PRISMA_URL;
+  const connectionString = process.env.DATABASE_URL;
 
   if (!connectionString) {
-    throw new Error("Missing Database URL");
+    throw new Error("Missing DATABASE_URL environment variable");
   }
 
-  const pool = new Pool({ connectionString });
-  const adapter = new PrismaNeon(pool as any);
-  return new PrismaClient({ adapter }).$extends(prismaAuditExtension);
+  // Neon standard polyfill
+  neonConfig.webSocketConstructor = ws;
+
+  console.log(">>> AGAPAY PRISMA: Attempting Manual Config Parsing <<<");
+
+  // Manually parse URI to avoid "No database host set" ambiguities
+  try {
+    const url = new URL(connectionString);
+    const poolConfig = {
+      host: url.hostname,
+      user: url.username,
+      password: url.password,
+      database: url.pathname.slice(1),
+      port: parseInt(url.port) || 5432,
+      ssl: true,
+    };
+
+    console.log("Parsed Host:", poolConfig.host);
+
+    const pool = new Pool(poolConfig);
+    const adapter = new PrismaNeon(pool as any);
+
+    return new PrismaClient({ adapter });
+  } catch (error) {
+    console.error("Failed to parse DATABASE_URL:", error);
+    throw error;
+  }
 };
 
 declare global {
-  var prisma: undefined | ReturnType<typeof prismaClientSingleton>;
+  var agapay_parsed_prisma:
+    | undefined
+    | ReturnType<typeof prismaClientSingleton>;
 }
 
-const prisma = globalThis.prisma ?? prismaClientSingleton();
+const prisma = globalThis.agapay_parsed_prisma ?? prismaClientSingleton();
 
 export default prisma as unknown as ReturnType<typeof prismaClientSingleton>;
 
-if (process.env.NODE_ENV !== "production") globalThis.prisma = prisma;
+if (process.env.NODE_ENV !== "production")
+  globalThis.agapay_parsed_prisma = prisma;
