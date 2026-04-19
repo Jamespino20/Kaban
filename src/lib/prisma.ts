@@ -4,36 +4,51 @@ import { Pool, neonConfig } from "@neondatabase/serverless";
 import ws from "ws";
 import "dotenv/config";
 
-const prismaClientSingleton = () => {
+/**
+ * HIGH-RESILIENCY PRISMA SINGLETON (VERCEL-HARDENED)
+ *
+ * Uses a Proxy to ensure lazy initialization. If DATABASE_URL is missing
+ * during module load (e.g. build time), it returns a stub.
+ * On first ACCESS, it tries to initialize the "real" client again.
+ */
+let internal_prisma: any = null;
+
+const getPrisma = () => {
   const connectionString =
     process.env.DATABASE_URL || process.env.AGAPAYSTORAGE_DATABASE_URL;
 
-  if (!connectionString) {
-    if (process.env.NODE_ENV === "production" || process.env.VERCEL) {
-      console.warn("AGAPAY: DATABASE_URL not set — Prisma Client might fail.");
-    }
-  }
+  // If already initialized as a real client, return it
+  if (internal_prisma && !internal_prisma._is_stub) return internal_prisma;
 
-  // WebSocket polyfill
-  neonConfig.webSocketConstructor = ws;
-
-  // Use the connection string if available, otherwise just use standard Prisma client
-  // (which will fail with a better error message if a query is actually made)
+  // If we have a URL now, initialize for real
   if (connectionString) {
+    console.log("AGAPAY: Initializing Real Prisma Client...");
+    neonConfig.webSocketConstructor = ws;
     const pool = new Pool({ connectionString });
     const adapter = new PrismaNeon(pool as any);
-    return new PrismaClient({ adapter });
+    internal_prisma = new PrismaClient({ adapter });
+    return internal_prisma;
   }
 
-  return new PrismaClient();
+  // Fallback to stub if still no URL or first call
+  if (!internal_prisma) {
+    console.warn("AGAPAY: No URL found. Creating Prisma STUB.");
+    internal_prisma = new PrismaClient();
+    (internal_prisma as any)._is_stub = true;
+  }
+  return internal_prisma;
 };
 
-declare global {
-  var agapay_prisma: undefined | ReturnType<typeof prismaClientSingleton>;
-}
-
-const prisma = globalThis.agapay_prisma ?? prismaClientSingleton();
+// Export a Proxy that intercepts all calls and ensures getPrisma() is called
+const prisma = new Proxy({} as PrismaClient, {
+  get: (target, prop) => {
+    const client = getPrisma();
+    const value = (client as any)[prop];
+    if (typeof value === "function") {
+      return value.bind(client);
+    }
+    return value;
+  },
+});
 
 export default prisma;
-
-if (process.env.NODE_ENV !== "production") globalThis.agapay_prisma = prisma;
