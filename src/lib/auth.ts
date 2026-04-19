@@ -31,14 +31,21 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
 
           if (!connectionString) return null;
 
+          // Safe parsing of tenantId - essential for multi-tenant isolation
+          let parsedTenantId = null;
+          if (tenantId && tenantId !== "global" && tenantId !== "undefined") {
+            const integerId = parseInt(tenantId);
+            if (!isNaN(integerId)) parsedTenantId = integerId;
+          }
+
           const sql = neon(connectionString);
 
-          // Fetch user with tenant scoping via raw SQL
+          // Fetch user with strict tenant scoping
           const users = await sql`
             SELECT user_id, tenant_id, username, email, password_hash, 
                    role, status, member_code
             FROM users
-            WHERE tenant_id = ${tenantId === "global" ? null : parseInt(tenantId)}
+            WHERE (tenant_id = ${parsedTenantId} OR (tenant_id IS NULL AND ${parsedTenantId === null}))
             AND (email = ${username} OR username = ${username})
             LIMIT 1
           `;

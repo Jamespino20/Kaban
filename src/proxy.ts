@@ -9,6 +9,10 @@ const authProxy = auth((req) => {
   const isLoggedIn = !!req.auth;
   const role = req.auth?.user?.role;
 
+  console.log(
+    `[PROXY] ${req.method} ${nextUrl.pathname} | LoggedIn: ${isLoggedIn} | Role: ${role}`,
+  );
+
   const isApiAuthRoute = nextUrl.pathname.startsWith("/api/auth");
   const isPublicRoute = [
     "/",

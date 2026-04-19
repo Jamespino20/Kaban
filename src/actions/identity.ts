@@ -39,19 +39,23 @@ export async function getAvailableTenants(username: string, password?: string) {
       }
 
       // Fetch tenant details atomically
-      const tenants = await sql`
-        SELECT name, slug, tenant_group_id 
-        FROM tenants 
-        WHERE tenant_id = ${user.tenant_id}
-      `;
-      const tenant = tenants[0];
-
+      let tenant = null;
       let groupName = "Agapay HQ";
-      if (tenant?.tenant_group_id) {
-        const groups = await sql`
-          SELECT name FROM tenant_groups WHERE id = ${tenant.tenant_group_id}
+
+      if (user.tenant_id) {
+        const tenants = await sql`
+          SELECT name, slug, tenant_group_id 
+          FROM tenants 
+          WHERE tenant_id = ${user.tenant_id}
         `;
-        if (groups[0]) groupName = groups[0].name;
+        tenant = tenants[0];
+
+        if (tenant?.tenant_group_id) {
+          const groups = await sql`
+            SELECT name FROM tenant_groups WHERE id = ${tenant.tenant_group_id}
+          `;
+          if (groups[0]) groupName = groups[0].name;
+        }
       }
 
       validTenants.push({

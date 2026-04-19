@@ -15,7 +15,9 @@ let internal_prisma: any = null;
 
 const getPrisma = () => {
   const connectionString =
-    process.env.DATABASE_URL || process.env.AGAPAYSTORAGE_DATABASE_URL;
+    process.env.DATABASE_URL ||
+    process.env.AGAPAYSTORAGE_DATABASE_URL ||
+    process.env.POSTGRES_URL;
 
   // If already initialized as a real client, return it
   if (internal_prisma && !internal_prisma._is_stub) return internal_prisma;
