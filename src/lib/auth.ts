@@ -2,7 +2,7 @@ import { authConfig } from "./auth.config";
 import NextAuth from "next-auth";
 import Credentials from "next-auth/providers/credentials";
 import bcrypt from "bcryptjs";
-import prisma from "@/lib/prisma";
+import { neon } from "@neondatabase/serverless";
 import { z } from "zod";
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
@@ -15,7 +15,6 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
             username: z.string(),
             password: z.string().min(6),
             tenantId: z.string(),
-            // We add an optional 2fa field
             code: z.string().optional(),
           })
           .safeParse(credentials);
@@ -23,16 +22,28 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         if (parsedCredentials.success) {
           const { username, password, code, tenantId } = parsedCredentials.data;
 
-          const user: any = await prisma.user.findFirst({
-            where: {
-              tenant_id: (tenantId === "global"
-                ? null
-                : parseInt(tenantId)) as any,
-              OR: [{ email: username }, { username: username }],
-            },
-            include: { two_factor_auth: true },
-          });
+          const connectionString =
+            process.env.DATABASE_URL || process.env.AGAPAYSTORAGE_DATABASE_URL;
+          console.log(
+            "SURGERY: Auth Connection String Status:",
+            connectionString ? "PRESENT" : "MISSING!",
+          );
 
+          if (!connectionString) return null;
+
+          const sql = neon(connectionString);
+
+          // Fetch user with tenant scoping via raw SQL
+          const users = await sql`
+            SELECT user_id, tenant_id, username, email, password_hash, 
+                   role, status, member_code
+            FROM users
+            WHERE tenant_id = ${tenantId === "global" ? null : parseInt(tenantId)}
+            AND (email = ${username} OR username = ${username})
+            LIMIT 1
+          `;
+
+          const user = users[0];
           if (!user) return null;
 
           const passwordsMatch = await bcrypt.compare(
@@ -41,14 +52,17 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           );
 
           if (passwordsMatch) {
-            // Block suspended users.
-            // We allow 'pending' users to login so we can show them a "Verify your Email" UI instead of "Invalid Credentials"
-            if (user.status === "suspended") {
-              return null;
-            }
+            if (user.status === "suspended") return null;
 
-            // check 2FA
-            if (user.two_factor_auth?.is_enabled) {
+            // Check 2FA
+            const twoFaRows = await sql`
+              SELECT is_enabled, totp_secret 
+              FROM two_factor_auth 
+              WHERE user_id = ${user.user_id}
+            `;
+            const twoFa = twoFaRows[0];
+
+            if (twoFa?.is_enabled) {
               if (!code) {
                 const { generateTwoFactorToken } = await import("@/lib/tokens");
                 const { sendTwoFactorTokenEmail } = await import("@/lib/mail");
@@ -69,13 +83,11 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
                 base32: new ScureBase32Plugin(),
               });
 
-              // Check TOTP first
               const result = await totp.verify(code, {
-                secret: user.two_factor_auth.totp_secret,
+                secret: twoFa.totp_secret,
               });
 
               if (!result.valid) {
-                // Check backup Email Token if TOTP failed or as primary
                 const { getTwoFactorTokenByEmail } =
                   await import("@/actions/two-factor-token");
                 const twoFactorToken = await getTwoFactorTokenByEmail(
@@ -90,9 +102,11 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
                   new Date(twoFactorToken.expires) < new Date();
                 if (hasExpired) return null;
 
-                await prisma.twoFactorToken.delete({
-                  where: { id: twoFactorToken.id },
-                });
+                // Delete used token via neon
+                await sql`
+                  DELETE FROM two_factor_tokens 
+                  WHERE id = ${twoFactorToken.id}
+                `;
               }
             }
 

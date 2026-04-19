@@ -2,52 +2,38 @@ import { PrismaClient } from "@prisma/client";
 import { PrismaNeon } from "@prisma/adapter-neon";
 import { Pool, neonConfig } from "@neondatabase/serverless";
 import ws from "ws";
+import "dotenv/config";
 
 const prismaClientSingleton = () => {
-  const connectionString = process.env.DATABASE_URL;
+  const connectionString =
+    process.env.DATABASE_URL || process.env.AGAPAYSTORAGE_DATABASE_URL;
 
   if (!connectionString) {
-    throw new Error("Missing DATABASE_URL environment variable");
+    if (process.env.NODE_ENV === "production" || process.env.VERCEL) {
+      console.warn("AGAPAY: DATABASE_URL not set — Prisma Client might fail.");
+    }
   }
 
-  // Neon standard polyfill
+  // WebSocket polyfill
   neonConfig.webSocketConstructor = ws;
 
-  console.log(">>> AGAPAY PRISMA: Attempting Manual Config Parsing <<<");
-
-  // Manually parse URI to avoid "No database host set" ambiguities
-  try {
-    const url = new URL(connectionString);
-    const poolConfig = {
-      host: url.hostname,
-      user: url.username,
-      password: url.password,
-      database: url.pathname.slice(1),
-      port: parseInt(url.port) || 5432,
-      ssl: true,
-    };
-
-    console.log("Parsed Host:", poolConfig.host);
-
-    const pool = new Pool(poolConfig);
+  // Use the connection string if available, otherwise just use standard Prisma client
+  // (which will fail with a better error message if a query is actually made)
+  if (connectionString) {
+    const pool = new Pool({ connectionString });
     const adapter = new PrismaNeon(pool as any);
-
     return new PrismaClient({ adapter });
-  } catch (error) {
-    console.error("Failed to parse DATABASE_URL:", error);
-    throw error;
   }
+
+  return new PrismaClient();
 };
 
 declare global {
-  var agapay_parsed_prisma:
-    | undefined
-    | ReturnType<typeof prismaClientSingleton>;
+  var agapay_prisma: undefined | ReturnType<typeof prismaClientSingleton>;
 }
 
-const prisma = globalThis.agapay_parsed_prisma ?? prismaClientSingleton();
+const prisma = globalThis.agapay_prisma ?? prismaClientSingleton();
 
-export default prisma as unknown as ReturnType<typeof prismaClientSingleton>;
+export default prisma;
 
-if (process.env.NODE_ENV !== "production")
-  globalThis.agapay_parsed_prisma = prisma;
+if (process.env.NODE_ENV !== "production") globalThis.agapay_prisma = prisma;

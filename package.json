@@ -14,7 +14,7 @@
     "@hookform/resolvers": "^5.2.2",
     "@jobuntux/psgc": "^0.2.1",
     "@neondatabase/serverless": "^1.0.0",
-    "@prisma/adapter-neon": "^7.5.0",
+    "@prisma/adapter-neon": "^7.6.0",
     "@prisma/client": "^7.6.0",
     "bcryptjs": "^3.0.3",
     "class-variance-authority": "^0.7.1",
