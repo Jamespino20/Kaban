@@ -4,19 +4,25 @@ import { Pool, neonConfig } from "@neondatabase/serverless";
 import ws from "ws";
 
 /**
- * AGAPAY NATIVE PRISMA SINGLETON (v7 - PURE ADAPTER BINDING)
+ * AGAPAY APEX PRISMA SINGLETON (v8 - THE DEFINITIVE PATTERN)
  *
- * - Removes ALL custom constructor properties that trigger Prisma validation failures.
- * - Passes ONLY the `adapter` parameter.
- * - Retains Manual URI Deconstruction for Vercel/pg.Pool safety.
+ * 1. LAZY PROXY: Prevents Vercel top-level environment variables from racing.
+ *    The connection string is read strictly at execution time.
+ * 2. PURE ADAPTER: Passes exactly 1 argument { adapter } to PrismaClient to
+ *    completely avoid Prisma 7's highly aggressive option validation.
+ * 3. CONNECTION STRING DRIVEN: Relies on `connectionString` parameter in Pool for
+ *    Neon's adapter, preventing 'localhost' edge case fallbacks.
  */
 
-// Global augmentation for the singleton pattern
 declare global {
-  var agapay_prisma_instance: PrismaClient | undefined;
+  var agapay_apex_prisma: PrismaClient | undefined;
 }
 
-const createPrismaClient = () => {
+const getPrisma = (): PrismaClient => {
+  if (globalThis.agapay_apex_prisma) {
+    return globalThis.agapay_apex_prisma;
+  }
+
   const connectionString =
     process.env.DATABASE_URL ||
     process.env.AGAPAYSTORAGE_DATABASE_URL ||
@@ -24,49 +30,48 @@ const createPrismaClient = () => {
 
   if (!connectionString) {
     console.error(
-      "AGAPAY CRITICAL: No DATABASE_URL found in environment! Initializing empty fallback client.",
+      "AGAPAY CRITICAL: No DATABASE_URL found. A query is attempting execution without DB credentials.",
     );
-    // No arguments at all - avoids unknown property errors during build
-    return new PrismaClient();
+    // Dummy client that will survive build-time static generation but fail loudly on DB query
+    globalThis.agapay_apex_prisma = new PrismaClient();
+    return globalThis.agapay_apex_prisma;
   }
 
   try {
-    const url = new URL(connectionString);
-
-    // Serverless optimization (Use HTTP fetch on Vercel)
+    // Vercel / serverless optimization
     if (process.env.VERCEL || process.env.NODE_ENV === "production") {
       (neonConfig as any).fetchConnection = true;
     } else {
       neonConfig.webSocketConstructor = ws;
     }
 
-    const pool = new Pool({
-      host: url.hostname,
-      port: parseInt(url.port) || 5432,
-      user: url.username,
-      password: decodeURIComponent(url.password),
-      database: url.pathname.slice(1),
-      ssl: true,
-      max: 1, // Minimize connections in serverless
-    });
-
+    const pool = new Pool({ connectionString });
     const adapter = new PrismaNeon(pool as any);
 
-    // STRICTLY pass ONLY the adapter. No datasourceUrl or datasources.
-    return new PrismaClient({ adapter });
+    // STRICTLY pass ONLY the adapter to satisfy strict PrismaClient validation
+    const client = new PrismaClient({ adapter });
+
+    globalThis.agapay_apex_prisma = client;
+    return client;
   } catch (error) {
-    console.error(
-      "AGAPAY: Initialization failed, falling back to empty client:",
-      error,
-    );
-    return new PrismaClient();
+    console.error("AGAPAY: Critical failure constructing PrismaClient:", error);
+    globalThis.agapay_apex_prisma = new PrismaClient();
+    return globalThis.agapay_apex_prisma;
   }
 };
 
-const prisma = globalThis.agapay_prisma_instance ?? createPrismaClient();
-
-if (process.env.NODE_ENV !== "production") {
-  globalThis.agapay_prisma_instance = prisma;
-}
+// The lazy proxy ensures `getPrisma()` is NEVER called until the exact moment
+// `prisma.user.findUnique`, etc is executed. This completely sidesteps
+// Vercel's top-level module caching and ensures process.env is 100% loaded.
+const prisma = new Proxy({} as PrismaClient, {
+  get: (target, prop) => {
+    const client = getPrisma();
+    const value = (client as any)[prop];
+    if (typeof value === "function") {
+      return (...args: any[]) => value.apply(client, args);
+    }
+    return value;
+  },
+});
 
 export default prisma;
