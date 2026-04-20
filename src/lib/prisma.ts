@@ -17,19 +17,41 @@ declare global {
   var agapay_apex_prisma: any | undefined;
 }
 
+const getDbUrl = () => {
+  const url =
+    process.env.DATABASE_URL ||
+    process.env.AGAPAYSTORAGE_DATABASE_URL ||
+    process.env.POSTGRES_URL;
+
+  if (!url) {
+    console.warn("⚠️ AGAPAY_WARNING: No DATABASE_URL found in environment.");
+    // We don't return a dummy client here because it leads to "No database host" errors
+  }
+  return url;
+};
+
 const getPrisma = (): any => {
   if (globalThis.agapay_apex_prisma) {
     return globalThis.agapay_apex_prisma;
   }
 
-  const connectionString =
-    process.env.DATABASE_URL ||
-    process.env.AGAPAYSTORAGE_DATABASE_URL ||
-    process.env.POSTGRES_URL;
+  const connectionString = getDbUrl();
 
   if (!connectionString) {
-    console.error("AGAPAY CRITICAL: No DATABASE_URL found.");
-    return new PrismaClient();
+    // If we're in build time, we might not have the URL, but at runtime it's CRITICAL.
+    if (process.env.NODE_ENV === "production") {
+      throw new Error(
+        "AGAPAY_CRITICAL: Database connection string is missing in production environment.",
+      );
+    }
+    // Return a dummy error-throwing client for dev to avoid silent failures
+    return new Proxy({} as any, {
+      get: () => {
+        throw new Error(
+          "AGAPAY_ERROR: Prisma accessed before DATABASE_URL was available. Check your .env file.",
+        );
+      },
+    });
   }
 
   try {
@@ -41,7 +63,13 @@ const getPrisma = (): any => {
 
     const pool = new Pool({ connectionString });
     const adapter = new PrismaNeon(pool as any);
-    const baseClient = new PrismaClient({ adapter });
+    const baseClient = new PrismaClient({
+      adapter,
+      log:
+        process.env.NODE_ENV === "development"
+          ? ["query", "error", "warn"]
+          : ["error"],
+    });
 
     // EXTEND CLIENT FOR RLS & AUDIT
     const extendedClient = baseClient.$extends({
@@ -60,8 +88,6 @@ const getPrisma = (): any => {
               operation.startsWith("count");
 
             if (isRead && model !== "AuditLog") {
-              // Non-blocking Audit Logging (don't wait for it to finish the query)
-              // Note: We use the baseClient to avoid recursion
               baseClient.auditLog
                 .create({
                   data: {
@@ -73,11 +99,10 @@ const getPrisma = (): any => {
                     new_values: { args } as any,
                   },
                 })
-                .catch(() => {}); // Suppress log errors to prevent site crash
+                .catch(() => {});
             }
 
             // 3. SECURE SESSION INJECTION (Stateless RLS)
-            // We use a transaction to ensure SET LOCAL is scoped to the query
             return baseClient.$transaction(async (tx) => {
               if (tenantId) {
                 await tx.$executeRawUnsafe(
@@ -95,8 +120,8 @@ const getPrisma = (): any => {
     globalThis.agapay_apex_prisma = extendedClient;
     return extendedClient;
   } catch (error) {
-    console.error("AGAPAY: Critical failure:", error);
-    return new PrismaClient();
+    console.error("AGAPAY: Critical Prisma initialization failure:", error);
+    throw error; // Rethrow to prevent "No database host" masking
   }
 };
 

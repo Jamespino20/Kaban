@@ -376,11 +376,13 @@ async function seedAdmins(ctx: TenantContext): Promise<SeededUser[]> {
     const isMale = Math.random() > 0.5;
     const first = pick(isMale ? NAMES_M : NAMES_F);
     const last = pick(SURNAMES);
-    const uname = `admin_${ctx.tenantSlug.replace("agapay-", "")}_${i + 1}`;
+    // Human-like username and email without numbers
+    const baseName = `${first.toLowerCase()}.${last.toLowerCase()}`;
+    const uname = `${baseName}_admin`;
     const user = await prisma.user.create({
       data: {
         username: uname,
-        email: `${uname}@${ctx.tenantSlug.replace("agapay-", "")}.coop.ph`,
+        email: `${baseName}@${ctx.tenantSlug.replace("agapay-", "")}.coop.ph`,
         password_hash: ctx.hashedAdmin,
         role: Role.admin,
         tenant_id: ctx.tenantId,
@@ -418,11 +420,13 @@ async function seedLenders(ctx: TenantContext): Promise<SeededUser[]> {
     const isMale = Math.random() > 0.4;
     const first = pick(isMale ? NAMES_M : NAMES_F);
     const last = pick(SURNAMES);
-    const uname = `lender_${ctx.tenantSlug.replace("agapay-", "")}_${i + 1}`;
+    // Human-like username and email without numbers
+    const baseName = `${first.toLowerCase()}.${last.toLowerCase()}`;
+    const uname = `${baseName}_lender`;
     const user = await prisma.user.create({
       data: {
         username: uname,
-        email: `${uname}@${ctx.tenantSlug.replace("agapay-", "")}.coop.ph`,
+        email: `${baseName}@${ctx.tenantSlug.replace("agapay-", "")}.coop.ph`,
         password_hash: ctx.hashedPassword,
         role: Role.lender,
         tenant_id: ctx.tenantId,
@@ -471,7 +475,7 @@ async function seedMembers(ctx: TenantContext): Promise<SeededUser[]> {
     const user = await prisma.user.create({
       data: {
         username: uname,
-        email: `${first.toLowerCase()}.${last.toLowerCase().replace(/ /g, "")}${rand(1, 999)}@gmail.com`,
+        email: `${first.toLowerCase()}.${last.toLowerCase().replace(/ /g, "")}@gmail.com`,
         password_hash: ctx.hashedPassword,
         role: Role.member,
         tenant_id: ctx.tenantId,
@@ -975,9 +979,17 @@ async function main() {
   const shuffled = allUsers.sort(() => 0.5 - Math.random());
   const targets = shuffled.slice(0, memberToDuplicateCount);
 
+  // Ensure Maria Santos exists in the targets
+  const testUserEmail = "maria.santos@gmail.com";
+  let testUser = allUsers.find((u) => u.email === testUserEmail);
+
+  if (testUser && !targets.find((u) => u.email === testUserEmail)) {
+    targets.push(testUser);
+  }
+
   for (const user of targets) {
     const otherTenants = tenants.filter((t) => t.tenant_id !== user.tenant_id);
-    const extraTenantCount = rand(1, 2);
+    const extraTenantCount = user.email === testUserEmail ? 2 : rand(1, 2);
     const selected = otherTenants
       .sort(() => 0.5 - Math.random())
       .slice(0, extraTenantCount);
@@ -986,7 +998,7 @@ async function main() {
       try {
         await prisma.user.create({
           data: {
-            username: `${user.username}_${tenantRef.slug.replace("agapay-", "")}`,
+            username: user.username,
             email: user.email,
             password_hash: hashedPassword,
             role: Role.member,
@@ -997,14 +1009,15 @@ async function main() {
               InterestTier.T2_4_5_PERCENT,
               InterestTier.T3_4_PERCENT,
             ]),
-            member_code: `AGP-MULTI-${tenantRef.tenant_id}-${user.user_id}`,
+            // Preserve strict format: AGP-2026-M[UserID][TenantID]
+            member_code: `AGP-2026-M${String(user.user_id).padStart(3, "0")}${String(tenantRef.tenant_id).padStart(2, "0")}`,
             profile: {
               create: {
-                first_name: user.profile?.first_name || "Juan",
-                last_name: user.profile?.last_name || "Dela Cruz",
+                first_name: user.profile?.first_name || "Maria",
+                last_name: user.profile?.last_name || "Santos",
                 gender: user.profile?.gender,
                 birthdate: user.profile?.birthdate,
-                address: `Branch Transfer: ${user.profile?.address}`,
+                address: `Cross-tenant Membership in ${tenantRef.name}`,
                 marital_status: user.profile?.marital_status,
                 occupation: user.profile?.occupation,
               },
@@ -1012,7 +1025,7 @@ async function main() {
           },
         });
       } catch (e) {
-        // Skip dups or errors
+        // Skip dups
       }
     }
   }
@@ -1068,7 +1081,7 @@ async function main() {
 ╚════════════════════════════════════════════════╝
   `);
   console.log("📌 Superadmin: superadmin@agapay.ph / admin2026!");
-  console.log("📌 Cross-tenant: maria.santos@gmail.com / password123");
+  console.log("📌 Cross-tenant: [EMAIL_ADDRESS] / password123");
 }
 
 main()

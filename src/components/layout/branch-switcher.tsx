@@ -39,13 +39,15 @@ export function BranchSwitcher() {
     if (tenantId === session?.user?.tenantId) return;
 
     setSwitching(tenantId);
-    // Since Agapay members use the same password across branches,
-    // we can re-authenticate to the new branch context.
-    // Note: We'd typically need the password here.
-    // For a seamless experience, we can redirect to a "Switch Login" page
-    // or use a temporary "Switch Token".
-    // FOR THIS VERSION: We will use the redirect method to the identity selection page.
-    window.location.href = `/?switchFrom=${session?.user?.tenantId}&targetTo=${tenantId}&email=${session?.user?.email}`;
+
+    // Utilize NextAuth seamless token update mechanism built into auth.config.ts
+    await update({
+      action: "switch_tenant",
+      tenantId: tenantId.toString(),
+    });
+
+    // Force a hard reload to ensure layout/providers catch the new tenant context
+    window.location.href = "/";
   }
 
   if (tenants.length <= 1 && !loading) return null;
