@@ -5,13 +5,47 @@ import ws from "ws";
 import "dotenv/config";
 
 /**
- * PRISMA SINGLETON
+ * AGAPAY ULTIMATE RESILIENCY PRISMA SINGLETON (v3)
  *
- * Bypasses the unreliable Pool string parser by manually deconstructing the URI.
- * This resolves the "No database host" error on Vercel where pg falls back to
- * localhost despite a valid connection string being provided.
+ * - Forces HTTP Fetch on Vercel for maximum serverless stability.
+ * - Re-evaluates connection string on every access if currently in stub mode.
+ * - Manually parses URI to bypass pg.Pool's unreliable string parser.
  */
 let internal_prisma: any = null;
+
+const getRealPrisma = (urlStr: string) => {
+  try {
+    const url = new URL(urlStr);
+
+    // VERCEL OPTIMIZATION: Always use HTTP fetch for Neon on Vercel/Serverless
+    // This bypasses WebSocket overhead and is much more stable.
+    if (process.env.VERCEL || process.env.NODE_ENV === "production") {
+      neonConfig.fetchConnectionCache = true;
+    } else {
+      neonConfig.webSocketConstructor = ws;
+    }
+
+    const poolConfig = {
+      host: url.hostname,
+      port: parseInt(url.port) || 5432,
+      user: url.username,
+      password: decodeURIComponent(url.password),
+      database: url.pathname.slice(1),
+      ssl: true,
+      max: 1, // Minimize connections in serverless
+      connectionTimeoutMillis: 15000,
+    };
+
+    const pool = new Pool(poolConfig);
+    const adapter = new PrismaNeon(pool as any);
+
+    const client = new PrismaClient({ adapter });
+    return client;
+  } catch (e) {
+    console.error("AGAPAY: Failed to initialize real Prisma client:", e);
+    return null;
+  }
+};
 
 const getPrisma = () => {
   const connectionString =
@@ -19,62 +53,37 @@ const getPrisma = () => {
     process.env.AGAPAYSTORAGE_DATABASE_URL ||
     process.env.POSTGRES_URL;
 
+  // 1. Return existing real client if we have one
   if (internal_prisma && !internal_prisma._is_stub) return internal_prisma;
 
+  // 2. Try to upgrade to a real client if we have a URL now
   if (connectionString) {
-    try {
-      console.log(
-        "AGAPAY: Hard-initializing Prisma Client with Manual URI Deconstruction...",
-      );
-
-      const url = new URL(connectionString);
-      const isPooler = url.hostname.includes("pooler");
-
-      const poolConfig = {
-        host: url.hostname,
-        port: parseInt(url.port) || 5432,
-        user: url.username,
-        password: decodeURIComponent(url.password),
-        database: url.pathname.slice(1),
-        ssl: true,
-        // Increase timeout for serverless wake-up
-        connectionTimeoutMillis: 10000,
-      };
-
-      // Neon-specific WebSocket polyfill (local/Node only)
-      if (typeof window === "undefined" && !process.env.VERCEL) {
-        neonConfig.webSocketConstructor = ws;
-      }
-
-      const pool = new Pool(poolConfig);
-      const adapter = new PrismaNeon(pool as any);
-
-      internal_prisma = new PrismaClient({ adapter });
+    const realClient = getRealPrisma(connectionString);
+    if (realClient) {
+      internal_prisma = realClient;
       internal_prisma._is_stub = false;
+      console.log(
+        "AGAPAY: Successfully upgraded from stub to REAL Prisma Client.",
+      );
       return internal_prisma;
-    } catch (parseError) {
-      console.error("AGAPAY: Critical error parsing DATABASE_URL:", parseError);
     }
   }
 
-  // Fallback to stub during build/missing env
+  // 3. Fallback to (or keep) stub if we still can't connect
   if (!internal_prisma) {
-    console.warn(
-      "AGAPAY: Initializing Prisma STUB (No usable connection string).",
-    );
+    console.warn("AGAPAY: Using Prisma STUB - No usable DATABASE_URL found.");
     internal_prisma = new PrismaClient();
     internal_prisma._is_stub = true;
   }
   return internal_prisma;
 };
 
+// The proxy ensures we check getPrisma() on every single call
 const prisma = new Proxy({} as PrismaClient, {
   get: (target, prop) => {
     const client = getPrisma();
     const value = (client as any)[prop];
-    if (typeof value === "function") {
-      return value.bind(client);
-    }
+    if (typeof value === "function") return value.bind(client);
     return value;
   },
 });
