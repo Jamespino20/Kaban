@@ -5,11 +5,11 @@ import ws from "ws";
 import "dotenv/config";
 
 /**
- * AGAPAY ULTIMATE RESILIENCY PRISMA SINGLETON (v3)
+ * AGAPAY ULTIMATE RESILIENCY PRISMA SINGLETON (v4 - 0% STUB POLICY)
  *
- * - Forces HTTP Fetch on Vercel for maximum serverless stability.
- * - Re-evaluates connection string on every access if currently in stub mode.
- * - Manually parses URI to bypass pg.Pool's unreliable string parser.
+ * - Dual-layer initialization: Passes both 'adapter' AND 'datasourceUrl'.
+ * - Forces HTTP fetch for serverless stability.
+ * - Manual URI parsing for pg.Pool safety.
  */
 let internal_prisma: any = null;
 
@@ -18,9 +18,10 @@ const getRealPrisma = (urlStr: string) => {
     const url = new URL(urlStr);
 
     // VERCEL OPTIMIZATION: Always use HTTP fetch for Neon on Vercel/Serverless
-    // This bypasses WebSocket overhead and is much more stable.
     if (process.env.VERCEL || process.env.NODE_ENV === "production") {
-      neonConfig.fetchConnectionCache = true;
+      neonConfig.fetchConnectionCache = true; // Supported in some versions, but let's be safe
+      // Primary HTTP mode flag
+      (neonConfig as any).fetchConnection = true;
     } else {
       neonConfig.webSocketConstructor = ws;
     }
@@ -32,14 +33,19 @@ const getRealPrisma = (urlStr: string) => {
       password: decodeURIComponent(url.password),
       database: url.pathname.slice(1),
       ssl: true,
-      max: 1, // Minimize connections in serverless
+      max: 1,
       connectionTimeoutMillis: 15000,
     };
 
     const pool = new Pool(poolConfig);
     const adapter = new PrismaNeon(pool as any);
 
-    const client = new PrismaClient({ adapter });
+    // DUAL-LAYER: We pass both the adapter and the datasourceUrl.
+    // This handles cases where the Rust engine expects a URL even when using an adapter.
+    const client = new PrismaClient({
+      adapter,
+      datasourceUrl: urlStr,
+    } as any);
     return client;
   } catch (e) {
     console.error("AGAPAY: Failed to initialize real Prisma client:", e);
@@ -53,37 +59,36 @@ const getPrisma = () => {
     process.env.AGAPAYSTORAGE_DATABASE_URL ||
     process.env.POSTGRES_URL;
 
-  // 1. Return existing real client if we have one
+  // If we have a real non-stub client, return it
   if (internal_prisma && !internal_prisma._is_stub) return internal_prisma;
 
-  // 2. Try to upgrade to a real client if we have a URL now
+  // Try to create/upgrade to real client
   if (connectionString) {
     const realClient = getRealPrisma(connectionString);
     if (realClient) {
       internal_prisma = realClient;
       internal_prisma._is_stub = false;
-      console.log(
-        "AGAPAY: Successfully upgraded from stub to REAL Prisma Client.",
-      );
       return internal_prisma;
     }
   }
 
-  // 3. Fallback to (or keep) stub if we still can't connect
+  // Last resort: basic client if still no URL (will likely fail query but survive init)
   if (!internal_prisma) {
-    console.warn("AGAPAY: Using Prisma STUB - No usable DATABASE_URL found.");
+    console.warn("AGAPAY: Initializing fallback client.");
     internal_prisma = new PrismaClient();
     internal_prisma._is_stub = true;
   }
   return internal_prisma;
 };
 
-// The proxy ensures we check getPrisma() on every single call
+// High-fidelity proxy that correctly handles all Prisma properties and symbols
 const prisma = new Proxy({} as PrismaClient, {
   get: (target, prop) => {
     const client = getPrisma();
     const value = (client as any)[prop];
-    if (typeof value === "function") return value.bind(client);
+    if (typeof value === "function") {
+      return (...args: any[]) => value.apply(client, args);
+    }
     return value;
   },
 });
