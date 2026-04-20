@@ -4,11 +4,11 @@ import { Pool, neonConfig } from "@neondatabase/serverless";
 import ws from "ws";
 
 /**
- * AGAPAY NATIVE PRISMA SINGLETON (v5 - THE FINAL BOSS)
+ * AGAPAY NATIVE PRISMA SINGLETON (v7 - PURE ADAPTER BINDING)
  *
- * - Removes Proxy: Restores native Prisma engine binding.
- * - Strict URL Enforcement: No more invalid stubs.
- * - Dual-Bound: Passes both adapter and datasourceUrl.
+ * - Removes ALL custom constructor properties that trigger Prisma validation failures.
+ * - Passes ONLY the `adapter` parameter.
+ * - Retains Manual URI Deconstruction for Vercel/pg.Pool safety.
  */
 
 // Global augmentation for the singleton pattern
@@ -23,21 +23,17 @@ const createPrismaClient = () => {
     process.env.POSTGRES_URL;
 
   if (!connectionString) {
-    console.error("AGAPAY CRITICAL: No DATABASE_URL found in environment!");
-    // We return a client that will fail ONLY when queried, with a clear error
-    // because we can't avoid returning a PrismaClient type.
-    // However, we avoid the 'non-empty options' error by providing a dummy URL.
-    return new PrismaClient({
-      datasources: {
-        db: { url: "postgresql://missing_db_url_check_env_vars:5432" },
-      },
-    } as any);
+    console.error(
+      "AGAPAY CRITICAL: No DATABASE_URL found in environment! Initializing empty fallback client.",
+    );
+    // No arguments at all - avoids unknown property errors during build
+    return new PrismaClient();
   }
 
   try {
     const url = new URL(connectionString);
 
-    // Serverless optimization
+    // Serverless optimization (Use HTTP fetch on Vercel)
     if (process.env.VERCEL || process.env.NODE_ENV === "production") {
       (neonConfig as any).fetchConnection = true;
     } else {
@@ -51,23 +47,19 @@ const createPrismaClient = () => {
       password: decodeURIComponent(url.password),
       database: url.pathname.slice(1),
       ssl: true,
-      max: 1,
+      max: 1, // Minimize connections in serverless
     });
 
     const adapter = new PrismaNeon(pool as any);
 
-    return new PrismaClient({
-      adapter,
-      datasources: { db: { url: connectionString } },
-    } as any);
+    // STRICTLY pass ONLY the adapter. No datasourceUrl or datasources.
+    return new PrismaClient({ adapter });
   } catch (error) {
     console.error(
-      "AGAPAY: Initialization failed, falling back to standard client:",
+      "AGAPAY: Initialization failed, falling back to empty client:",
       error,
     );
-    return new PrismaClient({
-      datasources: { db: { url: connectionString } },
-    } as any);
+    return new PrismaClient();
   }
 };
 
