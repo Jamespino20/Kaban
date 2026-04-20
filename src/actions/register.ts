@@ -100,8 +100,8 @@ export const register = async (values: z.infer<typeof RegisterSchema>) => {
   }
 
   try {
-    const result = await prisma.$transaction(async (tx) => {
-      // 1. Generate Member Code (ASN-YYYY-SERIAL)
+    const result = await prisma.$transaction(async (tx: any) => {
+      // 1. Generate Member Code (AGP-YYYY-SERIAL)
       const year = new Date().getFullYear();
       const count = await tx.user.count({
         where: { tenant_id: tenantId },
