@@ -6,17 +6,29 @@ import { auth } from "@/lib/auth";
 import fs from "fs/promises";
 import path from "path";
 
+import { neon } from "@neondatabase/serverless";
+
 // 0. Get List of Regions (Public for Registration)
 export async function getRegions() {
   try {
-    const regions = await prisma.tenantGroup.findMany({
-      where: { is_active: true },
-      select: { id: true, name: true, reg_code: true },
-      orderBy: { name: "asc" },
-    });
+    const connectionString =
+      process.env.DATABASE_URL ||
+      process.env.AGAPAYSTORAGE_DATABASE_URL ||
+      process.env.POSTGRES_URL;
+
+    if (!connectionString) return [];
+
+    const sql = neon(connectionString);
+    const regions = await sql`
+      SELECT id, name, reg_code 
+      FROM tenant_groups 
+      WHERE is_active = true 
+      ORDER BY name ASC
+    `;
+
     return regions;
   } catch (error) {
-    console.error("Failed to fetch regions:", error);
+    console.error("Failed to fetch regions via raw SQL:", error);
     return [];
   }
 }
@@ -24,14 +36,24 @@ export async function getRegions() {
 // 0.5 Get Tenants by Region (Public for Registration)
 export async function getTenantsByRegion(regionId: number) {
   try {
-    const tenants = await prisma.tenant.findMany({
-      where: { tenant_group_id: regionId, is_active: true },
-      select: { tenant_id: true, name: true, slug: true },
-      orderBy: { name: "asc" },
-    });
+    const connectionString =
+      process.env.DATABASE_URL ||
+      process.env.AGAPAYSTORAGE_DATABASE_URL ||
+      process.env.POSTGRES_URL;
+
+    if (!connectionString) return [];
+
+    const sql = neon(connectionString);
+    const tenants = await sql`
+      SELECT tenant_id, name, slug 
+      FROM tenants 
+      WHERE tenant_group_id = ${regionId} AND is_active = true 
+      ORDER BY name ASC
+    `;
+
     return tenants;
   } catch (error) {
-    console.error("Failed to fetch tenants:", error);
+    console.error("Failed to fetch tenants via raw SQL:", error);
     return [];
   }
 }
