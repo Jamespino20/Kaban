@@ -2,7 +2,6 @@
 
 import React from "react";
 import { Users2, Search, MoreVertical, ShieldCheck, Clock } from "lucide-react";
-import { User, UserProfile } from "@prisma/client";
 
 interface MemberDirectoryTabProps {
   members: any[];
@@ -22,7 +21,7 @@ export function MemberDirectoryTab({ members }: MemberDirectoryTabProps) {
         </div>
         <div className="flex items-center gap-2">
           <span className="text-xs font-bold text-slate-400 uppercase tracking-widest whitespace-nowrap">
-            Total: {members.length} Members
+            Kabuuan: {members.length} Miyembro
           </span>
         </div>
       </div>
@@ -41,7 +40,7 @@ export function MemberDirectoryTab({ members }: MemberDirectoryTabProps) {
                 Katayuan
               </th>
               <th className="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
-                Utang
+                Mga Loan
               </th>
               <th className="px-6 py-4 text-right"></th>
             </tr>
@@ -83,7 +82,7 @@ export function MemberDirectoryTab({ members }: MemberDirectoryTabProps) {
                     </td>
                     <td className="px-6 py-4">
                       <code className="text-[11px] font-mono font-bold text-slate-500 bg-slate-100 px-2 py-1 rounded">
-                        {member.member_code || "PENDING"}
+                        {member.member_code || "HINIHINTAY"}
                       </code>
                     </td>
                     <td className="px-6 py-4">
@@ -99,11 +98,12 @@ export function MemberDirectoryTab({ members }: MemberDirectoryTabProps) {
                         ) : (
                           <Clock className="w-3 h-3" />
                         )}
-                        {member.status}
+                        {member.status === "active" ? "aktibo" : member.status}
                       </div>
                     </td>
                     <td className="px-6 py-4 text-sm font-medium text-slate-600">
-                      {member.loans.length} Loans
+                      {member.loans.length}{" "}
+                      {member.loans.length === 1 ? "Loan" : "mga Loan"}
                     </td>
                     <td className="px-6 py-4 text-right">
                       <button className="p-2 hover:bg-white hover:shadow-sm rounded-lg transition-all text-slate-400 hover:text-slate-900 border border-transparent hover:border-slate-100">

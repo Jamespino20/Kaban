@@ -25,7 +25,7 @@ const LoanApplicationSchema = z.object({
   term_months: z.number().min(1, "Minimum 1 month"),
   guarantor_ids: z
     .array(z.number())
-    .min(3, "At least 3 guarantors are required for Paluwagan 2.0"),
+    .min(1, "Kailangan ng hindi bababa sa isang tagagarantiya (guarantor)."),
 });
 
 interface LoanApplicationFormProps {
@@ -62,11 +62,8 @@ export const LoanApplicationForm = ({
   useEffect(() => {
     const amount = Number(watchAmount) || 0;
     const term = Number(watchTerm) || 0;
-    // Multi-Layered Cost Calculation (Anti-GCash Transparency)
     const rate = Number(product.interest_rate_percent) / 100;
     const totalInterest = amount * rate * term;
-
-    // Transparent Processing Fee (Simulating a flat 2% or min ₱50)
     const processingFee = Math.max(50, amount * 0.02);
 
     const totalRepayment = amount + totalInterest + processingFee;
@@ -88,11 +85,13 @@ export const LoanApplicationForm = ({
         if (result?.error) {
           toast.error(result.error);
         } else {
-          toast.success("Application submitted! We will review it shortly.");
+          toast.success(
+            "Naisumite na ang iyong application! Susuriin namin ito sa lalong madaling panahon.",
+          );
           onSuccess();
         }
       } catch (error) {
-        toast.error("Something went wrong!");
+        toast.error("May nangyaring mali!");
       }
     });
   };
@@ -102,7 +101,7 @@ export const LoanApplicationForm = ({
       <div className="flex items-center gap-3 pb-4 border-b border-slate-50">
         <Calculator className="w-5 h-5 text-emerald-600" />
         <h3 className="font-display font-bold text-slate-900 uppercase tracking-wider text-sm">
-          Loan Calculator
+          Tagatuos ng Loan
         </h3>
       </div>
 
@@ -114,7 +113,7 @@ export const LoanApplicationForm = ({
             render={({ field }) => (
               <FormItem>
                 <FormLabel className="text-slate-400 font-bold uppercase text-[10px] tracking-widest">
-                  Amount to Borrow (₱)
+                  Halaga ng Hiramin (₱)
                 </FormLabel>
                 <FormControl>
                   <Input
@@ -136,7 +135,7 @@ export const LoanApplicationForm = ({
             render={({ field }) => (
               <FormItem>
                 <FormLabel className="text-slate-400 font-bold uppercase text-[10px] tracking-widest">
-                  Term Duration (Months)
+                  Tagal ng Pagbabayad (Buwan)
                 </FormLabel>
                 <FormControl>
                   <Input
@@ -176,7 +175,7 @@ export const LoanApplicationForm = ({
 
             <div className="space-y-1">
               <span className="text-slate-400 text-xs font-bold uppercase tracking-widest">
-                Monthly Amortization
+                Buwanang Hulog
               </span>
               <div className="flex items-baseline gap-2">
                 <span className="text-4xl font-display font-bold text-emerald-400">
@@ -186,14 +185,14 @@ export const LoanApplicationForm = ({
                     maximumFractionDigits: 2,
                   })}
                 </span>
-                <span className="text-slate-500 text-sm">/ month</span>
+                <span className="text-slate-500 text-sm">/ kada buwan</span>
               </div>
             </div>
 
             <div className="grid grid-cols-2 gap-4 py-6 border-y border-white/10">
               <div className="space-y-1">
                 <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">
-                  Principal
+                  Punong Halaga
                 </p>
                 <p className="text-sm font-bold">
                   ₱{Number(watchAmount).toLocaleString()}
@@ -201,7 +200,7 @@ export const LoanApplicationForm = ({
               </div>
               <div className="space-y-1 text-right">
                 <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">
-                  Interest ({product.interest_rate_percent}%)
+                  Interes ({product.interest_rate_percent}%)
                 </p>
                 <p className="text-sm font-bold text-emerald-400">
                   +₱{calculation.interest.toLocaleString()}
@@ -209,7 +208,7 @@ export const LoanApplicationForm = ({
               </div>
               <div className="space-y-1">
                 <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">
-                  Service Fees
+                  Bayad sa Serbisyo
                 </p>
                 <p className="text-sm font-bold text-amber-400">
                   +₱{calculation.fees.toLocaleString()}
@@ -217,7 +216,7 @@ export const LoanApplicationForm = ({
               </div>
               <div className="space-y-1 text-right">
                 <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest text-emerald-500">
-                  Total Repayment
+                  Kabuuang Bayad
                 </p>
                 <p className="text-sm font-black text-white">
                   ₱{calculation.total.toLocaleString()}

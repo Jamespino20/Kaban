@@ -30,7 +30,7 @@ export function VerificationQueueTab({ data }: VerificationQueueTabProps) {
             <Wallet className="w-5 h-5" />
           </div>
           <h3 className="text-xl font-display font-bold text-slate-900 italic">
-            Loan Applications
+            Mga Application sa Loan
           </h3>
           <span className="bg-indigo-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full">
             {loans.length}
@@ -69,7 +69,8 @@ export function VerificationQueueTab({ data }: VerificationQueueTabProps) {
                       ₱{Number(loan.principal_amount).toLocaleString()}
                     </p>
                     <p className="text-[9px] text-slate-400 font-bold uppercase tracking-widest">
-                      {loan.term_months} Months
+                      {loan.term_months}{" "}
+                      {loan.term_months === 1 ? "Buwan" : "mga Buwan"}
                     </p>
                   </div>
                 </div>
@@ -96,7 +97,7 @@ export function VerificationQueueTab({ data }: VerificationQueueTabProps) {
             <Fingerprint className="w-5 h-5" />
           </div>
           <h3 className="text-xl font-display font-bold text-slate-900 italic">
-            Identity Verification
+            Pagpapatunay ng Pagkakakilanlan
           </h3>
           <span className="bg-amber-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full">
             {verifications.length}

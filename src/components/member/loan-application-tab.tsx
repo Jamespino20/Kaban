@@ -25,7 +25,7 @@ export const LoanApplicationTab = () => {
         const data = await getLoanProducts();
         setProducts(data.filter((p: any) => p.is_active));
       } catch (error) {
-        toast.error("Failed to load products.");
+        toast.error("Hindi ma-load ang mga produkto.");
       } finally {
         setLoading(false);
       }
@@ -35,7 +35,9 @@ export const LoanApplicationTab = () => {
 
   if (loading) {
     return (
-      <div className="p-20 text-center text-slate-400">Loading products...</div>
+      <div className="p-20 text-center text-slate-400">
+        Kinukuha ang mga produkto...
+      </div>
     );
   }
 
@@ -67,14 +69,14 @@ export const LoanApplicationTab = () => {
               <div className="flex items-center gap-3">
                 <div className="w-2 h-2 rounded-full bg-emerald-500" />
                 <span className="text-sm font-medium">
-                  Interest Rate: {selectedProduct.interest_rate_percent}% Fixed
-                  Monthly
+                  Interes: {selectedProduct.interest_rate_percent}% Fixed kada
+                  Buwan
                 </span>
               </div>
               <div className="flex items-center gap-3">
                 <div className="w-2 h-2 rounded-full bg-emerald-500" />
                 <span className="text-sm font-medium">
-                  Max Term: {selectedProduct.max_term_months} Months
+                  Pinakamahabang Tagal: {selectedProduct.max_term_months} Buwan
                 </span>
               </div>
             </div>
@@ -133,8 +135,9 @@ export const LoanApplicationTab = () => {
                   </div>
                 </div>
                 <p className="text-slate-500 text-sm leading-relaxed">
-                  Available from ₱{Number(product.min_amount).toLocaleString()}{" "}
-                  to ₱{Number(product.max_amount).toLocaleString()}.
+                  Maaaring hiramin mula ₱
+                  {Number(product.min_amount).toLocaleString()} hanggang ₱
+                  {Number(product.max_amount).toLocaleString()}.
                 </p>
               </div>
 

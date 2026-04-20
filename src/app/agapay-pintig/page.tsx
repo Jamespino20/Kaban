@@ -5,38 +5,56 @@ import {
   History,
   LayoutDashboard,
   ArrowUpRight,
+  Settings2,
 } from "lucide-react";
 import { auth } from "@/lib/auth";
 import { LoanApplicationTab } from "@/components/member/loan-application-tab";
 import { UserAccountNav } from "@/components/layout/user-account-nav";
 import { TwoFactorSetup } from "@/components/auth/two-factor-setup";
-import { neon } from "@neondatabase/serverless";
-import { Settings2 } from "lucide-react";
+import prisma from "@/lib/prisma"; // Using apex singleton with RLS
+// Decimal type handled via default JS casting for simplicity in this environment
 
 export default async function AgapayPintigPage() {
   const session = await auth();
-  const userName = session?.user?.username || "Member";
+  const userName = session?.user?.username || "Miyembro";
+  const userId = session?.user?.user_id;
 
-  let is2FAEnabled = false;
-  try {
-    const connectionString =
-      process.env.DATABASE_URL ||
-      process.env.AGAPAYSTORAGE_DATABASE_URL ||
-      process.env.POSTGRES_URL;
+  // 1. Fetch Real Contextual Data (RLS automatically filters by tenant/user)
+  // We use Promise.all for performance
+  const [savings, activeLoans, loanProducts, tfa] = await Promise.all([
+    prisma.savingsAccount.findMany({
+      where: { user_id: userId },
+    }),
+    prisma.loan.findMany({
+      where: { user_id: userId, status: "active" },
+    }),
+    prisma.loanProduct.findMany({
+      where: { is_active: true },
+    }),
+    prisma.twoFactorAuth.findUnique({
+      where: { user_id: userId },
+    }),
+  ]);
 
-    if (connectionString) {
-      const sql = neon(connectionString);
-      const userId = parseInt(session?.user?.id || "0");
-      const rows = await sql`
-        SELECT is_enabled 
-        FROM two_factor_auth 
-        WHERE user_id = ${userId}
-      `;
-      is2FAEnabled = rows.length > 0 ? rows[0].is_enabled : false;
-    }
-  } catch (error) {
-    console.error("Failed to check 2FA status:", error);
-  }
+  const totalSavings = savings.reduce(
+    (acc: number, curr: { balance: any }) => acc + Number(curr.balance),
+    0,
+  );
+  const totalLoanBalance = activeLoans.reduce(
+    (acc: number, curr: { balance_remaining: any }) =>
+      acc + Number(curr.balance_remaining),
+    0,
+  );
+  const is2FAEnabled = tfa?.is_enabled || false;
+
+  // Simple Credit Limit Logic (Starter Tier default)
+  const availableCredit = 50000 - totalLoanBalance;
+
+  const formatCurrency = (val: number) =>
+    new Intl.NumberFormat("en-PH", {
+      style: "currency",
+      currency: "PHP",
+    }).format(val);
 
   return (
     <div className="min-h-screen bg-emerald-50/30 p-6 md:p-10">
@@ -60,10 +78,10 @@ export default async function AgapayPintigPage() {
               </div>
               <div>
                 <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">
-                  Available Credit
+                  Nagagamit na Credit
                 </p>
                 <p className="text-xl font-display font-bold text-slate-900">
-                  ₱50,000.00
+                  {formatCurrency(availableCredit)}
                 </p>
               </div>
             </div>
@@ -80,7 +98,7 @@ export default async function AgapayPintigPage() {
                 className="rounded-xl data-[state=active]:bg-emerald-600 data-[state=active]:text-white transition-all px-8 py-3 flex items-center gap-2"
               >
                 <LayoutDashboard className="w-4 h-4" />
-                <span>Overview</span>
+                <span>Pangkalahatan</span>
               </TabsTrigger>
               <TabsTrigger
                 value="apply"
@@ -110,22 +128,34 @@ export default async function AgapayPintigPage() {
             value="overview"
             className="space-y-8 outline-none animate-in fade-in slide-in-from-bottom-4 duration-500"
           >
+            <div className="flex justify-end mb-2">
+              <a
+                href={`/api/reports/soa?userId=${userId}&tenantId=${session?.user?.tenantId}`}
+                target="_blank"
+                className="group relative flex items-center gap-3 bg-emerald-600 hover:bg-emerald-700 text-white font-black px-8 py-4 rounded-3xl shadow-xl shadow-emerald-900/20 transition-all hover:scale-105 active:scale-95"
+              >
+                <div className="absolute inset-0 bg-white/20 opacity-0 group-hover:opacity-100 rounded-3xl transition-opacity" />
+                <ArrowUpRight className="w-5 h-5" />
+                <span>Ulat ng Pagbabayad (SOA)</span>
+              </a>
+            </div>
+
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               {[
                 {
-                  label: "My Savings",
-                  value: "₱0.00",
+                  label: "Aking Ipon",
+                  value: formatCurrency(totalSavings),
                   color: "text-emerald-600",
                   bg: "bg-emerald-50",
                 },
                 {
-                  label: "Active Loans",
-                  value: "₱0.00",
+                  label: "Aktibong Loan",
+                  value: formatCurrency(totalLoanBalance),
                   color: "text-slate-900",
                   bg: "bg-slate-50",
                 },
                 {
-                  label: "Share Capital",
+                  label: "Puhunan sa Kooperatiba",
                   value: "₱0.00",
                   color: "text-blue-600",
                   bg: "bg-blue-50",
@@ -152,20 +182,31 @@ export default async function AgapayPintigPage() {
               ))}
             </div>
 
-            <div className="bg-white p-12 rounded-[2.5rem] border border-emerald-50 flex flex-col items-center justify-center text-center space-y-6 shadow-sm">
-              <div className="w-20 h-20 bg-emerald-50 rounded-full flex items-center justify-center">
-                <LayoutDashboard className="w-10 h-10 text-emerald-200" />
+            {totalLoanBalance === 0 && totalSavings === 0 ? (
+              <div className="bg-white p-12 rounded-[2.5rem] border border-emerald-50 flex flex-col items-center justify-center text-center space-y-6 shadow-sm">
+                <div className="w-20 h-20 bg-emerald-50 rounded-full flex items-center justify-center">
+                  <LayoutDashboard className="w-10 h-10 text-emerald-200" />
+                </div>
+                <div className="space-y-2">
+                  <h2 className="text-2xl font-display font-bold text-slate-800">
+                    Magsimula sa iyong Pintig
+                  </h2>
+                  <p className="text-slate-500 max-w-md mx-auto">
+                    Wala ka pang aktibong transaksyon sa kasalukuyan. Maaari
+                    kang magsimulang mag-loan o magdeposito ng ipon.
+                  </p>
+                </div>
               </div>
-              <div className="space-y-2">
-                <h2 className="text-2xl font-display font-bold text-slate-800">
-                  Magsimula sa iyong Pintig
+            ) : (
+              <div className="bg-white p-8 rounded-3xl border border-slate-100 shadow-sm">
+                <h2 className="text-xl font-display font-bold text-slate-800 mb-6">
+                  Kamakailang Gawain
                 </h2>
-                <p className="text-slate-500 max-w-md mx-auto">
-                  Wala ka pang aktibong transaksyon sa kasalukuyan. Maaari kang
-                  magsimulang mag-loan o magdeposito ng ipon.
+                <p className="text-slate-400 italic">
+                  Ipinapakita ang iyong huling 5 transaksyon...
                 </p>
               </div>
-            </div>
+            )}
           </TabsContent>
 
           <TabsContent value="settings" className="outline-none">

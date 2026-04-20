@@ -12,6 +12,7 @@ export const authConfig = {
         token.role = user.role;
         token.tenantId = user.tenantId;
         token.username = user.username;
+        token.user_id = user.user_id;
         if (user.id) token.id = user.id;
       }
       return token;
@@ -25,6 +26,9 @@ export const authConfig = {
       }
       if (token?.username) {
         session.user.username = token.username as string;
+      }
+      if (token?.user_id) {
+        session.user.user_id = token.user_id as number;
       }
       if (token?.id) {
         session.user.id = token.id as string;

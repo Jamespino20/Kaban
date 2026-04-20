@@ -5,6 +5,12 @@ import {
   Users2,
   FileText,
   ShieldAlert,
+  History,
+  TrendingUp,
+  Wallet,
+  CheckCircle2,
+  AlertTriangle,
+  Activity,
 } from "lucide-react";
 import { LoanProductsTab } from "@/components/admin/loan-products-tab";
 import { TenantManagementTab } from "@/components/admin/tenant-management-tab";
@@ -14,11 +20,9 @@ import { auth } from "@/lib/auth";
 import { UserAccountNav } from "@/components/layout/user-account-nav";
 import { TwoFactorSetup } from "@/components/auth/two-factor-setup";
 import prisma from "@/lib/prisma";
-import { History } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 import { TrustDistributionChart } from "@/components/analytics/trust-distribution-chart";
-
 import { MemberDirectoryTab } from "@/components/admin/member-directory-tab";
 import { VerificationQueueTab } from "@/components/admin/verification-queue-tab";
 import {
@@ -30,13 +34,6 @@ import {
 
 import { TrustMeter } from "@/components/analytics/trust-meter";
 import { KPIMetricCard } from "@/components/analytics/kpi-metric-card";
-import {
-  TrendingUp,
-  Wallet,
-  CheckCircle2,
-  AlertTriangle,
-  Activity,
-} from "lucide-react";
 
 export default async function AgapayTanawPage() {
   const tenants = await getTenants();
@@ -44,8 +41,9 @@ export default async function AgapayTanawPage() {
   const userName = session?.user?.username || "Admin";
   const userRole = session?.user?.role || "staff";
 
+  // Use Apex Singleton with RLS
   const userWith2FA = await prisma.user.findUnique({
-    where: { user_id: parseInt(session?.user?.id || "0") },
+    where: { user_id: session?.user?.user_id },
     include: { two_factor_auth: true },
   });
   const is2FAEnabled = userWith2FA?.two_factor_auth?.is_enabled || false;
@@ -71,8 +69,8 @@ export default async function AgapayTanawPage() {
             </h1>
             <p className="text-slate-500 font-sans">
               {isStaff
-                ? "Cooperative Operational Dashboard"
-                : "Oversight and Risk Governance for Agapay Financial Operations"}
+                ? "Sentrong Pang-operasyon ng Kooperatiba"
+                : "Pamamahala at Pagbabantay sa Panganib para sa Agapay Financial Operations"}
             </p>
           </div>
           <div className="flex items-center gap-6">
@@ -95,7 +93,7 @@ export default async function AgapayTanawPage() {
                 className="rounded-xl data-[state=active]:bg-slate-900 data-[state=active]:text-white transition-all px-6 py-2.5 flex items-center gap-2"
               >
                 <BarChart3 className="w-4 h-4" />
-                <span>Overview</span>
+                <span>Pangkalahatan</span>
               </TabsTrigger>
 
               <TabsTrigger
@@ -103,7 +101,7 @@ export default async function AgapayTanawPage() {
                 className="rounded-xl data-[state=active]:bg-slate-900 data-[state=active]:text-white transition-all px-6 py-2.5 flex items-center gap-2"
               >
                 <FileText className="w-4 h-4" />
-                <span>Approvals</span>
+                <span>Mga Pag-apruba</span>
                 {pendingData.loans.length + pendingData.verifications.length >
                   0 && (
                   <span className="w-2 h-2 rounded-full bg-rose-500 shadow-[0_0_8px_rgba(244,63,94,0.6)]" />
@@ -115,7 +113,7 @@ export default async function AgapayTanawPage() {
                 className="rounded-xl data-[state=active]:bg-slate-900 data-[state=active]:text-white transition-all px-6 py-2.5 flex items-center gap-2"
               >
                 <Users2 className="w-4 h-4" />
-                <span>Members</span>
+                <span>Mga Miyembro</span>
               </TabsTrigger>
 
               {isAdmin && (
@@ -125,7 +123,7 @@ export default async function AgapayTanawPage() {
                     className="rounded-xl data-[state=active]:bg-slate-900 data-[state=active]:text-white transition-all px-6 py-2.5 flex items-center gap-2"
                   >
                     <Settings2 className="w-4 h-4" />
-                    <span>Loan Products</span>
+                    <span>Produkto ng Loan</span>
                   </TabsTrigger>
                   <TabsTrigger
                     value="branches"
@@ -162,26 +160,26 @@ export default async function AgapayTanawPage() {
           <TabsContent value="overview" className="space-y-6 outline-none">
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
               <KPIMetricCard
-                label="Total Liquidity"
+                label="Kabuuang Pondo"
                 value={`₱${(metrics.totalLiquidity / 1000000).toFixed(1)}M`}
                 description={`Kabuuan: ₱${metrics.totalLiquidity.toLocaleString()}`}
                 iconName="wallet"
                 trend={{ value: 12.5, isPositive: true }}
               />
               <KPIMetricCard
-                label="Active Loans"
+                label="Aktibong Loan"
                 value={metrics.activeLoans}
                 iconName="activity"
                 trend={{ value: 8.2, isPositive: true }}
               />
               <KPIMetricCard
-                label="Repayment Rate"
+                label="Antas ng Pagbabayad"
                 value={`${metrics.repaymentRate.toFixed(1)}%`}
                 iconName="check"
                 trend={{ value: 1.4, isPositive: true }}
               />
               <KPIMetricCard
-                label="Risk Exposure"
+                label="Panganib sa Pondo"
                 value={`₱${(metrics.riskExposure / 1000).toFixed(0)}K`}
                 description={`Delinquent: ₱${metrics.riskExposure.toLocaleString()}`}
                 iconName="alert"
@@ -194,7 +192,7 @@ export default async function AgapayTanawPage() {
               <div className="lg:col-span-2 bg-white/70 backdrop-blur-xl p-8 rounded-[2.5rem] border border-slate-200/60 shadow-sm flex flex-col md:flex-row items-center gap-12">
                 <div className="flex-1 text-center md:text-left">
                   <h3 className="text-xl font-display font-bold text-slate-900">
-                    Cooperative Trust Index
+                    Trust Index ng Kooperatiba
                   </h3>
                   <p className="text-slate-500 text-sm mt-1 mb-8">
                     Kasalukuyang katayuan ng trust network
@@ -212,7 +210,7 @@ export default async function AgapayTanawPage() {
                       <div className="grid grid-cols-2 gap-4">
                         <div className="p-4 bg-emerald-50 rounded-2xl border border-emerald-100">
                           <p className="text-[10px] font-bold text-emerald-600 uppercase">
-                            Collections
+                            Singilin
                           </p>
                           <p className="text-lg font-bold text-slate-900">
                             ₱42.5K
@@ -220,10 +218,10 @@ export default async function AgapayTanawPage() {
                         </div>
                         <div className="p-4 bg-indigo-50 rounded-2xl border border-indigo-100">
                           <p className="text-[10px] font-bold text-indigo-600 uppercase">
-                            Growth
+                            Paglago
                           </p>
                           <p className="text-lg font-bold text-slate-900">
-                            +8 Members
+                            +8 Miyembro
                           </p>
                         </div>
                       </div>
@@ -241,8 +239,8 @@ export default async function AgapayTanawPage() {
                     <TrendingUp className="w-6 h-6 text-white" />
                   </div>
                   <h3 className="text-2xl font-display font-medium leading-tight">
-                    Portfolio <br />
-                    Performance
+                    Katayuan ng <br />
+                    Portfolio
                   </h3>
                   <p className="text-slate-400 text-xs leading-relaxed font-sans">
                     Ang koleksyon ngayong buwan ay tumaas ng 12% dahil sa
@@ -253,7 +251,7 @@ export default async function AgapayTanawPage() {
 
                 <div className="relative z-10 pt-8 border-t border-white/10 mt-8">
                   <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2">
-                    Platform Health
+                    Kalusugan ng Platform
                   </p>
                   <div className="h-1.5 w-full bg-white/10 rounded-full overflow-hidden">
                     <div className="h-full w-[88%] bg-emerald-500 rounded-full shadow-[0_0_10px_rgba(16,185,129,0.5)]" />
@@ -285,27 +283,6 @@ export default async function AgapayTanawPage() {
             />
           </TabsContent>
 
-          <TabsContent value="approvals" className="outline-none">
-            <div className="bg-white p-20 rounded-3xl border border-slate-100 flex flex-col items-center justify-center text-center space-y-4">
-              <div className="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center">
-                <FileText className="w-8 h-8 text-slate-300" />
-              </div>
-              <p className="text-slate-500 font-medium">
-                Walang pending approvals sa kasalukuyan.
-              </p>
-            </div>
-          </TabsContent>
-
-          <TabsContent value="members" className="outline-none">
-            <div className="bg-white p-20 rounded-3xl border border-slate-100 flex flex-col items-center justify-center text-center space-y-4">
-              <div className="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center">
-                <Users2 className="w-8 h-8 text-slate-300" />
-              </div>
-              <p className="text-slate-500 font-medium">
-                Member Directory engine loading...
-              </p>
-            </div>
-          </TabsContent>
           <TabsContent value="settings" className="outline-none">
             <div className="flex flex-col items-center justify-center space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
               <div className="text-center space-y-2">

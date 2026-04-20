@@ -2,23 +2,22 @@ import { PrismaClient } from "@prisma/client";
 import { PrismaNeon } from "@prisma/adapter-neon";
 import { Pool, neonConfig } from "@neondatabase/serverless";
 import ws from "ws";
+import { auth } from "@/lib/auth"; // For tenant context
 
 /**
- * AGAPAY APEX PRISMA SINGLETON (v8 - THE DEFINITIVE PATTERN)
+ * AGAPAY APEX PRISMA SINGLETON (v9 - STATELESS RLS & AUDIT EDITION)
  *
- * 1. LAZY PROXY: Prevents Vercel top-level environment variables from racing.
- *    The connection string is read strictly at execution time.
- * 2. PURE ADAPTER: Passes exactly 1 argument { adapter } to PrismaClient to
- *    completely avoid Prisma 7's highly aggressive option validation.
- * 3. CONNECTION STRING DRIVEN: Relies on `connectionString` parameter in Pool for
- *    Neon's adapter, preventing 'localhost' edge case fallbacks.
+ * 1. LAZY PROXY: Prevents Vercel race conditions.
+ * 2. PURE ADAPTER: Bypasses Prisma 7 constructor validation.
+ * 3. STATELESS RLS: Injects app.tenant_id session variable before queries.
+ * 4. READ AUDIT: Logs every data access event to audit_logs.
  */
 
 declare global {
-  var agapay_apex_prisma: PrismaClient | undefined;
+  var agapay_apex_prisma: any | undefined;
 }
 
-const getPrisma = (): PrismaClient => {
+const getPrisma = (): any => {
   if (globalThis.agapay_apex_prisma) {
     return globalThis.agapay_apex_prisma;
   }
@@ -29,16 +28,11 @@ const getPrisma = (): PrismaClient => {
     process.env.POSTGRES_URL;
 
   if (!connectionString) {
-    console.error(
-      "AGAPAY CRITICAL: No DATABASE_URL found. A query is attempting execution without DB credentials.",
-    );
-    // Dummy client that will survive build-time static generation but fail loudly on DB query
-    globalThis.agapay_apex_prisma = new PrismaClient();
-    return globalThis.agapay_apex_prisma;
+    console.error("AGAPAY CRITICAL: No DATABASE_URL found.");
+    return new PrismaClient();
   }
 
   try {
-    // Vercel / serverless optimization
     if (process.env.VERCEL || process.env.NODE_ENV === "production") {
       (neonConfig as any).fetchConnection = true;
     } else {
@@ -47,26 +41,70 @@ const getPrisma = (): PrismaClient => {
 
     const pool = new Pool({ connectionString });
     const adapter = new PrismaNeon(pool as any);
+    const baseClient = new PrismaClient({ adapter });
 
-    // STRICTLY pass ONLY the adapter to satisfy strict PrismaClient validation
-    const client = new PrismaClient({ adapter });
+    // EXTEND CLIENT FOR RLS & AUDIT
+    const extendedClient = baseClient.$extends({
+      query: {
+        $allModels: {
+          async $allOperations({ model, operation, args, query }) {
+            // 1. Get Tenant Context from Auth Session
+            const session = await auth();
+            const tenantId = session?.user?.tenantId || 0;
+            const userId = session?.user?.user_id || 0;
 
-    globalThis.agapay_apex_prisma = client;
-    return client;
+            // 2. READ AUDIT (Log every access)
+            const isRead =
+              operation.startsWith("find") ||
+              operation.startsWith("aggregate") ||
+              operation.startsWith("count");
+
+            if (isRead && model !== "AuditLog") {
+              // Non-blocking Audit Logging (don't wait for it to finish the query)
+              // Note: We use the baseClient to avoid recursion
+              baseClient.auditLog
+                .create({
+                  data: {
+                    tenant_id: tenantId ? parseInt(tenantId.toString()) : null,
+                    user_id: userId ? parseInt(userId.toString()) : null,
+                    action: `READ_${operation.toUpperCase()}`,
+                    entity_type: model,
+                    ip_address: "internal",
+                    new_values: { args } as any,
+                  },
+                })
+                .catch(() => {}); // Suppress log errors to prevent site crash
+            }
+
+            // 3. SECURE SESSION INJECTION (Stateless RLS)
+            // We use a transaction to ensure SET LOCAL is scoped to the query
+            return baseClient.$transaction(async (tx) => {
+              if (tenantId) {
+                await tx.$executeRawUnsafe(
+                  `SET LOCAL app.tenant_id = ${tenantId}`,
+                );
+                await tx.$executeRawUnsafe(`SET LOCAL app.user_id = ${userId}`);
+              }
+              return query(args);
+            });
+          },
+        },
+      },
+    });
+
+    globalThis.agapay_apex_prisma = extendedClient;
+    return extendedClient;
   } catch (error) {
-    console.error("AGAPAY: Critical failure constructing PrismaClient:", error);
-    globalThis.agapay_apex_prisma = new PrismaClient();
-    return globalThis.agapay_apex_prisma;
+    console.error("AGAPAY: Critical failure:", error);
+    return new PrismaClient();
   }
 };
 
-// The lazy proxy ensures `getPrisma()` is NEVER called until the exact moment
-// `prisma.user.findUnique`, etc is executed. This completely sidesteps
-// Vercel's top-level module caching and ensures process.env is 100% loaded.
-const prisma = new Proxy({} as PrismaClient, {
+const prisma = new Proxy({} as any, {
   get: (target, prop) => {
     const client = getPrisma();
-    const value = (client as any)[prop];
+    if (prop === "then") return undefined; // For promise-like check
+    const value = client[prop];
     if (typeof value === "function") {
       return (...args: any[]) => value.apply(client, args);
     }

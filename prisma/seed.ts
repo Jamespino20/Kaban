@@ -964,43 +964,61 @@ async function main() {
     );
   }
 
-  // ── CROSS-TENANT DEMO (same email, 2 isolated identities) ──
-  console.log(
-    "\n🔄 Cross-tenant demo: maria.santos@gmail.com in QC + Laguna...",
-  );
-  for (const [idx, tenantRef] of [tenants[0], tenants[4]].entries()) {
-    await prisma.user.create({
-      data: {
-        username: `maria_santos_${tenantRef.slug.replace("agapay-", "")}`,
-        email: "maria.santos@gmail.com",
-        password_hash: hashedPassword,
-        role: Role.member,
-        tenant_id: tenantRef.tenant_id,
-        status: "active",
-        interest_tier:
-          idx === 0 ? InterestTier.T4_3_5_PERCENT : InterestTier.T1_5_PERCENT,
-        member_code: `AGP-DEMO-${idx + 1}`,
-        profile: {
-          create: {
-            first_name: "Maria",
-            last_name: "Santos",
-            gender: "female",
-            birthdate: new Date("1988-03-15"),
-            address:
-              idx === 0
-                ? "42 Rizal St., Brgy. Commonwealth, QC"
-                : "18 Mabini Ave., Brgy. Balibago, Sta. Rosa",
-            business_name:
-              idx === 0 ? "Maria's Karinderya" : "Santos Fish Trading",
-            marital_status: MaritalStatus.married,
-            occupation: idx === 0 ? "Carenderia Owner" : "Fish Vendor",
-            mothers_maiden_name: "Elena Cruz",
-            place_of_birth: "Manila",
+  // ── RANDOM MULTI-TENANCY SEEDING ──
+  console.log("\n🔗 Randomizing cross-tenant memberships (15% coverage)...");
+  const allUsers = await prisma.user.findMany({
+    where: { role: Role.member },
+    include: { profile: true },
+  });
+
+  const memberToDuplicateCount = Math.ceil(allUsers.length * 0.15);
+  const shuffled = allUsers.sort(() => 0.5 - Math.random());
+  const targets = shuffled.slice(0, memberToDuplicateCount);
+
+  for (const user of targets) {
+    const otherTenants = tenants.filter((t) => t.tenant_id !== user.tenant_id);
+    const extraTenantCount = rand(1, 2);
+    const selected = otherTenants
+      .sort(() => 0.5 - Math.random())
+      .slice(0, extraTenantCount);
+
+    for (const tenantRef of selected) {
+      try {
+        await prisma.user.create({
+          data: {
+            username: `${user.username}_${tenantRef.slug.replace("agapay-", "")}`,
+            email: user.email,
+            password_hash: hashedPassword,
+            role: Role.member,
+            tenant_id: tenantRef.tenant_id,
+            status: "active",
+            interest_tier: pick([
+              InterestTier.T1_5_PERCENT,
+              InterestTier.T2_4_5_PERCENT,
+              InterestTier.T3_4_PERCENT,
+            ]),
+            member_code: `AGP-MULTI-${tenantRef.tenant_id}-${user.user_id}`,
+            profile: {
+              create: {
+                first_name: user.profile?.first_name || "Juan",
+                last_name: user.profile?.last_name || "Dela Cruz",
+                gender: user.profile?.gender,
+                birthdate: user.profile?.birthdate,
+                address: `Branch Transfer: ${user.profile?.address}`,
+                marital_status: user.profile?.marital_status,
+                occupation: user.profile?.occupation,
+              },
+            },
           },
-        },
-      },
-    });
+        });
+      } catch (e) {
+        // Skip dups or errors
+      }
+    }
   }
+  console.log(
+    `✅ Multi-tenant randomization complete. Generated memberships for ${targets.length} users.`,
+  );
 
   // ── LEDGER COA ──
   console.log("📊 Creating Chart of Accounts...");
