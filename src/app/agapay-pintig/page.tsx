@@ -10,18 +10,33 @@ import { auth } from "@/lib/auth";
 import { LoanApplicationTab } from "@/components/member/loan-application-tab";
 import { UserAccountNav } from "@/components/layout/user-account-nav";
 import { TwoFactorSetup } from "@/components/auth/two-factor-setup";
-import prisma from "@/lib/prisma";
+import { neon } from "@neondatabase/serverless";
 import { Settings2 } from "lucide-react";
 
 export default async function AgapayPintigPage() {
   const session = await auth();
   const userName = session?.user?.username || "Member";
 
-  const userWith2FA = await prisma.user.findUnique({
-    where: { user_id: parseInt(session?.user?.id || "0") },
-    include: { two_factor_auth: true },
-  });
-  const is2FAEnabled = userWith2FA?.two_factor_auth?.is_enabled || false;
+  let is2FAEnabled = false;
+  try {
+    const connectionString =
+      process.env.DATABASE_URL ||
+      process.env.AGAPAYSTORAGE_DATABASE_URL ||
+      process.env.POSTGRES_URL;
+
+    if (connectionString) {
+      const sql = neon(connectionString);
+      const userId = parseInt(session?.user?.id || "0");
+      const rows = await sql`
+        SELECT is_enabled 
+        FROM two_factor_auth 
+        WHERE user_id = ${userId}
+      `;
+      is2FAEnabled = rows.length > 0 ? rows[0].is_enabled : false;
+    }
+  } catch (error) {
+    console.error("Failed to check 2FA status:", error);
+  }
 
   return (
     <div className="min-h-screen bg-emerald-50/30 p-6 md:p-10">
