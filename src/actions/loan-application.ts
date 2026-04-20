@@ -63,7 +63,7 @@ export const applyForLoan = async (
     const totalPayable = amount + totalInterest + processingFee;
 
     // 2. Create the loan record and guarantees in a transaction
-    await prisma.$transaction(async (tx) => {
+    await prisma.$transaction(async (tx: any) => {
       const loan = await tx.loan.create({
         data: {
           user_id: userId,

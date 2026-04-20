@@ -100,7 +100,7 @@ const getPrisma = (): any => {
   }
 };
 
-const prisma = new Proxy({} as any, {
+const prismaProxy = new Proxy({} as any, {
   get: (target, prop) => {
     const client = getPrisma();
     if (prop === "then") return undefined; // For promise-like check
@@ -112,4 +112,6 @@ const prisma = new Proxy({} as any, {
   },
 });
 
+// Export as the extended type to maintain IntelliSense and fix build lints
+const prisma = prismaProxy as ReturnType<typeof getPrisma>;
 export default prisma;
