@@ -26,7 +26,7 @@ export async function getRegions() {
       ORDER BY name ASC
     `;
 
-    return regions;
+    return regions as { id: number; name: string; reg_code: string }[];
   } catch (error) {
     console.error("Failed to fetch regions via raw SQL:", error);
     return [];
@@ -51,7 +51,7 @@ export async function getTenantsByRegion(regionId: number) {
       ORDER BY name ASC
     `;
 
-    return tenants;
+    return tenants as { tenant_id: number; name: string; slug: string }[];
   } catch (error) {
     console.error("Failed to fetch tenants via raw SQL:", error);
     return [];
