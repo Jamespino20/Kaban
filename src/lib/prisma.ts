@@ -28,7 +28,9 @@ const createPrismaClient = () => {
     // because we can't avoid returning a PrismaClient type.
     // However, we avoid the 'non-empty options' error by providing a dummy URL.
     return new PrismaClient({
-      datasourceUrl: "postgresql://missing_db_url_check_env_vars:5432",
+      datasources: {
+        db: { url: "postgresql://missing_db_url_check_env_vars:5432" },
+      },
     } as any);
   }
 
@@ -56,14 +58,16 @@ const createPrismaClient = () => {
 
     return new PrismaClient({
       adapter,
-      datasourceUrl: connectionString,
+      datasources: { db: { url: connectionString } },
     } as any);
   } catch (error) {
     console.error(
       "AGAPAY: Initialization failed, falling back to standard client:",
       error,
     );
-    return new PrismaClient({ datasourceUrl: connectionString } as any);
+    return new PrismaClient({
+      datasources: { db: { url: connectionString } },
+    } as any);
   }
 };
 
