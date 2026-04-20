@@ -66,7 +66,7 @@ export function TrustDistributionChart({
       </div>
 
       <div className="h-4 w-full flex bg-slate-100 rounded-full overflow-hidden">
-        {segments.map((s, i) => (
+        {segments.map((s: any, i) => (
           <div
             key={i}
             className={cn("h-full transition-all duration-1000", s.color)}
@@ -76,7 +76,7 @@ export function TrustDistributionChart({
       </div>
 
       <div className="grid grid-cols-2 gap-y-4 gap-x-8">
-        {segments.map((s, i) => (
+        {segments.map((s: any, i) => (
           <div key={i} className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <div className={cn("w-2 h-2 rounded-full", s.color)} />

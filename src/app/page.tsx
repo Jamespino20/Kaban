@@ -266,9 +266,11 @@ export default function Home() {
             {/* Sliding Track */}
             <div className="relative w-full overflow-hidden flex [mask-image:linear-gradient(to_right,transparent,black_10%,black_90%,transparent)]">
               <div className="flex w-max animate-scroll hover:animation-paused">
-                {[...TESTIMONIALS, ...TESTIMONIALS].map((t, idx) => (
-                  <TestimonialCard key={idx} t={t} />
-                ))}
+                {[...TESTIMONIALS, ...TESTIMONIALS].map(
+                  (t: any, idx: number) => (
+                    <TestimonialCard key={idx} t={t} />
+                  ),
+                )}
               </div>
             </div>
           </section>
@@ -463,7 +465,7 @@ function TestimonialCard({ t }: { t: (typeof TESTIMONIALS)[0] }) {
       <div className="flex flex-col justify-between p-6 flex-1 min-w-0">
         <div>
           <div className="flex text-emerald-400 gap-0.5 mb-3">
-            {Array.from({ length: 5 }).map((_, i) => (
+            {Array.from({ length: 5 }).map((_: any, i: number) => (
               <Star key={i} className="w-4 h-4 fill-current" />
             ))}
           </div>

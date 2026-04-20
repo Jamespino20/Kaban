@@ -59,8 +59,8 @@ export const GuaranteeRequestPanel = ({
   };
 
   const removeGuarantor = (id: number) => {
-    setGuarantorDetails((prev) => prev.filter((g) => g.user_id !== id));
-    onChange(selectedGuarantors.filter((gid) => gid !== id));
+    setGuarantorDetails((prev) => prev.filter((g: any) => g.user_id !== id));
+    onChange(selectedGuarantors.filter((gid: number) => gid !== id));
   };
 
   const remainingNeeded = Math.max(0, 3 - selectedGuarantors.length);
@@ -119,7 +119,7 @@ export const GuaranteeRequestPanel = ({
 
           {results.length > 0 && query.length >= 3 && (
             <div className="absolute top-full left-0 right-0 mt-2 bg-white border border-emerald-100 rounded-xl shadow-xl z-10 overflow-hidden">
-              {results.map((g) => (
+              {results.map((g: any) => (
                 <button
                   key={g.user_id}
                   type="button"
@@ -147,7 +147,7 @@ export const GuaranteeRequestPanel = ({
               Selected Guarantors
             </h4>
             <div className="space-y-2">
-              {guarantorDetails.map((g) => (
+              {guarantorDetails.map((g: any) => (
                 <div
                   key={g.user_id}
                   className="flex items-center justify-between bg-white p-3 rounded-xl border border-emerald-100 shadow-sm"

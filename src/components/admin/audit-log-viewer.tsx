@@ -60,7 +60,7 @@ export function AuditLogViewer({ tenantId }: { tenantId?: number }) {
         </Card>
       ) : (
         <div className="space-y-3">
-          {logs.map((log) => (
+          {logs.map((log: any) => (
             <Card
               key={log.id}
               className="overflow-hidden border-slate-200 shadow-sm transition-all hover:shadow-md"

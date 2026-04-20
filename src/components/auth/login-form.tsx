@@ -202,7 +202,7 @@ export const LoginForm = () => {
                 Available Branches
               </p>
               <div className="grid grid-cols-1 gap-3">
-                {availableTenants.map((tenant) => (
+                {availableTenants.map((tenant: any) => (
                   <button
                     key={tenant.tenant_id || "global"}
                     type="button"

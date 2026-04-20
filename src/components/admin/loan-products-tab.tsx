@@ -105,7 +105,7 @@ export const LoanProductsTab = () => {
                   </td>
                 </tr>
               ) : (
-                products.map((product) => (
+                products.map((product: any) => (
                   <tr
                     key={product.product_id}
                     className="hover:bg-slate-50/50 transition-colors group"

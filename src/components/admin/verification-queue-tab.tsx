@@ -43,7 +43,7 @@ export function VerificationQueueTab({ data }: VerificationQueueTabProps) {
               <p className="font-medium">Walang nakabinbing loan apps.</p>
             </div>
           ) : (
-            loans.map((loan) => (
+            loans.map((loan: any) => (
               <div
                 key={loan.loan_id}
                 className="group bg-white p-6 rounded-[2rem] border border-slate-100 shadow-sm hover:shadow-md transition-all"
@@ -110,7 +110,7 @@ export function VerificationQueueTab({ data }: VerificationQueueTabProps) {
               <p className="font-medium">Walang nakabinbing identity checks.</p>
             </div>
           ) : (
-            verifications.map((user) => (
+            verifications.map((user: any) => (
               <div
                 key={user.user_id}
                 className="group bg-white p-6 rounded-[2rem] border border-slate-100 shadow-sm hover:shadow-md transition-all"

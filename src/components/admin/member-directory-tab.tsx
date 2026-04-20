@@ -56,7 +56,7 @@ export function MemberDirectoryTab({ members }: MemberDirectoryTabProps) {
                 </td>
               </tr>
             ) : (
-              members.map((member) => {
+              members.map((member: any) => {
                 const name = member.profile
                   ? `${member.profile.first_name} ${member.profile.last_name}`
                   : member.username;

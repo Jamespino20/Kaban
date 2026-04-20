@@ -67,7 +67,7 @@ export function Navbar({ forceSolid = false }: NavbarProps) {
 
         {/* Desktop Nav */}
         <nav className="hidden md:flex items-center gap-10">
-          {navItems.map((item) => (
+          {navItems.map((item: any) => (
             <Link
               key={item.ph}
               href={item.href}
@@ -117,7 +117,7 @@ export function Navbar({ forceSolid = false }: NavbarProps) {
       {isMenuOpen && (
         <div className="md:hidden absolute top-full left-0 right-0 bg-white border-t border-slate-100 shadow-xl p-6 animate-in slide-in-from-top duration-300">
           <nav className="flex flex-col gap-6">
-            {navItems.map((item) => (
+            {navItems.map((item: any) => (
               <Link
                 key={item.ph}
                 href={item.href}

@@ -109,7 +109,7 @@ function FeatureBlock({
         {description}
       </p>
       <ul className="space-y-4">
-        {points.map((p) => (
+        {points.map((p: string) => (
           <li
             key={p}
             className="flex items-center gap-3 font-bold text-slate-700"

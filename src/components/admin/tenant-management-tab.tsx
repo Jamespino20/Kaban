@@ -53,7 +53,7 @@ export function TenantManagementTab({
       if (res.success && res.data) {
         // Refresh local state
         setTenants((prev) =>
-          prev.map((t) =>
+          prev.map((t: any) =>
             t.tenant_id === tenantId
               ? {
                   ...t,
@@ -126,7 +126,7 @@ export function TenantManagementTab({
       )}
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {tenants.map((t) => (
+        {tenants.map((t: any) => (
           <Card
             key={t.tenant_id}
             className={`overflow-hidden transition-all ${!t.is_active ? "border-red-200 bg-red-50/30" : "border-slate-200"}`}

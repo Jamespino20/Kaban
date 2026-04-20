@@ -111,7 +111,7 @@ export const LoanApplicationTab = () => {
             bumalik muli mamaya.
           </div>
         ) : (
-          products.map((product) => (
+          products.map((product: any) => (
             <div
               key={product.product_id}
               className="bg-white rounded-[2rem] border border-slate-100 shadow-sm hover:shadow-2xl hover:-translate-y-2 transition-all p-8 flex flex-col justify-between group"

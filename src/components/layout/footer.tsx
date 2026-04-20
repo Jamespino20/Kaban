@@ -76,7 +76,7 @@ function FooterGroup({
         {title}
       </h5>
       <ul className="flex flex-col gap-4">
-        {links.map((link) => (
+        {links.map((link: any) => (
           <li key={link.label}>
             <Link
               href={link.href}

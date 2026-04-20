@@ -160,7 +160,7 @@ export default async function AgapayPintigPage() {
                   color: "text-blue-600",
                   bg: "bg-blue-50",
                 },
-              ].map((item) => (
+              ].map((item: any) => (
                 <div
                   key={item.label}
                   className="bg-white p-8 rounded-3xl border border-slate-100 shadow-sm hover:shadow-lg transition-all group"

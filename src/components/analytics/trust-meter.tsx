@@ -141,7 +141,7 @@ export function TrustMeter({ data, className, size = "md" }: TrustMeterProps) {
           { label: "Business", val: businessScore },
           { label: "Peer", val: peerScore },
           { label: "Guarantor", val: guarantorScore },
-        ].map((f) => (
+        ].map((f: any) => (
           <div key={f.label} className="space-y-1.5">
             <div className="flex justify-between items-center px-1">
               <span className="text-[10px] font-bold text-slate-500 uppercase">

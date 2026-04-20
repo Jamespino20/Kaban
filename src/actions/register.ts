@@ -107,7 +107,7 @@ export const register = async (values: z.infer<typeof RegisterSchema>) => {
         where: { tenant_id: tenantId },
       });
       const serial = (count + 1).toString().padStart(4, "0");
-      const member_code = `ASN-${year}-${serial}`;
+      const member_code = `AGP-${year}-${serial}`;
 
       // 2. Create User
       const user = await (tx.user as any).create({

@@ -88,7 +88,7 @@ export function BranchSwitcher() {
             <Loader2 className="w-4 h-4 animate-spin text-emerald-500" />
           </div>
         ) : (
-          tenants.map((t) => (
+          tenants.map((t: any) => (
             <DropdownMenuItem
               key={t.tenant_id}
               onClick={() => handleSwitch(t.tenant_id)}

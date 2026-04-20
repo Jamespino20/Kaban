@@ -137,7 +137,7 @@ function PricingCard({
         {description}
       </p>
       <ul className="space-y-4 mb-12 flex-1">
-        {features.map((f) => (
+        {features.map((f: string) => (
           <li
             key={f}
             className="flex items-center gap-3 text-sm font-bold text-slate-700"

@@ -714,7 +714,7 @@ export function EnhancedRegisterForm() {
                               className="w-full rounded-xl h-12 border border-slate-200 px-4 bg-white outline-none"
                             >
                               <option value="">Select Agapay Area</option>
-                              {regions.map((r) => (
+                              {regions.map((r: any) => (
                                 <option key={r.id} value={r.id.toString()}>
                                   {r.name}
                                 </option>
@@ -738,7 +738,7 @@ export function EnhancedRegisterForm() {
                               className="w-full rounded-xl h-12 border border-slate-200 px-4 bg-white outline-none font-bold text-emerald-700"
                             >
                               <option value="">Select Branch</option>
-                              {tenants.map((t) => (
+                              {tenants.map((t: any) => (
                                 <option
                                   key={t.tenant_id}
                                   value={t.tenant_id.toString()}

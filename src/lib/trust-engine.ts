@@ -46,11 +46,13 @@ export async function calculateTrustScore(
   // 1. Payment Reliability (40%)
   // Ratio of on-time payments vs total installments
   let paymentScore = 50; // Neutral start
-  const allSchedules = user.loans.flatMap((l) => l.schedules);
+  const allSchedules = user.loans.flatMap((l: any) => l.schedules);
   if (allSchedules.length > 0) {
-    const onTimeCount = allSchedules.filter((s) => s.status === "paid").length;
+    const onTimeCount = allSchedules.filter(
+      (s: any) => s.status === "paid",
+    ).length;
     const overdueCount = allSchedules.filter(
-      (s) => s.status === "overdue",
+      (s: any) => s.status === "overdue",
     ).length;
     paymentScore = (onTimeCount / allSchedules.length) * 100 - overdueCount * 5;
   }
@@ -59,7 +61,7 @@ export async function calculateTrustScore(
   // 2. Business Performance (20%)
   // Simplified for MVP: Boost if business_name exists, higher if they have active loans
   let businessScore = user.profile?.business_name ? 70 : 30;
-  if (user.loans.some((l) => l.status === "active")) businessScore += 10;
+  if (user.loans.some((l: any) => l.status === "active")) businessScore += 10;
   businessScore = Math.min(100, businessScore);
 
   // 3. Peer Reviews (Social Vouch) (20%)
@@ -67,8 +69,10 @@ export async function calculateTrustScore(
   let peerScore = 50;
   if (user.social_vouches_received.length > 0) {
     const avgVouch =
-      user.social_vouches_received.reduce((acc, v) => acc + v.score, 0) /
-      user.social_vouches_received.length;
+      user.social_vouches_received.reduce(
+        (acc: number, v: any) => acc + v.score,
+        0,
+      ) / user.social_vouches_received.length;
     peerScore = (avgVouch / 10) * 100; // Assuming 1-10 scale
   }
 
@@ -76,7 +80,7 @@ export async function calculateTrustScore(
   // How many people have vouched for them successfully vs defaults
   let guarantorScore = 60;
   const vouchedGuarantees = user.guarantees.filter(
-    (g) => g.status === "vouched",
+    (g: any) => g.status === "vouched",
   );
   guarantorScore += vouchedGuarantees.length * 10;
   guarantorScore = Math.min(100, guarantorScore);
