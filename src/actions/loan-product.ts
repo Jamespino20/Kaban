@@ -73,7 +73,7 @@ export const getLoanProducts = async () => {
         product_id: "desc",
       },
     });
-    return products.map((product) => ({
+    return products.map((product: any) => ({
       product_id: product.product_id,
       name: product.name,
       description: product.description,
