@@ -1,0 +1,68 @@
+📡 AGAPAY_PRISMA: Branch=[LOCAL], ENV=[undefined]
+📡 AGAPAY_PRISMA: Initializing with Environment Injection...
+❌ AGAPAY: Prisma Singleton Critical Failure: PrismaClientInitializationError: `PrismaClient` needs to be constructed with a non-empty, valid `PrismaClientOptions`:
+
+```
+new PrismaClient({
+  ...
+})
+```
+
+or
+
+```
+constructor() {
+  super({ ... });
+}
+```
+          
+    at new t (C:\Users\James Bryant\Documents\Agapay\agapay-web\node_modules\@prisma\client\src\runtime\getPrismaClient.ts:320:15)
+    at getPrisma (C:\Users\James Bryant\Documents\Agapay\agapay-web\src\lib\prisma.ts:71:16)
+    at ws (C:\Users\James Bryant\Documents\Agapay\agapay-web\src\lib\prisma.ts:135:16)
+    at Object.<anonymous> (C:\Users\James Bryant\Documents\Agapay\agapay-web\src\lib\prisma.ts:136:16)
+    at Module._compile (node:internal/modules/cjs/loader:1829:14)
+    at Object.transformer (C:\Users\James Bryant\Documents\Agapay\agapay-web\node_modules\tsx\dist\register-D46fvsV_.cjs:3:1104)
+    at Module.load (node:internal/modules/cjs/loader:1552:32)
+    at Module._load (node:internal/modules/cjs/loader:1354:12)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:255:19)
+    at Module.require (node:internal/modules/cjs/loader:1575:12) {
+  clientVersion: '7.7.0',
+  errorCode: undefined,
+  retryable: undefined
+}
+node:internal/modules/run_main:107
+    triggerUncaughtException(
+    ^
+
+PrismaClientInitializationError: `PrismaClient` needs to be constructed with a non-empty, valid `PrismaClientOptions`:
+
+```
+new PrismaClient({
+  ...
+})
+```
+
+or
+
+```
+constructor() {
+  super({ ... });
+}
+```
+          
+    at new t (C:\Users\James Bryant\Documents\Agapay\agapay-web\node_modules\@prisma\client\src\runtime\getPrismaClient.ts:320:15)
+    at getPrisma (C:\Users\James Bryant\Documents\Agapay\agapay-web\src\lib\prisma.ts:71:16)
+    at ws (C:\Users\James Bryant\Documents\Agapay\agapay-web\src\lib\prisma.ts:135:16)
+    at Object.<anonymous> (C:\Users\James Bryant\Documents\Agapay\agapay-web\src\lib\prisma.ts:136:16)
+    at Module._compile (node:internal/modules/cjs/loader:1829:14)
+    at Object.transformer (C:\Users\James Bryant\Documents\Agapay\agapay-web\node_modules\tsx\dist\register-D46fvsV_.cjs:3:1104)
+    at Module.load (node:internal/modules/cjs/loader:1552:32)
+    at Module._load (node:internal/modules/cjs/loader:1354:12)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:255:19)
+    at Module.require (node:internal/modules/cjs/loader:1575:12) {
+  clientVersion: '7.7.0',
+  errorCode: undefined,
+  retryable: undefined
+}
+
+Node.js v25.8.2

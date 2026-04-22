@@ -13,11 +13,15 @@ import {
   PaymentStatus,
 } from "@prisma/client";
 import { PrismaNeon } from "@prisma/adapter-neon";
+import { neonConfig } from "@neondatabase/serverless";
 import bcrypt from "bcryptjs";
 import { faker } from "@faker-js/faker";
+import ws from "ws";
+import { getDbUrl } from "../src/lib/db-url";
 
-const connectionString = process.env.DATABASE_URL;
-const adapter = new PrismaNeon({ connectionString });
+const connectionString = getDbUrl();
+neonConfig.webSocketConstructor = ws;
+const adapter = new PrismaNeon({ connectionString } as any);
 const prisma = new PrismaClient({ adapter });
 
 // ═══════════════════════════════════════════════

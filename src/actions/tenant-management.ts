@@ -7,14 +7,12 @@ import fs from "fs/promises";
 import path from "path";
 
 import { neon } from "@neondatabase/serverless";
+import { getDbUrl } from "@/lib/db-url";
 
 // 0. Get List of Regions (Public for Registration)
 export async function getRegions() {
   try {
-    const connectionString =
-      process.env.DATABASE_URL ||
-      process.env.AGAPAYSTORAGE_DATABASE_URL ||
-      process.env.POSTGRES_URL;
+    const connectionString = getDbUrl();
 
     if (!connectionString) return [];
 
@@ -36,10 +34,7 @@ export async function getRegions() {
 // 0.5 Get Tenants by Region (Public for Registration)
 export async function getTenantsByRegion(regionId: number) {
   try {
-    const connectionString =
-      process.env.DATABASE_URL ||
-      process.env.AGAPAYSTORAGE_DATABASE_URL ||
-      process.env.POSTGRES_URL;
+    const connectionString = getDbUrl();
 
     if (!connectionString) return [];
 

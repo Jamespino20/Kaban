@@ -1,98 +1,98 @@
+import "dotenv/config";
 import { PrismaClient } from "@prisma/client";
-import { PrismaNeon } from "@prisma/adapter-neon";
-import { Pool, neonConfig } from "@neondatabase/serverless";
+import { PrismaNeon, PrismaNeonHttp } from "@prisma/adapter-neon";
+import { neonConfig } from "@neondatabase/serverless";
 import ws from "ws";
 import { auth } from "@/lib/auth"; // For tenant context
+import { getDbUrl } from "@/lib/db-url";
 
 /**
- * AGAPAY APEX PRISMA SINGLETON (v9 - STATELESS RLS & AUDIT EDITION)
- *
- * 1. LAZY PROXY: Prevents Vercel race conditions.
- * 2. PURE ADAPTER: Bypasses Prisma 7 constructor validation.
- * 3. STATELESS RLS: Injects app.tenant_id session variable before queries.
- * 4. READ AUDIT: Logs every data access event to audit_logs.
+ * AGAPAY APEX PRISMA SINGLETON (v12 - HYBRID ADAPTER EDITION)
  */
 
 declare global {
   var agapay_apex_prisma: any | undefined;
 }
 
-const getDbUrl = () => {
-  const url =
-    process.env.DATABASE_URL ||
-    process.env.AGAPAYSTORAGE_DATABASE_URL ||
-    process.env.POSTGRES_URL;
-
-  if (!url) {
-    console.warn("⚠️ AGAPAY_WARNING: No DATABASE_URL found in environment.");
-    // We don't return a dummy client here because it leads to "No database host" errors
+const getAdapterMode = () => {
+  const explicitMode = process.env.AGAPAY_PRISMA_ADAPTER?.toLowerCase();
+  if (explicitMode === "http" || explicitMode === "ws") {
+    return explicitMode;
   }
-  return url;
+
+  // This app relies on transactions for its Prisma extension and tests,
+  // so the websocket adapter is the safe default in local Node runtimes.
+  return "ws";
 };
 
 const getPrisma = (): any => {
-  if (globalThis.agapay_apex_prisma) {
-    return globalThis.agapay_apex_prisma;
-  }
+  if (globalThis.agapay_apex_prisma) return globalThis.agapay_apex_prisma;
 
-  const connectionString = getDbUrl();
-
-  if (!connectionString) {
-    // If we're in build time, we might not have the URL, but at runtime it's CRITICAL.
-    if (process.env.NODE_ENV === "production") {
-      throw new Error(
-        "AGAPAY_CRITICAL: Database connection string is missing in production environment.",
-      );
-    }
-    // Return a dummy error-throwing client for dev to avoid silent failures
-    return new Proxy({} as any, {
-      get: () => {
-        throw new Error(
-          "AGAPAY_ERROR: Prisma accessed before DATABASE_URL was available. Check your .env file.",
-        );
-      },
-    });
-  }
+  const rawUrl = getDbUrl();
+  // Aggressive sanitization to eliminate hidden character corruption
+  const connectionString = rawUrl
+    ? rawUrl.replace(/["'\r\n\s]/g, "").trim()
+    : "";
 
   try {
-    if (process.env.VERCEL || process.env.NODE_ENV === "production") {
-      (neonConfig as any).fetchConnection = true;
+    neonConfig.webSocketConstructor = ws;
+
+    console.log("📡 AGAPAY_PRISMA: Initializing Hybrid Adapter...");
+    console.log(
+      "📡 AGAPAY_PRISMA: Connection String Status =",
+      connectionString ? "PRESENT" : "MISSING",
+    );
+
+    const adapterMode = getAdapterMode();
+    let adapter;
+    if (adapterMode === "ws") {
+      console.log(
+        "📡 AGAPAY_PRISMA: Using PrismaNeon (WebSocket) adapter.",
+      );
+      adapter = new PrismaNeon({ connectionString } as any);
     } else {
-      neonConfig.webSocketConstructor = ws;
+      console.log(
+        "📡 AGAPAY_PRISMA: Using PrismaNeonHttp adapter (transactions disabled).",
+      );
+      adapter = new PrismaNeonHttp(connectionString, {
+        // Default options for HTTP connection
+      } as any);
     }
 
-    const pool = new Pool({ connectionString });
-    const adapter = new PrismaNeon(pool as any);
     const baseClient = new PrismaClient({
       adapter,
-      log:
-        process.env.NODE_ENV === "development"
-          ? ["query", "error", "warn"]
-          : ["error"],
-    });
+      log: ["query", "error", "warn"],
+    } as any);
 
-    // EXTEND CLIENT FOR RLS & AUDIT
+    // Extension Layer (RLS & Audit)
     const extendedClient = baseClient.$extends({
       query: {
         $allModels: {
           async $allOperations({ model, operation, args, query }) {
-            // 1. Get Tenant Context from Auth Session
-            const session = await auth();
-            const tenantId = session?.user?.tenantId || 0;
-            const userId = session?.user?.user_id || 0;
+            let tenantId: number | null = null;
+            let userId: number | null = null;
 
-            // 2. READ AUDIT (Log every access)
+            try {
+              const session = await auth();
+              if (session?.user) {
+                tenantId = session.user.tenantId
+                  ? parseInt(session.user.tenantId.toString())
+                  : null;
+                userId = session.user.user_id
+                  ? parseInt(session.user.user_id.toString())
+                  : null;
+              }
+            } catch (e) {}
+
             const isRead =
-              operation.startsWith("find") ||
-              operation.startsWith("aggregate") ||
-              operation.startsWith("count");
+              operation.startsWith("find") || operation.startsWith("count");
 
-            if (isRead && model !== "AuditLog") {
+            if (isRead && model !== "AuditLog" && (tenantId || userId)) {
               baseClient.auditLog
                 .create({
                   data: {
-                    tenant_id: tenantId ? parseInt(tenantId.toString()) : null,
-                    user_id: userId ? parseInt(userId.toString()) : null,
+                    tenant_id: tenantId,
+                    user_id: userId,
                     action: `READ_${operation.toUpperCase()}`,
                     entity_type: model,
                     ip_address: "internal",
@@ -102,14 +102,13 @@ const getPrisma = (): any => {
                 .catch(() => {});
             }
 
-            // 3. SECURE SESSION INJECTION (Stateless RLS)
             return baseClient.$transaction(async (tx) => {
-              if (tenantId) {
+              if (tenantId)
                 await tx.$executeRawUnsafe(
                   `SET LOCAL app.tenant_id = ${tenantId}`,
                 );
+              if (userId)
                 await tx.$executeRawUnsafe(`SET LOCAL app.user_id = ${userId}`);
-              }
               return query(args);
             });
           },
@@ -120,23 +119,10 @@ const getPrisma = (): any => {
     globalThis.agapay_apex_prisma = extendedClient;
     return extendedClient;
   } catch (error) {
-    console.error("AGAPAY: Critical Prisma initialization failure:", error);
-    throw error; // Rethrow to prevent "No database host" masking
+    console.error("❌ AGAPAY: Prisma Singleton Critical Failure:", error);
+    throw error;
   }
 };
 
-const prismaProxy = new Proxy({} as any, {
-  get: (target, prop) => {
-    const client = getPrisma();
-    if (prop === "then") return undefined; // For promise-like check
-    const value = client[prop];
-    if (typeof value === "function") {
-      return (...args: any[]) => value.apply(client, args);
-    }
-    return value;
-  },
-});
-
-// Export as the extended type to maintain IntelliSense and fix build lints
-const prisma = prismaProxy as ReturnType<typeof getPrisma>;
+const prisma = getPrisma();
 export default prisma;

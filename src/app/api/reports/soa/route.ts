@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { generatePDF } from "@/lib/reporting/engine";
+import { getAppBaseUrl } from "@/lib/db-url";
 
 /**
  * API Route to trigger PDF generation for a Statement of Account.
@@ -17,7 +18,7 @@ export async function GET(req: NextRequest) {
   try {
     // Construct the internal URL that Puppeteer will visit
     // We use the absolute URL to ensure navigation works in both Dev and Prod
-    const baseUrl = process.env.NEXTAUTH_URL || "http://localhost:3000";
+    const baseUrl = getAppBaseUrl();
     const reportUrl = `${baseUrl}/reports/soa?userId=${userId}&tenantId=${tenantId}`;
 
     console.log(`🖨️ Generating SOA PDF for ${reportUrl}`);

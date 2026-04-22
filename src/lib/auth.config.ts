@@ -25,7 +25,7 @@ export const authConfig = {
         session?.tenantId
       ) {
         const connectionString =
-          process.env.DATABASE_URL || process.env.AGAPAYSTORAGE_DATABASE_URL;
+          process.env.AGAPAYSTORAGE_POSTGRES_URL_NON_POOLING!;
         if (connectionString) {
           const sql = neon(connectionString);
           const targetTenantId = parseInt(session.tenantId);

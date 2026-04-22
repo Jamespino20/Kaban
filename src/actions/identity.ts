@@ -2,11 +2,11 @@
 
 import bcrypt from "bcryptjs";
 import { neon } from "@neondatabase/serverless";
+import { getDbUrl } from "@/lib/db-url";
 
 export async function getAvailableTenants(username: string, password?: string) {
   try {
-    const connectionString =
-      process.env.DATABASE_URL || process.env.AGAPAYSTORAGE_DATABASE_URL;
+    const connectionString = getDbUrl();
     console.log(
       "SURGERY: Connection String Status:",
       connectionString ? "PRESENT" : "MISSING!",

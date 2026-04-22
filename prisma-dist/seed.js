@@ -2,7 +2,7 @@ import { PrismaClient, Role, UserStatus } from "@prisma/client";
 import bcrypt from "bcryptjs";
 const prisma = new PrismaClient();
 async function main() {
-  console.log("DATABASE_URL:", process.env.DATABASE_URL);
+  console.log("DATABASE_URL:", process.env.AGAPAYSTORAGE_DATABASE_URL);
   const hashedPassword = await bcrypt.hash("password123", 10);
   try {
     console.log("Testing connection...");

@@ -23,7 +23,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           const { username, password, code, tenantId } = parsedCredentials.data;
 
           const connectionString =
-            process.env.DATABASE_URL || process.env.AGAPAYSTORAGE_DATABASE_URL;
+            process.env.AGAPAYSTORAGE_POSTGRES_URL_NON_POOLING!;
           console.log(
             "SURGERY: Auth Connection String Status:",
             connectionString ? "PRESENT" : "MISSING!",
