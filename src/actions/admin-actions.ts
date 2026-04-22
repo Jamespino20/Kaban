@@ -8,9 +8,12 @@ async function requireAdminSession() {
   const session = await auth();
   if (
     !session?.user?.id ||
-    !session?.user?.tenantId ||
     (session.user.role !== "admin" && session.user.role !== "superadmin")
   ) {
+    throw new Error("Unauthorized");
+  }
+
+  if (session.user.role === "admin" && !session.user.tenantId) {
     throw new Error("Unauthorized");
   }
 
@@ -19,10 +22,12 @@ async function requireAdminSession() {
 
 export async function getTenantMembers() {
   const session = await requireAdminSession();
+  const tenantFilter =
+    session.user.role === "superadmin" ? {} : { tenant_id: session.user.tenantId };
 
   const members = await prisma.user.findMany({
     where: {
-      tenant_id: session.user.tenantId,
+      ...tenantFilter,
       role: Role.member,
     },
     include: {
@@ -44,11 +49,17 @@ export async function getTenantMembers() {
 
 export async function getPendingApprovals() {
   const session = await requireAdminSession();
+  const tenantFilter =
+    session.user.role === "superadmin" ? {} : { tenant_id: session.user.tenantId };
+  const loanTenantFilter =
+    session.user.role === "superadmin"
+      ? {}
+      : { tenant_id: session.user.tenantId };
 
   // Fetch pending loans
   const pendingLoans = await prisma.loan.findMany({
     where: {
-      tenant_id: session.user.tenantId,
+      ...loanTenantFilter,
       status: "pending",
     },
     include: {
@@ -67,7 +78,7 @@ export async function getPendingApprovals() {
   // Fetch users with pending verification documents
   const pendingVerifications = await prisma.user.findMany({
     where: {
-      tenant_id: session.user.tenantId,
+      ...tenantFilter,
       status: UserStatus.pending,
       documents: {
         some: {
@@ -91,22 +102,24 @@ export async function getDashboardMetrics() {
   const session = await requireAdminSession();
 
   const tenantId = session.user.tenantId;
+  const tenantFilter = tenantId ? { tenant_id: tenantId } : {};
+  const loanRelationFilter = tenantId ? { loan: { tenant_id: tenantId } } : {};
 
   // 1. Total Liquidity (Total Savings Pool)
   const liquidity = await prisma.savingsAccount.aggregate({
-    where: { tenant_id: tenantId },
+    where: tenantFilter,
     _sum: { balance: true },
   });
 
   // 2. Active Loans Count
   const activeLoansCount = await prisma.loan.count({
-    where: { tenant_id: tenantId, status: "active" },
+    where: { ...tenantFilter, status: "active" },
   });
 
   // 3. Repayment Rate (Verified Payments vs Total Due)
   const totalPaid = await prisma.payment.aggregate({
     where: {
-      loan: { tenant_id: tenantId },
+      ...loanRelationFilter,
       status: "verified",
     },
     _sum: { amount_paid: true },
@@ -114,7 +127,7 @@ export async function getDashboardMetrics() {
 
   const totalDue = await prisma.loanSchedule.aggregate({
     where: {
-      loan: { tenant_id: tenantId },
+      ...loanRelationFilter,
       due_date: { lte: new Date() },
     },
     _sum: { total_due: true },
@@ -127,7 +140,7 @@ export async function getDashboardMetrics() {
   // 4. Risk Exposure (Sum of remaining balance on past-due/defaulted loans)
   const riskExposure = await prisma.loan.aggregate({
     where: {
-      tenant_id: tenantId,
+      ...tenantFilter,
       OR: [
         { schedules: { some: { status: "overdue" } } },
         { status: "defaulted" },
@@ -149,12 +162,14 @@ export async function getDashboardMetrics() {
  */
 export async function getTenantTrustMetrics() {
   const session = await requireAdminSession();
+  const tenantFilter =
+    session.user.tenantId ? { tenant_id: session.user.tenantId } : {};
 
   // Implementation Note: In a large system, we would cache these or use a materialized view.
   // For Agapay MVP, we iterate through active members.
   const members = await prisma.user.findMany({
     where: {
-      tenant_id: session.user.tenantId,
+      ...tenantFilter,
       role: Role.member,
     },
     select: { user_id: true },
@@ -164,28 +179,28 @@ export async function getTenantTrustMetrics() {
   // For now, let's just get the count of different tiers already synced by the trust engine.
   const eliteCount = await prisma.user.count({
     where: {
-      tenant_id: session.user.tenantId,
+      ...tenantFilter,
       role: Role.member,
       interest_tier: "T5_3_PERCENT",
     },
   });
   const growthCount = await prisma.user.count({
     where: {
-      tenant_id: session.user.tenantId,
+      ...tenantFilter,
       role: Role.member,
       interest_tier: "T4_3_5_PERCENT",
     },
   });
   const starterCount = await prisma.user.count({
     where: {
-      tenant_id: session.user.tenantId,
+      ...tenantFilter,
       role: Role.member,
       interest_tier: "T1_5_PERCENT",
     },
   });
   const atRiskCount = await prisma.user.count({
     where: {
-      tenant_id: session.user.tenantId,
+      ...tenantFilter,
       role: Role.member,
       loans: { some: { schedules: { some: { status: "overdue" } } } },
     },
