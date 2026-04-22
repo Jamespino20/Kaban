@@ -1,5 +1,7 @@
+"use client";
+
 import { signOut } from "next-auth/react";
-import { LogOut, User, Settings } from "lucide-react";
+import { LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { BranchSwitcher } from "./branch-switcher";
 
