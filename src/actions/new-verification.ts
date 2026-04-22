@@ -1,6 +1,7 @@
 "use server";
 
 import prisma from "@/lib/prisma";
+import { parseScopedIdentity } from "@/lib/scoped-identity";
 
 export const getVerificationTokenByToken = async (token: string) => {
   try {
@@ -13,10 +14,13 @@ export const getVerificationTokenByToken = async (token: string) => {
   }
 };
 
-export const getVerificationTokenByEmail = async (email: string) => {
+export const getVerificationTokenByEmail = async (
+  email: string,
+  tenantId: number | null,
+) => {
   try {
     const verificationToken = await prisma.verificationToken.findFirst({
-      where: { email },
+      where: { email: `${tenantId ?? "global"}::${email.toLowerCase()}` },
     });
     return verificationToken;
   } catch {
@@ -24,9 +28,12 @@ export const getVerificationTokenByEmail = async (email: string) => {
   }
 };
 
-export const getUserByEmail = async (email: string) => {
+export const getUserByEmail = async (
+  email: string,
+  tenantId: number | null,
+) => {
   try {
-    const user = await prisma.user.findFirst({ where: { email } });
+    const user = await prisma.user.findFirst({ where: { email, tenant_id: tenantId } });
     return user;
   } catch {
     return null;
@@ -46,7 +53,8 @@ export const newVerification = async (token: string) => {
     return { error: "Token has expired!" };
   }
 
-  const existingUser = await getUserByEmail(existingToken.email);
+  const { email, tenantId } = parseScopedIdentity(existingToken.email);
+  const existingUser = await getUserByEmail(email, tenantId);
 
   if (!existingUser) {
     return { error: "Email does not exist!" };
@@ -56,7 +64,7 @@ export const newVerification = async (token: string) => {
     where: { user_id: existingUser.user_id },
     data: {
       status: "active", // Updated from 'pending' to 'active'
-      email: existingToken.email,
+      email,
     },
   });
 

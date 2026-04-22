@@ -201,8 +201,7 @@ export function TenantManagementTab({
                   {t.decommissioned_backups &&
                     t.decommissioned_backups.length > 0 && (
                       <a
-                        href={t.decommissioned_backups[0].file_url}
-                        download
+                        href={`/api/admin/backups/${t.decommissioned_backups[0].id}`}
                         className="flex items-center justify-center w-full py-2.5 px-4 bg-slate-900 text-white rounded-xl text-sm font-bold hover:bg-slate-800 transition-colors"
                       >
                         <Download className="w-4 h-4 mr-2" /> Download Snapshot

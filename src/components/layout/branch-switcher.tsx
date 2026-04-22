@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useSession, signIn } from "next-auth/react";
+import { useSession } from "next-auth/react";
 import { Building2, ChevronDown, Check, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { getAvailableTenants } from "@/actions/identity";
@@ -19,24 +19,30 @@ export function BranchSwitcher() {
   const [tenants, setTenants] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [switching, setSwitching] = useState<number | null>(null);
+  const accessibleTenantIds = session?.user?.accessibleTenantIds || [];
 
   useEffect(() => {
-    if (session?.user?.email) {
+    if (session?.user?.email && accessibleTenantIds.length > 1) {
       loadTenants();
     }
-  }, [session?.user?.email]);
+  }, [session?.user?.email, accessibleTenantIds.length]);
 
   async function loadTenants() {
     setLoading(true);
     const result = await getAvailableTenants(session?.user?.email!);
     if (result.success) {
-      setTenants(result.tenants);
+      setTenants(
+        result.tenants.filter((tenant: any) =>
+          accessibleTenantIds.includes(tenant.tenant_id),
+        ),
+      );
     }
     setLoading(false);
   }
 
   async function handleSwitch(tenantId: number) {
     if (tenantId === session?.user?.tenantId) return;
+    if (!accessibleTenantIds.includes(tenantId)) return;
 
     setSwitching(tenantId);
 
@@ -50,7 +56,7 @@ export function BranchSwitcher() {
     window.location.href = "/";
   }
 
-  if (tenants.length <= 1 && !loading) return null;
+  if (accessibleTenantIds.length <= 1 && !loading) return null;
 
   const currentTenant = tenants.find(
     (t) => t.tenant_id === session?.user?.tenantId,

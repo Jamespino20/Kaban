@@ -4,6 +4,7 @@ import Credentials from "next-auth/providers/credentials";
 import bcrypt from "bcryptjs";
 import { neon } from "@neondatabase/serverless";
 import { z } from "zod";
+import { getDbUrl } from "@/lib/db-url";
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
   ...authConfig,
@@ -22,8 +23,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         if (parsedCredentials.success) {
           const { username, password, code, tenantId } = parsedCredentials.data;
 
-          const connectionString =
-            process.env.AGAPAYSTORAGE_POSTGRES_URL_NON_POOLING!;
+          const connectionString = getDbUrl();
           console.log(
             "SURGERY: Auth Connection String Status:",
             connectionString ? "PRESENT" : "MISSING!",
@@ -61,6 +61,24 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           if (passwordsMatch) {
             if (user.status === "suspended") return null;
 
+            const switchableAccounts = await sql`
+              SELECT tenant_id, password_hash
+              FROM users
+              WHERE email = ${user.email}
+            `;
+
+            const accessibleTenantIds: number[] = [];
+            for (const account of switchableAccounts) {
+              if (!account.tenant_id) continue;
+              const sameSecret = await bcrypt.compare(
+                password,
+                account.password_hash,
+              );
+              if (sameSecret) {
+                accessibleTenantIds.push(account.tenant_id);
+              }
+            }
+
             // Check 2FA
             const twoFaRows = await sql`
               SELECT is_enabled, totp_secret 
@@ -74,7 +92,10 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
                 const { generateTwoFactorToken } = await import("@/lib/tokens");
                 const { sendTwoFactorTokenEmail } = await import("@/lib/mail");
 
-                const twoFactorToken = await generateTwoFactorToken(user.email);
+                const twoFactorToken = await generateTwoFactorToken(
+                  user.email,
+                  user.tenant_id,
+                );
                 await sendTwoFactorTokenEmail(
                   twoFactorToken.email,
                   twoFactorToken.token,
@@ -99,6 +120,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
                   await import("@/actions/two-factor-token");
                 const twoFactorToken = await getTwoFactorTokenByEmail(
                   user.email,
+                  user.tenant_id,
                 );
 
                 if (!twoFactorToken || twoFactorToken.token !== code) {
@@ -125,6 +147,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
               email: user.email,
               role: user.role,
               tenantId: user.tenant_id,
+              accessibleTenantIds,
             };
           }
         }

@@ -4,11 +4,21 @@ import prisma from "@/lib/prisma";
 import { auth } from "@/lib/auth";
 import { Role, UserStatus } from "@prisma/client";
 
-export async function getTenantMembers() {
+async function requireAdminSession() {
   const session = await auth();
-  if (!session?.user?.id || !session?.user?.tenantId) {
+  if (
+    !session?.user?.id ||
+    !session?.user?.tenantId ||
+    (session.user.role !== "admin" && session.user.role !== "superadmin")
+  ) {
     throw new Error("Unauthorized");
   }
+
+  return session;
+}
+
+export async function getTenantMembers() {
+  const session = await requireAdminSession();
 
   const members = await prisma.user.findMany({
     where: {
@@ -33,10 +43,7 @@ export async function getTenantMembers() {
 }
 
 export async function getPendingApprovals() {
-  const session = await auth();
-  if (!session?.user?.id || !session?.user?.tenantId) {
-    throw new Error("Unauthorized");
-  }
+  const session = await requireAdminSession();
 
   // Fetch pending loans
   const pendingLoans = await prisma.loan.findMany({
@@ -81,10 +88,7 @@ export async function getPendingApprovals() {
 }
 
 export async function getDashboardMetrics() {
-  const session = await auth();
-  if (!session?.user?.id || !session?.user?.tenantId) {
-    throw new Error("Unauthorized");
-  }
+  const session = await requireAdminSession();
 
   const tenantId = session.user.tenantId;
 
@@ -144,10 +148,7 @@ export async function getDashboardMetrics() {
  * Calculates the trust distribution of the entire cooperative population.
  */
 export async function getTenantTrustMetrics() {
-  const session = await auth();
-  if (!session?.user?.id || !session?.user?.tenantId) {
-    throw new Error("Unauthorized");
-  }
+  const session = await requireAdminSession();
 
   // Implementation Note: In a large system, we would cache these or use a materialized view.
   // For Agapay MVP, we iterate through active members.

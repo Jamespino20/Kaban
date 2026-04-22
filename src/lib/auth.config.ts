@@ -15,6 +15,7 @@ export const authConfig = {
         token.username = user.username;
         token.user_id = user.user_id;
         token.email = user.email; // Ensure email is in token
+        token.accessibleTenantIds = user.accessibleTenantIds || [];
         if (user.id) token.id = user.id;
       }
 
@@ -29,14 +30,25 @@ export const authConfig = {
         if (connectionString) {
           const sql = neon(connectionString);
           const targetTenantId = parseInt(session.tenantId);
-          const emailOrUsername = token.email || token.username;
+          const allowedTenantIds = Array.isArray(token.accessibleTenantIds)
+            ? token.accessibleTenantIds.map((value: any) => parseInt(String(value)))
+            : [];
+
+          if (!allowedTenantIds.includes(targetTenantId)) {
+            console.warn(
+              "Rejected unauthorized tenant switch attempt",
+              token.user_id,
+              targetTenantId,
+            );
+            return token;
+          }
 
           try {
             const users = await sql`
               SELECT user_id, tenant_id, username, email, role
               FROM users
-              WHERE tenant_id = ${targetTenantId} 
-              AND (email = ${emailOrUsername} OR username = ${emailOrUsername})
+              WHERE tenant_id = ${targetTenantId}
+              AND email = ${token.email}
               LIMIT 1
             `;
 
@@ -70,6 +82,9 @@ export const authConfig = {
       if (token?.user_id) {
         session.user.user_id = token.user_id as number;
       }
+      session.user.accessibleTenantIds = Array.isArray(token?.accessibleTenantIds)
+        ? (token.accessibleTenantIds as number[])
+        : [];
       if (token?.id) {
         session.user.id = token.id as string;
       }

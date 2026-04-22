@@ -18,7 +18,10 @@ export const createLoanProduct = async (
   values: z.infer<typeof LoanProductSchema>,
 ) => {
   const session = await auth();
-  if (!session?.user?.tenantId) {
+  if (
+    !session?.user?.tenantId ||
+    (session.user.role !== "admin" && session.user.role !== "superadmin")
+  ) {
     return { error: "Tenant session not found!" };
   }
 
@@ -60,7 +63,10 @@ export const createLoanProduct = async (
 
 export const getLoanProducts = async () => {
   const session = await auth();
-  if (!session?.user?.tenantId) {
+  if (
+    !session?.user?.tenantId ||
+    (session.user.role !== "admin" && session.user.role !== "superadmin")
+  ) {
     return [];
   }
 

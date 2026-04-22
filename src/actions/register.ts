@@ -181,7 +181,10 @@ export const register = async (values: z.infer<typeof RegisterSchema>) => {
       return user;
     });
 
-    const verificationToken = await generateVerificationToken(result.email);
+    const verificationToken = await generateVerificationToken(
+      result.email,
+      result.tenant_id,
+    );
     await sendVerificationEmail(
       verificationToken.email,
       verificationToken.token,

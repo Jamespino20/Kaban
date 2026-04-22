@@ -1,6 +1,7 @@
 "use server";
 
 import prisma from "@/lib/prisma";
+import { createScopedIdentity } from "@/lib/scoped-identity";
 
 export const getTwoFactorTokenByToken = async (token: string) => {
   try {
@@ -13,10 +14,13 @@ export const getTwoFactorTokenByToken = async (token: string) => {
   }
 };
 
-export const getTwoFactorTokenByEmail = async (email: string) => {
+export const getTwoFactorTokenByEmail = async (
+  email: string,
+  tenantId: number | null,
+) => {
   try {
     const twoFactorToken = await prisma.twoFactorToken.findFirst({
-      where: { email }
+      where: { email: createScopedIdentity(email, tenantId) },
     });
     return twoFactorToken;
   } catch {

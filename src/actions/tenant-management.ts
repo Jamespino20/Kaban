@@ -144,19 +144,18 @@ export async function decommissionBranch(tenantId: number) {
       });
 
       // 4. Save CSV locally
-      const backupDir = path.join(process.cwd(), "public", "backups");
+      const backupDir = path.join(process.cwd(), "tmp", "backups");
       await fs.mkdir(backupDir, { recursive: true });
       const fileName = `backup_${tenant.slug}_${Date.now()}.csv`;
       const filePath = path.join(backupDir, fileName);
 
       await fs.writeFile(filePath, csvContent);
-      const fileUrl = `/backups/${fileName}`;
 
       // 5. Create Metadata Record
       const backupRecord = await tx.decommissionedBackup.create({
         data: {
           tenant_id: tenantId,
-          file_url: fileUrl,
+          file_url: filePath,
         },
       });
 
@@ -167,7 +166,7 @@ export async function decommissionBranch(tenantId: number) {
           entity_type: "Tenant",
           entity_id: tenantId,
           user_id: parseInt(session.user.id),
-          new_values: { is_active: false, backup_url: fileUrl },
+          new_values: { is_active: false, backup_id: backupRecord.id },
         },
       });
 
@@ -238,7 +237,12 @@ export async function getAuditLogs(tenantId?: number) {
 
   try {
     const logs = await prisma.auditLog.findMany({
-      where: session.user.role === "superadmin" ? {} : { tenant_id: tenantId },
+      where:
+        session.user.role === "superadmin"
+          ? tenantId
+            ? { tenant_id: tenantId }
+            : {}
+          : { tenant_id: session.user.tenantId },
       include: {
         user: {
           select: { username: true },

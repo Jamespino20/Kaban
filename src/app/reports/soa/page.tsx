@@ -1,6 +1,8 @@
 import prisma from "@/lib/prisma";
 import { notFound } from "next/navigation";
 import { format } from "date-fns";
+import { auth } from "@/lib/auth";
+import { headers } from "next/headers";
 
 /**
  * Statement of Account (SOA) Template Page
@@ -12,14 +14,31 @@ export default async function SOAPage({
 }: {
   searchParams: Promise<{ userId: string; tenantId: string }>;
 }) {
+  const session = await auth();
+  const headerStore = await headers();
   const { userId, tenantId } = await searchParams;
+  const requestedUserId = Number.parseInt(userId, 10);
+  const requestedTenantId = Number.parseInt(tenantId, 10);
+  const reportSecret = process.env.REPORT_SECRET || "agapay-internal-secret";
+  const hasInternalReportSecret =
+    headerStore.get("X-Agapay-Report-Secret") === reportSecret;
+  const isAdmin =
+    session?.user?.role === "admin" || session?.user?.role === "superadmin";
+  const sameMember =
+    session?.user?.role === "member" &&
+    session.user.user_id === requestedUserId &&
+    session.user.tenantId === requestedTenantId;
+  const sameTenantAdmin =
+    isAdmin && session?.user?.tenantId === requestedTenantId;
 
-  // Fetch details using the RLS-injected context (once we set session)
-  // For the report generator, we bypass RLS for internal rendering only
+  if (!hasInternalReportSecret && !sameMember && !sameTenantAdmin) {
+    return notFound();
+  }
+
   const user = await prisma.user.findFirst({
     where: {
-      user_id: parseInt(userId),
-      tenant_id: parseInt(tenantId),
+      user_id: requestedUserId,
+      tenant_id: requestedTenantId,
     },
     include: {
       profile: true,
@@ -41,12 +60,11 @@ export default async function SOAPage({
   const activeLoan = user.loans[0];
   const paidAmount =
     activeLoan?.payments.reduce(
-      (acc: number, p: any) => acc + Number(p.amount),
+      (acc: number, p: any) => acc + Number(p.amount_paid),
       0,
     ) || 0;
   const balance =
-    Number(activeLoan?.principal_amount || 0) +
-    Number(activeLoan?.total_interest_expected || 0) -
+    Number(activeLoan?.balance_remaining || 0) -
     paidAmount;
 
   return (
