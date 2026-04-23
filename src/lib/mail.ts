@@ -99,7 +99,7 @@ export const sendFeedbackNotificationEmail = async ({
     subject?.trim() || `Bagong ${category} feedback mula sa ${name}`;
 
   await transporter.sendMail({
-    from: process.env.SMTP_FROM,
+    from: `"${name} via Agapay" <${process.env.SMTP_USER}>`,
     to: FEEDBACK_NOTIFICATION_TO,
     replyTo: email || undefined,
     subject: `[Agapay Feedback] ${normalizedSubject}`,
