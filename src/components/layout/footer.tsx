@@ -6,7 +6,7 @@ export function Footer() {
   return (
     <footer className="w-full py-24 bg-slate-100 border-t border-slate-200/60 px-6 mt-20">
       <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-start gap-16">
-        <div className="flex flex-col gap-6 max-w-xs">
+        <div className="flex flex-col gap-6 max-w-sm">
           <div className="flex items-center gap-3">
             <div className="w-8 h-8 bg-emerald-600 rounded-lg flex items-center justify-center">
               <img
@@ -20,9 +20,9 @@ export function Footer() {
             </span>
           </div>
           <p className="text-slate-500 font-medium leading-relaxed">
-            Pondo para sa bawat Pilipino. Tinutulungan namin ang susunod na
-            henerasyon ng mga negosyo sa pamamagitan ng matalino at mabilis na
-            microfinancing.
+            Cooperative lending platform para sa mga Pilipinong negosyante,
+            branch teams, at lending communities na naghahanap ng mas malinaw,
+            mas human, at mas explainable na workflows.
           </p>
         </div>
 
@@ -32,7 +32,7 @@ export function Footer() {
             links={[
               { label: "Mga Tampok", href: "/platform" },
               { label: "Presyo", href: "/pricing" },
-              { label: "Calculator", href: "/#calculator" },
+              { label: "Loan Calculator", href: "/#calculator" },
               { label: "Security", href: "/platform#security" },
             ]}
           />
@@ -57,7 +57,7 @@ export function Footer() {
       </div>
       <div className="max-w-7xl mx-auto pt-20 mt-20 border-t border-slate-200/60 flex flex-col md:flex-row justify-between items-center gap-6 text-slate-400 text-xs font-bold uppercase tracking-widest">
         <span>© 2026 Agapay Microfinance SaaS. All rights reserved.</span>
-        <span>Made with Precision in the Philippines</span>
+        <span>Made in the Philippines</span>
       </div>
     </footer>
   );
@@ -76,7 +76,7 @@ function FooterGroup({
         {title}
       </h5>
       <ul className="flex flex-col gap-4">
-        {links.map((link: any) => (
+        {links.map((link) => (
           <li key={link.label}>
             <Link
               href={link.href}
