@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { auth } from "@/lib/auth";
+import { requireSuperadminSession } from "@/lib/authorization";
 import prisma from "@/lib/prisma";
 import fs from "fs/promises";
 import path from "path";
@@ -8,8 +8,9 @@ export async function GET(
   _req: NextRequest,
   { params }: { params: Promise<{ id: string }> },
 ) {
-  const session = await auth();
-  if (!session?.user?.id || session.user.role !== "superadmin") {
+  try {
+    await requireSuperadminSession();
+  } catch {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 

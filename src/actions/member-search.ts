@@ -1,11 +1,18 @@
 "use server";
 
 import prisma from "@/lib/prisma";
-import { auth } from "@/lib/auth";
+import { requireAuthenticatedSession } from "@/lib/authorization";
+import { Role, UserStatus } from "@prisma/client";
 
 export async function searchEligibleGuarantors(query: string) {
-  const session = await auth();
-  if (!session?.user?.id || !session?.user?.tenantId) {
+  let session;
+  try {
+    session = await requireAuthenticatedSession();
+  } catch {
+    return { error: "Not authenticated!" };
+  }
+
+  if (!session.user.tenantId) {
     return { error: "Not authenticated!" };
   }
 
@@ -17,7 +24,9 @@ export async function searchEligibleGuarantors(query: string) {
     const users = await prisma.user.findMany({
       where: {
         tenant_id: session.user.tenantId,
-        user_id: { not: parseInt(session.user.id) }, // Cannot guarantee oneself
+        user_id: { not: session.user.user_id },
+        role: Role.member,
+        status: UserStatus.active,
         OR: [
           { username: { contains: query, mode: "insensitive" } },
           { email: { contains: query, mode: "insensitive" } },

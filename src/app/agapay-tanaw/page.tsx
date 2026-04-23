@@ -20,7 +20,7 @@ import { auth } from "@/lib/auth";
 import { UserAccountNav } from "@/components/layout/user-account-nav";
 import { TwoFactorSetup } from "@/components/auth/two-factor-setup";
 import prisma from "@/lib/prisma";
-import { cn } from "@/lib/utils";
+import { redirect } from "next/navigation";
 
 import { TrustDistributionChart } from "@/components/analytics/trust-distribution-chart";
 import { MemberDirectoryTab } from "@/components/admin/member-directory-tab";
@@ -36,12 +36,19 @@ import { TrustMeter } from "@/components/analytics/trust-meter";
 import { KPIMetricCard } from "@/components/analytics/kpi-metric-card";
 
 export default async function AgapayTanawPage() {
-  const tenants = await getTenants();
   const session = await auth();
-  const userName = session?.user?.username || "Admin";
-  const userRole = session?.user?.role || "staff";
+  if (!session?.user?.id) {
+    redirect("/auth/login");
+  }
 
-  // Use Apex Singleton with RLS
+  if (session.user.role === "member") {
+    redirect("/agapay-pintig");
+  }
+
+  const tenants = await getTenants();
+  const userName = session?.user?.username || "Admin";
+  const userRole = session?.user?.role || "lender";
+
   const userWith2FA = await prisma.user.findUnique({
     where: { user_id: session?.user?.user_id },
     include: { two_factor_auth: true },
@@ -55,8 +62,11 @@ export default async function AgapayTanawPage() {
   const trustData = await getTenantTrustMetrics();
 
   const isSuperAdmin = userRole === "superadmin";
-  const isAdmin = userRole === "admin" || isSuperAdmin;
-  const isStaff = userRole === "staff";
+  const isAdmin = userRole === "admin";
+  const isLender = userRole === "lender";
+  const canManageTenantProducts = isAdmin;
+  const canViewBranchOps = isAdmin || isSuperAdmin;
+  const canViewAuditLogs = isAdmin || isSuperAdmin;
 
   return (
     <div className="min-h-screen bg-slate-50/50 p-6 md:p-10">
@@ -68,9 +78,11 @@ export default async function AgapayTanawPage() {
               Agapay Tanaw Command Center
             </h1>
             <p className="text-slate-500 font-sans">
-              {isStaff
-                ? "Sentrong Pang-operasyon ng Kooperatiba"
-                : "Pamamahala at Pagbabantay sa Panganib para sa Agapay Financial Operations"}
+              {isLender
+                ? "Tenant-level operations, borrower oversight, at trust monitoring."
+                : isAdmin
+                  ? "Tenant-level administration para sa approvals, member safety, at portfolio health."
+                  : "Global oversight para sa tenant cooperatives, fraud monitoring, at system health."}
             </p>
           </div>
           <div className="flex items-center gap-6">
@@ -116,7 +128,7 @@ export default async function AgapayTanawPage() {
                 <span>Mga Miyembro</span>
               </TabsTrigger>
 
-              {isAdmin && (
+              {canManageTenantProducts && (
                 <>
                   <TabsTrigger
                     value="products"
@@ -136,6 +148,15 @@ export default async function AgapayTanawPage() {
                   </TabsTrigger>
                 </>
               )}
+              {!canManageTenantProducts && canViewBranchOps && (
+                <TabsTrigger
+                  value="branches"
+                  className="rounded-xl data-[state=active]:bg-red-600 data-[state=active]:text-white transition-all px-6 py-2.5 flex items-center gap-2 text-red-600 hover:bg-red-50"
+                >
+                  <ShieldAlert className="w-4 h-4" />
+                  <span>{isSuperAdmin ? "Global Tenant Mgmt" : "Branch Ops"}</span>
+                </TabsTrigger>
+              )}
 
               <TabsTrigger
                 value="settings"
@@ -145,7 +166,7 @@ export default async function AgapayTanawPage() {
                 <span>Settings</span>
               </TabsTrigger>
 
-              {isAdmin && (
+              {canViewAuditLogs && (
                 <TabsTrigger
                   value="audit"
                   className="rounded-xl data-[state=active]:bg-slate-900 data-[state=active]:text-white transition-all px-6 py-2.5 flex items-center gap-2"
@@ -197,7 +218,7 @@ export default async function AgapayTanawPage() {
                   <p className="text-slate-500 text-sm mt-1 mb-8">
                     Kasalukuyang katayuan ng trust network
                   </p>
-                  {isAdmin ? (
+                  {canViewBranchOps ? (
                     <TrustDistributionChart
                       distribution={trustData.distribution}
                     />

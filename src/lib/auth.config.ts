@@ -1,6 +1,7 @@
 import type { NextAuthConfig } from "next-auth";
 import Credentials from "next-auth/providers/credentials";
 import { neon } from "@neondatabase/serverless";
+import { getDbUrl } from "@/lib/db-url";
 
 export const authConfig = {
   providers: [Credentials({})],
@@ -25,8 +26,7 @@ export const authConfig = {
         session?.action === "switch_tenant" &&
         session?.tenantId
       ) {
-        const connectionString =
-          process.env.AGAPAYSTORAGE_POSTGRES_URL_NON_POOLING!;
+        const connectionString = getDbUrl();
         if (connectionString) {
           const sql = neon(connectionString);
           const targetTenantId = parseInt(session.tenantId);

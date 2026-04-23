@@ -3,14 +3,18 @@
 import { generateSecret, generateURI, verify } from "otplib";
 import QRCode from "qrcode";
 import prisma from "@/lib/prisma";
-import { auth } from "@/lib/auth";
+import { requireAuthenticatedSession } from "@/lib/authorization";
 
 export async function generate2FASecret() {
-  const session = await auth();
-  if (!session?.user?.id) return { error: "Unauthorized" };
+  let session;
+  try {
+    session = await requireAuthenticatedSession();
+  } catch {
+    return { error: "Unauthorized" };
+  }
 
   const user = await prisma.user.findUnique({
-    where: { user_id: parseInt(session.user.id) },
+    where: { user_id: session.user.user_id },
     include: { two_factor_auth: true },
   });
 
@@ -39,11 +43,15 @@ export async function generate2FASecret() {
 }
 
 export async function verifyAndEnable2FA(token: string) {
-  const session = await auth();
-  if (!session?.user?.id) return { error: "Unauthorized" };
+  let session;
+  try {
+    session = await requireAuthenticatedSession();
+  } catch {
+    return { error: "Unauthorized" };
+  }
 
   const user = await prisma.user.findUnique({
-    where: { user_id: parseInt(session.user.id) },
+    where: { user_id: session.user.user_id },
     include: { two_factor_auth: true },
   });
 
@@ -67,11 +75,15 @@ export async function verifyAndEnable2FA(token: string) {
 }
 
 export async function disable2FA() {
-  const session = await auth();
-  if (!session?.user?.id) return { error: "Unauthorized" };
+  let session;
+  try {
+    session = await requireAuthenticatedSession();
+  } catch {
+    return { error: "Unauthorized" };
+  }
 
   await prisma.twoFactorAuth.update({
-    where: { user_id: parseInt(session.user.id) },
+    where: { user_id: session.user.user_id },
     data: { is_enabled: false },
   });
 

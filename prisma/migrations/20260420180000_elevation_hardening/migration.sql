@@ -1,11 +1,6 @@
--- Agapay: Database Hardening Migration
--- Phase 1: Stateless RLS & Stored Procedures
+-- Agapay: Database hardening migration
+-- Kept replay-safe for shadow databases and clean resets.
 
--- 1. Setup Tenant Session Configuration
--- This allows us to use SET LOCAL app.tenant_id = 123;
--- We'll use this in our RLS policies.
-
--- 2. LOAN MATH: Declining Balance Stored Procedure
 CREATE OR REPLACE FUNCTION fn_calculate_repayment_schedule(
     p_loan_id INTEGER,
     p_principal DECIMAL,
@@ -16,26 +11,23 @@ CREATE OR REPLACE FUNCTION fn_calculate_repayment_schedule(
 DECLARE
     v_remaining_balance DECIMAL := p_principal;
     v_interest_payment DECIMAL;
-    v_principal_payment DECIMAL := p_principal / p_term_months; -- Simplified for this version
+    v_principal_payment DECIMAL := p_principal / p_term_months;
     v_due_date DATE := p_disbursed_at;
     i INTEGER;
 BEGIN
-    -- Clear existing schedules
     DELETE FROM loan_schedules WHERE loan_id = p_loan_id;
 
     FOR i IN 1..p_term_months LOOP
         v_due_date := v_due_date + INTERVAL '1 month';
-        
-        -- Interest = Remaining Principal * Rate
         v_interest_payment := v_remaining_balance * p_monthly_rate;
-        
+
         INSERT INTO loan_schedules (
-            loan_id, 
-            installment_number, 
-            due_date, 
-            principal_amount, 
-            interest_amount, 
-            total_due, 
+            loan_id,
+            installment_number,
+            due_date,
+            principal_amount,
+            interest_amount,
+            total_due,
             status
         ) VALUES (
             p_loan_id,
@@ -52,9 +44,31 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
--- 3. AUDIT LOGGING: Mutation Trigger
+CREATE OR REPLACE FUNCTION current_tenant_id() RETURNS INTEGER AS $$
+    SELECT NULLIF(current_setting('app.tenant_id', true), '')::integer;
+$$ LANGUAGE sql STABLE;
+
+CREATE OR REPLACE FUNCTION current_user_id() RETURNS INTEGER AS $$
+    SELECT NULLIF(current_setting('app.user_id', true), '')::integer;
+$$ LANGUAGE sql STABLE;
+
 CREATE OR REPLACE FUNCTION fn_audit_mutation() RETURNS TRIGGER AS $$
+DECLARE
+    v_entity_id INTEGER;
+    v_tenant_id INTEGER;
 BEGIN
+    v_entity_id := COALESCE(
+        NULLIF(to_jsonb(NEW) ->> 'loan_id', '')::integer,
+        NULLIF(to_jsonb(NEW) ->> 'user_id', '')::integer,
+        NULLIF(to_jsonb(NEW) ->> 'tenant_id', '')::integer,
+        NULLIF(to_jsonb(NEW) ->> 'id', '')::integer
+    );
+
+    v_tenant_id := COALESCE(
+        NULLIF(to_jsonb(NEW) ->> 'tenant_id', '')::integer,
+        current_tenant_id()
+    );
+
     INSERT INTO audit_logs (
         tenant_id,
         user_id,
@@ -65,20 +79,20 @@ BEGIN
         new_values,
         created_at
     ) VALUES (
-        NEW.tenant_id,
-        (SELECT current_setting('app.user_id', true)::integer),
+        v_tenant_id,
+        current_user_id(),
         TG_OP,
         TG_TABLE_NAME,
-        NEW.loan_id, -- Note: This needs to be generic or per table
-        to_jsonb(OLD),
+        v_entity_id,
+        CASE WHEN TG_OP = 'INSERT' THEN NULL ELSE to_jsonb(OLD) END,
         to_jsonb(NEW),
         NOW()
     );
+
     RETURN NEW;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
--- 4. ENABLE RLS
 ALTER TABLE users ENABLE ROW LEVEL SECURITY;
 ALTER TABLE loans ENABLE ROW LEVEL SECURITY;
 ALTER TABLE loan_schedules ENABLE ROW LEVEL SECURITY;
@@ -86,38 +100,42 @@ ALTER TABLE payments ENABLE ROW LEVEL SECURITY;
 ALTER TABLE savings_accounts ENABLE ROW LEVEL SECURITY;
 ALTER TABLE audit_logs ENABLE ROW LEVEL SECURITY;
 
--- 5. RLS POLICIES (Stateless)
--- Helper to get current tenant
-CREATE OR REPLACE FUNCTION current_tenant_id() RETURNS INTEGER AS $$
-    SELECT current_setting('app.tenant_id', true)::integer;
-$$ LANGUAGE sql STABLE;
-
--- Users Policy
+DROP POLICY IF EXISTS tenant_isolation_policy ON users;
 CREATE POLICY tenant_isolation_policy ON users
     USING (tenant_id = current_tenant_id() OR role = 'superadmin');
 
--- Loans Policy
+DROP POLICY IF EXISTS tenant_isolation_policy ON loans;
 CREATE POLICY tenant_isolation_policy ON loans
     USING (tenant_id = current_tenant_id());
 
--- Schedules Policy (Inherited via Loan)
+DROP POLICY IF EXISTS tenant_isolation_policy ON loan_schedules;
 CREATE POLICY tenant_isolation_policy ON loan_schedules
     USING (EXISTS (
-        SELECT 1 FROM loans WHERE loans.loan_id = loan_schedules.loan_id 
-        AND loans.tenant_id = current_tenant_id()
+        SELECT 1 FROM loans
+        WHERE loans.loan_id = loan_schedules.loan_id
+          AND loans.tenant_id = current_tenant_id()
     ));
 
--- Payments Policy
+DROP POLICY IF EXISTS tenant_isolation_policy ON payments;
 CREATE POLICY tenant_isolation_policy ON payments
     USING (EXISTS (
-        SELECT 1 FROM loans WHERE loans.loan_id = payments.loan_id 
-        AND loans.tenant_id = current_tenant_id()
+        SELECT 1 FROM loans
+        WHERE loans.loan_id = payments.loan_id
+          AND loans.tenant_id = current_tenant_id()
     ));
 
--- Savings (Wallet) Policy
+DROP POLICY IF EXISTS tenant_isolation_policy ON savings_accounts;
 CREATE POLICY tenant_isolation_policy ON savings_accounts
     USING (tenant_id = current_tenant_id());
 
--- Audit Logs Policy
+DROP POLICY IF EXISTS tenant_isolation_policy ON audit_logs;
 CREATE POLICY tenant_isolation_policy ON audit_logs
-    USING (tenant_id = current_tenant_id() OR role = 'superadmin');
+    USING (
+        tenant_id = current_tenant_id()
+        OR EXISTS (
+            SELECT 1
+            FROM users
+            WHERE users.user_id = current_user_id()
+              AND users.role = 'superadmin'
+        )
+    );

@@ -2,10 +2,26 @@
 
 import bcrypt from "bcryptjs";
 import { neon } from "@neondatabase/serverless";
+import { requireAuthenticatedSession } from "@/lib/authorization";
 import { getDbUrl } from "@/lib/db-url";
 
 export async function getAvailableTenants(username: string, password?: string) {
   try {
+    let authenticatedSession = null;
+    if (!password) {
+      try {
+        authenticatedSession = await requireAuthenticatedSession();
+      } catch {
+        return { error: "Unauthorized" };
+      }
+
+      const normalizedLookup = username.trim().toLowerCase();
+      const sessionEmail = authenticatedSession.user.email?.trim().toLowerCase();
+      if (!sessionEmail || sessionEmail !== normalizedLookup) {
+        return { error: "Unauthorized" };
+      }
+    }
+
     const connectionString = getDbUrl();
     console.log(
       "SURGERY: Connection String Status:",
@@ -69,7 +85,17 @@ export async function getAvailableTenants(username: string, password?: string) {
 
     if (validTenants.length === 0) return { error: "Invalid credentials" };
 
-    return { success: true, tenants: validTenants };
+    return {
+      success: true,
+      tenants: validTenants.filter((tenant, index, self) => {
+        return (
+          index ===
+          self.findIndex(
+            (candidate) => candidate.tenant_id === tenant.tenant_id,
+          )
+        );
+      }),
+    };
   } catch (error) {
     console.error("Identity lookup failed:", error);
     return { error: "Something went wrong" };

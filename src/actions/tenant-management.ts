@@ -1,12 +1,14 @@
 "use server";
 
 import prisma from "@/lib/prisma";
-
-import { auth } from "@/lib/auth";
 import fs from "fs/promises";
 import path from "path";
 
 import { neon } from "@neondatabase/serverless";
+import {
+  requireAdminSession,
+  requireSuperadminSession,
+} from "@/lib/authorization";
 import { getDbUrl } from "@/lib/db-url";
 
 // 0. Get List of Regions (Public for Registration)
@@ -55,8 +57,9 @@ export async function getTenantsByRegion(regionId: number) {
 
 // 1. Get List of Tenants
 export async function getTenants() {
-  const session = await auth();
-  if (!session || session.user.role !== "superadmin") {
+  try {
+    await requireSuperadminSession();
+  } catch {
     return [];
   }
 
@@ -93,10 +96,7 @@ export async function getTenants() {
 
 // 2. Decommission Branch
 export async function decommissionBranch(tenantId: number) {
-  const session = await auth();
-  if (!session || session.user.role !== "superadmin") {
-    throw new Error("Unauthorized");
-  }
+  const session = await requireSuperadminSession();
 
   try {
     // Transaction to ensure data consistency
@@ -185,10 +185,7 @@ export async function decommissionBranch(tenantId: number) {
 
 // 3. Create Region (Superadmin)
 export async function createRegion(name: string, regCode: string) {
-  const session = await auth();
-  if (!session || session.user.role !== "superadmin") {
-    throw new Error("Unauthorized");
-  }
+  await requireSuperadminSession();
 
   try {
     const region = await prisma.tenantGroup.create({
@@ -208,10 +205,7 @@ export async function createBranch(
   slug: string,
   groupId: number,
 ) {
-  const session = await auth();
-  if (!session || session.user.role !== "superadmin") {
-    throw new Error("Unauthorized");
-  }
+  await requireSuperadminSession();
 
   try {
     const branch = await prisma.tenant.create({
@@ -227,13 +221,7 @@ export async function createBranch(
 
 // 5. Get Audit Logs (Admin/Superadmin)
 export async function getAuditLogs(tenantId?: number) {
-  const session = await auth();
-  if (
-    !session ||
-    (session.user.role !== "superadmin" && session.user.role !== "admin")
-  ) {
-    throw new Error("Unauthorized");
-  }
+  const session = await requireAdminSession();
 
   try {
     const logs = await prisma.auditLog.findMany({

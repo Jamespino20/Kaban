@@ -1,7 +1,8 @@
 "use server";
 
 import { syncUserTier, calculateTrustScore } from "@/lib/trust-engine";
-import { auth } from "@/lib/auth";
+import prisma from "@/lib/prisma";
+import { requireAuthenticatedSession } from "@/lib/authorization";
 import { revalidatePath } from "next/cache";
 
 /**
@@ -10,20 +11,39 @@ import { revalidatePath } from "next/cache";
  */
 export async function refreshUserReputation(userId: number) {
   try {
-    const session = await auth();
-    if (
-      !session ||
-      (session.user.role !== "admin" && session.user.role !== "superadmin")
-    ) {
-      // Members can only refresh their OWN score
-      const currentUserId = parseInt(session?.user?.id || "0");
-      if (currentUserId !== userId) {
-        throw new Error("Unauthorized reputation refresh");
-      }
+    const session = await requireAuthenticatedSession();
+    const targetUser = await prisma.user.findUnique({
+      where: { user_id: userId },
+      select: { user_id: true, tenant_id: true },
+    });
+
+    if (!targetUser) {
+      throw new Error("User not found");
     }
 
-    await syncUserTier(userId);
-    const breakdown = await calculateTrustScore(userId);
+    if (session.user.role === "superadmin") {
+      await syncUserTier(userId, targetUser.tenant_id);
+      const breakdown = await calculateTrustScore(userId, targetUser.tenant_id);
+
+      revalidatePath("/agapay-pintig");
+      revalidatePath("/agapay-tanaw");
+
+      return { success: true, breakdown };
+    }
+
+    if (session.user.role === "member") {
+      if (
+        session.user.user_id !== userId ||
+        session.user.tenantId !== targetUser.tenant_id
+      ) {
+        throw new Error("Unauthorized reputation refresh");
+      }
+    } else if (session.user.tenantId !== targetUser.tenant_id) {
+      throw new Error("Unauthorized reputation refresh");
+    }
+
+    await syncUserTier(userId, session.user.tenantId);
+    const breakdown = await calculateTrustScore(userId, session.user.tenantId);
 
     revalidatePath("/agapay-pintig");
     revalidatePath("/agapay-tanaw");

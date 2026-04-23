@@ -1,14 +1,22 @@
 import { NextRequest, NextResponse } from "next/server";
 import { generatePDF } from "@/lib/reporting/engine";
 import { getAppBaseUrl } from "@/lib/db-url";
-import { auth } from "@/lib/auth";
+import {
+  canAccessOwnOrTenantStaffResource,
+  requireAuthenticatedSession,
+} from "@/lib/authorization";
 
 /**
  * API Route to trigger PDF generation for a Statement of Account.
  * Role: Borrower / Admin
  */
 export async function GET(req: NextRequest) {
-  const session = await auth();
+  let session;
+  try {
+    session = await requireAuthenticatedSession();
+  } catch {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
   const { searchParams } = new URL(req.url);
   const userId = searchParams.get("userId");
   const tenantId = searchParams.get("tenantId");
@@ -17,21 +25,16 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: "Missing parameters" }, { status: 400 });
   }
 
-  if (!session?.user?.id || !session.user.tenantId) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-
   const requestedUserId = Number.parseInt(userId, 10);
   const requestedTenantId = Number.parseInt(tenantId, 10);
-  const isAdmin =
-    session.user.role === "admin" || session.user.role === "superadmin";
-  const sameMember =
-    session.user.role === "member" &&
-    session.user.user_id === requestedUserId &&
-    session.user.tenantId === requestedTenantId;
-  const sameTenantAdmin = isAdmin && session.user.tenantId === requestedTenantId;
 
-  if (!sameMember && !sameTenantAdmin) {
+  if (
+    !canAccessOwnOrTenantStaffResource(
+      session,
+      requestedUserId,
+      requestedTenantId,
+    )
+  ) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 

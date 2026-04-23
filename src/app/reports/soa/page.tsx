@@ -1,8 +1,11 @@
 import prisma from "@/lib/prisma";
 import { notFound } from "next/navigation";
 import { format } from "date-fns";
-import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
+import {
+  canAccessOwnOrTenantStaffResource,
+  requireAuthenticatedSession,
+} from "@/lib/authorization";
 
 /**
  * Statement of Account (SOA) Template Page
@@ -14,7 +17,6 @@ export default async function SOAPage({
 }: {
   searchParams: Promise<{ userId: string; tenantId: string }>;
 }) {
-  const session = await auth();
   const headerStore = await headers();
   const { userId, tenantId } = await searchParams;
   const requestedUserId = Number.parseInt(userId, 10);
@@ -22,16 +24,25 @@ export default async function SOAPage({
   const reportSecret = process.env.REPORT_SECRET || "agapay-internal-secret";
   const hasInternalReportSecret =
     headerStore.get("X-Agapay-Report-Secret") === reportSecret;
-  const isAdmin =
-    session?.user?.role === "admin" || session?.user?.role === "superadmin";
-  const sameMember =
-    session?.user?.role === "member" &&
-    session.user.user_id === requestedUserId &&
-    session.user.tenantId === requestedTenantId;
-  const sameTenantAdmin =
-    isAdmin && session?.user?.tenantId === requestedTenantId;
 
-  if (!hasInternalReportSecret && !sameMember && !sameTenantAdmin) {
+  let session = null;
+  if (!hasInternalReportSecret) {
+    try {
+      session = await requireAuthenticatedSession();
+    } catch {
+      return notFound();
+    }
+  }
+
+  if (
+    !hasInternalReportSecret &&
+    (!session ||
+      !canAccessOwnOrTenantStaffResource(
+        session,
+        requestedUserId,
+        requestedTenantId,
+      ))
+  ) {
     return notFound();
   }
 

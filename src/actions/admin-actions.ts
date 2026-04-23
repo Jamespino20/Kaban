@@ -1,29 +1,16 @@
 "use server";
 
 import prisma from "@/lib/prisma";
-import { auth } from "@/lib/auth";
+import { requireTanawSession } from "@/lib/authorization";
 import { Role, UserStatus } from "@prisma/client";
 
-async function requireAdminSession() {
-  const session = await auth();
-  if (
-    !session?.user?.id ||
-    (session.user.role !== "admin" && session.user.role !== "superadmin")
-  ) {
-    throw new Error("Unauthorized");
-  }
-
-  if (session.user.role === "admin" && !session.user.tenantId) {
-    throw new Error("Unauthorized");
-  }
-
-  return session;
-}
-
 export async function getTenantMembers() {
-  const session = await requireAdminSession();
+  const session = await requireTanawSession();
+  const tenantId = session.user.tenantId ?? undefined;
   const tenantFilter =
-    session.user.role === "superadmin" ? {} : { tenant_id: session.user.tenantId };
+    session.user.role === "superadmin"
+      ? {}
+      : { tenant_id: tenantId };
 
   const members = await prisma.user.findMany({
     where: {
@@ -48,13 +35,16 @@ export async function getTenantMembers() {
 }
 
 export async function getPendingApprovals() {
-  const session = await requireAdminSession();
+  const session = await requireTanawSession();
+  const tenantId = session.user.tenantId ?? undefined;
   const tenantFilter =
-    session.user.role === "superadmin" ? {} : { tenant_id: session.user.tenantId };
+    session.user.role === "superadmin"
+      ? {}
+      : { tenant_id: tenantId };
   const loanTenantFilter =
     session.user.role === "superadmin"
       ? {}
-      : { tenant_id: session.user.tenantId };
+      : { tenant_id: tenantId };
 
   // Fetch pending loans
   const pendingLoans = await prisma.loan.findMany({
@@ -92,16 +82,67 @@ export async function getPendingApprovals() {
     },
   });
 
+  const approvedLoans = await prisma.loan.findMany({
+    where: {
+      ...loanTenantFilter,
+      status: "approved",
+    },
+    include: {
+      user: {
+        include: {
+          profile: true,
+        },
+      },
+      product: true,
+      tenant: {
+        include: {
+          payment_methods: {
+            where: { is_active: true },
+            orderBy: { provider_name: "asc" },
+          },
+        },
+      },
+    },
+    orderBy: {
+      approved_at: "asc",
+    },
+  });
+
+  const pendingPayments = await prisma.payment.findMany({
+    where: {
+      status: "pending",
+      loan: loanTenantFilter,
+    },
+    include: {
+      loan: {
+        include: {
+          user: {
+            include: {
+              profile: true,
+            },
+          },
+          product: true,
+        },
+      },
+      payment_method: true,
+    },
+    orderBy: {
+      submitted_at: "asc",
+    },
+  });
+
   return {
     loans: pendingLoans,
     verifications: pendingVerifications,
+    approvedLoans,
+    pendingPayments,
   };
 }
 
 export async function getDashboardMetrics() {
-  const session = await requireAdminSession();
+  const session = await requireTanawSession();
 
-  const tenantId = session.user.tenantId;
+  const tenantId = session.user.tenantId ?? undefined;
   const tenantFilter = tenantId ? { tenant_id: tenantId } : {};
   const loanRelationFilter = tenantId ? { loan: { tenant_id: tenantId } } : {};
 
@@ -161,9 +202,10 @@ export async function getDashboardMetrics() {
  * Calculates the trust distribution of the entire cooperative population.
  */
 export async function getTenantTrustMetrics() {
-  const session = await requireAdminSession();
+  const session = await requireTanawSession();
+  const tenantId = session.user.tenantId ?? undefined;
   const tenantFilter =
-    session.user.tenantId ? { tenant_id: session.user.tenantId } : {};
+    tenantId ? { tenant_id: tenantId } : {};
 
   // Implementation Note: In a large system, we would cache these or use a materialized view.
   // For Agapay MVP, we iterate through active members.

@@ -2,7 +2,7 @@
 
 import * as z from "zod";
 import prisma from "@/lib/prisma";
-import { auth } from "@/lib/auth";
+import { requireAdminSession } from "@/lib/authorization";
 import { revalidatePath } from "next/cache";
 
 const LoanProductSchema = z.object({
@@ -17,11 +17,13 @@ const LoanProductSchema = z.object({
 export const createLoanProduct = async (
   values: z.infer<typeof LoanProductSchema>,
 ) => {
-  const session = await auth();
-  if (
-    !session?.user?.tenantId ||
-    (session.user.role !== "admin" && session.user.role !== "superadmin")
-  ) {
+  let session;
+  try {
+    session = await requireAdminSession();
+  } catch {
+    return { error: "Unauthorized" };
+  }
+  if (!session.user.tenantId) {
     return { error: "Tenant session not found!" };
   }
 
@@ -62,11 +64,13 @@ export const createLoanProduct = async (
 };
 
 export const getLoanProducts = async () => {
-  const session = await auth();
-  if (
-    !session?.user?.tenantId ||
-    (session.user.role !== "admin" && session.user.role !== "superadmin")
-  ) {
+  let session;
+  try {
+    session = await requireAdminSession();
+  } catch {
+    return [];
+  }
+  if (!session.user.tenantId) {
     return [];
   }
 

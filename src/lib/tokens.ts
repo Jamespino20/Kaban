@@ -1,7 +1,8 @@
 import { v4 as uuidv4 } from "uuid";
 import crypto from "crypto";
 import prisma from "@/lib/prisma";
-import { createScopedIdentity } from "@/lib/scoped-identity";
+
+const normalizeEmail = (email: string) => email.trim().toLowerCase();
 
 export const generateVerificationToken = async (
   email: string,
@@ -9,10 +10,10 @@ export const generateVerificationToken = async (
 ) => {
   const token = uuidv4();
   const expires = new Date(new Date().getTime() + 3600 * 1000); // 1 hour
-  const scopedEmail = createScopedIdentity(email, tenantId);
+  const normalizedEmail = normalizeEmail(email);
 
   const existingToken = await prisma.verificationToken.findFirst({
-    where: { email: scopedEmail },
+    where: { email: normalizedEmail, tenant_id: tenantId },
   });
 
   if (existingToken) {
@@ -23,7 +24,8 @@ export const generateVerificationToken = async (
 
   const verificationToken = await prisma.verificationToken.create({
     data: {
-      email: scopedEmail,
+      tenant_id: tenantId,
+      email: normalizedEmail,
       token,
       expires,
     },
@@ -41,10 +43,10 @@ export const generateTwoFactorToken = async (
 ) => {
   const token = crypto.randomInt(100000, 1000000).toString();
   const expires = new Date(new Date().getTime() + 3600 * 1000); // 1 hour
-  const scopedEmail = createScopedIdentity(email, tenantId);
+  const normalizedEmail = normalizeEmail(email);
 
   const existingToken = await prisma.twoFactorToken.findFirst({
-    where: { email: scopedEmail },
+    where: { email: normalizedEmail, tenant_id: tenantId },
   });
 
   if (existingToken) {
@@ -55,7 +57,8 @@ export const generateTwoFactorToken = async (
 
   const twoFactorToken = await prisma.twoFactorToken.create({
     data: {
-      email: scopedEmail,
+      tenant_id: tenantId,
+      email: normalizedEmail,
       token,
       expires,
     },

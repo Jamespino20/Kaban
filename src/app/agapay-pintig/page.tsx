@@ -9,27 +9,51 @@ import {
 } from "lucide-react";
 import { auth } from "@/lib/auth";
 import { LoanApplicationTab } from "@/components/member/loan-application-tab";
+import { LoanServicingTab } from "@/components/member/loan-servicing-tab";
 import { UserAccountNav } from "@/components/layout/user-account-nav";
 import { TwoFactorSetup } from "@/components/auth/two-factor-setup";
-import prisma from "@/lib/prisma"; // Using apex singleton with RLS
-// Decimal type handled via default JS casting for simplicity in this environment
+import prisma from "@/lib/prisma";
+import { redirect } from "next/navigation";
 
 export default async function AgapayPintigPage() {
   const session = await auth();
+  if (!session?.user?.id) {
+    redirect("/auth/login");
+  }
+
+  if (session.user.role !== "member" || !session.user.tenantId) {
+    redirect("/agapay-tanaw");
+  }
+
   const userName = session?.user?.username || "Miyembro";
   const userId = session?.user?.user_id;
+  const tenantId = session.user.tenantId;
 
-  // 1. Fetch Real Contextual Data (RLS automatically filters by tenant/user)
-  // We use Promise.all for performance
-  const [savings, activeLoans, loanProducts, tfa] = await Promise.all([
+  const [savings, activeLoans, loanProducts, paymentMethods, tfa] = await Promise.all([
     prisma.savingsAccount.findMany({
-      where: { user_id: userId },
+      where: { user_id: userId, tenant_id: tenantId },
     }),
     prisma.loan.findMany({
-      where: { user_id: userId, status: "active" },
+      where: { user_id: userId, tenant_id: tenantId, status: "active" },
+      include: {
+        product: true,
+        schedules: {
+          orderBy: { installment_number: "asc" },
+        },
+        payments: {
+          include: {
+            payment_method: true,
+          },
+          orderBy: { submitted_at: "desc" },
+        },
+      },
     }),
     prisma.loanProduct.findMany({
-      where: { is_active: true },
+      where: { tenant_id: tenantId, is_active: true },
+    }),
+    prisma.paymentMethod.findMany({
+      where: { tenant_id: tenantId, is_active: true },
+      orderBy: { provider_name: "asc" },
     }),
     prisma.twoFactorAuth.findUnique({
       where: { user_id: userId },
@@ -108,11 +132,11 @@ export default async function AgapayPintigPage() {
                 <span>Mag-loan</span>
               </TabsTrigger>
               <TabsTrigger
-                value="history"
+                value="repayment"
                 className="rounded-xl data-[state=active]:bg-emerald-600 data-[state=active]:text-white transition-all px-8 py-3 flex items-center gap-2"
               >
                 <History className="w-4 h-4" />
-                <span>Kasaysayan</span>
+                <span>Repayment</span>
               </TabsTrigger>
               <TabsTrigger
                 value="settings"
@@ -207,6 +231,16 @@ export default async function AgapayPintigPage() {
                 </p>
               </div>
             )}
+          </TabsContent>
+
+          <TabsContent
+            value="repayment"
+            className="outline-none animate-in fade-in slide-in-from-bottom-4 duration-500"
+          >
+            <LoanServicingTab
+              loans={activeLoans}
+              paymentMethods={paymentMethods}
+            />
           </TabsContent>
 
           <TabsContent value="settings" className="outline-none">

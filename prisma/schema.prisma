@@ -271,22 +271,26 @@ model AuditLog {
 }
 
 model VerificationToken {
-  id      Int      @id @default(autoincrement())
-  email   String
-  token   String   @unique
-  expires DateTime
+  id        Int      @id @default(autoincrement())
+  tenant_id Int?
+  email     String
+  token     String   @unique
+  expires   DateTime
 
-  @@unique([email, token])
+  @@index([tenant_id, email])
+  @@unique([tenant_id, email, token])
   @@map("verification_tokens")
 }
 
 model TwoFactorToken {
-  id      Int      @id @default(autoincrement())
-  email   String
-  token   String   @unique
-  expires DateTime
+  id        Int      @id @default(autoincrement())
+  tenant_id Int?
+  email     String
+  token     String   @unique
+  expires   DateTime
 
-  @@unique([email, token])
+  @@index([tenant_id, email])
+  @@unique([tenant_id, email, token])
   @@map("two_factor_tokens")
 }
 

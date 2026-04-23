@@ -1,7 +1,8 @@
 "use server";
 
 import prisma from "@/lib/prisma";
-import { createScopedIdentity } from "@/lib/scoped-identity";
+
+const normalizeEmail = (email: string) => email.trim().toLowerCase();
 
 export const getTwoFactorTokenByToken = async (token: string) => {
   try {
@@ -20,7 +21,7 @@ export const getTwoFactorTokenByEmail = async (
 ) => {
   try {
     const twoFactorToken = await prisma.twoFactorToken.findFirst({
-      where: { email: createScopedIdentity(email, tenantId) },
+      where: { email: normalizeEmail(email), tenant_id: tenantId },
     });
     return twoFactorToken;
   } catch {

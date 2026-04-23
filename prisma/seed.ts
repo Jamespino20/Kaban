@@ -56,6 +56,43 @@ const correlatedDate = (
   return d;
 };
 
+const normalizeNamePart = (value: string) =>
+  value.toLowerCase().replace(/[^a-z0-9]+/g, "");
+
+const buildTenantScopedIdentity = (
+  first: string,
+  last: string,
+  tenantSlug: string,
+  roleLabel: string,
+  index: number,
+) => {
+  const firstPart = normalizeNamePart(first);
+  const lastPart = normalizeNamePart(last);
+  const tenantPart = tenantSlug.replace("agapay-", "");
+  const suffix = `${tenantPart}.${roleLabel}.${String(index + 1).padStart(2, "0")}`;
+
+  return {
+    username: `${firstPart}_${lastPart}_${roleLabel}_${tenantPart}_${index + 1}`,
+    email: `${firstPart}.${lastPart}.${suffix}@agapay.demo`,
+  };
+};
+
+const buildMemberIdentity = (
+  first: string,
+  last: string,
+  branchIndex: number,
+  memberIndex: number,
+) => {
+  const firstPart = normalizeNamePart(first);
+  const lastPart = normalizeNamePart(last);
+  const suffix = `${String(branchIndex).padStart(2, "0")}${String(memberIndex + 1).padStart(2, "0")}`;
+
+  return {
+    username: `${firstPart}_${lastPart}_${suffix}`,
+    email: `${firstPart}.${lastPart}.${suffix}@gmail.com`,
+  };
+};
+
 // ═══════════════════════════════════════════════
 // PHILIPPINE DATA CONSTANTS
 // ═══════════════════════════════════════════════
@@ -380,13 +417,17 @@ async function seedAdmins(ctx: TenantContext): Promise<SeededUser[]> {
     const isMale = Math.random() > 0.5;
     const first = pick(isMale ? NAMES_M : NAMES_F);
     const last = pick(SURNAMES);
-    // Human-like username and email without numbers
-    const baseName = `${first.toLowerCase()}.${last.toLowerCase()}`;
-    const uname = `${baseName}_admin`;
+    const identity = buildTenantScopedIdentity(
+      first,
+      last,
+      ctx.tenantSlug,
+      "admin",
+      i,
+    );
     const user = await prisma.user.create({
       data: {
-        username: uname,
-        email: `${baseName}@${ctx.tenantSlug.replace("agapay-", "")}.coop.ph`,
+        username: identity.username,
+        email: identity.email,
         password_hash: ctx.hashedAdmin,
         role: Role.admin,
         tenant_id: ctx.tenantId,
@@ -406,7 +447,11 @@ async function seedAdmins(ctx: TenantContext): Promise<SeededUser[]> {
         },
       },
     });
-    admins.push({ user_id: user.user_id, role: Role.admin, username: uname });
+    admins.push({
+      user_id: user.user_id,
+      role: Role.admin,
+      username: identity.username,
+    });
   }
   return admins;
 }
@@ -424,13 +469,17 @@ async function seedLenders(ctx: TenantContext): Promise<SeededUser[]> {
     const isMale = Math.random() > 0.4;
     const first = pick(isMale ? NAMES_M : NAMES_F);
     const last = pick(SURNAMES);
-    // Human-like username and email without numbers
-    const baseName = `${first.toLowerCase()}.${last.toLowerCase()}`;
-    const uname = `${baseName}_lender`;
+    const identity = buildTenantScopedIdentity(
+      first,
+      last,
+      ctx.tenantSlug,
+      "lender",
+      i,
+    );
     const user = await prisma.user.create({
       data: {
-        username: uname,
-        email: `${baseName}@${ctx.tenantSlug.replace("agapay-", "")}.coop.ph`,
+        username: identity.username,
+        email: identity.email,
         password_hash: ctx.hashedPassword,
         role: Role.lender,
         tenant_id: ctx.tenantId,
@@ -451,7 +500,11 @@ async function seedLenders(ctx: TenantContext): Promise<SeededUser[]> {
         },
       },
     });
-    lenders.push({ user_id: user.user_id, role: Role.lender, username: uname });
+    lenders.push({
+      user_id: user.user_id,
+      role: Role.lender,
+      username: identity.username,
+    });
   }
   return lenders;
 }
@@ -463,7 +516,7 @@ async function seedMembers(ctx: TenantContext): Promise<SeededUser[]> {
     const isMale = Math.random() > 0.45;
     const first = pick(isMale ? NAMES_M : NAMES_F);
     const last = pick(SURNAMES);
-    const uname = `${first.toLowerCase()}_${last.toLowerCase().replace(/ /g, "")}_${ctx.branchIndex}${i}`;
+    const identity = buildMemberIdentity(first, last, ctx.branchIndex, i);
     const tier = weightedPick(
       [
         InterestTier.T1_5_PERCENT,
@@ -478,8 +531,8 @@ async function seedMembers(ctx: TenantContext): Promise<SeededUser[]> {
       i < count - 2 ? "active" : pick(["active", "pending"] as const);
     const user = await prisma.user.create({
       data: {
-        username: uname,
-        email: `${first.toLowerCase()}.${last.toLowerCase().replace(/ /g, "")}@gmail.com`,
+        username: identity.username,
+        email: identity.email,
         password_hash: ctx.hashedPassword,
         role: Role.member,
         tenant_id: ctx.tenantId,
@@ -540,7 +593,11 @@ async function seedMembers(ctx: TenantContext): Promise<SeededUser[]> {
         },
       },
     });
-    members.push({ user_id: user.user_id, role: Role.member, username: uname });
+    members.push({
+      user_id: user.user_id,
+      role: Role.member,
+      username: identity.username,
+    });
   }
   return members;
 }
@@ -832,10 +889,37 @@ async function seedTenant(
     products.push(prod);
   }
 
-  // Payment method
-  const payMethod = await prisma.paymentMethod.create({
-    data: { provider_name: `${tenant.name} Counter`, tenant_id: ctx.tenantId },
-  });
+  // Payment methods for mock money flow
+  const paymentMethods = await prisma.$transaction([
+    prisma.paymentMethod.create({
+      data: {
+        provider_name: `${tenant.name} Branch Cashier`,
+        account_number: `CASH-${ctx.tenantId}`,
+        tenant_id: ctx.tenantId,
+      },
+    }),
+    prisma.paymentMethod.create({
+      data: {
+        provider_name: "GCash Transfer",
+        account_number: `09${rand(10, 99)}-${rand(100, 999)}-${rand(1000, 9999)}`,
+        tenant_id: ctx.tenantId,
+      },
+    }),
+    prisma.paymentMethod.create({
+      data: {
+        provider_name: "Bank Transfer",
+        account_number: `ACCT-${ctx.tenantId}-${rand(1000, 9999)}`,
+        tenant_id: ctx.tenantId,
+      },
+    }),
+    prisma.paymentMethod.create({
+      data: {
+        provider_name: "Field Collection",
+        account_number: `FIELD-${ctx.tenantId}`,
+        tenant_id: ctx.tenantId,
+      },
+    }),
+  ]);
 
   // Savings (batch)
   const savingsBatch = members.map((m) => ({
@@ -852,7 +936,7 @@ async function seedTenant(
     members,
     staff,
     products,
-    payMethod.method_id,
+    paymentMethods[0].method_id,
   );
 
   // Social graph
@@ -878,6 +962,8 @@ async function main() {
   await prisma.socialVouch.deleteMany();
   await prisma.businessLedger.deleteMany();
   await prisma.auditLog.deleteMany();
+  await prisma.verificationToken.deleteMany();
+  await prisma.twoFactorToken.deleteMany();
   await prisma.loanGuarantee.deleteMany();
   await prisma.payment.deleteMany();
   await prisma.loanSchedule.deleteMany();
@@ -983,8 +1069,8 @@ async function main() {
   const shuffled = allUsers.sort(() => 0.5 - Math.random());
   const targets = shuffled.slice(0, memberToDuplicateCount);
 
-  // Ensure Maria Santos exists in the targets
-  const testUserEmail = "maria.santos@gmail.com";
+  // Ensure a stable cross-tenant identity remains in the test cohort
+  const testUserEmail = "maria.santos.0001@gmail.com";
   let testUser = allUsers.find((u) => u.email === testUserEmail);
 
   if (testUser && !targets.find((u) => u.email === testUserEmail)) {

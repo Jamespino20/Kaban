@@ -2,7 +2,8 @@
 
 import * as z from "zod";
 import prisma from "@/lib/prisma";
-import { auth } from "@/lib/auth";
+import { requireAuthenticatedSession } from "@/lib/authorization";
+import { Role, UserStatus } from "@prisma/client";
 import { revalidatePath } from "next/cache";
 
 const LoanApplicationSchema = z.object({
@@ -17,13 +18,19 @@ const LoanApplicationSchema = z.object({
 export const applyForLoan = async (
   values: z.infer<typeof LoanApplicationSchema>,
 ) => {
-  const session = await auth();
-  if (!session?.user?.id || !session?.user?.tenantId) {
+  let session;
+  try {
+    session = await requireAuthenticatedSession();
+  } catch {
+    return { error: "Not authenticated or tenant not found!" };
+  }
+
+  if (session.user.role !== "member" || !session.user.tenantId) {
     return { error: "Not authenticated or tenant not found!" };
   }
 
   const tenantId = session.user.tenantId;
-  const userId = parseInt(session.user.id);
+  const userId = session.user.user_id;
 
   const validatedFields = LoanApplicationSchema.safeParse(values);
   if (!validatedFields.success) {
@@ -35,8 +42,8 @@ export const applyForLoan = async (
 
   try {
     // 1. Double check the product exists and constraints are met
-    const product = await prisma.loanProduct.findUnique({
-      where: { product_id },
+    const product = await prisma.loanProduct.findFirst({
+      where: { product_id, tenant_id: tenantId },
     });
 
     if (!product || !product.is_active) {
@@ -54,6 +61,27 @@ export const applyForLoan = async (
 
     if (term_months > product.max_term_months) {
       return { error: `Max term is ${product.max_term_months} months.` };
+    }
+
+    const uniqueGuarantorIds = [...new Set(guarantor_ids)].filter(
+      (guarantorId) => guarantorId !== userId,
+    );
+    if (uniqueGuarantorIds.length < 3) {
+      return { error: "At least 3 distinct guarantors are required." };
+    }
+
+    const eligibleGuarantors = await prisma.user.findMany({
+      where: {
+        user_id: { in: uniqueGuarantorIds },
+        tenant_id: tenantId,
+        role: Role.member,
+        status: UserStatus.active,
+      },
+      select: { user_id: true },
+    });
+
+    if (eligibleGuarantors.length !== uniqueGuarantorIds.length) {
+      return { error: "Selected guarantors must be active members of your branch." };
     }
 
     // 2. Server-side calculation (must match client-side UI for transparency)
@@ -82,8 +110,8 @@ export const applyForLoan = async (
       });
 
       // 3. Create the LoanGuarantee records for the Paluwagan 2.0 group
-      if (guarantor_ids && guarantor_ids.length >= 3) {
-        const guaranteeData = guarantor_ids.map((gId) => ({
+      if (uniqueGuarantorIds.length >= 3) {
+        const guaranteeData = uniqueGuarantorIds.map((gId) => ({
           loan_id: loan.loan_id,
           guarantor_id: gId,
           status: "pending" as const,

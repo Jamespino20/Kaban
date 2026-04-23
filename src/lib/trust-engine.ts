@@ -21,11 +21,13 @@ export interface TrustScoreBreakdown {
 
 export async function calculateTrustScore(
   userId: number,
+  tenantId?: number | null,
 ): Promise<TrustScoreBreakdown> {
   const user = await prisma.user.findUnique({
     where: { user_id: userId },
     include: {
       loans: {
+        where: tenantId ? { tenant_id: tenantId } : undefined,
         include: {
           schedules: true,
           payments: true,
@@ -33,6 +35,7 @@ export async function calculateTrustScore(
       },
       social_vouches_received: true,
       guarantees: {
+        where: tenantId ? { loan: { tenant_id: tenantId } } : undefined,
         include: {
           loan: true,
         },
@@ -41,7 +44,9 @@ export async function calculateTrustScore(
     },
   });
 
-  if (!user) throw new Error("User not found");
+  if (!user || (tenantId !== undefined && user.tenant_id !== tenantId)) {
+    throw new Error("User not found");
+  }
 
   // 1. Payment Reliability (40%)
   // Ratio of on-time payments vs total installments
@@ -110,8 +115,8 @@ export async function calculateTrustScore(
 /**
  * Updates a user's interest tier in the database based on their current trust score.
  */
-export async function syncUserTier(userId: number) {
-  const breakdown = await calculateTrustScore(userId);
+export async function syncUserTier(userId: number, tenantId?: number | null) {
+  const breakdown = await calculateTrustScore(userId, tenantId);
   return await prisma.user.update({
     where: { user_id: userId },
     data: {
