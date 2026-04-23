@@ -561,7 +561,7 @@ function HomeLoanCalculator() {
     );
   }, [selectedOffer]);
 
-  const processingFee = Math.max(50, amount * 0.03);
+  const processingFee = Math.max(50, amount * 0.015);
   const totalInterest = amount * selectedOffer.monthlyRate * term;
   const totalPayable = amount + totalInterest + processingFee;
   const paymentCount =
