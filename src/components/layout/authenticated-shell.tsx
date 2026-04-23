@@ -19,7 +19,7 @@ import {
   Users2,
   X,
 } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 export type ShellNavItem = {
   value: string;
@@ -76,6 +76,7 @@ export function AuthenticatedShell({
 }) {
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const navScrollRef = useRef<HTMLDivElement>(null);
 
   const accentStyles =
     accent === "blue"
@@ -107,6 +108,10 @@ export function AuthenticatedShell({
           surface:
             "border-white/10 bg-[linear-gradient(180deg,rgba(15,23,42,0.96),rgba(2,6,23,0.98))]",
         };
+
+  useEffect(() => {
+    navScrollRef.current?.scrollTo({ top: 0, behavior: "auto" });
+  }, [collapsed, navItems.length, mobileOpen]);
 
   const renderSidebar = () => (
     <div
@@ -157,7 +162,7 @@ export function AuthenticatedShell({
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto px-3 pt-4 pb-4">
+      <div ref={navScrollRef} className="flex-1 overflow-y-auto px-3 pt-4 pb-4">
         <TabsList className="flex h-auto w-full flex-col gap-2 bg-transparent p-0">
           {navItems.map((item) => {
             const Icon = ICON_MAP[item.icon];
