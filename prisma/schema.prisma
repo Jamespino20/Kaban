@@ -30,12 +30,15 @@ model Tenant {
   created_at             DateTime                @default(now())
   updated_at             DateTime                @updatedAt
   audit_logs             AuditLog[]
+  feedbackEntries        FeedbackEntry[]
   transfers_out          BranchTransferRequest[] @relation("TransferOut")
   transfers_in           BranchTransferRequest[] @relation("TransferIn")
   decommissioned_backups DecommissionedBackup[]
   products               LoanProduct[]
   loans                  Loan[]
   messages               Message[]
+  homepage_faqs          HomepageFaq[]
+  homepage_testimonials  HomepageTestimonial[]
   payment_methods        PaymentMethod[]
   savings                SavingsAccount[]
   tenant_group           TenantGroup?            @relation(fields: [tenant_group_id], references: [id])
@@ -72,6 +75,7 @@ model User {
   social_vouches_sent     SocialVouch[]           @relation("Voucher")
   two_factor_auth         TwoFactorAuth?
   documents               UserDocument[]
+  feedback_entries        FeedbackEntry[]
   profile                 UserProfile?
   tenant                  Tenant?                 @relation(fields: [tenant_id], references: [tenant_id])
 
@@ -270,6 +274,60 @@ model AuditLog {
   @@map("audit_logs")
 }
 
+model HomepageFaq {
+  id         Int      @id @default(autoincrement())
+  tenant_id  Int?
+  question   String   @db.VarChar(255)
+  answer     String
+  is_active  Boolean  @default(true)
+  sort_order Int      @default(0)
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+  tenant     Tenant?  @relation(fields: [tenant_id], references: [tenant_id], onDelete: Cascade)
+
+  @@index([tenant_id, is_active, sort_order])
+  @@map("homepage_faqs")
+}
+
+model HomepageTestimonial {
+  id         Int      @id @default(autoincrement())
+  tenant_id  Int?
+  name       String   @db.VarChar(150)
+  role_label String   @db.VarChar(150)
+  photo_url  String?  @db.VarChar(255)
+  content    String
+  season_tag String?  @db.VarChar(100)
+  is_active  Boolean  @default(true)
+  sort_order Int      @default(0)
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+  tenant     Tenant?  @relation(fields: [tenant_id], references: [tenant_id], onDelete: Cascade)
+
+  @@index([tenant_id, is_active, sort_order])
+  @@map("homepage_testimonials")
+}
+
+model FeedbackEntry {
+  id         Int      @id @default(autoincrement())
+  tenant_id  Int?
+  user_id    Int?
+  name       String   @db.VarChar(150)
+  email      String?  @db.VarChar(150)
+  category   String   @db.VarChar(100)
+  page_path  String?  @db.VarChar(255)
+  subject    String?  @db.VarChar(255)
+  message    String
+  status     String   @default("open") @db.VarChar(50)
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+  tenant     Tenant?  @relation(fields: [tenant_id], references: [tenant_id], onDelete: SetNull)
+  user       User?    @relation(fields: [user_id], references: [user_id], onDelete: SetNull)
+
+  @@index([tenant_id, status, created_at])
+  @@index([user_id, created_at])
+  @@map("feedback_entries")
+}
+
 model VerificationToken {
   id        Int      @id @default(autoincrement())
   tenant_id Int?
@@ -277,8 +335,8 @@ model VerificationToken {
   token     String   @unique
   expires   DateTime
 
-  @@index([tenant_id, email])
   @@unique([tenant_id, email, token])
+  @@index([tenant_id, email])
   @@map("verification_tokens")
 }
 
@@ -289,8 +347,8 @@ model TwoFactorToken {
   token     String   @unique
   expires   DateTime
 
-  @@index([tenant_id, email])
   @@unique([tenant_id, email, token])
+  @@index([tenant_id, email])
   @@map("two_factor_tokens")
 }
 

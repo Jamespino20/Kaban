@@ -63,7 +63,7 @@ const SPLIT_SECTIONS = [
   },
 ];
 
-const FAQS = [
+const FALLBACK_FAQS = [
   {
     question: "Ano ang Agapay?",
     answer:
@@ -96,7 +96,7 @@ const FAQS = [
   },
 ];
 
-const TESTIMONIALS = [
+const FALLBACK_TESTIMONIALS = [
   {
     name: "Jose Pelaquez",
     role: "Sari-sari Store Owner",
@@ -186,6 +186,8 @@ type PaymentCadence = "daily" | "weekly" | "monthly";
 export default function Home() {
   const revealRefs = useRef<(HTMLElement | null)[]>([]);
   const [isScrolled, setIsScrolled] = useState(false);
+  const [faqs, setFaqs] = useState(FALLBACK_FAQS);
+  const [testimonials, setTestimonials] = useState(FALLBACK_TESTIMONIALS);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -211,6 +213,52 @@ export default function Home() {
     return () => {
       window.removeEventListener("scroll", handleScroll);
       observer.disconnect();
+    };
+  }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadContent() {
+      try {
+        const response = await fetch("/api/site-content", {
+          cache: "no-store",
+        });
+        if (!response.ok) return;
+        const payload = await response.json();
+        if (cancelled) return;
+
+        if (Array.isArray(payload.faqs) && payload.faqs.length > 0) {
+          setFaqs(
+            payload.faqs.map((faq: { question: string; answer: string }) => ({
+              question: faq.question,
+              answer: faq.answer,
+            })),
+          );
+        }
+
+        if (
+          Array.isArray(payload.testimonials) &&
+          payload.testimonials.length > 0
+        ) {
+          setTestimonials(
+            payload.testimonials.map((testimonial: any, index: number) => ({
+              name: testimonial.name,
+              role: testimonial.role_label,
+              photo:
+                testimonial.photo_url ||
+                FALLBACK_TESTIMONIALS[index % FALLBACK_TESTIMONIALS.length]
+                  .photo,
+              content: testimonial.content,
+            })),
+          );
+        }
+      } catch {}
+    }
+
+    loadContent();
+    return () => {
+      cancelled = true;
     };
   }, []);
 
@@ -394,7 +442,7 @@ export default function Home() {
 
             <div className="relative w-full overflow-hidden flex [mask-image:linear-gradient(to_right,transparent,black_10%,black_90%,transparent)]">
               <div className="flex w-max animate-scroll hover:animation-paused">
-                {[...TESTIMONIALS, ...TESTIMONIALS].map((testimonial, idx) => (
+                {[...testimonials, ...testimonials].map((testimonial, idx) => (
                   <TestimonialCard
                     key={`${testimonial.name}-${idx}`}
                     t={testimonial}
@@ -413,7 +461,7 @@ export default function Home() {
               Mga madalas itanong
             </h2>
             <div className="space-y-6">
-              {FAQS.map((faq) => (
+              {faqs.map((faq) => (
                 <AccordionItem
                   key={faq.question}
                   question={faq.question}
@@ -509,7 +557,7 @@ function AccordionItem({
   );
 }
 
-function TestimonialCard({ t }: { t: (typeof TESTIMONIALS)[0] }) {
+function TestimonialCard({ t }: { t: (typeof FALLBACK_TESTIMONIALS)[0] }) {
   return (
     <div className="w-[420px] md:w-[520px] flex-shrink-0 rounded-[1.5rem] bg-emerald-900/50 border border-emerald-800/50 mx-4 flex overflow-hidden">
       <div className="w-[140px] md:w-[180px] flex-shrink-0 relative">
@@ -561,7 +609,7 @@ function HomeLoanCalculator() {
     );
   }, [selectedOffer]);
 
-  const processingFee = Math.max(50, amount * 0.015);
+  const processingFee = Math.max(50, amount * 0.02);
   const totalInterest = amount * selectedOffer.monthlyRate * term;
   const totalPayable = amount + totalInterest + processingFee;
   const paymentCount =
