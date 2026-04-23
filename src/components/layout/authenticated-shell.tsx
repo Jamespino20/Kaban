@@ -110,7 +110,10 @@ export function AuthenticatedShell({
         };
 
   useEffect(() => {
-    navScrollRef.current?.scrollTo({ top: 0, behavior: "auto" });
+    const timer = setTimeout(() => {
+      navScrollRef.current?.scrollTo({ top: 0, behavior: "auto" });
+    }, 0);
+    return () => clearTimeout(timer);
   }, [collapsed, navItems.length, mobileOpen]);
 
   const renderSidebar = () => (
@@ -162,8 +165,8 @@ export function AuthenticatedShell({
         </div>
       </div>
 
-      <div ref={navScrollRef} className="flex-1 overflow-y-auto px-3 pt-4 pb-4">
-        <TabsList className="flex h-auto w-full flex-col gap-2 bg-transparent p-0">
+      <div ref={navScrollRef} className="flex-1 overflow-y-auto px-3 pt-3 pb-3">
+        <TabsList className="flex h-auto w-full flex-col gap-1.5 bg-transparent p-0">
           {navItems.map((item) => {
             const Icon = ICON_MAP[item.icon];
             return (
@@ -171,13 +174,13 @@ export function AuthenticatedShell({
                 key={item.value}
                 value={item.value}
                 onClick={() => setMobileOpen(false)}
-                className={`group h-auto w-full justify-start rounded-2xl border px-3 py-3 text-left text-slate-300 transition-all hover:border-white/12 hover:bg-white/6 hover:text-white ${accentStyles.active} ${
+                className={`group h-auto w-full justify-start rounded-2xl border px-3 py-2 text-left text-slate-300 transition-all hover:border-white/12 hover:bg-white/6 hover:text-white ${accentStyles.active} ${
                   collapsed ? "xl:px-2.5" : ""
                 }`}
               >
                 <div className="flex w-full items-center gap-3">
-                  <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-2xl border border-white/8 bg-white/5 transition-colors group-data-[state=active]:border-white/15 group-data-[state=active]:bg-white/10">
-                    <Icon className="h-5 w-5" />
+                  <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-xl border border-white/8 bg-white/5 transition-colors group-data-[state=active]:border-white/15 group-data-[state=active]:bg-white/10">
+                    <Icon className="h-4 w-4" />
                   </div>
                   <div
                     className={`min-w-0 flex-1 transition-all ${
@@ -245,7 +248,9 @@ export function AuthenticatedShell({
     <div className="min-h-screen bg-slate-950 text-white lg:flex lg:h-screen lg:overflow-hidden">
       <div
         className={`fixed inset-0 z-40 bg-slate-950/55 backdrop-blur-sm transition-opacity duration-200 lg:hidden ${
-          mobileOpen ? "pointer-events-auto opacity-100" : "pointer-events-none opacity-0"
+          mobileOpen
+            ? "pointer-events-auto opacity-100"
+            : "pointer-events-none opacity-0"
         }`}
         onClick={() => setMobileOpen(false)}
       />
@@ -260,9 +265,7 @@ export function AuthenticatedShell({
       <aside
         className={`fixed inset-y-0 left-0 z-50 h-screen w-[min(88vw,20rem)] -translate-x-full transition-transform duration-300 lg:w-[18.5rem] lg:translate-x-0 ${
           collapsed ? "xl:w-[6.5rem]" : "xl:w-[21rem]"
-        } ${
-          mobileOpen ? "translate-x-0" : ""
-        }`}
+        } ${mobileOpen ? "translate-x-0" : ""}`}
       >
         {renderSidebar()}
       </aside>
