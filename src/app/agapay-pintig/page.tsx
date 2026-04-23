@@ -90,16 +90,16 @@ export default async function AgapayPintigPage() {
     }).format(val);
 
   return (
-    <AuthenticatedShell
-      defaultTab="overview"
-      title="Pangkalahatan"
-      subtitle="Ang iyong katuwang sa mas malinaw na loan, repayment, at branch support."
-      portalLabel="member portal"
-      accountName={userName}
-      accountRole="member"
-      navItems={navItems}
-    >
-      <Tabs defaultValue="overview" className="space-y-8">
+    <Tabs defaultValue="overview" className="min-h-screen">
+      <AuthenticatedShell
+        title="Pangkalahatan"
+        subtitle="Ang iyong katuwang sa mas malinaw na loan, repayment, at branch support."
+        portalLabel="member portal"
+        accountName={userName}
+        accountRole="member"
+        navItems={navItems}
+      >
+        <div className="space-y-8">
           <TabsContent
             value="overview"
             className="space-y-8 outline-none animate-in fade-in slide-in-from-bottom-4 duration-500"
@@ -231,7 +231,8 @@ export default async function AgapayPintigPage() {
               <TwoFactorSetup isEnabledInitial={is2FAEnabled} />
             </div>
           </TabsContent>
-      </Tabs>
-    </AuthenticatedShell>
+        </div>
+      </AuthenticatedShell>
+    </Tabs>
   );
 }

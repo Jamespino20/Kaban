@@ -2,7 +2,7 @@
 
 import { BranchSwitcher } from "@/components/layout/branch-switcher";
 import { Button } from "@/components/ui/button";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { signOut } from "next-auth/react";
 import {
   AlertTriangle,
@@ -55,7 +55,6 @@ const ICON_MAP = {
 } satisfies Record<ShellIconName, React.ComponentType<{ className?: string }>>;
 
 export function AuthenticatedShell({
-  defaultTab,
   title,
   subtitle,
   portalLabel,
@@ -65,7 +64,6 @@ export function AuthenticatedShell({
   navItems,
   children,
 }: {
-  defaultTab: string;
   title: string;
   subtitle: string;
   portalLabel: string;
@@ -96,10 +94,7 @@ export function AuthenticatedShell({
         };
 
   return (
-    <Tabs
-      defaultValue={defaultTab}
-      className="min-h-screen bg-slate-950 text-white md:flex"
-    >
+    <div className="min-h-screen bg-slate-950 text-white md:flex">
       <aside
         className={`border-r border-white/10 bg-slate-950/95 backdrop-blur-xl transition-all duration-300 ${
           collapsed ? "md:w-24" : "md:w-80"
@@ -247,6 +242,6 @@ export function AuthenticatedShell({
 
         <div className="p-6 md:p-8">{children}</div>
       </div>
-    </Tabs>
+    </div>
   );
 }

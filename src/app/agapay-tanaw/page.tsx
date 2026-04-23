@@ -141,22 +141,22 @@ export default async function AgapayTanawPage() {
   }
 
   return (
-    <AuthenticatedShell
-      defaultTab="overview"
-      title="Pangkalahatan"
-      subtitle={
-        isLender
-          ? "Tenant-level operations, borrower oversight, at trust monitoring."
-          : isAdmin
-            ? "Tenant-level administration para sa approvals, member safety, at portfolio health."
-            : "Global oversight para sa tenant cooperatives, fraud monitoring, at system health."
-      }
-      portalLabel={`${userRole} portal`}
-      accountName={userName}
-      accountRole={userRole}
-      navItems={navItems}
-    >
-      <Tabs defaultValue="overview" className="space-y-6">
+    <Tabs defaultValue="overview" className="min-h-screen">
+      <AuthenticatedShell
+        title="Pangkalahatan"
+        subtitle={
+          isLender
+            ? "Tenant-level operations, borrower oversight, at trust monitoring."
+            : isAdmin
+              ? "Tenant-level administration para sa approvals, member safety, at portfolio health."
+              : "Global oversight para sa tenant cooperatives, fraud monitoring, at system health."
+        }
+        portalLabel={`${userRole} portal`}
+        accountName={userName}
+        accountRole={userRole}
+        navItems={navItems}
+      >
+        <div className="space-y-6">
           <TabsContent value="overview" className="space-y-6 outline-none">
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
               <KPIMetricCard
@@ -322,7 +322,8 @@ export default async function AgapayTanawPage() {
               }
             />
           </TabsContent>
-      </Tabs>
-    </AuthenticatedShell>
+        </div>
+      </AuthenticatedShell>
+    </Tabs>
   );
 }
