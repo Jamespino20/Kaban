@@ -54,30 +54,29 @@ export default async function AgapayTanawPage() {
     redirect("/agapay-pintig");
   }
 
-  const tenants = await getTenants();
   const userName = session?.user?.username || "Admin";
   const userRole = session?.user?.role || "lender";
+  const isSuperAdmin = userRole === "superadmin";
+  const isAdmin = userRole === "admin";
+  const isLender = userRole === "lender";
+  const hasTenantScopedProductAccess = isAdmin || (isSuperAdmin && !!session.user.tenantId);
+  const canViewBranchOps = isSuperAdmin;
+  const canViewAuditLogs = isAdmin || isSuperAdmin;
+  const canManageHomepageContent = isAdmin || isSuperAdmin;
+  const canViewFeedback = isAdmin || isSuperAdmin;
 
   const userWith2FA = await prisma.user.findUnique({
     where: { user_id: session?.user?.user_id },
     include: { two_factor_auth: true },
   });
   const is2FAEnabled = userWith2FA?.two_factor_auth?.is_enabled || false;
+  const tenants = canViewBranchOps ? await getTenants() : [];
 
   // Data fetching for administrative views
   const members = await getTenantMembers();
   const pendingData = await getPendingApprovals();
   const metrics = await getDashboardMetrics();
   const trustData = await getTenantTrustMetrics();
-
-  const isSuperAdmin = userRole === "superadmin";
-  const isAdmin = userRole === "admin";
-  const isLender = userRole === "lender";
-  const canManageTenantProducts = isAdmin;
-  const canViewBranchOps = isAdmin || isSuperAdmin;
-  const canViewAuditLogs = isAdmin || isSuperAdmin;
-  const canManageHomepageContent = isAdmin || isSuperAdmin;
-  const canViewFeedback = isAdmin || isSuperAdmin;
 
   const homepageContent = canManageHomepageContent
     ? await getHomepageContentAdmin()
@@ -94,7 +93,7 @@ export default async function AgapayTanawPage() {
     { value: "members", label: "Mga Miyembro", icon: "members" },
   ];
 
-  if (canManageTenantProducts) {
+  if (hasTenantScopedProductAccess) {
     navItems.push({
       value: "products",
       label: "Produkto ng Loan",
@@ -272,16 +271,20 @@ export default async function AgapayTanawPage() {
             <MemberDirectoryTab members={members} />
           </TabsContent>
 
-          <TabsContent value="products" className="outline-none">
-            <LoanProductsTab />
-          </TabsContent>
+          {hasTenantScopedProductAccess && (
+            <TabsContent value="products" className="outline-none">
+              <LoanProductsTab />
+            </TabsContent>
+          )}
 
-          <TabsContent value="branches" className="outline-none">
-            <TenantManagementTab
-              initialTenants={tenants}
-              role={session?.user?.role as string}
-            />
-          </TabsContent>
+          {canViewBranchOps && (
+            <TabsContent value="branches" className="outline-none">
+              <TenantManagementTab
+                initialTenants={tenants}
+                role={session?.user?.role as string}
+              />
+            </TabsContent>
+          )}
 
           <TabsContent value="settings" className="outline-none">
             <div className="flex flex-col items-center justify-center space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
@@ -313,15 +316,17 @@ export default async function AgapayTanawPage() {
             </TabsContent>
           )}
 
-          <TabsContent value="audit" className="outline-none">
-            <AuditLogViewer
-              tenantId={
-                session?.user?.role === "superadmin"
-                  ? undefined
-                  : Number(session?.user?.tenantId || 0)
-              }
-            />
-          </TabsContent>
+          {canViewAuditLogs && (
+            <TabsContent value="audit" className="outline-none">
+              <AuditLogViewer
+                tenantId={
+                  session?.user?.role === "superadmin"
+                    ? undefined
+                    : Number(session?.user?.tenantId || 0)
+                }
+              />
+            </TabsContent>
+          )}
         </div>
       </AuthenticatedShell>
     </Tabs>
