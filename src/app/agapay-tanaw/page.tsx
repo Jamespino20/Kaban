@@ -34,6 +34,12 @@ import {
 
 import { TrustMeter } from "@/components/analytics/trust-meter";
 import { KPIMetricCard } from "@/components/analytics/kpi-metric-card";
+import { HomepageContentTab } from "@/components/admin/homepage-content-tab";
+import { FeedbackTab } from "@/components/admin/feedback-tab";
+import {
+  getFeedbackEntries,
+  getHomepageContentAdmin,
+} from "@/actions/site-content";
 
 export default async function AgapayTanawPage() {
   const session = await auth();
@@ -67,6 +73,13 @@ export default async function AgapayTanawPage() {
   const canManageTenantProducts = isAdmin;
   const canViewBranchOps = isAdmin || isSuperAdmin;
   const canViewAuditLogs = isAdmin || isSuperAdmin;
+  const canManageHomepageContent = isAdmin || isSuperAdmin;
+  const canViewFeedback = isAdmin || isSuperAdmin;
+
+  const homepageContent = canManageHomepageContent
+    ? await getHomepageContentAdmin()
+    : { faqs: [], testimonials: [] };
+  const feedbackEntries = canViewFeedback ? await getFeedbackEntries() : [];
 
   return (
     <div className="min-h-screen bg-slate-50/50 p-6 md:p-10">
@@ -165,6 +178,26 @@ export default async function AgapayTanawPage() {
                 <Settings2 className="w-4 h-4" />
                 <span>Settings</span>
               </TabsTrigger>
+
+              {canManageHomepageContent && (
+                <TabsTrigger
+                  value="content"
+                  className="rounded-xl data-[state=active]:bg-slate-900 data-[state=active]:text-white transition-all px-6 py-2.5 flex items-center gap-2"
+                >
+                  <FileText className="w-4 h-4" />
+                  <span>Homepage Content</span>
+                </TabsTrigger>
+              )}
+
+              {canViewFeedback && (
+                <TabsTrigger
+                  value="feedback"
+                  className="rounded-xl data-[state=active]:bg-slate-900 data-[state=active]:text-white transition-all px-6 py-2.5 flex items-center gap-2"
+                >
+                  <AlertTriangle className="w-4 h-4" />
+                  <span>Feedback</span>
+                </TabsTrigger>
+              )}
 
               {canViewAuditLogs && (
                 <TabsTrigger
@@ -317,6 +350,22 @@ export default async function AgapayTanawPage() {
               <TwoFactorSetup isEnabledInitial={is2FAEnabled} />
             </div>
           </TabsContent>
+
+          {canManageHomepageContent && (
+            <TabsContent value="content" className="outline-none">
+              <HomepageContentTab
+                role={userRole}
+                faqs={homepageContent.faqs}
+                testimonials={homepageContent.testimonials}
+              />
+            </TabsContent>
+          )}
+
+          {canViewFeedback && (
+            <TabsContent value="feedback" className="outline-none">
+              <FeedbackTab role={userRole} entries={feedbackEntries} />
+            </TabsContent>
+          )}
 
           <TabsContent value="audit" className="outline-none">
             <AuditLogViewer

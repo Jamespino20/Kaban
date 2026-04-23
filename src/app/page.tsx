@@ -143,7 +143,7 @@ const LOAN_OFFERS = [
     minAmount: 5000,
     maxAmount: 20000,
     maxTerm: 3,
-    monthlyRate: 0.015,
+    usualRatePercent: 5,
     badge: "Starter",
   },
   {
@@ -154,7 +154,7 @@ const LOAN_OFFERS = [
     minAmount: 10000,
     maxAmount: 50000,
     maxTerm: 6,
-    monthlyRate: 0.02,
+    usualRatePercent: 4.5,
     badge: "Growth",
   },
   {
@@ -165,7 +165,7 @@ const LOAN_OFFERS = [
     minAmount: 3000,
     maxAmount: 15000,
     maxTerm: 6,
-    monthlyRate: 0.018,
+    usualRatePercent: 4,
     badge: "Community",
   },
   {
@@ -176,12 +176,13 @@ const LOAN_OFFERS = [
     minAmount: 15000,
     maxAmount: 100000,
     maxTerm: 12,
-    monthlyRate: 0.025,
+    usualRatePercent: 3.5,
     badge: "Extended",
   },
 ];
 
 type PaymentCadence = "daily" | "weekly" | "monthly";
+const INTEREST_RATE_OPTIONS = [3, 3.5, 4, 4.5, 5];
 
 export default function Home() {
   const revealRefs = useRef<(HTMLElement | null)[]>([]);
@@ -593,6 +594,9 @@ function HomeLoanCalculator() {
   const [amount, setAmount] = useState(LOAN_OFFERS[0].minAmount);
   const [term, setTerm] = useState(LOAN_OFFERS[0].maxTerm);
   const [cadence, setCadence] = useState<PaymentCadence>("weekly");
+  const [selectedRatePercent, setSelectedRatePercent] = useState(
+    LOAN_OFFERS[0].usualRatePercent,
+  );
 
   const selectedOffer =
     LOAN_OFFERS.find((offer) => offer.id === selectedOfferId) ?? LOAN_OFFERS[0];
@@ -607,10 +611,12 @@ function HomeLoanCalculator() {
     setTerm((currentTerm) =>
       Math.min(selectedOffer.maxTerm, Math.max(1, currentTerm)),
     );
+    setSelectedRatePercent(selectedOffer.usualRatePercent);
   }, [selectedOffer]);
 
+  const selectedRateDecimal = selectedRatePercent / 100;
   const processingFee = Math.max(50, amount * 0.02);
-  const totalInterest = amount * selectedOffer.monthlyRate * term;
+  const totalInterest = amount * selectedRateDecimal * term;
   const totalPayable = amount + totalInterest + processingFee;
   const paymentCount =
     cadence === "daily" ? term * 26 : cadence === "weekly" ? term * 4 : term;
@@ -702,6 +708,38 @@ function HomeLoanCalculator() {
 
           <div className="space-y-3">
             <label className="text-sm font-bold text-slate-500 uppercase tracking-wider block">
+              Interest rate
+            </label>
+            <div className="grid grid-cols-5 gap-3">
+              {INTEREST_RATE_OPTIONS.map((rate) => (
+                <button
+                  key={rate}
+                  type="button"
+                  onClick={() => setSelectedRatePercent(rate)}
+                  className={`rounded-2xl border px-3 py-3 text-sm font-bold transition-all ${
+                    selectedRatePercent === rate
+                      ? "border-emerald-500 bg-emerald-50 text-emerald-700"
+                      : "border-slate-200 text-slate-600 hover:border-emerald-200"
+                  }`}
+                >
+                  {rate}%
+                </button>
+              ))}
+            </div>
+            <p className="text-sm text-slate-500 leading-relaxed">
+              Karaniwang rate para sa{" "}
+              <strong className="text-slate-900">{selectedOffer.name}</strong>{" "}
+              ay{" "}
+              <strong className="text-emerald-700">
+                {selectedOffer.usualRatePercent}%
+              </strong>{" "}
+              kada buwan, pero puwede mong galawin ang selector para makita ang
+              iba&apos;t ibang scenarios.
+            </p>
+          </div>
+
+          <div className="space-y-3">
+            <label className="text-sm font-bold text-slate-500 uppercase tracking-wider block">
               Payment cadence
             </label>
             <div className="grid grid-cols-3 gap-3">
@@ -757,7 +795,7 @@ function HomeLoanCalculator() {
           <div className="grid grid-cols-2 gap-4">
             <CalculatorMetric label="Principal" value={amount} />
             <CalculatorMetric
-              label={`Interest (${(selectedOffer.monthlyRate * 100).toFixed(1)}% / month)`}
+              label={`Interest (${selectedRatePercent.toFixed(1)}% / month)`}
               value={totalInterest}
             />
             <CalculatorMetric label="Processing Fee" value={processingFee} />

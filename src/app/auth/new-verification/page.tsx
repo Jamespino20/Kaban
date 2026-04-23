@@ -33,7 +33,7 @@ function NewVerificationForm() {
         if (data.error) toast.error(data.error);
       })
       .catch(() => {
-        setError("Something went wrong!");
+        setError("Nagkaroon ng isyu!");
       });
   }, [token, success, error]);
 
@@ -65,10 +65,10 @@ function NewVerificationForm() {
 
       <p className="text-slate-500 mb-8">
         {success
-          ? "Your account has been verified. You can now access the shared treasury."
+          ? "Naverify na ang iyong account. Maaaccess mo na ngayon ang iyong Agapay Pintig."
           : error
             ? error
-            : "Wait a moment while we lock in your credentials."}
+            : "Maghintay habang sinisiguro ang iyong mga credentials."}
       </p>
 
       {(success || error) && (

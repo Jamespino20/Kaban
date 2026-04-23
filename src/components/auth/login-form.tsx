@@ -30,8 +30,8 @@ import { Button } from "@/components/ui/button";
 
 const LoginSchema = z.object({
   tenantId: z.string().optional(), // Becomes required in step 2
-  username: z.string().min(1, "Username is required"),
-  password: z.string().min(1, "Password is required"),
+  username: z.string().min(1, "Kailangan ng username"),
+  password: z.string().min(1, "Kailangan ng password"),
   code: z.string().optional(),
 });
 
@@ -90,9 +90,9 @@ export const LoginForm = () => {
         if (result?.error) {
           if (result.error === "2FA_REQUIRED") {
             setStep("2fa");
-            toast.info("Please enter your 2FA code.");
+            toast.info("I-enter ang 2FA code.");
           } else {
-            toast.error("Invalid credentials or access denied.");
+            toast.error("Maling credentials or access denied.");
             // If it failed at final login, maybe reset to step 1
             if (step === "tenant" || step === "2fa") {
               // Stay here, but clear code
@@ -104,7 +104,7 @@ export const LoginForm = () => {
           window.location.href = "/"; // Force refresh to let proxy handle routing
         }
       } catch (error) {
-        toast.error("An error occurred during sign in.");
+        toast.error("Nagkaroon ng error habang nag-login.");
       }
     });
   };
@@ -114,7 +114,7 @@ export const LoginForm = () => {
       onIdentify(values);
     } else {
       if (!values.tenantId && step === "tenant") {
-        toast.error("Please select a branch.");
+        toast.error("Pumili ng branch.");
         return;
       }
       performLogin(values);
@@ -125,13 +125,13 @@ export const LoginForm = () => {
     <div className="w-full">
       <div className="flex flex-col space-y-2 text-center mb-8">
         <h1 className="text-3xl font-display font-bold italic tracking-tight text-emerald-900">
-          Access Treasury
+          Mag-login na sa Agapay
         </h1>
         <p className="text-sm text-slate-500">
           {step === "credentials" &&
-            "Enter your credentials to identify your account"}
-          {step === "tenant" && "Select the branch you wish to access"}
-          {step === "2fa" && "Second-factor authentication required"}
+            "Punan ang iyong credentials para sa account mo"}
+          {step === "tenant" && "Piliin ang branch na iyong i-aaccess"}
+          {step === "2fa" && "Kinakailangan ang second-factor authentication"}
         </p>
       </div>
 
@@ -239,7 +239,7 @@ export const LoginForm = () => {
                 className="w-full text-slate-500 hover:text-slate-700"
               >
                 <ChevronLeft className="w-4 h-4 mr-2" />
-                Wait, not this account?
+                Teka, hindi and account na ito?
               </Button>
             </div>
           )}
@@ -281,7 +281,7 @@ export const LoginForm = () => {
                   <ChevronRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
                 </>
               ) : (
-                "Verify & Sign In"
+                "Iverify at Sign In"
               )}
             </Button>
           )}

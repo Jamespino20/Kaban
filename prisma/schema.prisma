@@ -274,35 +274,44 @@ model AuditLog {
 }
 
 model HomepageFaq {
-  id         Int      @id @default(autoincrement())
-  tenant_id  Int?
-  question   String   @db.VarChar(255)
-  answer     String
-  is_active  Boolean  @default(true)
-  sort_order Int      @default(0)
-  created_at DateTime @default(now())
-  updated_at DateTime @updatedAt
-  tenant     Tenant?  @relation(fields: [tenant_id], references: [tenant_id], onDelete: Cascade)
+  id                   Int      @id @default(autoincrement())
+  tenant_id            Int?
+  question             String   @db.VarChar(255)
+  answer               String
+  season_tag           String?  @db.VarChar(100)
+  workflow_status      String   @default("published") @db.VarChar(50)
+  review_notes         String?
+  submitted_by_user_id Int?
+  reviewed_by_user_id  Int?
+  is_active            Boolean  @default(true)
+  sort_order           Int      @default(0)
+  created_at           DateTime @default(now())
+  updated_at           DateTime @updatedAt
+  tenant               Tenant?  @relation(fields: [tenant_id], references: [tenant_id], onDelete: Cascade)
 
-  @@index([tenant_id, is_active, sort_order])
+  @@index([tenant_id, workflow_status, is_active, sort_order])
   @@map("homepage_faqs")
 }
 
 model HomepageTestimonial {
-  id         Int      @id @default(autoincrement())
-  tenant_id  Int?
-  name       String   @db.VarChar(150)
-  role_label String   @db.VarChar(150)
-  photo_url  String?  @db.VarChar(255)
-  content    String
-  season_tag String?  @db.VarChar(100)
-  is_active  Boolean  @default(true)
-  sort_order Int      @default(0)
-  created_at DateTime @default(now())
-  updated_at DateTime @updatedAt
-  tenant     Tenant?  @relation(fields: [tenant_id], references: [tenant_id], onDelete: Cascade)
+  id                   Int      @id @default(autoincrement())
+  tenant_id            Int?
+  name                 String   @db.VarChar(150)
+  role_label           String   @db.VarChar(150)
+  photo_url            String?  @db.VarChar(255)
+  content              String
+  season_tag           String?  @db.VarChar(100)
+  workflow_status      String   @default("published") @db.VarChar(50)
+  review_notes         String?
+  submitted_by_user_id Int?
+  reviewed_by_user_id  Int?
+  is_active            Boolean  @default(true)
+  sort_order           Int      @default(0)
+  created_at           DateTime @default(now())
+  updated_at           DateTime @updatedAt
+  tenant               Tenant?  @relation(fields: [tenant_id], references: [tenant_id], onDelete: Cascade)
 
-  @@index([tenant_id, is_active, sort_order])
+  @@index([tenant_id, workflow_status, is_active, sort_order])
   @@map("homepage_testimonials")
 }
 
