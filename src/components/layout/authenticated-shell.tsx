@@ -4,15 +4,55 @@ import { BranchSwitcher } from "@/components/layout/branch-switcher";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { signOut } from "next-auth/react";
-import { ChevronLeft, ChevronRight, LogOut } from "lucide-react";
+import {
+  AlertTriangle,
+  BarChart3,
+  ChevronLeft,
+  ChevronRight,
+  FileText,
+  HandCoins,
+  History,
+  LayoutDashboard,
+  LogOut,
+  Settings2,
+  ShieldAlert,
+  Users2,
+} from "lucide-react";
 import { useState } from "react";
 
-type ShellNavItem = {
+export type ShellNavItem = {
   value: string;
   label: string;
-  icon: React.ComponentType<{ className?: string }>;
+  icon: ShellIconName;
   badge?: number;
 };
+
+export type ShellIconName =
+  | "overview"
+  | "approvals"
+  | "members"
+  | "products"
+  | "branches"
+  | "content"
+  | "feedback"
+  | "audit"
+  | "apply"
+  | "repayment"
+  | "settings";
+
+const ICON_MAP = {
+  overview: LayoutDashboard,
+  approvals: FileText,
+  members: Users2,
+  products: Settings2,
+  branches: ShieldAlert,
+  content: FileText,
+  feedback: AlertTriangle,
+  audit: History,
+  apply: HandCoins,
+  repayment: History,
+  settings: Settings2,
+} satisfies Record<ShellIconName, React.ComponentType<{ className?: string }>>;
 
 export function AuthenticatedShell({
   defaultTab,
@@ -114,7 +154,7 @@ export function AuthenticatedShell({
           <div className="flex-1 overflow-y-auto px-3 pb-4">
             <TabsList className="flex h-auto w-full flex-col gap-2 bg-transparent p-0">
               {navItems.map((item) => {
-                const Icon = item.icon;
+                const Icon = ICON_MAP[item.icon];
                 return (
                   <TabsTrigger
                     key={item.value}

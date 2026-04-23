@@ -39,7 +39,10 @@ import {
   getFeedbackEntries,
   getHomepageContentAdmin,
 } from "@/actions/site-content";
-import { AuthenticatedShell } from "@/components/layout/authenticated-shell";
+import {
+  AuthenticatedShell,
+  type ShellNavItem,
+} from "@/components/layout/authenticated-shell";
 
 export default async function AgapayTanawPage() {
   const session = await auth();
@@ -80,38 +83,62 @@ export default async function AgapayTanawPage() {
     ? await getHomepageContentAdmin()
     : { faqs: [], testimonials: [] };
   const feedbackEntries = canViewFeedback ? await getFeedbackEntries() : [];
-  const navItems = [
-    { value: "overview", label: "Pangkalahatan", icon: BarChart3 },
+  const navItems: ShellNavItem[] = [
+    { value: "overview", label: "Pangkalahatan", icon: "overview" },
     {
       value: "approvals",
       label: "Mga Pag-apruba",
-      icon: FileText,
+      icon: "approvals",
       badge: pendingData.loans.length + pendingData.verifications.length,
     },
-    { value: "members", label: "Mga Miyembro", icon: Users2 },
-    ...(canManageTenantProducts
-      ? [{ value: "products", label: "Produkto ng Loan", icon: Settings2 }]
-      : []),
-    ...(canViewBranchOps
-      ? [
-          {
-            value: "branches",
-            label: isSuperAdmin ? "Global Tenant Mgmt" : "Branch Ops",
-            icon: ShieldAlert,
-          },
-        ]
-      : []),
-    ...(canManageHomepageContent
-      ? [{ value: "content", label: "Homepage Content", icon: FileText }]
-      : []),
-    ...(canViewFeedback
-      ? [{ value: "feedback", label: "Feedback Inbox", icon: AlertTriangle }]
-      : []),
-    { value: "settings", label: "Settings", icon: Settings2 },
-    ...(canViewAuditLogs
-      ? [{ value: "audit", label: "Audit Logs", icon: History }]
-      : []),
+    { value: "members", label: "Mga Miyembro", icon: "members" },
   ];
+
+  if (canManageTenantProducts) {
+    navItems.push({
+      value: "products",
+      label: "Produkto ng Loan",
+      icon: "products",
+    });
+  }
+
+  if (canViewBranchOps) {
+    navItems.push({
+      value: "branches",
+      label: isSuperAdmin ? "Global Tenant Mgmt" : "Branch Ops",
+      icon: "branches",
+    });
+  }
+
+  if (canManageHomepageContent) {
+    navItems.push({
+      value: "content",
+      label: "Homepage Content",
+      icon: "content",
+    });
+  }
+
+  if (canViewFeedback) {
+    navItems.push({
+      value: "feedback",
+      label: "Feedback Inbox",
+      icon: "feedback",
+    });
+  }
+
+  navItems.push({
+    value: "settings",
+    label: "Settings",
+    icon: "settings",
+  });
+
+  if (canViewAuditLogs) {
+    navItems.push({
+      value: "audit",
+      label: "Audit Logs",
+      icon: "audit",
+    });
+  }
 
   return (
     <AuthenticatedShell

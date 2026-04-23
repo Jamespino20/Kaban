@@ -13,7 +13,10 @@ import { LoanServicingTab } from "@/components/member/loan-servicing-tab";
 import { TwoFactorSetup } from "@/components/auth/two-factor-setup";
 import prisma from "@/lib/prisma";
 import { redirect } from "next/navigation";
-import { AuthenticatedShell } from "@/components/layout/authenticated-shell";
+import {
+  AuthenticatedShell,
+  type ShellNavItem,
+} from "@/components/layout/authenticated-shell";
 
 export default async function AgapayPintigPage() {
   const session = await auth();
@@ -73,11 +76,11 @@ export default async function AgapayPintigPage() {
 
   // Simple Credit Limit Logic (Starter Tier default)
   const availableCredit = 50000 - totalLoanBalance;
-  const navItems = [
-    { value: "overview", label: "Pangkalahatan", icon: LayoutDashboard },
-    { value: "apply", label: "Mag-loan", icon: HandCoins },
-    { value: "repayment", label: "Repayment", icon: History },
-    { value: "settings", label: "Settings", icon: Settings2 },
+  const navItems: ShellNavItem[] = [
+    { value: "overview", label: "Pangkalahatan", icon: "overview" },
+    { value: "apply", label: "Mag-loan", icon: "apply" },
+    { value: "repayment", label: "Repayment", icon: "repayment" },
+    { value: "settings", label: "Settings", icon: "settings" },
   ];
 
   const formatCurrency = (val: number) =>
