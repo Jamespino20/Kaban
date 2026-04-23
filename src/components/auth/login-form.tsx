@@ -88,9 +88,12 @@ export const LoginForm = () => {
         });
 
         if (result?.error) {
-          if (result.error === "2FA_REQUIRED") {
+          if (
+            result.error === "CredentialsSignin" &&
+            result.code === "2fa_required"
+          ) {
             setStep("2fa");
-            toast.info("I-enter ang 2FA code.");
+            toast.info("I-enter ang code mula sa Google Authenticator.");
           } else {
             toast.error("Maling credentials or access denied.");
             // If it failed at final login, maybe reset to step 1

@@ -1,10 +1,15 @@
 import { authConfig } from "./auth.config";
 import NextAuth from "next-auth";
 import Credentials from "next-auth/providers/credentials";
+import { CredentialsSignin } from "next-auth";
 import bcrypt from "bcryptjs";
 import { neon } from "@neondatabase/serverless";
 import { z } from "zod";
 import { getDbUrl } from "@/lib/db-url";
+
+class TwoFactorRequiredError extends CredentialsSignin {
+  code = "2fa_required";
+}
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
   ...authConfig,
@@ -89,19 +94,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
 
             if (twoFa?.is_enabled) {
               if (!code) {
-                const { generateTwoFactorToken } = await import("@/lib/tokens");
-                const { sendTwoFactorTokenEmail } = await import("@/lib/mail");
-
-                const twoFactorToken = await generateTwoFactorToken(
-                  user.email,
-                  user.tenant_id,
-                );
-                await sendTwoFactorTokenEmail(
-                  twoFactorToken.email,
-                  twoFactorToken.token,
-                );
-
-                throw new Error("2FA_REQUIRED");
+                throw new TwoFactorRequiredError();
               }
 
               const { TOTP, NobleCryptoPlugin, ScureBase32Plugin } =
