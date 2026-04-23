@@ -157,18 +157,7 @@ export function AuthenticatedShell({
         </div>
       </div>
 
-      <div className="px-4 py-4">
-        <div className={`rounded-[1.5rem] border px-4 py-4 ${accentStyles.badge}`}>
-          <div className="flex items-center gap-2">
-            <div className={`h-2.5 w-2.5 rounded-full ${accentStyles.dot}`} />
-            <span className="text-xs font-bold uppercase tracking-[0.2em]">
-              {portalLabel}
-            </span>
-          </div>
-        </div>
-      </div>
-
-      <div className="flex-1 overflow-y-auto px-3 pb-4">
+      <div className="flex-1 overflow-y-auto px-3 pt-4 pb-4">
         <TabsList className="flex h-auto w-full flex-col gap-2 bg-transparent p-0">
           {navItems.map((item) => {
             const Icon = ICON_MAP[item.icon];

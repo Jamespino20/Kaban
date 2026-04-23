@@ -59,6 +59,7 @@ export default async function AgapayTanawPage() {
   const isSuperAdmin = userRole === "superadmin";
   const isAdmin = userRole === "admin";
   const isLender = userRole === "lender";
+  const canViewProducts = isAdmin || isSuperAdmin;
   const hasTenantScopedProductAccess = isAdmin || (isSuperAdmin && !!session.user.tenantId);
   const canViewBranchOps = isSuperAdmin;
   const canViewAuditLogs = isAdmin || isSuperAdmin;
@@ -93,7 +94,7 @@ export default async function AgapayTanawPage() {
     { value: "members", label: "Mga Miyembro", icon: "members" },
   ];
 
-  if (hasTenantScopedProductAccess) {
+  if (canViewProducts) {
     navItems.push({
       value: "products",
       label: "Produkto ng Loan",
@@ -271,9 +272,29 @@ export default async function AgapayTanawPage() {
             <MemberDirectoryTab members={members} />
           </TabsContent>
 
-          {hasTenantScopedProductAccess && (
+          {canViewProducts && (
             <TabsContent value="products" className="outline-none">
-              <LoanProductsTab />
+              {hasTenantScopedProductAccess ? (
+                <LoanProductsTab />
+              ) : (
+                <div className="rounded-[2rem] border border-amber-200 bg-amber-50/80 p-8 shadow-sm">
+                  <div className="max-w-2xl space-y-3">
+                    <p className="text-[11px] font-black uppercase tracking-[0.24em] text-amber-700">
+                      Tenant Context Needed
+                    </p>
+                    <h2 className="text-2xl font-display font-bold italic text-slate-900">
+                      Pumili muna ng branch bago mag-manage ng Loan Products
+                    </h2>
+                    <p className="text-sm leading-relaxed text-slate-600">
+                      Bilang `superadmin`, makakakita ka ng tenant-wide product
+                      setup sa oras na may aktibo kang branch context. Gamitin
+                      ang branch switcher sa sidebar account area para pumili ng
+                      cooperative branch, tapos bumalik dito para mag-review o
+                      gumawa ng produkto.
+                    </p>
+                  </div>
+                </div>
+              )}
             </TabsContent>
           )}
 
