@@ -7,6 +7,7 @@ import {
   requireSuperadminSession,
   requireTanawSession,
 } from "@/lib/authorization";
+import { sendFeedbackNotificationEmail } from "@/lib/mail";
 import { revalidatePath } from "next/cache";
 import * as z from "zod";
 
@@ -158,7 +159,10 @@ export async function submitHomepageFaqProposal(
         session.user.role !== "superadmin" &&
         existing.workflow_status === CONTENT_STATUS.published
       ) {
-        return { error: "Tanging superadmin lang ang puwedeng magbago ng published FAQ." };
+        return {
+          error:
+            "Tanging superadmin lang ang puwedeng magbago ng published FAQ.",
+        };
       }
     }
 
@@ -299,7 +303,9 @@ export async function reviewHomepageFaqProposal(
     const session = await requireSuperadminSession();
     const data = faqReviewSchema.parse(input);
 
-    const existing = await prisma.homepageFaq.findUnique({ where: { id: data.id } });
+    const existing = await prisma.homepageFaq.findUnique({
+      where: { id: data.id },
+    });
     if (!existing) return { error: "Hindi makita ang FAQ proposal." };
 
     await prisma.homepageFaq.update({
@@ -408,6 +414,15 @@ export async function submitFeedback(input: z.infer<typeof feedbackSchema>) {
       session = await requireAuthenticatedSession();
     } catch {}
 
+    await sendFeedbackNotificationEmail({
+      name: data.name,
+      email: data.email || session?.user?.email || null,
+      category: data.category,
+      pagePath: data.page_path || null,
+      subject: data.subject || null,
+      message: data.message,
+    });
+
     await prisma.feedbackEntry.create({
       data: {
         tenant_id: session?.user?.tenantId ?? null,
@@ -425,7 +440,10 @@ export async function submitFeedback(input: z.infer<typeof feedbackSchema>) {
     return { success: "Naipasa na ang feedback mo." };
   } catch (error) {
     console.error("submitFeedback failed:", error);
-    return { error: "Hindi maipasa ang feedback." };
+    return {
+      error:
+        "Hindi maipasa ang feedback. Pakisuri ang email setup o subukan muli.",
+    };
   }
 }
 
@@ -521,4 +539,3 @@ export async function getContentWorkflowSummary() {
     testimonialFeedback,
   };
 }
-

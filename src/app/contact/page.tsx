@@ -118,7 +118,6 @@ export default function ContactPage() {
               className="rounded-[3rem] bg-white border border-slate-200 p-8 md:p-10 shadow-xl"
             >
               <FeedbackForm
-                defaultEmail="agapay.saas@gmail.com"
                 defaultCategory="general"
                 pagePath="/contact"
                 title="Magpadala ng Feedback"
@@ -133,4 +132,3 @@ export default function ContactPage() {
     </div>
   );
 }
-

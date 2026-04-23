@@ -10,6 +10,11 @@ const transporter = nodemailer.createTransport({
   },
 });
 
+const FEEDBACK_NOTIFICATION_TO =
+  process.env.FEEDBACK_NOTIFICATION_TO ||
+  process.env.SMTP_FEEDBACK_TO ||
+  "agapay.saas@gmail.com";
+
 export const sendTwoFactorTokenEmail = async (email: string, token: string) => {
   await transporter.sendMail({
     from: process.env.SMTP_FROM,
@@ -69,6 +74,69 @@ export const sendVerificationEmail = async (email: string, token: string) => {
           <p>Salamat sa pagrehistro. I-click ang button sa ibaba upang i-verify ang iyong account.</p>
           <a href="${confirmLink}" style="display: block; width: 200px; margin: 30px auto; padding: 15px; background-color: #059669; color: white; text-decoration: none; text-align: center; border-radius: 30px; font-weight: bold;">I-verify ang Account</a>
           <p style="font-size: 14px; color: #64748b;">O i-copy itong link sa iyong browser: ${confirmLink}</p>
+        </div>
+      </div>
+    `,
+  });
+};
+
+export const sendFeedbackNotificationEmail = async ({
+  name,
+  email,
+  category,
+  pagePath,
+  subject,
+  message,
+}: {
+  name: string;
+  email?: string | null;
+  category: string;
+  pagePath?: string | null;
+  subject?: string | null;
+  message: string;
+}) => {
+  const normalizedSubject =
+    subject?.trim() || `Bagong ${category} feedback mula sa ${name}`;
+
+  await transporter.sendMail({
+    from: process.env.SMTP_FROM,
+    to: FEEDBACK_NOTIFICATION_TO,
+    replyTo: email || undefined,
+    subject: `[Agapay Feedback] ${normalizedSubject}`,
+    html: `
+      <div style="font-family: sans-serif; max-width: 680px; margin: auto; border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden;">
+        <div style="background-color: #059669; padding: 32px; text-align: center;">
+          <h1 style="color: white; margin: 0; font-style: italic;">Agapay Feedback Inbox</h1>
+        </div>
+        <div style="padding: 32px; color: #1e293b;">
+          <h2 style="margin-top: 0;">May bagong feedback submission</h2>
+          <table style="width: 100%; border-collapse: collapse; margin: 24px 0;">
+            <tbody>
+              <tr>
+                <td style="padding: 8px 0; color: #64748b; width: 160px;">Pangalan</td>
+                <td style="padding: 8px 0; font-weight: 600;">${name}</td>
+              </tr>
+              <tr>
+                <td style="padding: 8px 0; color: #64748b;">Email</td>
+                <td style="padding: 8px 0; font-weight: 600;">${email || "Walang ibinigay"}</td>
+              </tr>
+              <tr>
+                <td style="padding: 8px 0; color: #64748b;">Category</td>
+                <td style="padding: 8px 0; font-weight: 600;">${category}</td>
+              </tr>
+              <tr>
+                <td style="padding: 8px 0; color: #64748b;">Page</td>
+                <td style="padding: 8px 0; font-weight: 600;">${pagePath || "Hindi tinukoy"}</td>
+              </tr>
+              <tr>
+                <td style="padding: 8px 0; color: #64748b;">Subject</td>
+                <td style="padding: 8px 0; font-weight: 600;">${subject || "Walang subject"}</td>
+              </tr>
+            </tbody>
+          </table>
+          <div style="padding: 20px; background-color: #f8fafc; border-radius: 12px; white-space: pre-line; line-height: 1.6;">
+            ${message}
+          </div>
         </div>
       </div>
     `,
