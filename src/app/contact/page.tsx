@@ -121,7 +121,7 @@ export default function ContactPage() {
                 defaultCategory="general"
                 pagePath="/contact"
                 title="Magpadala ng Feedback"
-                description="Ilagay ang concern, cancellation request, tanong, o testimonial lead mo rito."
+                description="Ilagay ang concern, cancellation request, tanong, o testimonial lead mo rito. Minimum of 10 characters."
               />
             </div>
           </div>

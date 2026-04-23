@@ -15,7 +15,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           .object({
             username: z.string(),
             password: z.string().min(6),
-            tenantId: z.string(),
+            tenantId: z.string().optional().default("global"),
             code: z.string().optional(),
           })
           .safeParse(credentials);
@@ -111,11 +111,11 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
                 base32: new ScureBase32Plugin(),
               });
 
-              const result = await totp.verify(code, {
+              const isTotpValid = await totp.verify(code, {
                 secret: twoFa.totp_secret,
               });
 
-              if (!result.valid) {
+              if (!isTotpValid) {
                 const { getTwoFactorTokenByEmail } =
                   await import("@/actions/two-factor-token");
                 const twoFactorToken = await getTwoFactorTokenByEmail(
