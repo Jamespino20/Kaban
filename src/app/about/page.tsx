@@ -1,140 +1,141 @@
 "use client";
 
-import { Navbar } from "@/components/layout/navbar";
 import { Footer } from "@/components/layout/footer";
-import { Shield, Target, Users, BadgeCheck, ArrowRight } from "lucide-react";
-import { useEffect, useRef } from "react";
+import { Navbar } from "@/components/layout/navbar";
+import {
+  BadgeCheck,
+  BookOpenText,
+  HandHelping,
+  Shield,
+  Users,
+} from "lucide-react";
+
+const PRINCIPLES = [
+  {
+    icon: <HandHelping className="w-8 h-8 text-emerald-600" />,
+    title: "Makataong lending flow",
+    body: "Hindi lang approval at collection ang tinitingnan. Mahalaga sa Agapay ang paliwanag, mentoring, at malinaw na support sa miyembro habang lumalago ang negosyo.",
+  },
+  {
+    icon: <Users className="w-8 h-8 text-emerald-600" />,
+    title: "Community accountability",
+    body: "Nakasentro ang platform sa Guarantors, Trust Score, at branch-guided na proseso para mas may pananagutan ang bawat loan at repayment.",
+  },
+  {
+    icon: <Shield className="w-8 h-8 text-emerald-600" />,
+    title: "Mas malinaw na operations",
+    body: "Digital records, Statement of Account, repayment verification, at feedback tracking ang tumutulong para hindi malito ang staff at miyembro sa estado ng account.",
+  },
+];
+
+const TIMELINE = [
+  {
+    title: "Mula sa tunay na problema",
+    body: "Binuo ang Agapay bilang school project na nakaugat sa karaniwang problema ng micro-entrepreneurs: kulang sa malinaw na records, hirap sa follow-up, at magulong coordination sa branch at borrower.",
+  },
+  {
+    title: "Hindi wallet app, kundi cooperative platform",
+    body: "Ang Agapay ay hindi direktang payment rail sa prototype na ito. Sa halip, ito ang source of truth para sa approvals, mock disbursement, repayments, reports, at guided member support.",
+  },
+  {
+    title: "Filipino-first na karanasan",
+    body: "Layunin ng content at interface na mas madali para sa lokal na users: Filipino-first na wika, malinaw na technical terms, at flows na mas bagay sa branch-based lending at small-business cash cycles.",
+  },
+];
 
 export default function AboutPage() {
-  const revealRefs = useRef<(HTMLElement | null)[]>([]);
-
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            entry.target.classList.add("reveal-active");
-          }
-        });
-      },
-      { threshold: 0.15 },
-    );
-
-    revealRefs.current.forEach((ref) => {
-      if (ref) observer.observe(ref);
-    });
-
-    return () => observer.disconnect();
-  }, []);
-
-  const addToRefs = (el: HTMLElement | null) => {
-    if (el && !revealRefs.current.includes(el)) {
-      revealRefs.current.push(el);
-    }
-  };
-
   return (
     <div className="relative min-h-screen bg-slate-50 flex flex-col items-center font-sans overflow-x-hidden text-slate-950">
-      <style jsx global>{`
-        .reveal {
-          opacity: 0;
-          transform: translateY(40px);
-          transition:
-            opacity 1s cubic-bezier(0.22, 1, 0.36, 1),
-            transform 1s cubic-bezier(0.22, 1, 0.36, 1);
-          will-change: opacity, transform;
-        }
-        .reveal-active {
-          opacity: 1;
-          transform: translateY(0);
-        }
-      `}</style>
-
       <Navbar forceSolid />
 
       <main className="w-full pt-32 flex flex-col items-center">
-        {/* Hero Section */}
         <section className="w-full py-24 px-6 max-w-7xl">
           <div className="max-w-4xl">
             <span className="inline-flex items-center gap-2 text-emerald-700 font-bold tracking-widest text-xs uppercase mb-6 px-4 py-1.5 bg-emerald-100/90 rounded-full border border-emerald-200/50">
-              <BadgeCheck className="w-4 h-4" /> Higit Pa sa Pondo
+              <BadgeCheck className="w-4 h-4" />
+              Tungkol sa Agapay
             </span>
             <h1 className="text-5xl md:text-8xl font-black tracking-tight italic mb-8 leading-[0.95] text-slate-900">
-              Ang Kwento ng <span className="text-emerald-600">Agapay.</span>
+              Ang layunin ng{" "}
+              <span className="text-emerald-600">Agapay</span> ay hindi lang
+              pondo.
             </h1>
-            <p className="text-xl md:text-2xl font-medium text-slate-600 mb-12 leading-relaxed max-w-3xl">
-              Nagsimula kami sa isang simpleng pangarap: Ang bigyan ang bawat
-              Pilipinong negosyante ng pagkakataong umagapay nang walang takot
-              sa mapang-abusong patubuan.
+            <p className="text-xl md:text-2xl font-medium text-slate-600 mb-10 leading-relaxed max-w-3xl">
+              Ang Agapay ay isang Filipino-first cooperative microfinance SaaS
+              na ginawa para sa mas malinaw na branch operations, mas
+              explainable na loan flow, at mas suportadong pag-asenso ng mga
+              miyembro.
+            </p>
+            <p className="text-base md:text-lg text-slate-500 leading-relaxed max-w-3xl">
+              Bilang school-project prototype, nakatuon ito sa tamang records,
+              guided approvals, mock money flow, feedback handling, at
+              community-based lending features tulad ng{" "}
+              <strong className="text-slate-900">Guarantors</strong>,{" "}
+              <strong className="text-slate-900">Trust Score</strong>, at{" "}
+              <strong className="text-slate-900">Mentorship</strong>.
             </p>
           </div>
         </section>
 
-        {/* Vision & Mission */}
-        <section
-          ref={addToRefs}
-          className="reveal w-full py-32 px-6 max-w-7xl grid grid-cols-1 md:grid-cols-2 gap-16"
-        >
-          <div className="p-12 rounded-[3rem] bg-white border border-slate-200 shadow-xl shadow-slate-200/50">
-            <Target className="w-12 h-12 text-emerald-600 mb-8" />
-            <h2 className="text-3xl font-black italic mb-6">
-              Ang aming Layunin
-            </h2>
-            <p className="text-lg text-slate-600 leading-relaxed font-medium">
-              Magmula sa mga sari-sari store hanggang sa mga online sellers,
-              layunin naming maging katuwang sa pananalapi ng bawat Pilipino sa
-              pamamagitan ng mabilis, maasahan, at makatarungang microfinancing.
-            </p>
+        <section className="w-full py-24 px-6 max-w-7xl grid grid-cols-1 lg:grid-cols-[1.1fr_0.9fr] gap-10">
+          <div className="rounded-[3rem] bg-white border border-slate-200 p-10 md:p-14 shadow-sm">
+            <div className="flex items-center gap-3 mb-8">
+              <BookOpenText className="w-8 h-8 text-emerald-600" />
+              <h2 className="text-3xl font-black italic text-slate-900">
+                Bakit ito ginawa
+              </h2>
+            </div>
+            <div className="space-y-8">
+              {TIMELINE.map((item) => (
+                <div key={item.title} className="space-y-2">
+                  <h3 className="text-xl font-black text-slate-900">
+                    {item.title}
+                  </h3>
+                  <p className="text-slate-600 leading-relaxed">{item.body}</p>
+                </div>
+              ))}
+            </div>
           </div>
-          <div className="p-12 rounded-[3rem] bg-emerald-900 text-white shadow-xl shadow-emerald-950/20">
-            <Shield className="w-12 h-12 text-emerald-400 mb-8" />
-            <h2 className="text-3xl font-black italic mb-6">
-              Ang aming Pangako
+
+          <div className="rounded-[3rem] bg-emerald-950 text-white p-10 md:p-14 shadow-xl shadow-emerald-950/10">
+            <h2 className="text-3xl font-black italic mb-8">
+              Ano ang ipinapangako ng prototype
             </h2>
-            <p className="text-lg text-emerald-50/80 leading-relaxed font-medium">
-              Katapatan sa bawat sentimo. Kami ay isang SEC-registered
-              institution na sumusunod sa pinakamataas na pamantayan ng consumer
-              protection at data privacy.
-            </p>
+            <div className="space-y-5 text-emerald-50/90 leading-relaxed">
+              <p>
+                Malinaw na status para sa application, approval, release, at
+                repayment.
+              </p>
+              <p>
+                Role-based views para sa `superadmin`, `admin`, `lender`, at
+                `member`.
+              </p>
+              <p>
+                Feedback at content workflows para manatiling relevant ang
+                homepage at support experience.
+              </p>
+              <p>
+                Isang mas grounded na cooperative product story na hindi
+                umaasa sa generic wallet behavior lang.
+              </p>
+            </div>
           </div>
         </section>
 
-        {/* Regulatory Info */}
-        <section
-          ref={addToRefs}
-          className="reveal w-full py-32 px-6 max-w-7xl bg-slate-100 rounded-[4rem] mb-32"
-        >
-          <div className="text-center mb-16">
-            <h2 className="text-4xl font-black italic mb-4">
-              Regulatory Compliance
-            </h2>
-            <p className="text-slate-500 font-bold uppercase tracking-widest text-sm">
-              SEC-Registered · BSP-Supervised
-            </p>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-12 text-center">
-            <div className="space-y-4">
-              <BadgeCheck className="w-10 h-10 text-emerald-600 mx-auto" />
-              <h3 className="text-xl font-black italic">Legitimacy</h3>
-              <p className="text-slate-500 font-medium">
-                Sertipikado at rehistrado sa Securities and Exchange Commission.
-              </p>
-            </div>
-            <div className="space-y-4">
-              <Shield className="w-10 h-10 text-emerald-600 mx-auto" />
-              <h3 className="text-xl font-black italic">Protection</h3>
-              <p className="text-slate-500 font-medium">
-                Sumusunod sa strict guidelines ng Data Privacy Act of 2012.
-              </p>
-            </div>
-            <div className="space-y-4">
-              <Users className="w-10 h-10 text-emerald-600 mx-auto" />
-              <h3 className="text-xl font-black italic">Fair Lending</h3>
-              <p className="text-slate-500 font-medium">
-                Ipinapatupad ang Truth in Lending Act para sa buong
-                transparency.
-              </p>
-            </div>
+        <section className="w-full py-24 px-6 max-w-7xl">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {PRINCIPLES.map((item) => (
+              <div
+                key={item.title}
+                className="rounded-[2.5rem] bg-white border border-slate-200 p-8 shadow-sm"
+              >
+                <div className="mb-6">{item.icon}</div>
+                <h3 className="text-2xl font-black italic text-slate-900 mb-4">
+                  {item.title}
+                </h3>
+                <p className="text-slate-600 leading-relaxed">{item.body}</p>
+              </div>
+            ))}
           </div>
         </section>
 

@@ -1,4 +1,4 @@
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsContent } from "@/components/ui/tabs";
 import {
   Wallet,
   HandCoins,
@@ -10,10 +10,10 @@ import {
 import { auth } from "@/lib/auth";
 import { LoanApplicationTab } from "@/components/member/loan-application-tab";
 import { LoanServicingTab } from "@/components/member/loan-servicing-tab";
-import { UserAccountNav } from "@/components/layout/user-account-nav";
 import { TwoFactorSetup } from "@/components/auth/two-factor-setup";
 import prisma from "@/lib/prisma";
 import { redirect } from "next/navigation";
+import { AuthenticatedShell } from "@/components/layout/authenticated-shell";
 
 export default async function AgapayPintigPage() {
   const session = await auth();
@@ -73,6 +73,12 @@ export default async function AgapayPintigPage() {
 
   // Simple Credit Limit Logic (Starter Tier default)
   const availableCredit = 50000 - totalLoanBalance;
+  const navItems = [
+    { value: "overview", label: "Pangkalahatan", icon: LayoutDashboard },
+    { value: "apply", label: "Mag-loan", icon: HandCoins },
+    { value: "repayment", label: "Repayment", icon: History },
+    { value: "settings", label: "Settings", icon: Settings2 },
+  ];
 
   const formatCurrency = (val: number) =>
     new Intl.NumberFormat("en-PH", {
@@ -81,87 +87,46 @@ export default async function AgapayPintigPage() {
     }).format(val);
 
   return (
-    <div className="min-h-screen bg-emerald-50/30 p-6 md:p-10">
-      <div className="max-w-7xl mx-auto space-y-10">
-        {/* Header */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-          <div className="space-y-2">
-            <h1 className="text-4xl md:text-5xl font-display font-bold text-slate-900 tracking-tight italic">
-              Maligayang pagbabalik sa{" "}
-              <span className="text-emerald-600">Agapay Pintig</span>
-            </h1>
-            <p className="text-slate-500 font-sans text-lg">
-              Ang iyong katuwang sa mas mabilis at mas siguradong asenso.
-            </p>
-          </div>
-
-          <div className="flex items-center gap-8">
-            <div className="bg-white/80 backdrop-blur-xl p-4 rounded-3xl border border-emerald-100 shadow-sm flex items-center gap-4">
-              <div className="w-12 h-12 bg-emerald-100 rounded-2xl flex items-center justify-center text-emerald-600">
-                <Wallet className="w-6 h-6" />
-              </div>
-              <div>
-                <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">
-                  Nagagamit na Credit
-                </p>
-                <p className="text-xl font-display font-bold text-slate-900">
-                  {formatCurrency(availableCredit)}
-                </p>
-              </div>
-            </div>
-            <UserAccountNav name={userName} />
-          </div>
-        </div>
-
-        {/* Member Tabs */}
-        <Tabs defaultValue="overview" className="space-y-8">
-          <div className="flex items-center justify-center">
-            <TabsList className="bg-white/50 backdrop-blur-md p-1.5 border border-emerald-100 rounded-2xl shadow-sm h-auto inline-flex">
-              <TabsTrigger
-                value="overview"
-                className="rounded-xl data-[state=active]:bg-emerald-600 data-[state=active]:text-white transition-all px-8 py-3 flex items-center gap-2"
-              >
-                <LayoutDashboard className="w-4 h-4" />
-                <span>Pangkalahatan</span>
-              </TabsTrigger>
-              <TabsTrigger
-                value="apply"
-                className="rounded-xl data-[state=active]:bg-emerald-600 data-[state=active]:text-white transition-all px-8 py-3 flex items-center gap-2"
-              >
-                <HandCoins className="w-4 h-4" />
-                <span>Mag-loan</span>
-              </TabsTrigger>
-              <TabsTrigger
-                value="repayment"
-                className="rounded-xl data-[state=active]:bg-emerald-600 data-[state=active]:text-white transition-all px-8 py-3 flex items-center gap-2"
-              >
-                <History className="w-4 h-4" />
-                <span>Repayment</span>
-              </TabsTrigger>
-              <TabsTrigger
-                value="settings"
-                className="rounded-xl data-[state=active]:bg-emerald-600 data-[state=active]:text-white transition-all px-8 py-3 flex items-center gap-2"
-              >
-                <Settings2 className="w-4 h-4" />
-                <span>Settings</span>
-              </TabsTrigger>
-            </TabsList>
-          </div>
-
+    <AuthenticatedShell
+      defaultTab="overview"
+      title="Pangkalahatan"
+      subtitle="Ang iyong katuwang sa mas malinaw na loan, repayment, at branch support."
+      portalLabel="member portal"
+      accountName={userName}
+      accountRole="member"
+      navItems={navItems}
+    >
+      <Tabs defaultValue="overview" className="space-y-8">
           <TabsContent
             value="overview"
             className="space-y-8 outline-none animate-in fade-in slide-in-from-bottom-4 duration-500"
           >
-            <div className="flex justify-end mb-2">
-              <a
-                href={`/api/reports/soa?userId=${userId}&tenantId=${session?.user?.tenantId}`}
-                target="_blank"
-                className="group relative flex items-center gap-3 bg-emerald-600 hover:bg-emerald-700 text-white font-black px-8 py-4 rounded-3xl shadow-xl shadow-emerald-900/20 transition-all hover:scale-105 active:scale-95"
-              >
-                <div className="absolute inset-0 bg-white/20 opacity-0 group-hover:opacity-100 rounded-3xl transition-opacity" />
-                <ArrowUpRight className="w-5 h-5" />
-                <span>Ulat ng Pagbabayad (SOA)</span>
-              </a>
+            <div className="grid grid-cols-1 gap-6 lg:grid-cols-[0.9fr_1.1fr]">
+              <div className="bg-white/80 backdrop-blur-xl p-5 rounded-[2rem] border border-emerald-100 shadow-sm flex items-center gap-4">
+                <div className="w-12 h-12 bg-emerald-100 rounded-2xl flex items-center justify-center text-emerald-600">
+                  <Wallet className="w-6 h-6" />
+                </div>
+                <div>
+                  <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">
+                    Nagagamit na Credit
+                  </p>
+                  <p className="text-2xl font-display font-bold text-slate-900">
+                    {formatCurrency(availableCredit)}
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex justify-start lg:justify-end">
+                <a
+                  href={`/api/reports/soa?userId=${userId}&tenantId=${session?.user?.tenantId}`}
+                  target="_blank"
+                  className="group relative flex items-center gap-3 bg-emerald-600 hover:bg-emerald-700 text-white font-black px-8 py-4 rounded-3xl shadow-xl shadow-emerald-900/20 transition-all hover:scale-105 active:scale-95"
+                >
+                  <div className="absolute inset-0 bg-white/20 opacity-0 group-hover:opacity-100 rounded-3xl transition-opacity" />
+                  <ArrowUpRight className="w-5 h-5" />
+                  <span>Ulat ng Pagbabayad (SOA)</span>
+                </a>
+              </div>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -234,6 +199,13 @@ export default async function AgapayPintigPage() {
           </TabsContent>
 
           <TabsContent
+            value="apply"
+            className="outline-none animate-in fade-in slide-in-from-bottom-4 duration-500"
+          >
+            <LoanApplicationTab />
+          </TabsContent>
+
+          <TabsContent
             value="repayment"
             className="outline-none animate-in fade-in slide-in-from-bottom-4 duration-500"
           >
@@ -256,8 +228,7 @@ export default async function AgapayPintigPage() {
               <TwoFactorSetup isEnabledInitial={is2FAEnabled} />
             </div>
           </TabsContent>
-        </Tabs>
-      </div>
-    </div>
+      </Tabs>
+    </AuthenticatedShell>
   );
 }

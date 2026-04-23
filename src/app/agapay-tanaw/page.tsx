@@ -17,7 +17,6 @@ import { TenantManagementTab } from "@/components/admin/tenant-management-tab";
 import { AuditLogViewer } from "@/components/admin/audit-log-viewer";
 import { getTenants } from "@/actions/tenant-management";
 import { auth } from "@/lib/auth";
-import { UserAccountNav } from "@/components/layout/user-account-nav";
 import { TwoFactorSetup } from "@/components/auth/two-factor-setup";
 import prisma from "@/lib/prisma";
 import { redirect } from "next/navigation";
@@ -40,6 +39,7 @@ import {
   getFeedbackEntries,
   getHomepageContentAdmin,
 } from "@/actions/site-content";
+import { AuthenticatedShell } from "@/components/layout/authenticated-shell";
 
 export default async function AgapayTanawPage() {
   const session = await auth();
@@ -80,137 +80,56 @@ export default async function AgapayTanawPage() {
     ? await getHomepageContentAdmin()
     : { faqs: [], testimonials: [] };
   const feedbackEntries = canViewFeedback ? await getFeedbackEntries() : [];
+  const navItems = [
+    { value: "overview", label: "Pangkalahatan", icon: BarChart3 },
+    {
+      value: "approvals",
+      label: "Mga Pag-apruba",
+      icon: FileText,
+      badge: pendingData.loans.length + pendingData.verifications.length,
+    },
+    { value: "members", label: "Mga Miyembro", icon: Users2 },
+    ...(canManageTenantProducts
+      ? [{ value: "products", label: "Produkto ng Loan", icon: Settings2 }]
+      : []),
+    ...(canViewBranchOps
+      ? [
+          {
+            value: "branches",
+            label: isSuperAdmin ? "Global Tenant Mgmt" : "Branch Ops",
+            icon: ShieldAlert,
+          },
+        ]
+      : []),
+    ...(canManageHomepageContent
+      ? [{ value: "content", label: "Homepage Content", icon: FileText }]
+      : []),
+    ...(canViewFeedback
+      ? [{ value: "feedback", label: "Feedback Inbox", icon: AlertTriangle }]
+      : []),
+    { value: "settings", label: "Settings", icon: Settings2 },
+    ...(canViewAuditLogs
+      ? [{ value: "audit", label: "Audit Logs", icon: History }]
+      : []),
+  ];
 
   return (
-    <div className="min-h-screen bg-slate-50/50 p-6 md:p-10">
-      <div className="max-w-7xl mx-auto space-y-8">
-        {/* Header */}
-        <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4">
-          <div className="space-y-1">
-            <h1 className="text-4xl font-display font-bold text-slate-900 tracking-tight italic">
-              Agapay Tanaw Command Center
-            </h1>
-            <p className="text-slate-500 font-sans">
-              {isLender
-                ? "Tenant-level operations, borrower oversight, at trust monitoring."
-                : isAdmin
-                  ? "Tenant-level administration para sa approvals, member safety, at portfolio health."
-                  : "Global oversight para sa tenant cooperatives, fraud monitoring, at system health."}
-            </p>
-          </div>
-          <div className="flex items-center gap-6">
-            <div className="px-4 py-2 bg-emerald-500/10 border border-emerald-500/20 rounded-full flex items-center gap-2 text-emerald-600 shadow-sm">
-              <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-              <span className="text-xs font-bold uppercase tracking-widest whitespace-nowrap">
-                {userRole.toUpperCase()} PORTAL
-              </span>
-            </div>
-            <UserAccountNav name={userName} />
-          </div>
-        </div>
-
-        {/* Main Dashboard Tabs */}
-        <Tabs defaultValue="overview" className="space-y-6">
-          <div className="flex items-center justify-between bg-white/50 backdrop-blur-md p-1.5 border border-slate-200/60 rounded-2xl shadow-sm overflow-x-auto">
-            <TabsList className="bg-transparent border-none">
-              <TabsTrigger
-                value="overview"
-                className="rounded-xl data-[state=active]:bg-slate-900 data-[state=active]:text-white transition-all px-6 py-2.5 flex items-center gap-2"
-              >
-                <BarChart3 className="w-4 h-4" />
-                <span>Pangkalahatan</span>
-              </TabsTrigger>
-
-              <TabsTrigger
-                value="approvals"
-                className="rounded-xl data-[state=active]:bg-slate-900 data-[state=active]:text-white transition-all px-6 py-2.5 flex items-center gap-2"
-              >
-                <FileText className="w-4 h-4" />
-                <span>Mga Pag-apruba</span>
-                {pendingData.loans.length + pendingData.verifications.length >
-                  0 && (
-                  <span className="w-2 h-2 rounded-full bg-rose-500 shadow-[0_0_8px_rgba(244,63,94,0.6)]" />
-                )}
-              </TabsTrigger>
-
-              <TabsTrigger
-                value="members"
-                className="rounded-xl data-[state=active]:bg-slate-900 data-[state=active]:text-white transition-all px-6 py-2.5 flex items-center gap-2"
-              >
-                <Users2 className="w-4 h-4" />
-                <span>Mga Miyembro</span>
-              </TabsTrigger>
-
-              {canManageTenantProducts && (
-                <>
-                  <TabsTrigger
-                    value="products"
-                    className="rounded-xl data-[state=active]:bg-slate-900 data-[state=active]:text-white transition-all px-6 py-2.5 flex items-center gap-2"
-                  >
-                    <Settings2 className="w-4 h-4" />
-                    <span>Produkto ng Loan</span>
-                  </TabsTrigger>
-                  <TabsTrigger
-                    value="branches"
-                    className="rounded-xl data-[state=active]:bg-red-600 data-[state=active]:text-white transition-all px-6 py-2.5 flex items-center gap-2 text-red-600 hover:bg-red-50"
-                  >
-                    <ShieldAlert className="w-4 h-4" />
-                    <span>
-                      {isSuperAdmin ? "Global Tenant Mgmt" : "Branch Ops"}
-                    </span>
-                  </TabsTrigger>
-                </>
-              )}
-              {!canManageTenantProducts && canViewBranchOps && (
-                <TabsTrigger
-                  value="branches"
-                  className="rounded-xl data-[state=active]:bg-red-600 data-[state=active]:text-white transition-all px-6 py-2.5 flex items-center gap-2 text-red-600 hover:bg-red-50"
-                >
-                  <ShieldAlert className="w-4 h-4" />
-                  <span>{isSuperAdmin ? "Global Tenant Mgmt" : "Branch Ops"}</span>
-                </TabsTrigger>
-              )}
-
-              <TabsTrigger
-                value="settings"
-                className="rounded-xl data-[state=active]:bg-slate-900 data-[state=active]:text-white transition-all px-6 py-2.5 flex items-center gap-2"
-              >
-                <Settings2 className="w-4 h-4" />
-                <span>Settings</span>
-              </TabsTrigger>
-
-              {canManageHomepageContent && (
-                <TabsTrigger
-                  value="content"
-                  className="rounded-xl data-[state=active]:bg-slate-900 data-[state=active]:text-white transition-all px-6 py-2.5 flex items-center gap-2"
-                >
-                  <FileText className="w-4 h-4" />
-                  <span>Homepage Content</span>
-                </TabsTrigger>
-              )}
-
-              {canViewFeedback && (
-                <TabsTrigger
-                  value="feedback"
-                  className="rounded-xl data-[state=active]:bg-slate-900 data-[state=active]:text-white transition-all px-6 py-2.5 flex items-center gap-2"
-                >
-                  <AlertTriangle className="w-4 h-4" />
-                  <span>Feedback</span>
-                </TabsTrigger>
-              )}
-
-              {canViewAuditLogs && (
-                <TabsTrigger
-                  value="audit"
-                  className="rounded-xl data-[state=active]:bg-slate-900 data-[state=active]:text-white transition-all px-6 py-2.5 flex items-center gap-2"
-                >
-                  <History className="w-4 h-4" />
-                  <span>Audit Logs</span>
-                </TabsTrigger>
-              )}
-            </TabsList>
-          </div>
-
+    <AuthenticatedShell
+      defaultTab="overview"
+      title="Pangkalahatan"
+      subtitle={
+        isLender
+          ? "Tenant-level operations, borrower oversight, at trust monitoring."
+          : isAdmin
+            ? "Tenant-level administration para sa approvals, member safety, at portfolio health."
+            : "Global oversight para sa tenant cooperatives, fraud monitoring, at system health."
+      }
+      portalLabel={`${userRole} portal`}
+      accountName={userName}
+      accountRole={userRole}
+      navItems={navItems}
+    >
+      <Tabs defaultValue="overview" className="space-y-6">
           <TabsContent value="overview" className="space-y-6 outline-none">
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
               <KPIMetricCard
@@ -376,8 +295,7 @@ export default async function AgapayTanawPage() {
               }
             />
           </TabsContent>
-        </Tabs>
-      </div>
-    </div>
+      </Tabs>
+    </AuthenticatedShell>
   );
 }

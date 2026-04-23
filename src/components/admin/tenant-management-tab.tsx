@@ -77,12 +77,13 @@ export function TenantManagementTab({
       <div className="flex justify-between items-center bg-red-50 p-6 rounded-2xl border border-red-100">
         <div className="flex-1">
           <h3 className="text-xl font-bold text-red-900 flex items-center gap-2">
-            <ShieldAlert className="w-6 h-6" /> Danger Zone: Region Management
+            <ShieldAlert className="w-6 h-6" /> Danger Zone: Pamamahala ng
+            Rehiyon
           </h3>
           <p className="text-sm text-red-700 mt-1">
-            Actions taken here have system-wide consequences. Decommissioning a
-            branch will freeze its operations and generate an emergency
-            snapshot.
+            Ang mga aksyong gagawin dito ay may mga kahihinatnan sa buong
+            sistema. Ang pag-decommission ng isang sangay ay maghihinto sa mga
+            operasyon nito at bubuo ng isang emergency snapshot.
           </p>
         </div>
         {role === "superadmin" && (
