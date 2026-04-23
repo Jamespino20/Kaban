@@ -55,7 +55,7 @@ const SPLIT_SECTIONS = [
     body: "GCash ay magaling para sa payments at transfers, pero hindi ito ginawa para sa Guarantor-backed lending, Trust Score, at Mentorship workflows. Ang Agapay ay para sa relasyong pinansyal, hindi lang sa transaction feed.",
     bullets: [
       "Mock money flow na puwedeng i-verify ng branch staff",
-      "Mas malinaw na support para sa branch release, repayment, at exception handling",
+      "Mas malinaw na support para sa branch release at repayment",
     ],
     image: "/images/agapay_security.png",
     imageAlt: "Agapay cooperative operations",
@@ -262,11 +262,10 @@ export default function Home() {
             <h1
               className={`text-6xl md:text-8xl font-display font-black tracking-tight italic mb-8 leading-[0.95] transition-colors duration-500 ${isScrolled ? "text-slate-950" : "text-white"}`}
             >
-              Hindi lang ito
+              Iyong Agapay,
               <span className="block text-emerald-600 drop-shadow-sm">
-                alternative sa GCash.
+                Ating Tagumpay
               </span>
-              Ito ang Agapay para sa cooperative lending.
             </h1>
             <p
               className={`text-xl md:text-2xl font-medium mb-12 leading-relaxed max-w-3xl transition-colors duration-500 ${isScrolled ? "text-slate-700" : "text-white/85"}`}
@@ -300,8 +299,7 @@ export default function Home() {
                 Bakit mas bagay ang Agapay sa cooperative lending?
               </h2>
               <p className="text-slate-500 max-w-3xl mx-auto font-medium text-lg text-balance">
-                Ang GCash ay mahusay para sa mabilis na payments, pero ang
-                Agapay ay ginawa para sa branch operations, Trust Score,
+                Ang Agapay ay ginawa para sa branch operations, Trust Score,
                 Guarantor-backed loans, at mas makataong lending support.
               </p>
             </div>
