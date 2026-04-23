@@ -41,8 +41,7 @@ const FEATURE_CARDS = [
 const SPLIT_SECTIONS = [
   {
     title: "Transparent Tracking sa iyong palad",
-    body:
-      "Sa Agapay, kita ang balance, due dates, repayment history, at verification status sa isang malinaw na Dashboard. Hindi ito static na app na bahala ka na sa paghahanap ng detalye.",
+    body: "Sa Agapay, kita ang balance, due dates, repayment history, at verification status sa isang malinaw na Dashboard. Hindi ito static na app na bahala ka na sa paghahanap ng detalye.",
     bullets: [
       "Real-time status ng application, release, at repayment",
       "Statement of Account at digital receipts na madaling balikan",
@@ -53,8 +52,7 @@ const SPLIT_SECTIONS = [
   },
   {
     title: "Mas angkop sa cooperative lending kaysa sa generic wallet apps",
-    body:
-      "GCash ay magaling para sa payments at transfers, pero hindi ito ginawa para sa Guarantor-backed lending, Trust Score, at Mentorship workflows. Ang Agapay ay para sa relasyong pinansyal, hindi lang sa transaction feed.",
+    body: "GCash ay magaling para sa payments at transfers, pero hindi ito ginawa para sa Guarantor-backed lending, Trust Score, at Mentorship workflows. Ang Agapay ay para sa relasyong pinansyal, hindi lang sa transaction feed.",
     bullets: [
       "Mock money flow na puwedeng i-verify ng branch staff",
       "Mas malinaw na support para sa branch release, repayment, at exception handling",
@@ -273,9 +271,10 @@ export default function Home() {
             <p
               className={`text-xl md:text-2xl font-medium mb-12 leading-relaxed max-w-3xl transition-colors duration-500 ${isScrolled ? "text-slate-700" : "text-white/85"}`}
             >
-              Filipino-first na lending platform na may <strong>Guarantors</strong>,
-              <strong> Trust Score</strong>, <strong>Mentorship</strong>, at
-              mas malinaw na records para sa mga miyembro, admin, at cooperative branches.
+              Filipino-first na lending platform na may{" "}
+              <strong>Guarantors</strong>,<strong> Trust Score</strong>,{" "}
+              <strong>Mentorship</strong>, at mas malinaw na records para sa mga
+              miyembro, admin, at cooperative branches.
             </p>
             <div className="flex flex-wrap gap-4">
               <AuthModal />
@@ -301,9 +300,9 @@ export default function Home() {
                 Bakit mas bagay ang Agapay sa cooperative lending?
               </h2>
               <p className="text-slate-500 max-w-3xl mx-auto font-medium text-lg text-balance">
-                Ang GCash ay mahusay para sa mabilis na payments, pero ang Agapay ay
-                ginawa para sa branch operations, Trust Score, Guarantor-backed loans,
-                at mas makataong lending support.
+                Ang GCash ay mahusay para sa mabilis na payments, pero ang
+                Agapay ay ginawa para sa branch operations, Trust Score,
+                Guarantor-backed loans, at mas makataong lending support.
               </p>
             </div>
 
@@ -390,15 +389,18 @@ export default function Home() {
                 Mula sa komunidad ng Agapay
               </h2>
               <p className="text-emerald-200/80 max-w-2xl mx-auto font-medium text-lg">
-                Pakinggan ang mga kuwento ng mga negosyanteng mas gusto ang malinaw,
-                guided, at community-aware na lending experience.
+                Pakinggan ang mga kuwento ng mga negosyanteng mas gusto ang
+                malinaw, guided, at community-aware na lending experience.
               </p>
             </div>
 
             <div className="relative w-full overflow-hidden flex [mask-image:linear-gradient(to_right,transparent,black_10%,black_90%,transparent)]">
               <div className="flex w-max animate-scroll hover:animation-paused">
                 {[...TESTIMONIALS, ...TESTIMONIALS].map((testimonial, idx) => (
-                  <TestimonialCard key={`${testimonial.name}-${idx}`} t={testimonial} />
+                  <TestimonialCard
+                    key={`${testimonial.name}-${idx}`}
+                    t={testimonial}
+                  />
                 ))}
               </div>
             </div>
@@ -436,8 +438,8 @@ export default function Home() {
                 </h2>
                 <p className="text-xl md:text-2xl font-medium text-emerald-50 mb-14 max-w-3xl opacity-90 leading-relaxed text-balance">
                   Para sa school-project prototype na ito, malinaw ang layunin:
-                  hindi lang mabilis, kundi mas maaasahan, mas explainable, at mas
-                  makatao kaysa sa static na wallet experience.
+                  hindi lang mabilis, kundi mas maaasahan, mas explainable, at
+                  mas makatao kaysa sa static na wallet experience.
                 </p>
                 <div className="flex flex-wrap gap-6 justify-center">
                   <AuthModal />
@@ -561,15 +563,11 @@ function HomeLoanCalculator() {
     );
   }, [selectedOffer]);
 
-  const processingFee = Math.max(50, amount * 0.02);
+  const processingFee = Math.max(50, amount * 0.03);
   const totalInterest = amount * selectedOffer.monthlyRate * term;
   const totalPayable = amount + totalInterest + processingFee;
   const paymentCount =
-    cadence === "daily"
-      ? term * 26
-      : cadence === "weekly"
-        ? term * 4
-        : term;
+    cadence === "daily" ? term * 26 : cadence === "weekly" ? term * 4 : term;
   const cadenceLabel =
     cadence === "daily"
       ? "kada araw ng negosyo"
@@ -601,8 +599,12 @@ function HomeLoanCalculator() {
                   <div className="mb-2 inline-flex rounded-full bg-white px-2.5 py-1 text-[10px] font-bold uppercase tracking-widest text-emerald-700">
                     {offer.badge}
                   </div>
-                  <p className="text-sm font-black text-slate-900">{offer.name}</p>
-                  <p className="mt-1 text-xs text-slate-500">{offer.description}</p>
+                  <p className="text-sm font-black text-slate-900">
+                    {offer.name}
+                  </p>
+                  <p className="mt-1 text-xs text-slate-500">
+                    {offer.description}
+                  </p>
                 </button>
               ))}
             </div>
@@ -657,24 +659,26 @@ function HomeLoanCalculator() {
               Payment cadence
             </label>
             <div className="grid grid-cols-3 gap-3">
-              {(["daily", "weekly", "monthly"] as PaymentCadence[]).map((option) => (
-                <button
-                  key={option}
-                  type="button"
-                  onClick={() => setCadence(option)}
-                  className={`rounded-2xl border px-4 py-3 text-sm font-bold transition-all ${
-                    cadence === option
-                      ? "border-emerald-500 bg-emerald-50 text-emerald-700"
-                      : "border-slate-200 text-slate-600 hover:border-emerald-200"
-                  }`}
-                >
-                  {option === "daily"
-                    ? "Daily"
-                    : option === "weekly"
-                      ? "Weekly"
-                      : "Monthly"}
-                </button>
-              ))}
+              {(["daily", "weekly", "monthly"] as PaymentCadence[]).map(
+                (option) => (
+                  <button
+                    key={option}
+                    type="button"
+                    onClick={() => setCadence(option)}
+                    className={`rounded-2xl border px-4 py-3 text-sm font-bold transition-all ${
+                      cadence === option
+                        ? "border-emerald-500 bg-emerald-50 text-emerald-700"
+                        : "border-slate-200 text-slate-600 hover:border-emerald-200"
+                    }`}
+                  >
+                    {option === "daily"
+                      ? "Daily"
+                      : option === "weekly"
+                        ? "Weekly"
+                        : "Monthly"}
+                  </button>
+                ),
+              )}
             </div>
           </div>
         </div>
@@ -705,18 +709,12 @@ function HomeLoanCalculator() {
           <hr className="border-slate-200" />
 
           <div className="grid grid-cols-2 gap-4">
-            <CalculatorMetric
-              label="Principal"
-              value={amount}
-            />
+            <CalculatorMetric label="Principal" value={amount} />
             <CalculatorMetric
               label={`Interest (${(selectedOffer.monthlyRate * 100).toFixed(1)}% / month)`}
               value={totalInterest}
             />
-            <CalculatorMetric
-              label="Processing Fee"
-              value={processingFee}
-            />
+            <CalculatorMetric label="Processing Fee" value={processingFee} />
             <CalculatorMetric
               label="Kabuuang babayaran"
               value={totalPayable}
@@ -728,24 +726,27 @@ function HomeLoanCalculator() {
             <div className="flex items-start gap-3">
               <CreditCard className="w-5 h-5 text-emerald-600 mt-0.5" />
               <p className="text-sm text-slate-600">
-                <strong className="text-slate-900">Mock money flow:</strong> sa prototype,
-                ang release at repayment ay puwedeng gawin sa branch cashier,
-                GCash transfer, bank transfer, o field collection. Ang Agapay ang
-                nagtatala at nagve-verify ng records.
+                <strong className="text-slate-900">Mock money flow:</strong> sa
+                prototype, ang release at repayment ay puwedeng gawin sa branch
+                cashier, GCash transfer, bank transfer, o field collection. Ang
+                Agapay ang nagtatala at nagve-verify ng records.
               </p>
             </div>
             <div className="flex items-start gap-3">
               <Users className="w-5 h-5 text-emerald-600 mt-0.5" />
               <p className="text-sm text-slate-600">
-                Para sa ilang Loan Product, mahalaga ang <strong className="text-slate-900">Guarantors</strong>,
-                malinaw na branch review, at mas suportadong <strong className="text-slate-900">Mentorship</strong>.
+                Para sa ilang Loan Product, mahalaga ang{" "}
+                <strong className="text-slate-900">Guarantors</strong>, malinaw
+                na branch review, at mas suportadong{" "}
+                <strong className="text-slate-900">Mentorship</strong>.
               </p>
             </div>
           </div>
 
           <p className="text-[11px] text-slate-400 font-medium">
-            Demo estimate ito para sa homepage. Ang actual approval, fees, at cadence
-            ay maaaring magbago depende sa branch policy, Trust Score, at admin review.
+            Demo estimate ito para sa homepage. Ang actual approval, fees, at
+            cadence ay maaaring magbago depende sa branch policy, Trust Score,
+            at admin review.
           </p>
         </div>
       </div>
@@ -764,8 +765,12 @@ function CalculatorMetric({
 }) {
   return (
     <div>
-      <span className="text-xs text-slate-400 font-bold uppercase">{label}</span>
-      <p className={`text-lg font-black ${emphasize ? "text-emerald-700" : "text-slate-800"}`}>
+      <span className="text-xs text-slate-400 font-bold uppercase">
+        {label}
+      </span>
+      <p
+        className={`text-lg font-black ${emphasize ? "text-emerald-700" : "text-slate-800"}`}
+      >
         ₱
         {value.toLocaleString(undefined, {
           minimumFractionDigits: 2,
