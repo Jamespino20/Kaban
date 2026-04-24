@@ -113,95 +113,98 @@ export async function payLoanWithWallet(loanId: number, amount: number) {
   if (amount <= 0) return { error: "Halaga ay dapat positibo." };
 
   try {
-    const result = await prisma.$transaction(async (tx) => {
-      // 1. Get wallet
-      const wallet = await tx.savingsAccount.findFirst({
-        where: {
-          user_id: userId,
-          tenant_id: tenantId || undefined,
-          account_type: PERSONAL_WALLET as any,
-        },
-      });
-
-      if (!wallet || Number(wallet.balance) < amount) {
-        throw new Error("Kulang ang pondo sa iyong wallet.");
-      }
-
-      // 2. Deduct from wallet
-      await tx.savingsAccount.update({
-        where: { account_id: wallet.account_id },
-        data: {
-          balance: { decrement: new Prisma.Decimal(amount) },
-        },
-      });
-
-      // 3. Create wallet debit transaction
-      await tx.savingsTransaction.create({
-        data: {
-          account_id: wallet.account_id,
-          transaction_type: "withdrawal" as any,
-          amount: new Prisma.Decimal(amount),
-          reference: `LOAN-PAY-${loanId}-${Date.now()}`,
-          processed_by: userId,
-        },
-      });
-
-      // 4. Update Loan Schedules (Atomic payment)
-      const schedules = await tx.loanSchedule.findMany({
-        where: {
-          loan_id: loanId,
-          status: { in: [ScheduleStatus.pending, ScheduleStatus.overdue] },
-        },
-        orderBy: { installment_number: "asc" },
-      });
-
-      let remaining = amount;
-      for (const schedule of schedules) {
-        const scheduleDue = Number(schedule.total_due);
-        if (remaining + 0.01 < scheduleDue) break;
-
-        await tx.loanSchedule.update({
-          where: { schedule_id: schedule.schedule_id },
-          data: {
-            status: ScheduleStatus.paid,
-            paid_at: new Date(),
+    const result = await prisma.$transaction(
+      async (tx) => {
+        // 1. Get wallet
+        const wallet = await tx.savingsAccount.findFirst({
+          where: {
+            user_id: userId,
+            tenant_id: tenantId || undefined,
+            account_type: PERSONAL_WALLET as any,
           },
         });
-        remaining -= scheduleDue;
-      }
 
-      // 5. Update loan balance
-      await tx.loan.update({
-        where: { loan_id: loanId },
-        data: {
-          balance_remaining: {
-            decrement: new Prisma.Decimal(amount - remaining),
-          },
-        },
-      });
+        if (!wallet || Number(wallet.balance) < amount) {
+          throw new Error("Kulang ang pondo sa iyong wallet.");
+        }
 
-      // 6. Post Ledger Entry (Double-Entry truth)
-      await postLedgerEntry(tx, {
-        description: `Loan Repayment via Wallet: Loan #${loanId}`,
-        createdBy: userId,
-        loanId: loanId,
-        metadata: { source: "wallet", walletId: wallet.account_id },
-        entries: [
-          {
-            accountCode: "MEMBER_SAVINGS",
-            debit: amount - remaining,
-            credit: 0,
+        // 2. Deduct from wallet
+        await tx.savingsAccount.update({
+          where: { account_id: wallet.account_id },
+          data: {
+            balance: { decrement: new Prisma.Decimal(amount) },
           },
-          {
-            accountCode: "LOAN_RECEIVABLES",
-            debit: 0,
-            credit: amount - remaining,
-          },
-        ],
-      });
+        });
 
-      return { success: true };
-    });
+        // 3. Create wallet debit transaction
+        await tx.savingsTransaction.create({
+          data: {
+            account_id: wallet.account_id,
+            transaction_type: "withdrawal" as any,
+            amount: new Prisma.Decimal(amount),
+            reference: `LOAN-PAY-${loanId}-${Date.now()}`,
+            processed_by: userId,
+          },
+        });
+
+        // 4. Update Loan Schedules (Atomic payment)
+        const schedules = await tx.loanSchedule.findMany({
+          where: {
+            loan_id: loanId,
+            status: { in: [ScheduleStatus.pending, ScheduleStatus.overdue] },
+          },
+          orderBy: { installment_number: "asc" },
+        });
+
+        let remaining = amount;
+        for (const schedule of schedules) {
+          const scheduleDue = Number(schedule.total_due);
+          if (remaining + 0.01 < scheduleDue) break;
+
+          await tx.loanSchedule.update({
+            where: { schedule_id: schedule.schedule_id },
+            data: {
+              status: ScheduleStatus.paid,
+              paid_at: new Date(),
+            },
+          });
+          remaining -= scheduleDue;
+        }
+
+        // 5. Update loan balance
+        await tx.loan.update({
+          where: { loan_id: loanId },
+          data: {
+            balance_remaining: {
+              decrement: new Prisma.Decimal(amount - remaining),
+            },
+          },
+        });
+
+        // 6. Post Ledger Entry (Double-Entry truth)
+        await postLedgerEntry(tx, {
+          description: `Loan Repayment via Wallet: Loan #${loanId}`,
+          createdBy: userId,
+          loanId: loanId,
+          metadata: { source: "wallet", walletId: wallet.account_id },
+          entries: [
+            {
+              accountCode: "MEMBER_SAVINGS",
+              debit: amount - remaining,
+              credit: 0,
+            },
+            {
+              accountCode: "LOAN_RECEIVABLES",
+              debit: 0,
+              credit: amount - remaining,
+            },
+          ],
+        });
+
+        return { success: true };
+      },
+      { timeout: 10000 },
+    );
 
     revalidatePath("/agapay-pintig");
     return { success: "Matagumpay na nakapagbayad gamit ang iyong wallet." };

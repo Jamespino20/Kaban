@@ -197,82 +197,85 @@ export async function releaseLoanFunds(
       return { error: "Invalid release method for this branch." };
     }
 
-    await prisma.$transaction(async (tx) => {
-      const existingSchedules = await tx.loanSchedule.count({
-        where: { loan_id: loanId },
-      });
-
-      if (existingSchedules === 0) {
-        const quote = computeLoanQuote({
-          principalAmount: Number(loan.principal_amount),
-          termMonths: loan.term_months,
-          monthlyRatePercent: Number(loan.product.interest_rate_percent),
-          frequency: (loan as any).repayment_frequency,
+    await prisma.$transaction(
+      async (tx) => {
+        const existingSchedules = await tx.loanSchedule.count({
+          where: { loan_id: loanId },
         });
 
-        await tx.loanSchedule.createMany({
-          data: buildRepaymentSchedule({
-            loanId: loan.loan_id,
-            approvedAt: loan.approved_at ?? new Date(),
-            termMonths: loan.term_months,
+        if (existingSchedules === 0) {
+          const quote = computeLoanQuote({
             principalAmount: Number(loan.principal_amount),
-            totalInterest: quote.totalInterest,
-            processingFee: quote.processingFee,
+            termMonths: loan.term_months,
+            monthlyRatePercent: Number(loan.product.interest_rate_percent),
             frequency: (loan as any).repayment_frequency,
-          }),
-        });
-      }
+          });
 
-      await tx.loan.update({
-        where: { loan_id: loanId },
-        data: {
-          status: "active",
-          approved_by: session.user.user_id,
-          approved_at: loan.approved_at ?? new Date(),
-        },
-      });
+          await tx.loanSchedule.createMany({
+            data: buildRepaymentSchedule({
+              loanId: loan.loan_id,
+              approvedAt: loan.approved_at ?? new Date(),
+              termMonths: loan.term_months,
+              principalAmount: Number(loan.principal_amount),
+              totalInterest: quote.totalInterest,
+              processingFee: quote.processingFee,
+              frequency: (loan as any).repayment_frequency,
+            }),
+          });
+        }
 
-      await tx.auditLog.create({
-        data: {
-          tenant_id: loan.tenant_id,
-          user_id: session.user.user_id,
-          action: "LOAN_RELEASED",
-          entity_type: "Loan",
-          entity_id: loanId,
-          new_values: {
+        await tx.loan.update({
+          where: { loan_id: loanId },
+          data: {
             status: "active",
-            release_method: paymentMethod.provider_name,
-            release_reference: releaseReference,
-            notes,
-            compassion_policy: getCompassionPolicyCopy(),
-            mockFlow: true,
+            approved_by: session.user.user_id,
+            approved_at: loan.approved_at ?? new Date(),
           },
-        },
-      });
+        });
 
-      // Post initial Principal to Ledger
-      await postLedgerEntry(tx, {
-        description: `Loan Release: ${loan.loan_reference}`,
-        createdBy: session.user.user_id,
-        loanId: loanId,
-        metadata: {
-          method: paymentMethod.provider_name,
-          reference: releaseReference,
-        },
-        entries: [
-          {
-            accountCode: "LOAN_RECEIVABLES",
-            debit: Number(loan.principal_amount),
-            credit: 0,
+        await tx.auditLog.create({
+          data: {
+            tenant_id: loan.tenant_id,
+            user_id: session.user.user_id,
+            action: "LOAN_RELEASED",
+            entity_type: "Loan",
+            entity_id: loanId,
+            new_values: {
+              status: "active",
+              release_method: paymentMethod.provider_name,
+              release_reference: releaseReference,
+              notes,
+              compassion_policy: getCompassionPolicyCopy(),
+              mockFlow: true,
+            },
           },
-          {
-            accountCode: "CASH_EQUIVALENTS",
-            debit: 0,
-            credit: Number(loan.principal_amount),
+        });
+
+        // Post initial Principal to Ledger
+        await postLedgerEntry(tx, {
+          description: `Loan Release: ${loan.loan_reference}`,
+          createdBy: session.user.user_id,
+          loanId: loanId,
+          metadata: {
+            method: paymentMethod.provider_name,
+            reference: releaseReference,
           },
-        ],
-      });
-    });
+          entries: [
+            {
+              accountCode: "LOAN_RECEIVABLES",
+              debit: Number(loan.principal_amount),
+              credit: 0,
+            },
+            {
+              accountCode: "CASH_EQUIVALENTS",
+              debit: 0,
+              credit: Number(loan.principal_amount),
+            },
+          ],
+        });
+      },
+      { timeout: 10000 },
+    );
 
     revalidatePath("/agapay-tanaw");
     revalidatePath("/agapay-pintig");
@@ -424,105 +427,108 @@ export async function verifySubmittedPayment(
       return { error: "Payment is no longer pending." };
     }
 
-    await prisma.$transaction(async (tx) => {
-      await syncOverdueSchedules(tx, payment.loan_id);
+    await prisma.$transaction(
+      async (tx) => {
+        await syncOverdueSchedules(tx, payment.loan_id);
 
-      const refreshedLoan = await tx.loan.findUnique({
-        where: { loan_id: payment.loan_id },
-        include: {
-          schedules: {
-            where: {
-              status: {
-                in: [ScheduleStatus.pending, ScheduleStatus.overdue],
+        const refreshedLoan = await tx.loan.findUnique({
+          where: { loan_id: payment.loan_id },
+          include: {
+            schedules: {
+              where: {
+                status: {
+                  in: [ScheduleStatus.pending, ScheduleStatus.overdue],
+                },
               },
+              orderBy: { installment_number: "asc" },
             },
-            orderBy: { installment_number: "asc" },
-          },
-        },
-      });
-
-      if (!refreshedLoan) {
-        throw new Error("Loan not found during payment verification.");
-      }
-
-      await tx.payment.update({
-        where: { payment_id: paymentId },
-        data: {
-          status: PaymentStatus.verified,
-          verified_at: new Date(),
-          verified_by: session.user.user_id,
-          notes: notes || payment.notes,
-        },
-      });
-
-      let remaining = Number(payment.amount_paid);
-      for (const schedule of refreshedLoan.schedules) {
-        const scheduleDue = Number(schedule.total_due);
-        if (remaining + 0.01 < scheduleDue) {
-          break;
-        }
-
-        await tx.loanSchedule.update({
-          where: { schedule_id: schedule.schedule_id },
-          data: {
-            status: ScheduleStatus.paid,
-            paid_at: new Date(),
           },
         });
-        remaining -= scheduleDue;
-      }
 
-      const nextBalance = Math.max(
-        0,
-        Number(refreshedLoan.balance_remaining) - Number(payment.amount_paid),
-      );
+        if (!refreshedLoan) {
+          throw new Error("Loan not found during payment verification.");
+        }
 
-      await tx.loan.update({
-        where: { loan_id: payment.loan_id },
-        data: {
-          balance_remaining: nextBalance,
-          status: nextBalance <= 0 ? "paid" : refreshedLoan.status,
-        },
-      });
-
-      await postLedgerEntry(tx, {
-        description: `Loan Repayment: ${payment.loan.loan_reference} via ${payment.payment_method.provider_name}`,
-        createdBy: session.user.user_id,
-        loanId: payment.loan_id,
-        metadata: {
-          paymentId: payment.payment_id,
-          method: payment.payment_method.provider_name,
-        },
-        entries: [
-          {
-            accountCode: "CASH_EQUIVALENTS",
-            debit: Number(payment.amount_paid),
-            credit: 0,
+        await tx.payment.update({
+          where: { payment_id: paymentId },
+          data: {
+            status: PaymentStatus.verified,
+            verified_at: new Date(),
+            verified_by: session.user.user_id,
+            notes: notes || payment.notes,
           },
-          {
-            accountCode: "LOAN_RECEIVABLES",
-            debit: 0,
-            credit: Number(payment.amount_paid),
-          },
-        ],
-      });
+        });
 
-      await tx.auditLog.create({
-        data: {
-          tenant_id: payment.loan.tenant_id,
-          user_id: session.user.user_id,
-          action: "PAYMENT_VERIFIED",
-          entity_type: "Payment",
-          entity_id: paymentId,
-          new_values: {
-            amount: Number(payment.amount_paid),
-            payment_method: payment.payment_method.provider_name,
-            notes,
-            mockFlow: true,
+        let remaining = Number(payment.amount_paid);
+        for (const schedule of refreshedLoan.schedules) {
+          const scheduleDue = Number(schedule.total_due);
+          if (remaining + 0.01 < scheduleDue) {
+            break;
+          }
+
+          await tx.loanSchedule.update({
+            where: { schedule_id: schedule.schedule_id },
+            data: {
+              status: ScheduleStatus.paid,
+              paid_at: new Date(),
+            },
+          });
+          remaining -= scheduleDue;
+        }
+
+        const nextBalance = Math.max(
+          0,
+          Number(refreshedLoan.balance_remaining) - Number(payment.amount_paid),
+        );
+
+        await tx.loan.update({
+          where: { loan_id: payment.loan_id },
+          data: {
+            balance_remaining: nextBalance,
+            status: nextBalance <= 0 ? "paid" : refreshedLoan.status,
           },
-        },
-      });
-    });
+        });
+
+        await postLedgerEntry(tx, {
+          description: `Loan Repayment: ${payment.loan.loan_reference} via ${payment.payment_method.provider_name}`,
+          createdBy: session.user.user_id,
+          loanId: payment.loan_id,
+          metadata: {
+            paymentId: payment.payment_id,
+            method: payment.payment_method.provider_name,
+          },
+          entries: [
+            {
+              accountCode: "CASH_EQUIVALENTS",
+              debit: Number(payment.amount_paid),
+              credit: 0,
+            },
+            {
+              accountCode: "LOAN_RECEIVABLES",
+              debit: 0,
+              credit: Number(payment.amount_paid),
+            },
+          ],
+        });
+
+        await tx.auditLog.create({
+          data: {
+            tenant_id: payment.loan.tenant_id,
+            user_id: session.user.user_id,
+            action: "PAYMENT_VERIFIED",
+            entity_type: "Payment",
+            entity_id: paymentId,
+            new_values: {
+              amount: Number(payment.amount_paid),
+              payment_method: payment.payment_method.provider_name,
+              notes,
+              mockFlow: true,
+            },
+          },
+        });
+      },
+      { timeout: 10000 },
+    );
 
     revalidatePath("/agapay-pintig");
     revalidatePath("/agapay-tanaw");
