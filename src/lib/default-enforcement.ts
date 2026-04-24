@@ -130,7 +130,7 @@ async function createRecoveryLoan(
   return recoveryLoan;
 }
 
-async function enforceLoanDefault(
+export async function enforceLoanDefault(
   tx: Prisma.TransactionClient,
   loanId: number,
   actorUserId?: number,
@@ -152,7 +152,11 @@ async function enforceLoanDefault(
     },
   });
 
-  if (!loan || loan.status === LoanStatus.paid || loan.status === LoanStatus.rejected) {
+  if (
+    !loan ||
+    loan.status === LoanStatus.paid ||
+    loan.status === LoanStatus.rejected
+  ) {
     return [];
   }
 
@@ -244,7 +248,9 @@ async function enforceLoanDefault(
     });
   }
 
-  const uncoveredAmount = roundMoney(Math.max(0, borrowerExposure - recoveredTotal));
+  const uncoveredAmount = roundMoney(
+    Math.max(0, borrowerExposure - recoveredTotal),
+  );
   if (uncoveredAmount > 0) {
     await createRecoveryLoan(tx, {
       sourceLoan: {
@@ -284,7 +290,9 @@ export async function runAutomatedDefaultEnforcement(params: {
 }) {
   const today = startOfToday();
   const cutoffDate = new Date(today);
-  cutoffDate.setDate(cutoffDate.getDate() - MICROFINANCE_POLICY.gracePeriodDays);
+  cutoffDate.setDate(
+    cutoffDate.getDate() - MICROFINANCE_POLICY.gracePeriodDays,
+  );
 
   const prismaLoanClient = prisma.loan as unknown as {
     findMany: (args: unknown) => Promise<Array<{ loan_id: number }>>;

@@ -7,6 +7,7 @@ import {
 export const MICROFINANCE_POLICY = {
   minAmount: 5_000,
   maxAmount: 100_000,
+  maxBranchMembershipsPerUser: 3,
   minTermMonths: 3,
   maxTermMonths: 12,
   minGuarantors: 1,
@@ -17,6 +18,8 @@ export const MICROFINANCE_POLICY = {
   missedPenaltyCapRate: 0.2,
   gracePeriodDays: 14,
   compassionActionsPerLoanCycle: 1,
+  overindebtedExposureRate: 0.8,
+  maxConcurrentLoansAcrossBranches: 2,
 } as const;
 
 export interface TierPolicy {
@@ -348,6 +351,65 @@ export function validateLoanRequestAgainstPolicy({
   }
 
   return null;
+}
+
+export function validateBranchMembershipLimit(membershipCount: number) {
+  if (membershipCount > MICROFINANCE_POLICY.maxBranchMembershipsPerUser) {
+    return `A non-superadmin account may hold at most ${MICROFINANCE_POLICY.maxBranchMembershipsPerUser} branch memberships.`;
+  }
+
+  return null;
+}
+
+export function evaluateOverindebtedness({
+  tier,
+  totalOutstandingBalance,
+  activeLoanCount,
+  overdueLoanCount,
+  defaultedLoanCount,
+}: {
+  tier: InterestTier | null | undefined;
+  totalOutstandingBalance: number;
+  activeLoanCount: number;
+  overdueLoanCount: number;
+  defaultedLoanCount: number;
+}) {
+  const tierPolicy = getTierPolicy(tier);
+  const exposureCap = roundMoney(
+    tierPolicy.capAmount * MICROFINANCE_POLICY.overindebtedExposureRate,
+  );
+
+  if (defaultedLoanCount > 0) {
+    return {
+      blocked: true,
+      reason:
+        "May defaulted loan record ka pa sa system. Kailangan muna itong ma-resolve bago makapag-apply muli.",
+    };
+  }
+
+  if (overdueLoanCount > 0) {
+    return {
+      blocked: true,
+      reason:
+        "May overdue repayment ka pa sa isa sa iyong branch accounts. Ayusin muna ito bago makapag-apply ng bagong loan.",
+    };
+  }
+
+  if (activeLoanCount >= MICROFINANCE_POLICY.maxConcurrentLoansAcrossBranches) {
+    return {
+      blocked: true,
+      reason: `Maximum of ${MICROFINANCE_POLICY.maxConcurrentLoansAcrossBranches} concurrent loans only ang pinapayagan sa lahat ng branch accounts mo.`,
+    };
+  }
+
+  if (totalOutstandingBalance >= exposureCap) {
+    return {
+      blocked: true,
+      reason: `Lumampas na ang kabuuang outstanding balance mo sa safe exposure threshold para sa ${tierPolicy.label} tier. Bayaran muna ang bahagi ng kasalukuyang utang bago mag-apply uli.`,
+    };
+  }
+
+  return { blocked: false as const };
 }
 
 export function roundMoney(value: number) {

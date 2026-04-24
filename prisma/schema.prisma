@@ -33,6 +33,9 @@ model Tenant {
   transfers_out          BranchTransferRequest[] @relation("TransferOut")
   transfers_in           BranchTransferRequest[] @relation("TransferIn")
   decommissioned_backups DecommissionedBackup[]
+  conversations          Conversation[]
+  mentorship_connections MentorshipConnection[]
+  notifications          Notification[]
   products               LoanProduct[]
   loans                  Loan[]
   messages               Message[]
@@ -62,11 +65,14 @@ model User {
   created_at              DateTime                @default(now())
   updated_at              DateTime                @updatedAt
   audit_logs              AuditLog[]
+  created_conversations   Conversation[]          @relation("ConversationCreator")
+  conversation_participants ConversationParticipant[]
   transfer_requests       BranchTransferRequest[]
   guarantees              LoanGuarantee[]         @relation("Guarantor")
   approved_loans          Loan[]                  @relation("ApprovedLoans")
   loans                   Loan[]                  @relation("UserLoans")
   sent_messages           Message[]               @relation("SentMessages")
+  message_reactions       MessageReaction[]
   verified_payments       Payment[]               @relation("VerifiedPayments")
   savings_accounts        SavingsAccount[]
   processed_savings       SavingsTransaction[]    @relation("ProcessedSavings")
@@ -75,6 +81,10 @@ model User {
   two_factor_auth         TwoFactorAuth?
   documents               UserDocument[]
   feedback_entries        FeedbackEntry[]
+  requested_mentorships   MentorshipConnection[]   @relation("MentorshipRequester")
+  received_mentorships    MentorshipConnection[]   @relation("MentorshipMentor")
+  endorsed_mentorships    MentorshipConnection[]   @relation("MentorshipEndorser")
+  notifications           Notification[]          @relation("NotificationRecipient")
   requested_compassions   CompassionAction[]      @relation("RequestedCompassion")
   approved_compassions    CompassionAction[]      @relation("ApprovedCompassion")
   profile                 UserProfile?
@@ -186,6 +196,7 @@ model Loan {
   payments             Payment[]
   recovery_parent      Loan?              @relation("RecoveryChain", fields: [recovery_parent_loan_id], references: [loan_id])
   recovery_children    Loan[]             @relation("RecoveryChain")
+  ledger_entries       BusinessLedger[]
 
   @@map("loans")
 }
@@ -375,14 +386,125 @@ model TwoFactorToken {
 model Message {
   id           String   @id @default(cuid())
   tenant_id    Int
+  conversation_id String
+  reply_to_id   String?
   sender_id    Int
   content      String
   is_broadcast Boolean  @default(false)
   created_at   DateTime @default(now())
+  updated_at   DateTime @updatedAt
+  conversation Conversation @relation(fields: [conversation_id], references: [id], onDelete: Cascade)
+  reply_to     Message?  @relation("MessageReplies", fields: [reply_to_id], references: [id], onDelete: SetNull)
+  replies      Message[] @relation("MessageReplies")
   sender       User     @relation("SentMessages", fields: [sender_id], references: [user_id], onDelete: Cascade)
   tenant       Tenant   @relation(fields: [tenant_id], references: [tenant_id], onDelete: Cascade)
+  attachments  MessageAttachment[]
+  reactions    MessageReaction[]
 
+  @@index([conversation_id, created_at])
   @@map("messages")
+}
+
+model Conversation {
+  id           String                    @id @default(cuid())
+  tenant_id    Int
+  type         ConversationType
+  title        String?                   @db.VarChar(150)
+  slug         String?                   @db.VarChar(100)
+  created_by   Int?
+  created_at   DateTime                  @default(now())
+  updated_at   DateTime                  @updatedAt
+  creator      User?                     @relation("ConversationCreator", fields: [created_by], references: [user_id], onDelete: SetNull)
+  tenant       Tenant                    @relation(fields: [tenant_id], references: [tenant_id], onDelete: Cascade)
+  messages     Message[]
+  participants ConversationParticipant[]
+
+  @@unique([tenant_id, type, slug])
+  @@index([tenant_id, type, updated_at])
+  @@map("conversations")
+}
+
+model ConversationParticipant {
+  id              String       @id @default(cuid())
+  conversation_id String
+  user_id         Int
+  joined_at       DateTime     @default(now())
+  last_read_at    DateTime?
+  conversation    Conversation @relation(fields: [conversation_id], references: [id], onDelete: Cascade)
+  user            User         @relation(fields: [user_id], references: [user_id], onDelete: Cascade)
+
+  @@unique([conversation_id, user_id])
+  @@index([user_id, last_read_at])
+  @@map("conversation_participants")
+}
+
+model MentorshipConnection {
+  id          String           @id @default(cuid())
+  tenant_id   Int
+  requester_id Int
+  mentor_id   Int
+  endorsed_by Int?
+  status      MentorshipStatus @default(pending_endorsement)
+  focus_area  String?          @db.VarChar(150)
+  notes       String?
+  created_at  DateTime         @default(now())
+  endorsed_at DateTime?
+  endorser    User?            @relation("MentorshipEndorser", fields: [endorsed_by], references: [user_id], onDelete: SetNull)
+  mentor      User             @relation("MentorshipMentor", fields: [mentor_id], references: [user_id], onDelete: Cascade)
+  requester   User             @relation("MentorshipRequester", fields: [requester_id], references: [user_id], onDelete: Cascade)
+  tenant      Tenant           @relation(fields: [tenant_id], references: [tenant_id], onDelete: Cascade)
+
+  @@unique([tenant_id, requester_id, mentor_id])
+  @@index([tenant_id, status, created_at])
+  @@map("mentorship_connections")
+}
+
+model MessageAttachment {
+  id          String         @id @default(cuid())
+  message_id  String
+  file_name   String         @db.VarChar(255)
+  file_url    String         @db.VarChar(255)
+  mime_type   String         @db.VarChar(100)
+  size_bytes  Int
+  created_at  DateTime       @default(now())
+  message     Message        @relation(fields: [message_id], references: [id], onDelete: Cascade)
+
+  @@index([message_id, created_at])
+  @@map("message_attachments")
+}
+
+model MessageReaction {
+  id          String   @id @default(cuid())
+  message_id  String
+  user_id     Int
+  emoji       String   @db.VarChar(24)
+  created_at  DateTime @default(now())
+  message     Message  @relation(fields: [message_id], references: [id], onDelete: Cascade)
+  user        User     @relation(fields: [user_id], references: [user_id], onDelete: Cascade)
+
+  @@unique([message_id, user_id, emoji])
+  @@index([user_id, created_at])
+  @@map("message_reactions")
+}
+
+model Notification {
+  id            String             @id @default(cuid())
+  tenant_id     Int?
+  user_id       Int
+  type          NotificationType
+  title         String             @db.VarChar(150)
+  body          String
+  action_url    String?            @db.VarChar(255)
+  channel       NotificationChannel @default(in_app)
+  is_read       Boolean            @default(false)
+  emailed_at    DateTime?
+  created_at    DateTime           @default(now())
+  recipient     User               @relation("NotificationRecipient", fields: [user_id], references: [user_id], onDelete: Cascade)
+  tenant        Tenant?            @relation(fields: [tenant_id], references: [tenant_id], onDelete: SetNull)
+
+  @@index([user_id, is_read, created_at])
+  @@index([tenant_id, type, created_at])
+  @@map("notifications")
 }
 
 model BranchTransferRequest {
@@ -450,13 +572,16 @@ model BusinessLedger {
   id             Int           @id @default(autoincrement())
   transaction_id String        @default(cuid())
   account_id     Int
+  loan_id        Int?          // Link to specific loan for SOA truth
   debit          Decimal       @default(0) @db.Decimal(15, 2)
   credit         Decimal       @default(0) @db.Decimal(15, 2)
   description    String
+  metadata       Json?         // Flexible extra context
   ledger_hash    String?       @db.VarChar(255)
   created_at     DateTime      @default(now())
   created_by     Int?
   account        LedgerAccount @relation(fields: [account_id], references: [id])
+  loan           Loan?         @relation(fields: [loan_id], references: [loan_id])
 
   @@map("business_ledger")
 }
@@ -609,4 +734,32 @@ enum CompassionStatus {
   pending
   approved
   rejected
+}
+
+enum ConversationType {
+  direct
+  branch_room
+  group_chat
+}
+
+enum MentorshipStatus {
+  pending_endorsement
+  endorsed
+  rejected
+}
+
+enum NotificationType {
+  mentorship_request
+  mentorship_endorsed
+  mentorship_rejected
+  direct_message
+  branch_announcement
+  repayment_reminder
+  system_alert
+}
+
+enum NotificationChannel {
+  in_app
+  email
+  both
 }

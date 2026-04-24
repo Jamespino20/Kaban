@@ -14,6 +14,7 @@ import {
   getCompassionPolicyCopy,
   MICROFINANCE_POLICY,
 } from "@/lib/microfinance-policy";
+import { postLedgerEntry } from "./ledger";
 
 const ApproveLoanSchema = z.object({
   loanId: z.number().int().positive(),
@@ -248,6 +249,29 @@ export async function releaseLoanFunds(
           },
         },
       });
+
+      // Post initial Principal to Ledger
+      await postLedgerEntry(tx, {
+        description: `Loan Release: ${loan.loan_reference}`,
+        createdBy: session.user.user_id,
+        loanId: loanId,
+        metadata: {
+          method: paymentMethod.provider_name,
+          reference: releaseReference,
+        },
+        entries: [
+          {
+            accountCode: "LOAN_RECEIVABLES",
+            debit: Number(loan.principal_amount),
+            credit: 0,
+          },
+          {
+            accountCode: "CASH_EQUIVALENTS",
+            debit: 0,
+            credit: Number(loan.principal_amount),
+          },
+        ],
+      });
     });
 
     revalidatePath("/agapay-tanaw");
@@ -461,6 +485,28 @@ export async function verifySubmittedPayment(
         },
       });
 
+      await postLedgerEntry(tx, {
+        description: `Loan Repayment: ${payment.loan.loan_reference} via ${payment.payment_method.provider_name}`,
+        createdBy: session.user.user_id,
+        loanId: payment.loan_id,
+        metadata: {
+          paymentId: payment.payment_id,
+          method: payment.payment_method.provider_name,
+        },
+        entries: [
+          {
+            accountCode: "CASH_EQUIVALENTS",
+            debit: Number(payment.amount_paid),
+            credit: 0,
+          },
+          {
+            accountCode: "LOAN_RECEIVABLES",
+            debit: 0,
+            credit: Number(payment.amount_paid),
+          },
+        ],
+      });
+
       await tx.auditLog.create({
         data: {
           tenant_id: payment.loan.tenant_id,
@@ -538,4 +584,49 @@ export async function rejectSubmittedPayment(
     console.error("rejectSubmittedPayment failed:", error);
     return { error: "Hindi ma-reject ang repayment." };
   }
+}
+
+export async function getLoanStatement(loanId: number) {
+  try {
+    const session = await requireAuthenticatedSession();
+    const ledgerEntries = await prisma.businessLedger.findMany({
+      where: {
+        loan_id: loanId,
+        account: {
+          code: "LOAN_RECEIVABLES",
+        },
+      },
+      orderBy: {
+        created_at: "desc",
+      },
+    });
+
+    return ledgerEntries;
+  } catch (error) {
+    console.error("getLoanStatement failed:", error);
+    return [];
+  }
+}
+
+/**
+ * Derives the true outstanding balance from the general ledger entries.
+ * Satisfies the "SOA balance truth" requirement.
+ */
+export async function recalculateLoanBalanceFromLedger(loanId: number) {
+  const entries = await prisma.businessLedger.findMany({
+    where: {
+      loan_id: loanId,
+      account: {
+        code: "LOAN_RECEIVABLES",
+      },
+    },
+  });
+
+  // For a receivable account: Debit (Increments) - Credit (Decrements)
+  // Principal Release = Debit. Repayment = Credit.
+  const balance = entries.reduce((acc, entry) => {
+    return acc + Number(entry.debit) - Number(entry.credit);
+  }, 0);
+
+  return Math.max(0, balance);
 }

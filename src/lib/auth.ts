@@ -6,6 +6,7 @@ import bcrypt from "bcryptjs";
 import { neon } from "@neondatabase/serverless";
 import { z } from "zod";
 import { getDbUrl } from "@/lib/db-url";
+import { validateBranchMembershipLimit } from "@/lib/microfinance-policy";
 
 class TwoFactorRequiredError extends CredentialsSignin {
   code = "2fa_required";
@@ -81,6 +82,21 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
               );
               if (sameSecret) {
                 accessibleTenantIds.push(account.tenant_id);
+              }
+            }
+
+            if (user.role !== "superadmin") {
+              const branchMembershipError = validateBranchMembershipLimit(
+                accessibleTenantIds.length,
+              );
+
+              if (branchMembershipError) {
+                console.warn(
+                  "Rejected login due to excessive branch memberships",
+                  user.email,
+                  accessibleTenantIds.length,
+                );
+                return null;
               }
             }
 

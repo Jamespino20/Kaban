@@ -142,3 +142,39 @@ export const sendFeedbackNotificationEmail = async ({
     `,
   });
 };
+
+export const sendSystemNotificationEmail = async ({
+  to,
+  subject,
+  title,
+  body,
+  actionUrl,
+}: {
+  to: string;
+  subject: string;
+  title: string;
+  body: string;
+  actionUrl?: string | null;
+}) => {
+  await transporter.sendMail({
+    from: process.env.SMTP_FROM,
+    to,
+    subject,
+    html: `
+      <div style="font-family: sans-serif; max-width: 640px; margin: auto; border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden;">
+        <div style="background-color: #0f172a; padding: 28px; text-align: center;">
+          <h1 style="color: white; margin: 0; font-style: italic;">Agapay</h1>
+        </div>
+        <div style="padding: 32px; color: #1e293b;">
+          <h2 style="margin-top: 0;">${title}</h2>
+          <div style="white-space: pre-line; line-height: 1.65;">${body}</div>
+          ${
+            actionUrl
+              ? `<a href="${actionUrl}" style="display:inline-block; margin-top:24px; padding:12px 20px; background-color:#059669; color:white; text-decoration:none; border-radius:999px; font-weight:700;">Buksan sa Agapay</a>`
+              : ""
+          }
+        </div>
+      </div>
+    `,
+  });
+};

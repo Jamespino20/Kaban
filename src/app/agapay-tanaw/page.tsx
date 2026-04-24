@@ -42,6 +42,8 @@ import {
 } from "@/actions/site-content";
 import { type ShellNavItem } from "@/components/layout/authenticated-shell";
 import { DashboardTabsShell } from "@/components/layout/dashboard-tabs-shell";
+import { getCommunityStaffSummary } from "@/actions/community-actions";
+import { CommunityOperationsTab } from "@/components/admin/community-operations-tab";
 
 export default async function AgapayTanawPage() {
   const session = await auth();
@@ -85,6 +87,7 @@ export default async function AgapayTanawPage() {
     ? await getHomepageContentAdmin()
     : { faqs: [], testimonials: [] };
   const feedbackEntries = canViewFeedback ? await getFeedbackEntries() : [];
+  const communitySummary = await getCommunityStaffSummary();
   const navItems: ShellNavItem[] = [
     { value: "overview", label: "Pangkalahatan", icon: "overview" },
     {
@@ -129,6 +132,12 @@ export default async function AgapayTanawPage() {
   }
 
   navItems.push({
+    value: "community",
+    label: "Community",
+    icon: "community",
+  });
+
+  navItems.push({
     value: "settings",
     label: "Settings",
     icon: "settings",
@@ -168,7 +177,7 @@ export default async function AgapayTanawPage() {
       accountRole={userRole}
       navItems={navItems}
     >
-      <div className="space-y-6">
+      <div className="space-y-5">
         <TabsContent value="overview" className="space-y-6 outline-none">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <KPIMetricCard
@@ -200,13 +209,13 @@ export default async function AgapayTanawPage() {
             />
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <div className="lg:col-span-2 bg-white/70 backdrop-blur-xl p-8 rounded-[2.5rem] border border-slate-200/60 shadow-sm flex flex-col md:flex-row items-center gap-12">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
+            <div className="lg:col-span-2 bg-white/70 backdrop-blur-xl p-6 rounded-[1.75rem] border border-slate-200/60 shadow-sm flex flex-col md:flex-row items-center gap-8">
               <div className="flex-1 text-center md:text-left">
                 <h3 className="text-xl font-display font-bold text-slate-900">
                   Trust Index ng Kooperatiba
                 </h3>
-                <p className="text-slate-500 text-sm mt-1 mb-8">
+                <p className="text-slate-500 text-sm mt-1 mb-6">
                   Kasalukuyang katayuan ng trust network
                 </p>
                 {canViewBranchOps ? (
@@ -245,7 +254,7 @@ export default async function AgapayTanawPage() {
               </div>
             </div>
 
-            <div className="bg-slate-900 p-8 rounded-[2.5rem] text-white flex flex-col justify-between overflow-hidden relative group">
+            <div className="bg-slate-900 p-6 rounded-[1.75rem] text-white flex flex-col justify-between overflow-hidden relative group">
               <div className="relative z-10 space-y-4">
                 <div className="w-12 h-12 rounded-2xl bg-emerald-500 shadow-[0_0_20px_rgba(16,185,129,0.3)] flex items-center justify-center mb-6">
                   <TrendingUp className="w-6 h-6 text-white" />
@@ -282,6 +291,10 @@ export default async function AgapayTanawPage() {
 
         <TabsContent value="members" className="outline-none">
           <MemberDirectoryTab members={members} />
+        </TabsContent>
+
+        <TabsContent value="community" className="outline-none">
+          <CommunityOperationsTab summary={communitySummary} />
         </TabsContent>
 
         {(isAdmin || isSuperAdmin) && (

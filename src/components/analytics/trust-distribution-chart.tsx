@@ -5,10 +5,12 @@ import { cn } from "@/lib/utils";
 
 interface TrustDistributionChartProps {
   distribution: {
-    elite: number;
-    growth: number;
-    starter: number;
-    atRisk: number;
+    t1_5Percent: number;
+    t2_4_5Percent: number;
+    t3_4Percent: number;
+    t4_3_5Percent: number;
+    t5_3Percent: number;
+    overdueMembers: number;
   };
 }
 
@@ -16,31 +18,37 @@ export function TrustDistributionChart({
   distribution,
 }: TrustDistributionChartProps) {
   const total =
-    distribution.elite +
-    distribution.growth +
-    distribution.starter +
-    distribution.atRisk;
+    distribution.t1_5Percent +
+    distribution.t2_4_5Percent +
+    distribution.t3_4Percent +
+    distribution.t4_3_5Percent +
+    distribution.t5_3Percent;
 
   const segments = [
     {
-      label: "Elite (85+)",
-      value: distribution.elite,
-      color: "bg-emerald-500",
+      label: "Starter (5.0%)",
+      value: distribution.t1_5Percent,
+      color: "bg-rose-500",
     },
     {
-      label: "Growth (70-84)",
-      value: distribution.growth,
-      color: "bg-indigo-500",
+      label: "Bridge (4.5%)",
+      value: distribution.t2_4_5Percent,
+      color: "bg-orange-500",
     },
     {
-      label: "Starter (50-69)",
-      value: distribution.starter,
+      label: "Build (4.0%)",
+      value: distribution.t3_4Percent,
       color: "bg-amber-500",
     },
     {
-      label: "At Risk (<50)",
-      value: distribution.atRisk,
-      color: "bg-rose-500",
+      label: "Growth (3.5%)",
+      value: distribution.t4_3_5Percent,
+      color: "bg-indigo-500",
+    },
+    {
+      label: "Elite (3.0%)",
+      value: distribution.t5_3Percent,
+      color: "bg-emerald-500",
     },
   ];
 
@@ -70,12 +78,12 @@ export function TrustDistributionChart({
           <div
             key={i}
             className={cn("h-full transition-all duration-1000", s.color)}
-            style={{ width: `${(s.value / total) * 100}%` }}
+            style={{ width: `${total === 0 ? 0 : (s.value / total) * 100}%` }}
           />
         ))}
       </div>
 
-      <div className="grid grid-cols-2 gap-y-4 gap-x-8">
+      <div className="grid grid-cols-1 gap-y-3 gap-x-8 md:grid-cols-2">
         {segments.map((s: any, i) => (
           <div key={i} className="flex items-center justify-between">
             <div className="flex items-center gap-2">
@@ -85,10 +93,20 @@ export function TrustDistributionChart({
               </span>
             </div>
             <span className="text-[10px] font-bold text-slate-900">
-              {Math.round((s.value / total) * 100)}%
+              {total === 0 ? 0 : Math.round((s.value / total) * 100)}%
             </span>
           </div>
         ))}
+      </div>
+
+      <div className="rounded-2xl border border-rose-100 bg-rose-50 px-4 py-3">
+        <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-rose-600">
+          Overdue Members
+        </p>
+        <p className="mt-1 text-sm font-semibold text-slate-900">
+          {distribution.overdueMembers} miyembro ang may overdue schedules sa
+          kasalukuyan.
+        </p>
       </div>
     </div>
   );

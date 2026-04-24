@@ -74,9 +74,7 @@ export default async function SOAPage({
       (acc: number, p: any) => acc + Number(p.amount_paid),
       0,
     ) || 0;
-  const balance =
-    Number(activeLoan?.balance_remaining || 0) -
-    paidAmount;
+  const balance = Number(activeLoan?.balance_remaining || 0);
 
   return (
     <div className="p-8 font-sans text-slate-900 bg-white min-h-screen">

@@ -4,6 +4,7 @@ import bcrypt from "bcryptjs";
 import { neon } from "@neondatabase/serverless";
 import { requireAuthenticatedSession } from "@/lib/authorization";
 import { getDbUrl } from "@/lib/db-url";
+import { validateBranchMembershipLimit } from "@/lib/microfinance-policy";
 
 export async function getAvailableTenants(username: string, password?: string) {
   try {
@@ -110,16 +111,29 @@ export async function getAvailableTenants(username: string, password?: string) {
 
     if (validTenants.length === 0) return { error: "Invalid credentials" };
 
+    const dedupedTenants = validTenants.filter((tenant, index, self) => {
+      return (
+        index ===
+        self.findIndex(
+          (candidate) => candidate.tenant_id === tenant.tenant_id,
+        )
+      );
+    });
+
+    const primaryRole = dedupedTenants[0]?.role;
+    if (primaryRole && primaryRole !== "superadmin") {
+      const membershipError = validateBranchMembershipLimit(
+        dedupedTenants.filter((tenant) => tenant.tenant_id).length,
+      );
+
+      if (membershipError) {
+        return { error: membershipError };
+      }
+    }
+
     return {
       success: true,
-      tenants: validTenants.filter((tenant, index, self) => {
-        return (
-          index ===
-          self.findIndex(
-            (candidate) => candidate.tenant_id === tenant.tenant_id,
-          )
-        );
-      }),
+      tenants: dedupedTenants,
     };
   } catch (error) {
     console.error("Identity lookup failed:", error);

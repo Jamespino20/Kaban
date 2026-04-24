@@ -22,7 +22,15 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { submitMockRepayment } from "@/actions/loan-servicing";
-import { CreditCard, ReceiptText, Send, Clock3 } from "lucide-react";
+import { payLoanWithWallet } from "@/actions/wallet-actions";
+import {
+  CreditCard,
+  ReceiptText,
+  Send,
+  Clock3,
+  Wallet,
+  Loader2,
+} from "lucide-react";
 import {
   getCompassionPolicyCopy,
   getPenaltyPolicyCopy,
@@ -103,7 +111,8 @@ export function LoanServicingTab({
             Loan View
           </p>
           <p className="text-sm text-slate-500">
-            Piliin ang loan na gusto mong tingnan kapag marami nang active repayments.
+            Piliin ang loan na gusto mong tingnan kapag marami nang active
+            repayments.
           </p>
         </div>
         <div className="flex items-center gap-3">
@@ -138,7 +147,10 @@ export function LoanServicingTab({
             {filteredLoans.length === 0 ? 0 : (currentPage - 1) * pageSize + 1}-
             {Math.min(currentPage * pageSize, filteredLoans.length)}
           </span>{" "}
-          ng <span className="font-bold text-slate-700">{filteredLoans.length}</span>{" "}
+          ng{" "}
+          <span className="font-bold text-slate-700">
+            {filteredLoans.length}
+          </span>{" "}
           active loans
         </p>
         <div className="flex items-center gap-2">
@@ -188,7 +200,8 @@ function LoanServicingCard({
   const nextSchedule = useMemo(
     () =>
       loan.schedules.find(
-        (schedule) => schedule.status === "pending" || schedule.status === "overdue",
+        (schedule) =>
+          schedule.status === "pending" || schedule.status === "overdue",
       ),
     [loan.schedules],
   );
@@ -224,6 +237,18 @@ function LoanServicingCard({
     });
   };
 
+  const handleWalletPayment = () => {
+    startTransition(async () => {
+      const res = await payLoanWithWallet(loan.loan_id, suggestedAmount);
+      if (res.error) {
+        toast.error(res.error);
+      } else {
+        toast.success(res.success);
+        router.refresh();
+      }
+    });
+  };
+
   return (
     <div className="bg-white rounded-[2.5rem] border border-slate-100 shadow-sm p-8 space-y-6">
       <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
@@ -239,11 +264,13 @@ function LoanServicingCard({
             )}
           </div>
           <p className="text-sm text-slate-500">
-            Loan Reference: <span className="font-mono">{loan.loan_reference}</span>
+            Loan Reference:{" "}
+            <span className="font-mono">{loan.loan_reference}</span>
           </p>
           {loan.is_recovery_loan && (
             <p className="text-xs text-rose-600">
-              Ang loan na ito ay nabuo mula sa natitirang balanse matapos ang awtomatikong default recovery.
+              Ang loan na ito ay nabuo mula sa natitirang balanse matapos ang
+              awtomatikong default recovery.
             </p>
           )}
         </div>
@@ -252,7 +279,8 @@ function LoanServicingCard({
             Natitirang Balanse
           </p>
           <p className="text-3xl font-display font-bold text-emerald-600">
-            ₱{Number(loan.balance_remaining).toLocaleString(undefined, {
+            ₱
+            {Number(loan.balance_remaining).toLocaleString(undefined, {
               minimumFractionDigits: 2,
               maximumFractionDigits: 2,
             })}
@@ -291,16 +319,13 @@ function LoanServicingCard({
           Mock Money Flow
         </p>
         <p className="text-sm text-slate-500">
-          Sa prototype na ito, ang pera ay ipinapasa sa tunay na buhay sa pamamagitan ng
-          branch cashier, GCash transfer, bank transfer, o field collection. Dito sa Agapay,
-          itinatala at bine-verify natin ang repayment para may malinaw na records at digital receipt.
+          Sa prototype na ito, ang pera ay ipinapasa sa tunay na buhay sa
+          pamamagitan ng branch cashier, GCash transfer, bank transfer, o field
+          collection. Dito sa Agapay, itinatala at bine-verify natin ang
+          repayment para may malinaw na records at digital receipt.
         </p>
-        <p className="text-sm text-slate-500">
-          {getPenaltyPolicyCopy()}
-        </p>
-        <p className="text-sm text-slate-500">
-          {getCompassionPolicyCopy()}
-        </p>
+        <p className="text-sm text-slate-500">{getPenaltyPolicyCopy()}</p>
+        <p className="text-sm text-slate-500">{getCompassionPolicyCopy()}</p>
       </div>
 
       <div className="flex flex-col md:flex-row gap-3 md:items-center md:justify-between">
@@ -319,19 +344,35 @@ function LoanServicingCard({
           <DialogTrigger asChild>
             <Button className="rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white">
               <Send className="w-4 h-4 mr-2" />
-              Magsumite ng Repayment
             </Button>
           </DialogTrigger>
+
+          <Button
+            disabled={isPending || suggestedAmount <= 0}
+            onClick={handleWalletPayment}
+            className="rounded-2xl bg-amber-500 hover:bg-amber-600 text-white"
+          >
+            {isPending ? (
+              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+            ) : (
+              <Wallet className="w-4 h-4 mr-2" />
+            )}
+            Bayaran gamit ang Wallet
+          </Button>
+
           <DialogContent className="sm:max-w-lg">
             <DialogHeader>
               <DialogTitle>Repayment Submission</DialogTitle>
               <DialogDescription>
-                Pumili ng payment channel at ilagay ang reference na ibinigay ng branch o ng transfer.
+                Pumili ng payment channel at ilagay ang reference na ibinigay ng
+                branch o ng transfer.
               </DialogDescription>
             </DialogHeader>
             <div className="space-y-4">
               <div className="space-y-2">
-                <label className="text-sm font-bold text-slate-700">Halaga</label>
+                <label className="text-sm font-bold text-slate-700">
+                  Halaga
+                </label>
                 <Input
                   value={amount}
                   onChange={(e) => setAmount(e.target.value)}
@@ -341,14 +382,19 @@ function LoanServicingCard({
                 />
               </div>
               <div className="space-y-2">
-                <label className="text-sm font-bold text-slate-700">Payment Method</label>
+                <label className="text-sm font-bold text-slate-700">
+                  Payment Method
+                </label>
                 <Select value={methodId} onValueChange={setMethodId}>
                   <SelectTrigger className="rounded-xl">
                     <SelectValue placeholder="Pumili ng channel" />
                   </SelectTrigger>
                   <SelectContent>
                     {paymentMethods.map((method) => (
-                      <SelectItem key={method.method_id} value={String(method.method_id)}>
+                      <SelectItem
+                        key={method.method_id}
+                        value={String(method.method_id)}
+                      >
                         {method.provider_name}
                       </SelectItem>
                     ))}
@@ -356,7 +402,9 @@ function LoanServicingCard({
                 </Select>
               </div>
               <div className="space-y-2">
-                <label className="text-sm font-bold text-slate-700">Reference Number</label>
+                <label className="text-sm font-bold text-slate-700">
+                  Reference Number
+                </label>
                 <Input
                   value={reference}
                   onChange={(e) => setReference(e.target.value)}
@@ -365,7 +413,9 @@ function LoanServicingCard({
                 />
               </div>
               <div className="space-y-2">
-                <label className="text-sm font-bold text-slate-700">Proof URL (optional)</label>
+                <label className="text-sm font-bold text-slate-700">
+                  Proof URL (optional)
+                </label>
                 <Input
                   value={receiptUrl}
                   onChange={(e) => setReceiptUrl(e.target.value)}
@@ -374,7 +424,9 @@ function LoanServicingCard({
                 />
               </div>
               <div className="space-y-2">
-                <label className="text-sm font-bold text-slate-700">Notes</label>
+                <label className="text-sm font-bold text-slate-700">
+                  Notes
+                </label>
                 <textarea
                   value={notes}
                   onChange={(e) => setNotes(e.target.value)}
@@ -383,7 +435,9 @@ function LoanServicingCard({
                 />
               </div>
               <Button
-                disabled={isPending || !amount || !methodId || !reference.trim()}
+                disabled={
+                  isPending || !amount || !methodId || !reference.trim()
+                }
                 onClick={handleSubmit}
                 className="w-full rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white"
               >
@@ -400,7 +454,9 @@ function LoanServicingCard({
         </p>
         <div className="max-h-64 space-y-2 overflow-y-auto pr-1">
           {loan.payments.length === 0 ? (
-            <p className="text-sm text-slate-400 italic">Wala pang naipapasang repayment.</p>
+            <p className="text-sm text-slate-400 italic">
+              Wala pang naipapasang repayment.
+            </p>
           ) : (
             loan.payments.map((payment) => (
               <div
@@ -445,7 +501,9 @@ function MetricCard({
     <div className="rounded-2xl border border-slate-100 bg-slate-50 p-4">
       <div className="mb-2 flex items-center gap-2 text-slate-400">
         {icon}
-        <span className="text-[10px] font-bold uppercase tracking-widest">{label}</span>
+        <span className="text-[10px] font-bold uppercase tracking-widest">
+          {label}
+        </span>
       </div>
       <p className="text-sm font-bold text-slate-900">{value}</p>
     </div>

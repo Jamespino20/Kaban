@@ -18,9 +18,18 @@ export async function postLedgerEntry(
     description: string;
     createdBy?: number;
     transactionId?: string; // Optional: specify a custom ID to link multi-account entries
+    loanId?: number; // Optional: Link to a specific loan
+    metadata?: any; // Optional: extra context
   },
 ) {
-  const { entries, description, createdBy, transactionId = undefined } = params;
+  const {
+    entries,
+    description,
+    createdBy,
+    transactionId = undefined,
+    loanId,
+    metadata,
+  } = params;
 
   // 1. Validate Zero-Sum Integrity (Assets = Liabilities + Equity)
   const totalDebits = entries.reduce((sum: number, e: any) => sum + e.debit, 0);
@@ -62,9 +71,11 @@ export async function postLedgerEntry(
       data: {
         transaction_id: linkId,
         account_id: account.id,
+        loan_id: loanId,
         debit: new Prisma.Decimal(entry.debit),
         credit: new Prisma.Decimal(entry.credit),
         description: description,
+        metadata: metadata || undefined,
         created_by: createdBy,
       },
     });

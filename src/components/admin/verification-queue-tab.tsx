@@ -37,6 +37,7 @@ import {
   verifySubmittedPayment,
   rejectSubmittedPayment,
 } from "@/actions/loan-servicing";
+import { manuallyDeclareDefault } from "@/actions/admin-actions";
 import { useRouter } from "next/navigation";
 
 interface VerificationQueueTabProps {
@@ -46,6 +47,7 @@ interface VerificationQueueTabProps {
     approvedLoans?: any[];
     pendingPayments?: any[];
     recoveryLoans?: any[];
+    overdueLoans?: any[];
   };
 }
 
@@ -56,6 +58,7 @@ export function VerificationQueueTab({ data }: VerificationQueueTabProps) {
     approvedLoans = [],
     pendingPayments = [],
     recoveryLoans = [],
+    overdueLoans = [],
   } = data;
 
   return (
@@ -63,6 +66,7 @@ export function VerificationQueueTab({ data }: VerificationQueueTabProps) {
       <PendingLoansSection loans={loans} />
       <ReleaseQueueSection loans={approvedLoans} />
       <PendingPaymentsSection payments={pendingPayments} />
+      <OverdueLoansSection loans={overdueLoans} />
       <RecoveryLoansSection loans={recoveryLoans} />
       <IdentityVerificationSection verifications={verifications} />
     </div>
@@ -86,7 +90,10 @@ function PendingLoansSection({ loans }: { loans: any[] }) {
 
   const handleReject = (loanId: number) => {
     startTransition(async () => {
-      const res = await rejectLoanApplication({ loanId, notes: "Needs manual reassessment." });
+      const res = await rejectLoanApplication({
+        loanId,
+        notes: "Needs manual reassessment.",
+      });
       if (res.error) toast.error(res.error);
       else {
         toast.success(res.success);
@@ -130,7 +137,9 @@ function PendingLoansSection({ loans }: { loans: any[] }) {
                     <Calendar className="w-3 h-3" />
                     {format(new Date(loan.applied_at), "MMM d, yyyy")}
                   </div>
-                  <span className="uppercase tracking-widest">{loan.loan_reference}</span>
+                  <span className="uppercase tracking-widest">
+                    {loan.loan_reference}
+                  </span>
                 </div>
 
                 <div className="flex gap-3">
@@ -244,10 +253,13 @@ function RecoveryLoansSection({ loans }: { loans: any[] }) {
                   </p>
                   <p>
                     Reference:{" "}
-                    <span className="font-mono text-slate-700">{loan.loan_reference}</span>
+                    <span className="font-mono text-slate-700">
+                      {loan.loan_reference}
+                    </span>
                   </p>
                   <p>
-                    Borrower: {loan.user?.profile?.first_name} {loan.user?.profile?.last_name}
+                    Borrower: {loan.user?.profile?.first_name}{" "}
+                    {loan.user?.profile?.last_name}
                   </p>
                   <p>
                     Source default:{" "}
@@ -265,7 +277,11 @@ function RecoveryLoansSection({ loans }: { loans: any[] }) {
   );
 }
 
-function IdentityVerificationSection({ verifications }: { verifications: any[] }) {
+function IdentityVerificationSection({
+  verifications,
+}: {
+  verifications: any[];
+}) {
   return (
     <div className="space-y-6">
       <SectionHeader
@@ -355,12 +371,15 @@ function ReleaseLoanCard({ loan }: { loan: any }) {
           <DialogHeader>
             <DialogTitle>Mock Fund Release</DialogTitle>
             <DialogDescription>
-              Itala kung paano matatanggap ng miyembro ang pera sa tunay na buhay.
+              Itala kung paano matatanggap ng miyembro ang pera sa tunay na
+              buhay.
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
             <div className="space-y-2">
-              <label className="text-sm font-bold text-slate-700">Release Method</label>
+              <label className="text-sm font-bold text-slate-700">
+                Release Method
+              </label>
               <Select value={methodId} onValueChange={setMethodId}>
                 <SelectTrigger className="rounded-xl">
                   <SelectValue placeholder="Pumili ng release method" />
@@ -378,7 +397,9 @@ function ReleaseLoanCard({ loan }: { loan: any }) {
               </Select>
             </div>
             <div className="space-y-2">
-              <label className="text-sm font-bold text-slate-700">Reference Number</label>
+              <label className="text-sm font-bold text-slate-700">
+                Reference Number
+              </label>
               <Input
                 value={reference}
                 onChange={(e) => setReference(e.target.value)}
@@ -455,7 +476,10 @@ function ReviewPaymentCard({ payment }: { payment: any }) {
         />
       </div>
       <div className="space-y-1 text-xs text-slate-500 mb-4">
-        <p>Submitted: {format(new Date(payment.submitted_at), "MMM d, yyyy h:mm a")}</p>
+        <p>
+          Submitted:{" "}
+          {format(new Date(payment.submitted_at), "MMM d, yyyy h:mm a")}
+        </p>
         {payment.receipt_url && (
           <a
             href={payment.receipt_url}
@@ -511,13 +535,17 @@ function SectionHeader({
 
   return (
     <div className="flex items-center gap-3">
-      <div className={`w-10 h-10 rounded-2xl ${chipBg} flex items-center justify-center ${chipText}`}>
+      <div
+        className={`w-10 h-10 rounded-2xl ${chipBg} flex items-center justify-center ${chipText}`}
+      >
         {icon}
       </div>
       <h3 className="text-xl font-display font-bold text-slate-900 italic">
         {title}
       </h3>
-      <span className={`${badgeBg} text-white text-[10px] font-bold px-2 py-0.5 rounded-full`}>
+      <span
+        className={`${badgeBg} text-white text-[10px] font-bold px-2 py-0.5 rounded-full`}
+      >
         {count}
       </span>
     </div>
@@ -572,6 +600,77 @@ function AmountSummary({
       <p className="text-[9px] text-slate-400 font-bold uppercase tracking-widest">
         {caption}
       </p>
+    </div>
+  );
+}
+
+function OverdueLoansSection({ loans }: { loans: any[] }) {
+  const router = useRouter();
+  const [isPending, startTransition] = useTransition();
+
+  const handleEnforceDefault = (loanId: number) => {
+    if (
+      typeof window !== "undefined" &&
+      !window.confirm(
+        "Sigurado ka bang i-enforce ang default? Kakaltasan ang mga guarantors.",
+      )
+    )
+      return;
+
+    startTransition(async () => {
+      const res = await manuallyDeclareDefault(loanId);
+      if (res.error) toast.error(res.error);
+      else {
+        toast.success(res.success);
+        router.refresh();
+      }
+    });
+  };
+
+  return (
+    <div className="space-y-6">
+      <SectionHeader
+        icon={<ShieldAlert className="w-5 h-5" />}
+        title="Overdue (At Risk)"
+        count={loans.length}
+        accent="rose"
+      />
+      <div className="space-y-4">
+        {loans.length === 0 ? (
+          <EmptyState message="Walang overdue loans na naghihintay ng enforcement." />
+        ) : (
+          <div className="max-h-[32rem] space-y-4 overflow-y-auto pr-2">
+            {loans.map((loan: any) => (
+              <div
+                key={loan.loan_id}
+                className="bg-white p-6 rounded-[2rem] border border-rose-100 shadow-sm"
+              >
+                <div className="flex justify-between items-start mb-6">
+                  <ApplicantSummary
+                    firstName={loan.user?.profile?.first_name}
+                    lastName={loan.user?.profile?.last_name}
+                    subtitle={loan.product?.name}
+                  />
+                  <AmountSummary
+                    amount={Number(loan.balance_remaining)}
+                    caption="Natitirang balanseng"
+                  />
+                </div>
+
+                <div className="flex gap-3">
+                  <Button
+                    disabled={isPending}
+                    onClick={() => handleEnforceDefault(loan.loan_id)}
+                    className="w-full rounded-xl bg-slate-900 hover:bg-rose-600 text-white"
+                  >
+                    {isPending ? "Processing..." : "Enforce Default Protocol"}
+                  </Button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   );
 }

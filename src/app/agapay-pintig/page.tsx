@@ -1,9 +1,5 @@
 import { TabsContent } from "@/components/ui/tabs";
-import {
-  Wallet,
-  LayoutDashboard,
-  ArrowUpRight,
-} from "lucide-react";
+import { Wallet, LayoutDashboard, ArrowUpRight } from "lucide-react";
 import { auth } from "@/lib/auth";
 import { LoanApplicationTab } from "@/components/member/loan-application-tab";
 import { LoanServicingTab } from "@/components/member/loan-servicing-tab";
@@ -12,6 +8,9 @@ import prisma from "@/lib/prisma";
 import { redirect } from "next/navigation";
 import { type ShellNavItem } from "@/components/layout/authenticated-shell";
 import { DashboardTabsShell } from "@/components/layout/dashboard-tabs-shell";
+import { WalletTab } from "@/components/member/wallet-tab";
+import { getWalletTransactions } from "@/actions/wallet-actions";
+import { getCommunityDashboardData } from "@/actions/community-actions";
 import {
   formatTierLabel,
   getAvailableCreditForTier,
@@ -19,6 +18,7 @@ import {
   getPenaltyPolicyCopy,
 } from "@/lib/microfinance-policy";
 import { runAutomatedDefaultEnforcement } from "@/lib/default-enforcement";
+import { CommunityTab } from "@/components/member/community-tab";
 
 const PERSONAL_WALLET = "personal_wallet";
 
@@ -41,37 +41,48 @@ export default async function AgapayPintigPage() {
     actorUserId: userId,
   });
 
-  const [member, savings, activeLoans, paymentMethods, tfa] = await Promise.all([
-    prisma.user.findUnique({
-      where: { user_id: userId },
-      select: { interest_tier: true },
-    }),
-    prisma.savingsAccount.findMany({
-      where: { user_id: userId, tenant_id: tenantId },
-    }),
-    prisma.loan.findMany({
-      where: { user_id: userId, tenant_id: tenantId, status: "active" },
-      include: {
-        product: true,
-        schedules: {
-          orderBy: { installment_number: "asc" },
-        },
-        payments: {
-          include: {
-            payment_method: true,
+  const [
+    member,
+    savings,
+    activeLoans,
+    paymentMethods,
+    tfa,
+    transactions,
+    communityData,
+  ] =
+    await Promise.all([
+      prisma.user.findUnique({
+        where: { user_id: userId },
+        select: { interest_tier: true },
+      }),
+      prisma.savingsAccount.findMany({
+        where: { user_id: userId, tenant_id: tenantId },
+      }),
+      prisma.loan.findMany({
+        where: { user_id: userId, tenant_id: tenantId, status: "active" },
+        include: {
+          product: true,
+          schedules: {
+            orderBy: { installment_number: "asc" },
           },
-          orderBy: { submitted_at: "desc" },
+          payments: {
+            include: {
+              payment_method: true,
+            },
+            orderBy: { submitted_at: "desc" },
+          },
         },
-      },
-    }),
-    prisma.paymentMethod.findMany({
-      where: { tenant_id: tenantId, is_active: true },
-      orderBy: { provider_name: "asc" },
-    }),
-    prisma.twoFactorAuth.findUnique({
-      where: { user_id: userId },
-    }),
-  ]);
+      }),
+      prisma.paymentMethod.findMany({
+        where: { tenant_id: tenantId, is_active: true },
+        orderBy: { provider_name: "asc" },
+      }),
+      prisma.twoFactorAuth.findUnique({
+        where: { user_id: userId },
+      }),
+      getWalletTransactions(),
+      getCommunityDashboardData(),
+    ]);
 
   const totalSavings = savings.reduce(
     (acc, curr) =>
@@ -100,8 +111,10 @@ export default async function AgapayPintigPage() {
   const memberTierLabel = formatTierLabel(member?.interest_tier);
   const navItems: ShellNavItem[] = [
     { value: "overview", label: "Pangkalahatan", icon: "overview" },
+    { value: "wallet", label: "Wallet & Ipon", icon: "wallet" },
     { value: "apply", label: "Mag-loan", icon: "apply" },
     { value: "repayment", label: "Repayment", icon: "repayment" },
+    { value: "community", label: "Ka-Agapay", icon: "community" },
     { value: "settings", label: "Settings", icon: "settings" },
   ];
 
@@ -142,13 +155,13 @@ export default async function AgapayPintigPage() {
       accountRole="member"
       navItems={navItems}
     >
-      <div className="space-y-8">
+      <div className="space-y-6">
         <TabsContent
           value="overview"
-          className="space-y-8 outline-none animate-in fade-in slide-in-from-bottom-4 duration-500"
+          className="space-y-6 outline-none animate-in fade-in slide-in-from-bottom-4 duration-500"
         >
-          <div className="grid grid-cols-1 gap-6 lg:grid-cols-[0.9fr_1.1fr]">
-            <div className="flex items-center gap-4 rounded-[2rem] border border-emerald-100 bg-white/80 p-5 shadow-sm backdrop-blur-xl">
+          <div className="grid grid-cols-1 gap-4 lg:grid-cols-[0.95fr_1.05fr]">
+            <div className="flex items-center gap-4 rounded-[1.75rem] border border-emerald-100 bg-white/80 p-4 shadow-sm backdrop-blur-xl">
               <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-100 text-emerald-600">
                 <Wallet className="h-6 w-6" />
               </div>
@@ -172,7 +185,7 @@ export default async function AgapayPintigPage() {
               <a
                 href={`/api/reports/soa?userId=${userId}&tenantId=${tenantId}`}
                 target="_blank"
-                className="group relative flex items-center gap-3 rounded-3xl bg-emerald-600 px-8 py-4 font-black text-white shadow-xl shadow-emerald-900/20 transition-all hover:scale-105 hover:bg-emerald-700 active:scale-95"
+                className="group relative flex items-center gap-3 rounded-[1.5rem] bg-emerald-600 px-6 py-3 font-black text-white shadow-xl shadow-emerald-900/20 transition-all hover:scale-[1.02] hover:bg-emerald-700 active:scale-95"
               >
                 <div className="absolute inset-0 rounded-3xl bg-white/20 opacity-0 transition-opacity group-hover:opacity-100" />
                 <ArrowUpRight className="h-5 w-5" />
@@ -181,11 +194,11 @@ export default async function AgapayPintigPage() {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
             {memberCards.map((item) => (
               <div
                 key={item.label}
-                className="group rounded-3xl border border-slate-100 bg-white p-8 shadow-sm transition-all hover:shadow-lg"
+                className="group rounded-[1.75rem] border border-slate-100 bg-white p-5 shadow-sm transition-all hover:shadow-lg"
               >
                 <div
                   className={`mb-6 flex h-12 w-12 items-center justify-center rounded-2xl ${item.bg} transition-transform group-hover:scale-110`}
@@ -195,15 +208,15 @@ export default async function AgapayPintigPage() {
                 <h3 className="mb-1 text-sm font-bold uppercase tracking-widest text-slate-400">
                   {item.label}
                 </h3>
-                <p className={`text-4xl font-display font-bold ${item.color}`}>
+                <p className={`text-3xl font-display font-bold ${item.color}`}>
                   {item.value}
                 </p>
               </div>
             ))}
           </div>
 
-          <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-            <div className="rounded-[2rem] border border-amber-100 bg-amber-50/70 p-6 shadow-sm">
+          <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+            <div className="rounded-[1.75rem] border border-amber-100 bg-amber-50/70 p-5 shadow-sm">
               <p className="text-xs font-bold uppercase tracking-[0.22em] text-amber-700">
                 Penalty Policy
               </p>
@@ -211,7 +224,7 @@ export default async function AgapayPintigPage() {
                 {getPenaltyPolicyCopy()}
               </p>
             </div>
-            <div className="rounded-[2rem] border border-blue-100 bg-blue-50/70 p-6 shadow-sm">
+            <div className="rounded-[1.75rem] border border-blue-100 bg-blue-50/70 p-5 shadow-sm">
               <p className="text-xs font-bold uppercase tracking-[0.22em] text-blue-700">
                 Compassion Support
               </p>
@@ -221,8 +234,10 @@ export default async function AgapayPintigPage() {
             </div>
           </div>
 
-          {totalLoanBalance === 0 && totalSavings === 0 && totalWalletBalance === 0 ? (
-            <div className="flex flex-col items-center justify-center space-y-6 rounded-[2.5rem] border border-emerald-50 bg-white p-12 text-center shadow-sm">
+          {totalLoanBalance === 0 &&
+          totalSavings === 0 &&
+          totalWalletBalance === 0 ? (
+              <div className="flex flex-col items-center justify-center space-y-5 rounded-[1.75rem] border border-emerald-50 bg-white p-8 text-center shadow-sm">
               <div className="flex h-20 w-20 items-center justify-center rounded-full bg-emerald-50">
                 <LayoutDashboard className="h-10 w-10 text-emerald-200" />
               </div>
@@ -237,7 +252,7 @@ export default async function AgapayPintigPage() {
               </div>
             </div>
           ) : (
-            <div className="rounded-3xl border border-slate-100 bg-white p-8 shadow-sm">
+            <div className="rounded-[1.75rem] border border-slate-100 bg-white p-5 shadow-sm">
               <h2 className="mb-6 text-xl font-display font-bold text-slate-800">
                 Kamakailang Gawain
               </h2>
@@ -246,6 +261,13 @@ export default async function AgapayPintigPage() {
               </p>
             </div>
           )}
+        </TabsContent>
+
+        <TabsContent
+          value="wallet"
+          className="outline-none animate-in fade-in slide-in-from-bottom-4 duration-500"
+        >
+          <WalletTab savings={savings} transactions={transactions as any} />
         </TabsContent>
 
         <TabsContent
@@ -263,6 +285,13 @@ export default async function AgapayPintigPage() {
             loans={activeLoans}
             paymentMethods={paymentMethods}
           />
+        </TabsContent>
+
+        <TabsContent
+          value="community"
+          className="outline-none animate-in fade-in slide-in-from-bottom-4 duration-500"
+        >
+          <CommunityTab initialData={communityData} />
         </TabsContent>
 
         <TabsContent value="settings" className="outline-none">

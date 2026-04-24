@@ -7,6 +7,7 @@ import { Role, UserStatus, RepaymentFrequency } from "@prisma/client";
 import { revalidatePath } from "next/cache";
 import {
   computeLoanQuote,
+  evaluateOverindebtedness,
   MICROFINANCE_POLICY,
   validateLoanRequestAgainstPolicy,
 } from "@/lib/microfinance-policy";
@@ -82,6 +83,7 @@ export const applyForLoan = async (
       prisma.user.findUnique({
         where: { user_id: userId },
         select: {
+          email: true,
           interest_tier: true,
         },
       }),
@@ -93,6 +95,61 @@ export const applyForLoan = async (
 
     if (!member) {
       return { error: "Member account not found." };
+    }
+
+    const relatedAccounts = await prisma.user.findMany({
+      where: {
+        email: member.email,
+        role: Role.member,
+      },
+      select: {
+        user_id: true,
+      },
+    });
+
+    const relatedAccountIds = relatedAccounts.map((account) => account.user_id);
+
+    const [activeLoansAcrossBranches, defaultedLoanCount, overdueLoanCount] =
+      await Promise.all([
+        prisma.loan.findMany({
+          where: {
+            user_id: { in: relatedAccountIds },
+            status: { in: ["pending", "approved", "active"] },
+          },
+          select: {
+            balance_remaining: true,
+          },
+        }),
+        prisma.loan.count({
+          where: {
+            user_id: { in: relatedAccountIds },
+            status: "defaulted",
+          },
+        }),
+        prisma.loan.count({
+          where: {
+            user_id: { in: relatedAccountIds },
+            schedules: {
+              some: { status: "overdue" },
+            },
+          },
+        }),
+      ]);
+
+    const totalOutstandingBalance = activeLoansAcrossBranches.reduce(
+      (sum, loan) => sum + Number(loan.balance_remaining),
+      0,
+    );
+    const overindebtedness = evaluateOverindebtedness({
+      tier: member.interest_tier,
+      totalOutstandingBalance,
+      activeLoanCount: activeLoansAcrossBranches.length,
+      overdueLoanCount,
+      defaultedLoanCount,
+    });
+
+    if (overindebtedness.blocked) {
+      return { error: overindebtedness.reason };
     }
 
     if (
@@ -142,6 +199,7 @@ export const applyForLoan = async (
       principalAmount: amount,
       termMonths: term_months,
       monthlyRatePercent: Number(product.interest_rate_percent),
+      frequency: repayment_frequency,
     });
 
     await prisma.$transaction(async (tx: any) => {
