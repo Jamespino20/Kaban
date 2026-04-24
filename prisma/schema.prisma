@@ -75,6 +75,8 @@ model User {
   two_factor_auth         TwoFactorAuth?
   documents               UserDocument[]
   feedback_entries        FeedbackEntry[]
+  requested_compassions   CompassionAction[]      @relation("RequestedCompassion")
+  approved_compassions    CompassionAction[]      @relation("ApprovedCompassion")
   profile                 UserProfile?
   tenant                  Tenant?                 @relation(fields: [tenant_id], references: [tenant_id])
 
@@ -134,47 +136,50 @@ model TwoFactorAuth {
 }
 
 model LoanProduct {
-  product_id            Int     @id @default(autoincrement())
-  name                  String  @db.VarChar(100)
+  product_id            Int                  @id @default(autoincrement())
+  name                  String               @db.VarChar(100)
   description           String?
-  min_amount            Decimal @db.Decimal(15, 2)
-  max_amount            Decimal @db.Decimal(15, 2)
-  interest_rate_percent Decimal @db.Decimal(5, 2)
+  min_amount            Decimal              @db.Decimal(15, 2)
+  max_amount            Decimal              @db.Decimal(15, 2)
+  interest_rate_percent Decimal              @db.Decimal(5, 2)
   max_term_months       Int
-  is_active             Boolean @default(true)
+  allowed_frequencies   RepaymentFrequency[] @default([monthly])
+  is_active             Boolean              @default(true)
   tenant_id             Int
-  tenant                Tenant  @relation(fields: [tenant_id], references: [tenant_id])
+  tenant                Tenant               @relation(fields: [tenant_id], references: [tenant_id])
   loans                 Loan[]
 
   @@map("loan_products")
 }
 
 model Loan {
-  loan_id              Int             @id @default(autoincrement())
+  loan_id              Int                @id @default(autoincrement())
   tenant_id            Int
   user_id              Int
   product_id           Int
-  loan_reference       String          @unique @db.VarChar(50)
-  principal_amount     Decimal         @db.Decimal(15, 2)
+  loan_reference       String             @unique @db.VarChar(50)
+  principal_amount     Decimal            @db.Decimal(15, 2)
   purpose              String
   term_months          Int
-  interest_applied     Decimal         @db.Decimal(15, 2)
-  principal_receivable Decimal         @default(0) @db.Decimal(15, 2)
-  interest_receivable  Decimal         @default(0) @db.Decimal(15, 2)
-  fees_applied         Decimal         @default(0) @db.Decimal(15, 2)
-  total_payable        Decimal         @db.Decimal(15, 2)
-  balance_remaining    Decimal         @db.Decimal(15, 2)
-  status               LoanStatus      @default(pending)
-  applied_at           DateTime        @default(now())
+  repayment_frequency  RepaymentFrequency @default(monthly)
+  interest_applied     Decimal            @db.Decimal(15, 2)
+  principal_receivable Decimal            @default(0) @db.Decimal(15, 2)
+  interest_receivable  Decimal            @default(0) @db.Decimal(15, 2)
+  fees_applied         Decimal            @default(0) @db.Decimal(15, 2)
+  total_payable        Decimal            @db.Decimal(15, 2)
+  balance_remaining    Decimal            @db.Decimal(15, 2)
+  status               LoanStatus         @default(pending)
+  applied_at           DateTime           @default(now())
   approved_at          DateTime?
   approved_by          Int?
   interest_audit       InterestAudit?
+  compassion_actions   CompassionAction[]
   guarantees           LoanGuarantee[]
   schedules            LoanSchedule[]
-  approver             User?           @relation("ApprovedLoans", fields: [approved_by], references: [user_id])
-  product              LoanProduct     @relation(fields: [product_id], references: [product_id])
-  tenant               Tenant          @relation(fields: [tenant_id], references: [tenant_id])
-  user                 User            @relation("UserLoans", fields: [user_id], references: [user_id])
+  approver             User?              @relation("ApprovedLoans", fields: [approved_by], references: [user_id])
+  product              LoanProduct        @relation(fields: [product_id], references: [product_id])
+  tenant               Tenant             @relation(fields: [tenant_id], references: [tenant_id])
+  user                 User               @relation("UserLoans", fields: [user_id], references: [user_id])
   payments             Payment[]
 
   @@map("loans")
@@ -188,6 +193,8 @@ model LoanSchedule {
   principal_amount   Decimal        @db.Decimal(15, 2)
   interest_amount    Decimal        @db.Decimal(15, 2)
   total_due          Decimal        @db.Decimal(15, 2)
+  penalty_applied    Decimal        @default(0) @db.Decimal(15, 2)
+  days_late          Int            @default(0)
   status             ScheduleStatus @default(pending)
   paid_at            DateTime?
   loan               Loan           @relation(fields: [loan_id], references: [loan_id], onDelete: Cascade)
@@ -415,6 +422,25 @@ model LoanGuarantee {
   @@map("loan_guarantees")
 }
 
+model CompassionAction {
+  action_id    Int                  @id @default(autoincrement())
+  loan_id      Int
+  action_type  CompassionActionType
+  reason       String
+  status       CompassionStatus     @default(pending)
+  requested_by Int
+  requested_at DateTime             @default(now())
+  approved_by  Int?
+  approved_at  DateTime?
+  admin_notes  String?    @db.Text
+
+  loan      Loan  @relation(fields: [loan_id], references: [loan_id], onDelete: Cascade)
+  requester User  @relation("RequestedCompassion", fields: [requested_by], references: [user_id])
+  approver  User? @relation("ApprovedCompassion", fields: [approved_by], references: [user_id])
+
+  @@map("compassion_actions")
+}
+
 model BusinessLedger {
   id             Int           @id @default(autoincrement())
   transaction_id String        @default(cuid())
@@ -556,4 +582,22 @@ enum TransactionType {
   withdrawal
   dividend
   fee
+}
+
+enum RepaymentFrequency {
+  weekly
+  bi_weekly
+  monthly
+}
+
+enum CompassionActionType {
+  grace_period
+  term_extension
+  penalty_freeze
+}
+
+enum CompassionStatus {
+  pending
+  approved
+  rejected
 }

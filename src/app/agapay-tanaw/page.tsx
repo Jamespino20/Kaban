@@ -35,13 +35,12 @@ import { TrustMeter } from "@/components/analytics/trust-meter";
 import { KPIMetricCard } from "@/components/analytics/kpi-metric-card";
 import { HomepageContentTab } from "@/components/admin/homepage-content-tab";
 import { FeedbackTab } from "@/components/admin/feedback-tab";
+import { CompassionActionsTab } from "@/components/admin/compassion-actions-tab";
 import {
   getFeedbackEntries,
   getHomepageContentAdmin,
 } from "@/actions/site-content";
-import {
-  type ShellNavItem,
-} from "@/components/layout/authenticated-shell";
+import { type ShellNavItem } from "@/components/layout/authenticated-shell";
 import { DashboardTabsShell } from "@/components/layout/dashboard-tabs-shell";
 
 export default async function AgapayTanawPage() {
@@ -62,7 +61,8 @@ export default async function AgapayTanawPage() {
   const tenantContextId = session.user.tenantId ?? null;
   const isGlobalSuperadminView = isSuperAdmin && tenantContextId === null;
   const canViewProducts = isAdmin || isSuperAdmin;
-  const hasTenantScopedProductAccess = isAdmin || (isSuperAdmin && !!tenantContextId);
+  const hasTenantScopedProductAccess =
+    isAdmin || (isSuperAdmin && !!tenantContextId);
   const canViewBranchOps = isSuperAdmin;
   const canViewAuditLogs = isAdmin || isSuperAdmin;
   const canManageHomepageContent = isAdmin || isSuperAdmin;
@@ -142,217 +142,231 @@ export default async function AgapayTanawPage() {
     });
   }
 
+  if (isAdmin || isSuperAdmin) {
+    navItems.push({
+      value: "compassion",
+      label: "Compassion Actions",
+      icon: "compassion",
+    });
+  }
+
   return (
     <DashboardTabsShell
       defaultValue="overview"
-        title="Pangkalahatan"
-        subtitle={
-          isLender
-            ? "Tenant-level operations, borrower oversight, at trust monitoring."
-            : isAdmin
-              ? "Tenant-level administration para sa approvals, member safety, at portfolio health."
-              : isGlobalSuperadminView
-                ? "Global oversight para sa tenant cooperatives, fraud monitoring, at system health."
-                : "Branch-scoped oversight para sa napiling cooperative, kabilang ang approvals, members, at content operations."
-        }
-        portalLabel={`${userRole} portal`}
-        accountName={userName}
-        accountRole={userRole}
-        navItems={navItems}
-      >
-        <div className="space-y-6">
-          <TabsContent value="overview" className="space-y-6 outline-none">
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-              <KPIMetricCard
-                label="Kabuuang Pondo"
-                value={`₱${(metrics.totalLiquidity / 1000000).toFixed(1)}M`}
-                description={`Kabuuan: ₱${metrics.totalLiquidity.toLocaleString()}`}
-                iconName="wallet"
-                trend={{ value: 12.5, isPositive: true }}
-              />
-              <KPIMetricCard
-                label="Aktibong Loan"
-                value={metrics.activeLoans}
-                iconName="activity"
-                trend={{ value: 8.2, isPositive: true }}
-              />
-              <KPIMetricCard
-                label="Antas ng Pagbabayad"
-                value={`${metrics.repaymentRate.toFixed(1)}%`}
-                iconName="check"
-                trend={{ value: 1.4, isPositive: true }}
-              />
-              <KPIMetricCard
-                label="Panganib sa Pondo"
-                value={`₱${(metrics.riskExposure / 1000).toFixed(0)}K`}
-                description={`Delinquent: ₱${metrics.riskExposure.toLocaleString()}`}
-                iconName="alert"
-                trend={{ value: 3.1, isPositive: false }}
-                variant="ghost"
-              />
-            </div>
+      title="Pangkalahatan"
+      subtitle={
+        isLender
+          ? "Tenant-level operations, borrower oversight, at trust monitoring."
+          : isAdmin
+            ? "Tenant-level administration para sa approvals, member safety, at portfolio health."
+            : isGlobalSuperadminView
+              ? "Global oversight para sa tenant cooperatives, fraud monitoring, at system health."
+              : "Branch-scoped oversight para sa napiling cooperative, kabilang ang approvals, members, at content operations."
+      }
+      portalLabel={`${userRole} portal`}
+      accountName={userName}
+      accountRole={userRole}
+      navItems={navItems}
+    >
+      <div className="space-y-6">
+        <TabsContent value="overview" className="space-y-6 outline-none">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <KPIMetricCard
+              label="Kabuuang Pondo"
+              value={`₱${(metrics.totalLiquidity / 1000000).toFixed(1)}M`}
+              description={`Kabuuan: ₱${metrics.totalLiquidity.toLocaleString()}`}
+              iconName="wallet"
+              trend={{ value: 12.5, isPositive: true }}
+            />
+            <KPIMetricCard
+              label="Aktibong Loan"
+              value={metrics.activeLoans}
+              iconName="activity"
+              trend={{ value: 8.2, isPositive: true }}
+            />
+            <KPIMetricCard
+              label="Antas ng Pagbabayad"
+              value={`${metrics.repaymentRate.toFixed(1)}%`}
+              iconName="check"
+              trend={{ value: 1.4, isPositive: true }}
+            />
+            <KPIMetricCard
+              label="Panganib sa Pondo"
+              value={`₱${(metrics.riskExposure / 1000).toFixed(0)}K`}
+              description={`Delinquent: ₱${metrics.riskExposure.toLocaleString()}`}
+              iconName="alert"
+              trend={{ value: 3.1, isPositive: false }}
+              variant="ghost"
+            />
+          </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              <div className="lg:col-span-2 bg-white/70 backdrop-blur-xl p-8 rounded-[2.5rem] border border-slate-200/60 shadow-sm flex flex-col md:flex-row items-center gap-12">
-                <div className="flex-1 text-center md:text-left">
-                  <h3 className="text-xl font-display font-bold text-slate-900">
-                    Trust Index ng Kooperatiba
-                  </h3>
-                  <p className="text-slate-500 text-sm mt-1 mb-8">
-                    Kasalukuyang katayuan ng trust network
-                  </p>
-                  {canViewBranchOps ? (
-                    <TrustDistributionChart
-                      distribution={trustData.distribution}
-                    />
-                  ) : (
-                    <div className="space-y-4">
-                      <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100 italic text-slate-500 text-xs">
-                        "Ang iyong branch ay lumalago. Patuloy na i-verify ang
-                        trust status ng mga miyembro."
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="lg:col-span-2 bg-white/70 backdrop-blur-xl p-8 rounded-[2.5rem] border border-slate-200/60 shadow-sm flex flex-col md:flex-row items-center gap-12">
+              <div className="flex-1 text-center md:text-left">
+                <h3 className="text-xl font-display font-bold text-slate-900">
+                  Trust Index ng Kooperatiba
+                </h3>
+                <p className="text-slate-500 text-sm mt-1 mb-8">
+                  Kasalukuyang katayuan ng trust network
+                </p>
+                {canViewBranchOps ? (
+                  <TrustDistributionChart
+                    distribution={trustData.distribution}
+                  />
+                ) : (
+                  <div className="space-y-4">
+                    <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100 italic text-slate-500 text-xs">
+                      "Ang iyong branch ay lumalago. Patuloy na i-verify ang
+                      trust status ng mga miyembro."
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="p-4 bg-emerald-50 rounded-2xl border border-emerald-100">
+                        <p className="text-[10px] font-bold text-emerald-600 uppercase">
+                          Singilin
+                        </p>
+                        <p className="text-lg font-bold text-slate-900">
+                          ₱42.5K
+                        </p>
                       </div>
-                      <div className="grid grid-cols-2 gap-4">
-                        <div className="p-4 bg-emerald-50 rounded-2xl border border-emerald-100">
-                          <p className="text-[10px] font-bold text-emerald-600 uppercase">
-                            Singilin
-                          </p>
-                          <p className="text-lg font-bold text-slate-900">
-                            ₱42.5K
-                          </p>
-                        </div>
-                        <div className="p-4 bg-indigo-50 rounded-2xl border border-indigo-100">
-                          <p className="text-[10px] font-bold text-indigo-600 uppercase">
-                            Paglago
-                          </p>
-                          <p className="text-lg font-bold text-slate-900">
-                            +8 Miyembro
-                          </p>
-                        </div>
+                      <div className="p-4 bg-indigo-50 rounded-2xl border border-indigo-100">
+                        <p className="text-[10px] font-bold text-indigo-600 uppercase">
+                          Paglago
+                        </p>
+                        <p className="text-lg font-bold text-slate-900">
+                          +8 Miyembro
+                        </p>
                       </div>
                     </div>
-                  )}
-                </div>
-                <div className="flex-shrink-0 scale-110 md:scale-125">
-                  <TrustMeter data={trustData.aggregateTrust} />
-                </div>
+                  </div>
+                )}
               </div>
-
-              <div className="bg-slate-900 p-8 rounded-[2.5rem] text-white flex flex-col justify-between overflow-hidden relative group">
-                <div className="relative z-10 space-y-4">
-                  <div className="w-12 h-12 rounded-2xl bg-emerald-500 shadow-[0_0_20px_rgba(16,185,129,0.3)] flex items-center justify-center mb-6">
-                    <TrendingUp className="w-6 h-6 text-white" />
-                  </div>
-                  <h3 className="text-2xl font-display font-medium leading-tight">
-                    Katayuan ng <br />
-                    Portfolio
-                  </h3>
-                  <p className="text-slate-400 text-xs leading-relaxed font-sans">
-                    Ang koleksyon ngayong buwan ay tumaas ng 12% dahil sa
-                    implementasyon ng Trust-Based Incentives. Ang elite tier ay
-                    lumaki ng 5%.
-                  </p>
-                </div>
-
-                <div className="relative z-10 pt-8 border-t border-white/10 mt-8">
-                  <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2">
-                    Kalusugan ng Platform
-                  </p>
-                  <div className="h-1.5 w-full bg-white/10 rounded-full overflow-hidden">
-                    <div className="h-full w-[88%] bg-emerald-500 rounded-full shadow-[0_0_10px_rgba(16,185,129,0.5)]" />
-                  </div>
-                </div>
-
-                {/* Abstract background shape */}
-                <div className="absolute -bottom-10 -right-10 w-48 h-48 bg-emerald-500/10 rounded-full blur-3xl group-hover:bg-emerald-500/20 transition-all duration-500" />
+              <div className="flex-shrink-0 scale-110 md:scale-125">
+                <TrustMeter data={trustData.aggregateTrust} />
               </div>
             </div>
-          </TabsContent>
 
-          <TabsContent value="approvals" className="outline-none">
-            <VerificationQueueTab data={pendingData} />
-          </TabsContent>
-
-          <TabsContent value="members" className="outline-none">
-            <MemberDirectoryTab members={members} />
-          </TabsContent>
-
-          {canViewProducts && (
-            <TabsContent value="products" className="outline-none">
-              {hasTenantScopedProductAccess ? (
-                <LoanProductsTab />
-              ) : (
-                <div className="rounded-[2rem] border border-amber-200 bg-amber-50/80 p-8 shadow-sm">
-                  <div className="max-w-2xl space-y-3">
-                    <p className="text-[11px] font-black uppercase tracking-[0.24em] text-amber-700">
-                      Tenant Context Needed
-                    </p>
-                    <h2 className="text-2xl font-display font-bold italic text-slate-900">
-                      Pumili muna ng branch bago mag-manage ng Loan Products
-                    </h2>
-                    <p className="text-sm leading-relaxed text-slate-600">
-                      Bilang `superadmin`, makakakita ka ng tenant-wide product
-                      setup sa oras na may aktibo kang branch context. Gamitin
-                      ang branch switcher sa sidebar account area para pumili ng
-                      cooperative branch, tapos bumalik dito para mag-review o
-                      gumawa ng produkto.
-                    </p>
-                  </div>
+            <div className="bg-slate-900 p-8 rounded-[2.5rem] text-white flex flex-col justify-between overflow-hidden relative group">
+              <div className="relative z-10 space-y-4">
+                <div className="w-12 h-12 rounded-2xl bg-emerald-500 shadow-[0_0_20px_rgba(16,185,129,0.3)] flex items-center justify-center mb-6">
+                  <TrendingUp className="w-6 h-6 text-white" />
                 </div>
-              )}
-            </TabsContent>
-          )}
-
-          {canViewBranchOps && (
-            <TabsContent value="branches" className="outline-none">
-              <TenantManagementTab
-                initialTenants={tenants}
-                role={session?.user?.role as string}
-              />
-            </TabsContent>
-          )}
-
-          <TabsContent value="settings" className="outline-none">
-            <div className="flex flex-col items-center justify-center space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-              <div className="text-center space-y-2">
-                <h2 className="text-3xl font-display font-bold text-slate-900 italic">
-                  Account Security
-                </h2>
-                <p className="text-slate-500">
-                  I-secure ang iyong administrative access gamit ang 2FA.
+                <h3 className="text-2xl font-display font-medium leading-tight">
+                  Katayuan ng <br />
+                  Portfolio
+                </h3>
+                <p className="text-slate-400 text-xs leading-relaxed font-sans">
+                  Ang koleksyon ngayong buwan ay tumaas ng 12% dahil sa
+                  implementasyon ng Trust-Based Incentives. Ang elite tier ay
+                  lumaki ng 5%.
                 </p>
               </div>
-              <TwoFactorSetup isEnabledInitial={is2FAEnabled} />
+
+              <div className="relative z-10 pt-8 border-t border-white/10 mt-8">
+                <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2">
+                  Kalusugan ng Platform
+                </p>
+                <div className="h-1.5 w-full bg-white/10 rounded-full overflow-hidden">
+                  <div className="h-full w-[88%] bg-emerald-500 rounded-full shadow-[0_0_10px_rgba(16,185,129,0.5)]" />
+                </div>
+              </div>
+
+              {/* Abstract background shape */}
+              <div className="absolute -bottom-10 -right-10 w-48 h-48 bg-emerald-500/10 rounded-full blur-3xl group-hover:bg-emerald-500/20 transition-all duration-500" />
             </div>
+          </div>
+        </TabsContent>
+
+        <TabsContent value="approvals" className="outline-none">
+          <VerificationQueueTab data={pendingData} />
+        </TabsContent>
+
+        <TabsContent value="members" className="outline-none">
+          <MemberDirectoryTab members={members} />
+        </TabsContent>
+
+        {(isAdmin || isSuperAdmin) && (
+          <TabsContent value="compassion" className="outline-none">
+            <CompassionActionsTab actions={pendingData.compassion || []} />
           </TabsContent>
+        )}
 
-          {canManageHomepageContent && (
-            <TabsContent value="content" className="outline-none">
-              <HomepageContentTab
-                role={userRole}
-                faqs={homepageContent.faqs}
-                testimonials={homepageContent.testimonials}
-              />
-            </TabsContent>
-          )}
+        {canViewProducts && (
+          <TabsContent value="products" className="outline-none">
+            {hasTenantScopedProductAccess ? (
+              <LoanProductsTab />
+            ) : (
+              <div className="rounded-[2rem] border border-amber-200 bg-amber-50/80 p-8 shadow-sm">
+                <div className="max-w-2xl space-y-3">
+                  <p className="text-[11px] font-black uppercase tracking-[0.24em] text-amber-700">
+                    Tenant Context Needed
+                  </p>
+                  <h2 className="text-2xl font-display font-bold italic text-slate-900">
+                    Pumili muna ng branch bago mag-manage ng Loan Products
+                  </h2>
+                  <p className="text-sm leading-relaxed text-slate-600">
+                    Bilang `superadmin`, makakakita ka ng tenant-wide product
+                    setup sa oras na may aktibo kang branch context. Gamitin ang
+                    branch switcher sa sidebar account area para pumili ng
+                    cooperative branch, tapos bumalik dito para mag-review o
+                    gumawa ng produkto.
+                  </p>
+                </div>
+              </div>
+            )}
+          </TabsContent>
+        )}
 
-          {canViewFeedback && (
-            <TabsContent value="feedback" className="outline-none">
-              <FeedbackTab role={userRole} entries={feedbackEntries} />
-            </TabsContent>
-          )}
+        {canViewBranchOps && (
+          <TabsContent value="branches" className="outline-none">
+            <TenantManagementTab
+              initialTenants={tenants}
+              role={session?.user?.role as string}
+            />
+          </TabsContent>
+        )}
 
-          {canViewAuditLogs && (
-            <TabsContent value="audit" className="outline-none">
-              <AuditLogViewer
-                tenantId={
-                  session?.user?.role === "superadmin"
-                    ? (tenantContextId ?? undefined)
-                    : Number(session?.user?.tenantId || 0)
-                }
-              />
-            </TabsContent>
-          )}
-        </div>
-      </DashboardTabsShell>
+        <TabsContent value="settings" className="outline-none">
+          <div className="flex flex-col items-center justify-center space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+            <div className="text-center space-y-2">
+              <h2 className="text-3xl font-display font-bold text-slate-900 italic">
+                Account Security
+              </h2>
+              <p className="text-slate-500">
+                I-secure ang iyong administrative access gamit ang 2FA.
+              </p>
+            </div>
+            <TwoFactorSetup isEnabledInitial={is2FAEnabled} />
+          </div>
+        </TabsContent>
+
+        {canManageHomepageContent && (
+          <TabsContent value="content" className="outline-none">
+            <HomepageContentTab
+              role={userRole}
+              faqs={homepageContent.faqs}
+              testimonials={homepageContent.testimonials}
+            />
+          </TabsContent>
+        )}
+
+        {canViewFeedback && (
+          <TabsContent value="feedback" className="outline-none">
+            <FeedbackTab role={userRole} entries={feedbackEntries} />
+          </TabsContent>
+        )}
+
+        {canViewAuditLogs && (
+          <TabsContent value="audit" className="outline-none">
+            <AuditLogViewer
+              tenantId={
+                session?.user?.role === "superadmin"
+                  ? (tenantContextId ?? undefined)
+                  : Number(session?.user?.tenantId || 0)
+              }
+            />
+          </TabsContent>
+        )}
+      </div>
+    </DashboardTabsShell>
   );
 }

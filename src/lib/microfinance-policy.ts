@@ -1,4 +1,8 @@
-import { InterestTier, ScheduleStatus } from "@prisma/client";
+import {
+  InterestTier,
+  ScheduleStatus,
+  RepaymentFrequency,
+} from "@prisma/client";
 
 export const MICROFINANCE_POLICY = {
   minAmount: 5_000,
@@ -78,17 +82,21 @@ export const TIER_POLICIES: Record<InterestTier, TierPolicy> = {
   },
 };
 
-export type MonthlyLoanQuote = {
+export type LoanQuote = {
   principalAmount: number;
   termMonths: number;
   monthlyRatePercent: number;
+  frequency: RepaymentFrequency;
   totalInterest: number;
   processingFee: number;
   totalPayable: number;
   installmentAmount: number;
+  installmentCount: number;
 };
 
-export function getTierPolicy(tier: InterestTier | null | undefined): TierPolicy {
+export function getTierPolicy(
+  tier: InterestTier | null | undefined,
+): TierPolicy {
   return TIER_POLICIES[tier ?? InterestTier.T1_5_PERCENT];
 }
 
@@ -130,22 +138,23 @@ export function computeProcessingFee(principalAmount: number) {
   );
 }
 
-export function computeMonthlyLoanQuote({
+export function computeLoanQuote({
   principalAmount,
   termMonths,
   monthlyRatePercent,
+  frequency = RepaymentFrequency.monthly,
 }: {
   principalAmount: number;
   termMonths: number;
   monthlyRatePercent: number;
-}): MonthlyLoanQuote {
+  frequency?: RepaymentFrequency;
+}): LoanQuote {
   const normalizedPrincipal = roundMoney(principalAmount);
-  const normalizedTerm = Math.max(MICROFINANCE_POLICY.minTermMonths, termMonths);
-  const normalizedRate = clamp(
-    monthlyRatePercent,
-    3,
-    5,
+  const normalizedTerm = Math.max(
+    MICROFINANCE_POLICY.minTermMonths,
+    termMonths,
   );
+  const normalizedRate = clamp(monthlyRatePercent, 3, 5);
   const totalInterest = roundMoney(
     normalizedPrincipal * (normalizedRate / 100) * normalizedTerm,
   );
@@ -153,26 +162,37 @@ export function computeMonthlyLoanQuote({
   const totalPayable = roundMoney(
     normalizedPrincipal + totalInterest + processingFee,
   );
-  const installmentAmount = roundMoney(totalPayable / normalizedTerm);
+
+  let installmentCount = normalizedTerm;
+  if (frequency === RepaymentFrequency.weekly) {
+    installmentCount = normalizedTerm * 4;
+  } else if (frequency === RepaymentFrequency.bi_weekly) {
+    installmentCount = normalizedTerm * 2;
+  }
+
+  const installmentAmount = roundMoney(totalPayable / installmentCount);
 
   return {
     principalAmount: normalizedPrincipal,
     termMonths: normalizedTerm,
     monthlyRatePercent: normalizedRate,
+    frequency,
     totalInterest,
     processingFee,
     totalPayable,
     installmentAmount,
+    installmentCount,
   };
 }
 
-export function buildMonthlyRepaymentSchedule({
+export function buildRepaymentSchedule({
   loanId,
   approvedAt,
   termMonths,
   principalAmount,
   totalInterest,
   processingFee,
+  frequency = RepaymentFrequency.monthly,
 }: {
   loanId: number;
   approvedAt: Date;
@@ -180,20 +200,39 @@ export function buildMonthlyRepaymentSchedule({
   principalAmount: number;
   totalInterest: number;
   processingFee: number;
+  frequency?: RepaymentFrequency;
 }) {
-  const principalPerInstallment = roundMoney(principalAmount / termMonths);
-  const interestPerInstallment = roundMoney(totalInterest / termMonths);
+  let installmentCount = termMonths;
+  if (frequency === RepaymentFrequency.weekly) {
+    installmentCount = termMonths * 4;
+  } else if (frequency === RepaymentFrequency.bi_weekly) {
+    installmentCount = termMonths * 2;
+  }
 
-  return Array.from({ length: termMonths }, (_, index) => {
+  const principalPerInstallment = roundMoney(
+    principalAmount / installmentCount,
+  );
+  const interestPerInstallment = roundMoney(totalInterest / installmentCount);
+
+  return Array.from({ length: installmentCount }, (_, index) => {
     const dueDate = new Date(approvedAt);
-    dueDate.setMonth(dueDate.getMonth() + index + 1);
+    if (frequency === RepaymentFrequency.weekly) {
+      dueDate.setDate(dueDate.getDate() + (index + 1) * 7);
+    } else if (frequency === RepaymentFrequency.bi_weekly) {
+      dueDate.setDate(dueDate.getDate() + (index + 1) * 14);
+    } else {
+      dueDate.setMonth(dueDate.getMonth() + index + 1);
+    }
 
-    const isLastInstallment = index === termMonths - 1;
+    const isLastInstallment = index === installmentCount - 1;
     const principalPaidBefore = principalPerInstallment * index;
     const interestPaidBefore = interestPerInstallment * index;
+
+    // Frontload the processing fee on the last installment (or first, but original code used last)
     const principalPortion = isLastInstallment
       ? roundMoney(principalAmount - principalPaidBefore)
       : principalPerInstallment;
+
     const interestPortion = isLastInstallment
       ? roundMoney(totalInterest - interestPaidBefore + processingFee)
       : interestPerInstallment;
@@ -205,6 +244,8 @@ export function buildMonthlyRepaymentSchedule({
       principal_amount: principalPortion,
       interest_amount: interestPortion,
       total_due: roundMoney(principalPortion + interestPortion),
+      penalty_applied: 0,
+      days_late: 0,
       status: ScheduleStatus.pending,
     };
   });

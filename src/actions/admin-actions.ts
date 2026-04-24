@@ -131,11 +131,31 @@ export async function getPendingApprovals() {
     },
   });
 
+  const pendingCompassionActions = await (
+    prisma as any
+  ).compassionAction.findMany({
+    where: {
+      status: "pending",
+      loan: loanTenantFilter,
+    },
+    include: {
+      loan: {
+        include: {
+          user: { include: { profile: true } },
+          product: true,
+        },
+      },
+      requester: { include: { profile: true } },
+    },
+    orderBy: { requested_at: "asc" },
+  });
+
   return {
     loans: pendingLoans,
     verifications: pendingVerifications,
     approvedLoans,
     pendingPayments,
+    compassion: pendingCompassionActions as any,
   };
 }
 
@@ -204,8 +224,7 @@ export async function getDashboardMetrics() {
 export async function getTenantTrustMetrics() {
   const session = await requireTanawSession();
   const tenantId = session.user.tenantId ?? undefined;
-  const tenantFilter =
-    tenantId ? { tenant_id: tenantId } : {};
+  const tenantFilter = tenantId ? { tenant_id: tenantId } : {};
 
   // Implementation Note: In a large system, we would cache these or use a materialized view.
   // For Agapay MVP, we iterate through active members.

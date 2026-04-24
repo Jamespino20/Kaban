@@ -9,8 +9,8 @@ import {
 import { PaymentStatus, ScheduleStatus } from "@prisma/client";
 import { revalidatePath } from "next/cache";
 import {
-  buildMonthlyRepaymentSchedule,
-  computeMonthlyLoanQuote,
+  buildRepaymentSchedule,
+  computeLoanQuote,
   getCompassionPolicyCopy,
   MICROFINANCE_POLICY,
 } from "@/lib/microfinance-policy";
@@ -202,20 +202,22 @@ export async function releaseLoanFunds(
       });
 
       if (existingSchedules === 0) {
-        const quote = computeMonthlyLoanQuote({
+        const quote = computeLoanQuote({
           principalAmount: Number(loan.principal_amount),
           termMonths: loan.term_months,
           monthlyRatePercent: Number(loan.product.interest_rate_percent),
+          frequency: (loan as any).repayment_frequency,
         });
 
         await tx.loanSchedule.createMany({
-          data: buildMonthlyRepaymentSchedule({
+          data: buildRepaymentSchedule({
             loanId: loan.loan_id,
             approvedAt: loan.approved_at ?? new Date(),
             termMonths: loan.term_months,
             principalAmount: Number(loan.principal_amount),
             totalInterest: quote.totalInterest,
             processingFee: quote.processingFee,
+            frequency: (loan as any).repayment_frequency,
           }),
         });
       }
@@ -250,7 +252,9 @@ export async function releaseLoanFunds(
 
     revalidatePath("/agapay-tanaw");
     revalidatePath("/agapay-pintig");
-    return { success: "Na-release na ang mock funds at activated na ang loan." };
+    return {
+      success: "Na-release na ang mock funds at activated na ang loan.",
+    };
   } catch (error) {
     console.error("releaseLoanFunds failed:", error);
     return { error: "Hindi ma-release ang loan." };
@@ -317,10 +321,13 @@ export async function submitMockRepayment(
 
       if (!isFinalSettlement && amount + 0.01 < minimumInstallment) {
         return {
-          error: `Minimum repayment is PHP ${minimumInstallment.toLocaleString(undefined, {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2,
-          })} for the next installment.`,
+          error: `Minimum repayment is PHP ${minimumInstallment.toLocaleString(
+            undefined,
+            {
+              minimumFractionDigits: 2,
+              maximumFractionDigits: 2,
+            },
+          )} for the next installment.`,
         };
       }
     }

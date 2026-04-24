@@ -19,7 +19,15 @@ import { applyForLoan } from "@/actions/loan-application";
 import { Calculator, ArrowRightCircle, CheckCircle2 } from "lucide-react";
 import { GuaranteeRequestPanel } from "./guarantee-request-panel";
 import {
-  computeMonthlyLoanQuote,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { RepaymentFrequency } from "@prisma/client";
+import {
+  computeLoanQuote,
   getCompassionPolicyCopy,
   getPenaltyPolicyCopy,
   MICROFINANCE_POLICY,
@@ -53,6 +61,7 @@ const LoanApplicationSchema = z.object({
       MICROFINANCE_POLICY.maxGuarantors,
       "Hanggang dalawang guarantor lang ang pinapayagan sa kasalukuyang policy.",
     ),
+  repayment_frequency: z.enum(["weekly", "bi_weekly", "monthly"]),
 });
 
 interface LoanApplicationFormProps {
@@ -83,19 +92,26 @@ export const LoanApplicationForm = ({
         Math.min(6, product.max_term_months),
       ),
       guarantor_ids: [],
+      repayment_frequency:
+        (product.allowed_frequencies?.[0] as
+          | "weekly"
+          | "bi_weekly"
+          | "monthly") || "monthly",
     },
   });
 
   const watchAmount = form.watch("amount");
   const watchTerm = form.watch("term_months");
+  const watchFrequency = form.watch("repayment_frequency");
 
   useEffect(() => {
     const amount = Number(watchAmount) || 0;
     const term = Number(watchTerm) || 0;
-    const quote = computeMonthlyLoanQuote({
+    const quote = computeLoanQuote({
       principalAmount: amount,
       termMonths: term,
       monthlyRatePercent: Number(product.interest_rate_percent),
+      frequency: watchFrequency,
     });
 
     setCalculation({
@@ -148,7 +164,9 @@ export const LoanApplicationForm = ({
                   <Input
                     {...field}
                     value={field.value ?? ""}
-                    onChange={(event) => field.onChange(Number(event.target.value))}
+                    onChange={(event) =>
+                      field.onChange(Number(event.target.value))
+                    }
                     type="number"
                     step="500"
                     min={product.min_amount}
@@ -179,7 +197,9 @@ export const LoanApplicationForm = ({
                   <Input
                     {...field}
                     value={field.value ?? ""}
-                    onChange={(event) => field.onChange(Number(event.target.value))}
+                    onChange={(event) =>
+                      field.onChange(Number(event.target.value))
+                    }
                     type="number"
                     min={MICROFINANCE_POLICY.minTermMonths}
                     max={Math.min(
@@ -191,12 +211,58 @@ export const LoanApplicationForm = ({
                   />
                 </FormControl>
                 <p className="text-xs text-slate-500">
-                  Current Agapay policy supports {MICROFINANCE_POLICY.minTermMonths} to{" "}
+                  Current Agapay policy supports{" "}
+                  {MICROFINANCE_POLICY.minTermMonths} to{" "}
                   {Math.min(
                     product.max_term_months,
                     MICROFINANCE_POLICY.maxTermMonths,
                   )}{" "}
                   months for this product.
+                </p>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="repayment_frequency"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel className="text-[10px] font-bold uppercase tracking-widest text-slate-400">
+                  Dalas ng Pagbabayad
+                </FormLabel>
+                <Select
+                  disabled={isPending}
+                  onValueChange={field.onChange}
+                  defaultValue={field.value}
+                >
+                  <FormControl>
+                    <SelectTrigger className="h-14 rounded-2xl border-slate-100 text-xl font-bold font-display focus:border-emerald-500 focus:ring-emerald-500/20">
+                      <SelectValue placeholder="Pumili ng dalas ng pagbabayad" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    {(
+                      product.allowed_frequencies || [
+                        RepaymentFrequency.monthly,
+                      ]
+                    ).map((freq: RepaymentFrequency) => {
+                      const labels: Record<RepaymentFrequency, string> = {
+                        [RepaymentFrequency.weekly]: "Lingguhan",
+                        [RepaymentFrequency.bi_weekly]: "Kada Dalawang Linggo",
+                        [RepaymentFrequency.monthly]: "Buwanan",
+                      };
+                      return (
+                        <SelectItem key={freq} value={freq}>
+                          {labels[freq]}
+                        </SelectItem>
+                      );
+                    })}
+                  </SelectContent>
+                </Select>
+                <p className="text-xs text-slate-500">
+                  Ang options na ito ay nakadepende sa piniling produkto.
                 </p>
                 <FormMessage />
               </FormItem>
@@ -228,7 +294,13 @@ export const LoanApplicationForm = ({
 
             <div className="space-y-1">
               <span className="text-xs font-bold uppercase tracking-widest text-slate-400">
-                Tantyang Hulog Kada Buwan
+                Tantyang Hulog (
+                {watchFrequency === RepaymentFrequency.weekly
+                  ? "Lingguhan"
+                  : watchFrequency === RepaymentFrequency.bi_weekly
+                    ? "Kada Dalawang Linggo"
+                    : "Buwanan"}
+                )
               </span>
               <div className="flex items-baseline gap-2">
                 <span className="text-4xl font-display font-bold text-emerald-400">
@@ -238,7 +310,14 @@ export const LoanApplicationForm = ({
                     maximumFractionDigits: 2,
                   })}
                 </span>
-                <span className="text-sm text-slate-500">/ buwan</span>
+                <span className="text-sm text-slate-500">
+                  /{" "}
+                  {watchFrequency === RepaymentFrequency.weekly
+                    ? "linggo"
+                    : watchFrequency === RepaymentFrequency.bi_weekly
+                      ? "2 linggo"
+                      : "buwan"}
+                </span>
               </div>
             </div>
 

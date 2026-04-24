@@ -3,10 +3,10 @@
 import * as z from "zod";
 import prisma from "@/lib/prisma";
 import { requireAuthenticatedSession } from "@/lib/authorization";
-import { Role, UserStatus } from "@prisma/client";
+import { Role, UserStatus, RepaymentFrequency } from "@prisma/client";
 import { revalidatePath } from "next/cache";
 import {
-  computeMonthlyLoanQuote,
+  computeLoanQuote,
   MICROFINANCE_POLICY,
   validateLoanRequestAgainstPolicy,
 } from "@/lib/microfinance-policy";
@@ -39,6 +39,9 @@ const LoanApplicationSchema = z.object({
       MICROFINANCE_POLICY.maxGuarantors,
       `At most ${MICROFINANCE_POLICY.maxGuarantors} guarantors are allowed`,
     ),
+  repayment_frequency: z
+    .nativeEnum(RepaymentFrequency)
+    .default(RepaymentFrequency.monthly),
 });
 
 export const applyForLoan = async (
@@ -63,8 +66,13 @@ export const applyForLoan = async (
     return { error: "Invalid fields!" };
   }
 
-  const { product_id, amount, term_months, guarantor_ids } =
-    validatedFields.data;
+  const {
+    product_id,
+    amount,
+    term_months,
+    guarantor_ids,
+    repayment_frequency,
+  } = validatedFields.data;
 
   try {
     const [product, member] = await Promise.all([
@@ -130,7 +138,7 @@ export const applyForLoan = async (
       };
     }
 
-    const quote = computeMonthlyLoanQuote({
+    const quote = computeLoanQuote({
       principalAmount: amount,
       termMonths: term_months,
       monthlyRatePercent: Number(product.interest_rate_percent),
@@ -142,6 +150,7 @@ export const applyForLoan = async (
           user_id: userId,
           product_id,
           term_months,
+          repayment_frequency,
           status: "pending",
           tenant_id: tenantId,
           loan_reference: `LN-${tenantId}-${Date.now()}`,

@@ -18,6 +18,7 @@ import {
   ShieldAlert,
   Users2,
   X,
+  HeartPulse,
 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
@@ -39,7 +40,8 @@ export type ShellIconName =
   | "audit"
   | "apply"
   | "repayment"
-  | "settings";
+  | "settings"
+  | "compassion";
 
 const ICON_MAP = {
   overview: LayoutDashboard,
@@ -53,6 +55,7 @@ const ICON_MAP = {
   apply: HandCoins,
   repayment: History,
   settings: Settings2,
+  compassion: HeartPulse,
 } satisfies Record<ShellIconName, React.ComponentType<{ className?: string }>>;
 
 export function AuthenticatedShell({
@@ -363,7 +366,9 @@ export function AuthenticatedShell({
           </div>
         </div>
 
-        <div data-dashboard-scroll className="p-5 md:p-8">{children}</div>
+        <div data-dashboard-scroll className="p-5 md:p-8">
+          {children}
+        </div>
       </div>
     </div>
   );
