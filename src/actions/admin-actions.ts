@@ -8,7 +8,7 @@ export async function getTenantMembers() {
   const session = await requireTanawSession();
   const tenantId = session.user.tenantId ?? undefined;
   const tenantFilter =
-    session.user.role === "superadmin"
+    session.user.role === "superadmin" && !tenantId
       ? {}
       : { tenant_id: tenantId };
 
@@ -38,11 +38,11 @@ export async function getPendingApprovals() {
   const session = await requireTanawSession();
   const tenantId = session.user.tenantId ?? undefined;
   const tenantFilter =
-    session.user.role === "superadmin"
+    session.user.role === "superadmin" && !tenantId
       ? {}
       : { tenant_id: tenantId };
   const loanTenantFilter =
-    session.user.role === "superadmin"
+    session.user.role === "superadmin" && !tenantId
       ? {}
       : { tenant_id: tenantId };
 

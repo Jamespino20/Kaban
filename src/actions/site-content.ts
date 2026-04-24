@@ -104,11 +104,12 @@ export async function getHomepageContent() {
 export async function getHomepageContentAdmin() {
   const session = await requireTanawSession();
   ensureHomepageEditorRole(session.user.role);
+  const tenantId = session.user.tenantId ?? null;
 
   const baseWhere =
-    session.user.role === "superadmin"
+    session.user.role === "superadmin" && tenantId === null
       ? {}
-      : { tenant_id: session.user.tenantId ?? -1 };
+      : { tenant_id: tenantId ?? -1 };
 
   const [faqs, testimonials] = await Promise.all([
     prisma.homepageFaq.findMany({
@@ -449,10 +450,11 @@ export async function submitFeedback(input: z.infer<typeof feedbackSchema>) {
 
 export async function getFeedbackEntries() {
   const session = await requireTanawSession();
+  const tenantId = session.user.tenantId ?? null;
   const where =
-    session.user.role === "superadmin"
+    session.user.role === "superadmin" && tenantId === null
       ? {}
-      : { tenant_id: session.user.tenantId ?? -1 };
+      : { tenant_id: tenantId ?? -1 };
 
   return prisma.feedbackEntry.findMany({
     where,
@@ -503,11 +505,12 @@ export async function updateFeedbackEntryStatus(
 export async function getContentWorkflowSummary() {
   const session = await requireTanawSession();
   ensureHomepageEditorRole(session.user.role);
+  const tenantId = session.user.tenantId ?? null;
 
   const tenantWhere =
-    session.user.role === "superadmin"
+    session.user.role === "superadmin" && tenantId === null
       ? {}
-      : { tenant_id: session.user.tenantId ?? -1 };
+      : { tenant_id: tenantId ?? -1 };
 
   const [pendingFaqs, pendingTestimonials, openFeedback, testimonialFeedback] =
     await Promise.all([

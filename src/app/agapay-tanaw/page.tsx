@@ -59,8 +59,10 @@ export default async function AgapayTanawPage() {
   const isSuperAdmin = userRole === "superadmin";
   const isAdmin = userRole === "admin";
   const isLender = userRole === "lender";
+  const tenantContextId = session.user.tenantId ?? null;
+  const isGlobalSuperadminView = isSuperAdmin && tenantContextId === null;
   const canViewProducts = isAdmin || isSuperAdmin;
-  const hasTenantScopedProductAccess = isAdmin || (isSuperAdmin && !!session.user.tenantId);
+  const hasTenantScopedProductAccess = isAdmin || (isSuperAdmin && !!tenantContextId);
   const canViewBranchOps = isSuperAdmin;
   const canViewAuditLogs = isAdmin || isSuperAdmin;
   const canManageHomepageContent = isAdmin || isSuperAdmin;
@@ -149,7 +151,9 @@ export default async function AgapayTanawPage() {
             ? "Tenant-level operations, borrower oversight, at trust monitoring."
             : isAdmin
               ? "Tenant-level administration para sa approvals, member safety, at portfolio health."
-              : "Global oversight para sa tenant cooperatives, fraud monitoring, at system health."
+              : isGlobalSuperadminView
+                ? "Global oversight para sa tenant cooperatives, fraud monitoring, at system health."
+                : "Branch-scoped oversight para sa napiling cooperative, kabilang ang approvals, members, at content operations."
         }
         portalLabel={`${userRole} portal`}
         accountName={userName}
@@ -342,7 +346,7 @@ export default async function AgapayTanawPage() {
               <AuditLogViewer
                 tenantId={
                   session?.user?.role === "superadmin"
-                    ? undefined
+                    ? (tenantContextId ?? undefined)
                     : Number(session?.user?.tenantId || 0)
                 }
               />
