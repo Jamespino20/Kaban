@@ -76,6 +76,7 @@ export function AuthenticatedShell({
 }) {
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [navReady, setNavReady] = useState(false);
   const navScrollRef = useRef<HTMLDivElement>(null);
 
   const accentStyles =
@@ -110,11 +111,12 @@ export function AuthenticatedShell({
         };
 
   useEffect(() => {
-    const timer = setTimeout(() => {
-      navScrollRef.current?.scrollTo({ top: 0, behavior: "auto" });
-    }, 0);
-    return () => clearTimeout(timer);
-  }, [collapsed, navItems.length, mobileOpen]);
+    // Delay enabling scroll so Radix's focus-triggered scrollIntoView
+    // cannot shift the nav container during mount.
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => setNavReady(true));
+    });
+  }, []);
 
   const renderSidebar = () => (
     <div
@@ -126,14 +128,15 @@ export function AuthenticatedShell({
             collapsed ? "xl:w-0 xl:opacity-0" : "xl:w-auto xl:opacity-100"
           }`}
         >
-          <div className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-2xl border border-white/10 bg-white/8 text-xl font-black italic text-white shadow-[0_10px_30px_rgba(15,23,42,0.35)]">
+          <div className="relative flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-2xl border border-emerald-500/25 bg-emerald-500/10 text-xl font-black italic text-emerald-400 shadow-[0_10px_30px_rgba(15,23,42,0.35)]">
             A
+            <div className="absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 rounded-full bg-emerald-400 ring-2 ring-slate-950" />
           </div>
           <div className="min-w-0">
-            <p className="truncate text-lg font-black italic tracking-tight text-white">
+            <p className="truncate font-display text-lg font-black italic tracking-tight text-white">
               Agapay
             </p>
-            <p className="truncate text-[11px] uppercase tracking-[0.24em] text-slate-400">
+            <p className="truncate text-[11px] uppercase tracking-[0.24em] text-emerald-400/60">
               Cooperative SaaS
             </p>
           </div>
@@ -165,8 +168,11 @@ export function AuthenticatedShell({
         </div>
       </div>
 
-      <div ref={navScrollRef} className="flex-1 overflow-y-auto px-3 pt-3 pb-3">
-        <TabsList className="flex h-auto w-full flex-col gap-1.5 bg-transparent p-0">
+      <div
+        ref={navScrollRef}
+        className={`flex-1 px-3 pt-3 pb-3 ${navReady ? "overflow-y-auto" : "overflow-y-hidden"}`}
+      >
+        <TabsList className="flex h-auto w-full flex-col gap-1 bg-transparent p-0">
           {navItems.map((item) => {
             const Icon = ICON_MAP[item.icon];
             return (
@@ -174,12 +180,12 @@ export function AuthenticatedShell({
                 key={item.value}
                 value={item.value}
                 onClick={() => setMobileOpen(false)}
-                className={`group h-auto w-full justify-start rounded-2xl border px-3 py-2 text-left text-slate-300 transition-all hover:border-white/12 hover:bg-white/6 hover:text-white ${accentStyles.active} ${
+                className={`group h-auto w-full justify-start rounded-xl border border-transparent px-3 py-2 text-left text-slate-400 transition-all hover:bg-white/6 hover:text-white data-[state=active]:border-emerald-500/20 data-[state=active]:bg-emerald-500/10 data-[state=active]:text-white ${
                   collapsed ? "xl:px-2.5" : ""
                 }`}
               >
-                <div className="flex w-full items-center gap-3">
-                  <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-xl border border-white/8 bg-white/5 transition-colors group-data-[state=active]:border-white/15 group-data-[state=active]:bg-white/10">
+                <div className="flex w-full items-center gap-2.5">
+                  <div className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-lg transition-colors group-data-[state=active]:text-emerald-400">
                     <Icon className="h-4 w-4" />
                   </div>
                   <div
@@ -187,7 +193,9 @@ export function AuthenticatedShell({
                       collapsed ? "xl:hidden" : ""
                     }`}
                   >
-                    <p className="truncate text-sm font-bold">{item.label}</p>
+                    <p className="truncate font-display text-[13px] font-bold italic">
+                      {item.label}
+                    </p>
                   </div>
                   {typeof item.badge === "number" && item.badge > 0 ? (
                     <span
@@ -217,15 +225,15 @@ export function AuthenticatedShell({
 
           <div className="flex items-center gap-3">
             <div
-              className={`flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-2xl font-black ${accentStyles.panel} ${accentStyles.icon}`}
+              className={`flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl border border-emerald-500/20 bg-emerald-500/10 font-display text-sm font-black italic text-emerald-400`}
             >
               {accountName.slice(0, 2).toUpperCase()}
             </div>
             <div className={`min-w-0 flex-1 ${collapsed ? "xl:hidden" : ""}`}>
-              <p className="truncate text-sm font-bold text-white">
+              <p className="truncate font-display text-sm font-bold italic text-white">
                 {accountName}
               </p>
-              <p className="text-[10px] uppercase tracking-[0.2em] text-slate-400">
+              <p className="text-[10px] uppercase tracking-[0.2em] text-emerald-400/50">
                 {accountRole}
               </p>
             </div>
