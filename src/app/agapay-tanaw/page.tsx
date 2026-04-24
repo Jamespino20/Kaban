@@ -1,4 +1,4 @@
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { TabsContent } from "@/components/ui/tabs";
 import {
   BarChart3,
   Settings2,
@@ -40,9 +40,9 @@ import {
   getHomepageContentAdmin,
 } from "@/actions/site-content";
 import {
-  AuthenticatedShell,
   type ShellNavItem,
 } from "@/components/layout/authenticated-shell";
+import { DashboardTabsShell } from "@/components/layout/dashboard-tabs-shell";
 
 export default async function AgapayTanawPage() {
   const session = await auth();
@@ -141,8 +141,8 @@ export default async function AgapayTanawPage() {
   }
 
   return (
-    <Tabs defaultValue="overview" className="min-h-screen">
-      <AuthenticatedShell
+    <DashboardTabsShell
+      defaultValue="overview"
         title="Pangkalahatan"
         subtitle={
           isLender
@@ -349,7 +349,6 @@ export default async function AgapayTanawPage() {
             </TabsContent>
           )}
         </div>
-      </AuthenticatedShell>
-    </Tabs>
+      </DashboardTabsShell>
   );
 }

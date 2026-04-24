@@ -2,6 +2,14 @@
 
 import { useTransition, useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   History,
   User,
@@ -19,6 +27,10 @@ export function AuditLogViewer({ tenantId }: { tenantId?: number }) {
   const [logs, setLogs] = useState<any[]>([]);
   const [isPending, startTransition] = useTransition();
   const [expandedLog, setExpandedLog] = useState<number | null>(null);
+  const [actionFilter, setActionFilter] = useState("all");
+  const [query, setQuery] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const pageSize = 10;
 
   useEffect(() => {
     startTransition(async () => {
@@ -26,6 +38,29 @@ export function AuditLogViewer({ tenantId }: { tenantId?: number }) {
       setLogs(data);
     });
   }, [tenantId]);
+
+  const filteredLogs = logs.filter((log: any) => {
+    const matchesAction =
+      actionFilter === "all" ||
+      log.action.toLowerCase().includes(actionFilter.toLowerCase());
+    const matchesQuery =
+      query.trim().length === 0 ||
+      log.action.toLowerCase().includes(query.toLowerCase()) ||
+      log.entity_type.toLowerCase().includes(query.toLowerCase()) ||
+      (log.username || "system").toLowerCase().includes(query.toLowerCase());
+
+    return matchesAction && matchesQuery;
+  });
+
+  const totalPages = Math.max(1, Math.ceil(filteredLogs.length / pageSize));
+  const paginatedLogs = filteredLogs.slice(
+    (currentPage - 1) * pageSize,
+    currentPage * pageSize,
+  );
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [actionFilter, query]);
 
   if (isPending) {
     return (
@@ -51,7 +86,29 @@ export function AuditLogViewer({ tenantId }: { tenantId?: number }) {
         </div>
       </div>
 
-      {logs.length === 0 ? (
+      <div className="grid grid-cols-1 gap-3 md:grid-cols-[1fr_220px]">
+        <Input
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          placeholder="Hanapin ang action, entity, o username..."
+          className="rounded-xl bg-white"
+        />
+        <Select value={actionFilter} onValueChange={setActionFilter}>
+          <SelectTrigger className="w-full rounded-xl bg-white">
+            <SelectValue placeholder="Action type" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Lahat ng action</SelectItem>
+            <SelectItem value="read">READ</SelectItem>
+            <SelectItem value="create">CREATE</SelectItem>
+            <SelectItem value="update">UPDATE</SelectItem>
+            <SelectItem value="delete">DELETE</SelectItem>
+            <SelectItem value="decommission">DECOMMISSION</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+
+      {filteredLogs.length === 0 ? (
         <Card className="p-20 text-center flex flex-col items-center justify-center border-dashed">
           <Database className="w-12 h-12 text-slate-200 mb-2" />
           <p className="text-slate-500">
@@ -60,7 +117,7 @@ export function AuditLogViewer({ tenantId }: { tenantId?: number }) {
         </Card>
       ) : (
         <div className="space-y-3">
-          {logs.map((log: any) => (
+          {paginatedLogs.map((log: any) => (
             <Card
               key={log.id}
               className="overflow-hidden border-slate-200 shadow-sm transition-all hover:shadow-md"
@@ -146,6 +203,40 @@ export function AuditLogViewer({ tenantId }: { tenantId?: number }) {
               )}
             </Card>
           ))}
+
+          <div className="mt-4 flex flex-col gap-3 border-t border-slate-100 pt-4 md:flex-row md:items-center md:justify-between">
+            <p className="text-sm text-slate-500">
+              Ipinapakita ang{" "}
+              <span className="font-bold text-slate-700">
+                {filteredLogs.length === 0 ? 0 : (currentPage - 1) * pageSize + 1}-
+                {Math.min(currentPage * pageSize, filteredLogs.length)}
+              </span>{" "}
+              ng <span className="font-bold text-slate-700">{filteredLogs.length}</span> logs
+            </p>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                disabled={currentPage === 1}
+                onClick={() => setCurrentPage((page) => Math.max(1, page - 1))}
+                className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-600 disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                Previous
+              </button>
+              <span className="rounded-xl bg-white px-3 py-2 text-sm font-bold text-slate-700">
+                {currentPage} / {totalPages}
+              </span>
+              <button
+                type="button"
+                disabled={currentPage === totalPages}
+                onClick={() =>
+                  setCurrentPage((page) => Math.min(totalPages, page + 1))
+                }
+                className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-600 disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                Next
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>

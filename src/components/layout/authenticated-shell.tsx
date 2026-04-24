@@ -363,7 +363,7 @@ export function AuthenticatedShell({
           </div>
         </div>
 
-        <div className="p-5 md:p-8">{children}</div>
+        <div data-dashboard-scroll className="p-5 md:p-8">{children}</div>
       </div>
     </div>
   );

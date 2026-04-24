@@ -1,13 +1,61 @@
 "use client";
 
-import React from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { Users2, Search, MoreVertical, ShieldCheck, Clock } from "lucide-react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 interface MemberDirectoryTabProps {
   members: any[];
 }
 
 export function MemberDirectoryTab({ members }: MemberDirectoryTabProps) {
+  const [query, setQuery] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [currentPage, setCurrentPage] = useState(1);
+  const pageSize = 8;
+
+  const filteredMembers = useMemo(() => {
+    return members.filter((member: any) => {
+      const name = member.profile
+        ? `${member.profile.first_name} ${member.profile.last_name}`
+        : member.username;
+
+      const matchesQuery =
+        query.trim().length === 0 ||
+        name.toLowerCase().includes(query.toLowerCase()) ||
+        member.email?.toLowerCase().includes(query.toLowerCase()) ||
+        member.member_code?.toLowerCase().includes(query.toLowerCase());
+
+      const matchesStatus =
+        statusFilter === "all" || member.status === statusFilter;
+
+      return matchesQuery && matchesStatus;
+    });
+  }, [members, query, statusFilter]);
+
+  const totalPages = Math.max(1, Math.ceil(filteredMembers.length / pageSize));
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [query, statusFilter]);
+
+  useEffect(() => {
+    if (currentPage > totalPages) {
+      setCurrentPage(totalPages);
+    }
+  }, [currentPage, totalPages]);
+
+  const paginatedMembers = filteredMembers.slice(
+    (currentPage - 1) * pageSize,
+    currentPage * pageSize,
+  );
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -16,18 +64,32 @@ export function MemberDirectoryTab({ members }: MemberDirectoryTabProps) {
           <input
             type="text"
             placeholder="Hanapin ang miyembro..."
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
             className="w-full bg-white border border-slate-200 rounded-xl py-2.5 pl-10 pr-4 text-sm focus:outline-none focus:ring-2 focus:ring-slate-900/5 transition-all"
           />
         </div>
         <div className="flex items-center gap-2">
+          <Select value={statusFilter} onValueChange={setStatusFilter}>
+            <SelectTrigger className="w-[180px] rounded-xl bg-white">
+              <SelectValue placeholder="Filter status" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Lahat ng status</SelectItem>
+              <SelectItem value="active">Aktibo</SelectItem>
+              <SelectItem value="pending">Pending</SelectItem>
+              <SelectItem value="suspended">Suspended</SelectItem>
+            </SelectContent>
+          </Select>
           <span className="text-xs font-bold text-slate-400 uppercase tracking-widest whitespace-nowrap">
-            Kabuuan: {members.length} Miyembro
+            Nakikita: {filteredMembers.length}
           </span>
         </div>
       </div>
 
       <div className="bg-white border border-slate-100 rounded-3xl overflow-hidden shadow-sm">
-        <table className="w-full text-left border-collapse">
+        <div className="max-h-[34rem] overflow-auto">
+        <table className="w-full min-w-[720px] text-left border-collapse">
           <thead>
             <tr className="bg-slate-50/50 border-bottom border-slate-100">
               <th className="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
@@ -46,7 +108,7 @@ export function MemberDirectoryTab({ members }: MemberDirectoryTabProps) {
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-50">
-            {members.length === 0 ? (
+            {paginatedMembers.length === 0 ? (
               <tr>
                 <td
                   colSpan={5}
@@ -56,7 +118,7 @@ export function MemberDirectoryTab({ members }: MemberDirectoryTabProps) {
                 </td>
               </tr>
             ) : (
-              members.map((member: any) => {
+              paginatedMembers.map((member: any) => {
                 const name = member.profile
                   ? `${member.profile.first_name} ${member.profile.last_name}`
                   : member.username;
@@ -116,6 +178,64 @@ export function MemberDirectoryTab({ members }: MemberDirectoryTabProps) {
             )}
           </tbody>
         </table>
+        </div>
+        <PaginationBar
+          currentPage={currentPage}
+          totalPages={totalPages}
+          itemLabel="miyembro"
+          pageSize={pageSize}
+          totalItems={filteredMembers.length}
+          onPageChange={setCurrentPage}
+        />
+      </div>
+    </div>
+  );
+}
+
+function PaginationBar({
+  currentPage,
+  totalPages,
+  totalItems,
+  pageSize,
+  itemLabel,
+  onPageChange,
+}: {
+  currentPage: number;
+  totalPages: number;
+  totalItems: number;
+  pageSize: number;
+  itemLabel: string;
+  onPageChange: (page: number) => void;
+}) {
+  const start = totalItems === 0 ? 0 : (currentPage - 1) * pageSize + 1;
+  const end = Math.min(currentPage * pageSize, totalItems);
+
+  return (
+    <div className="flex flex-col gap-3 border-t border-slate-100 bg-slate-50/70 px-6 py-4 md:flex-row md:items-center md:justify-between">
+      <p className="text-sm text-slate-500">
+        Ipinapakita ang <span className="font-bold text-slate-700">{start}-{end}</span> ng{" "}
+        <span className="font-bold text-slate-700">{totalItems}</span> {itemLabel}
+      </p>
+      <div className="flex items-center gap-2">
+        <button
+          type="button"
+          onClick={() => onPageChange(Math.max(1, currentPage - 1))}
+          disabled={currentPage === 1}
+          className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-600 disabled:cursor-not-allowed disabled:opacity-50"
+        >
+          Previous
+        </button>
+        <span className="rounded-xl bg-white px-3 py-2 text-sm font-bold text-slate-700">
+          {currentPage} / {totalPages}
+        </span>
+        <button
+          type="button"
+          onClick={() => onPageChange(Math.min(totalPages, currentPage + 1))}
+          disabled={currentPage === totalPages}
+          className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-600 disabled:cursor-not-allowed disabled:opacity-50"
+        >
+          Next
+        </button>
       </div>
     </div>
   );

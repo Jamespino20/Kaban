@@ -30,6 +30,10 @@ export function LoanServicingTab({
   loans: any[];
   paymentMethods: any[];
 }) {
+  const [productFilter, setProductFilter] = useState("all");
+  const [currentPage, setCurrentPage] = useState(1);
+  const pageSize = 2;
+
   if (loans.length === 0) {
     return (
       <div className="bg-white p-12 rounded-[2.5rem] border border-slate-100 text-center text-slate-400">
@@ -38,15 +42,87 @@ export function LoanServicingTab({
     );
   }
 
+  const filteredLoans = loans.filter((loan) => {
+    if (productFilter === "all") return true;
+    return String(loan.loan_id) === productFilter;
+  });
+
+  const totalPages = Math.max(1, Math.ceil(filteredLoans.length / pageSize));
+  const paginatedLoans = filteredLoans.slice(
+    (currentPage - 1) * pageSize,
+    currentPage * pageSize,
+  );
+
   return (
     <div className="space-y-6">
-      {loans.map((loan) => (
+      <div className="flex flex-col gap-3 rounded-[2rem] border border-slate-100 bg-white p-5 shadow-sm md:flex-row md:items-center md:justify-between">
+        <div>
+          <p className="text-xs font-bold uppercase tracking-[0.2em] text-slate-400">
+            Loan View
+          </p>
+          <p className="text-sm text-slate-500">
+            Piliin ang loan na gusto mong tingnan kapag marami nang active repayments.
+          </p>
+        </div>
+        <div className="flex items-center gap-3">
+          <Select value={productFilter} onValueChange={setProductFilter}>
+            <SelectTrigger className="w-[280px] rounded-xl bg-white">
+              <SelectValue placeholder="Filter by loan product" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Lahat ng active loans</SelectItem>
+              {loans.map((loan) => (
+                <SelectItem key={loan.loan_id} value={String(loan.loan_id)}>
+                  {loan.product?.name} · {loan.loan_reference}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
+
+      {paginatedLoans.map((loan) => (
         <LoanServicingCard
           key={loan.loan_id}
           loan={loan}
           paymentMethods={paymentMethods}
         />
       ))}
+
+      <div className="flex flex-col gap-3 rounded-[1.5rem] border border-slate-100 bg-white px-5 py-4 md:flex-row md:items-center md:justify-between">
+        <p className="text-sm text-slate-500">
+          Ipinapakita ang{" "}
+          <span className="font-bold text-slate-700">
+            {filteredLoans.length === 0 ? 0 : (currentPage - 1) * pageSize + 1}-
+            {Math.min(currentPage * pageSize, filteredLoans.length)}
+          </span>{" "}
+          ng <span className="font-bold text-slate-700">{filteredLoans.length}</span>{" "}
+          active loans
+        </p>
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            disabled={currentPage === 1}
+            onClick={() => setCurrentPage((page) => Math.max(1, page - 1))}
+            className="rounded-xl"
+          >
+            Previous
+          </Button>
+          <span className="rounded-xl bg-slate-100 px-3 py-2 text-sm font-bold text-slate-700">
+            {currentPage} / {totalPages}
+          </span>
+          <Button
+            variant="outline"
+            disabled={currentPage === totalPages}
+            onClick={() =>
+              setCurrentPage((page) => Math.min(totalPages, page + 1))
+            }
+            className="rounded-xl"
+          >
+            Next
+          </Button>
+        </div>
+      </div>
     </div>
   );
 }
@@ -262,7 +338,7 @@ function LoanServicingCard({
         <p className="text-xs font-bold uppercase tracking-widest text-slate-400">
           Recent Repayment Activity
         </p>
-        <div className="space-y-2">
+        <div className="max-h-64 space-y-2 overflow-y-auto pr-1">
           {loan.payments.length === 0 ? (
             <p className="text-sm text-slate-400 italic">Wala pang naipapasang repayment.</p>
           ) : (

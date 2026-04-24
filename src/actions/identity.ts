@@ -35,6 +35,31 @@ export async function getAvailableTenants(username: string, password?: string) {
 
     const sql = neon(connectionString);
 
+    if (!password && authenticatedSession?.user.role === "superadmin") {
+      const tenants = await sql`
+        SELECT
+          t.tenant_id,
+          t.name,
+          t.slug,
+          tg.name AS group_name
+        FROM tenants t
+        LEFT JOIN tenant_groups tg ON tg.id = t.tenant_group_id
+        WHERE t.is_active = true
+        ORDER BY t.name ASC
+      `;
+
+      return {
+        success: true,
+        tenants: tenants.map((tenant: any) => ({
+          tenant_id: tenant.tenant_id,
+          name: tenant.name,
+          groupName: tenant.group_name || "Agapay HQ",
+          slug: tenant.slug,
+          role: "superadmin",
+        })),
+      };
+    }
+
     // Atomic SQL queries — no Prisma adapter dependency
     const users: any[] = await sql`
       SELECT 

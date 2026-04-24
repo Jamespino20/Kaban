@@ -20,21 +20,24 @@ export function BranchSwitcher() {
   const [loading, setLoading] = useState(false);
   const [switching, setSwitching] = useState<number | null>(null);
   const accessibleTenantIds = session?.user?.accessibleTenantIds || [];
+  const isSuperadmin = session?.user?.role === "superadmin";
 
   useEffect(() => {
-    if (session?.user?.email && accessibleTenantIds.length > 1) {
+    if (session?.user?.email && (isSuperadmin || accessibleTenantIds.length > 1)) {
       loadTenants();
     }
-  }, [session?.user?.email, accessibleTenantIds.length]);
+  }, [session?.user?.email, accessibleTenantIds.length, isSuperadmin]);
 
   async function loadTenants() {
     setLoading(true);
     const result = await getAvailableTenants(session?.user?.email!);
     if (result.success) {
       setTenants(
-        result.tenants.filter((tenant: any) =>
-          accessibleTenantIds.includes(tenant.tenant_id),
-        ),
+        isSuperadmin
+          ? result.tenants.filter((tenant: any) => tenant.tenant_id)
+          : result.tenants.filter((tenant: any) =>
+              accessibleTenantIds.includes(tenant.tenant_id),
+            ),
       );
     }
     setLoading(false);
@@ -42,7 +45,7 @@ export function BranchSwitcher() {
 
   async function handleSwitch(tenantId: number) {
     if (tenantId === session?.user?.tenantId) return;
-    if (!accessibleTenantIds.includes(tenantId)) return;
+    if (!isSuperadmin && !accessibleTenantIds.includes(tenantId)) return;
 
     setSwitching(tenantId);
 
@@ -56,7 +59,7 @@ export function BranchSwitcher() {
     window.location.href = "/";
   }
 
-  if (accessibleTenantIds.length <= 1 && !loading) return null;
+  if (!isSuperadmin && accessibleTenantIds.length <= 1 && !loading) return null;
 
   const currentTenant = tenants.find(
     (t) => t.tenant_id === session?.user?.tenantId,

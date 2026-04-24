@@ -2,9 +2,17 @@
 
 import { updateFeedbackEntryStatus } from "@/actions/site-content";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { MessageSquareMore, RefreshCcw, Sparkles } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useTransition } from "react";
+import { useEffect, useMemo, useState, useTransition } from "react";
 import { toast } from "sonner";
 
 type FeedbackItem = {
@@ -34,9 +42,41 @@ export function FeedbackTab({
   role: string;
   entries: FeedbackItem[];
 }) {
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [categoryFilter, setCategoryFilter] = useState("all");
+  const [query, setQuery] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const pageSize = 6;
+
   const testimonialCount = entries.filter(
     (entry) => entry.category === "testimonial",
   ).length;
+  const filteredEntries = useMemo(() => {
+    return entries.filter((entry) => {
+      const matchesStatus =
+        statusFilter === "all" || entry.status === statusFilter;
+      const matchesCategory =
+        categoryFilter === "all" || entry.category === categoryFilter;
+      const matchesQuery =
+        query.trim().length === 0 ||
+        entry.name.toLowerCase().includes(query.toLowerCase()) ||
+        entry.message.toLowerCase().includes(query.toLowerCase()) ||
+        (entry.subject || "").toLowerCase().includes(query.toLowerCase());
+
+      return matchesStatus && matchesCategory && matchesQuery;
+    });
+  }, [entries, statusFilter, categoryFilter, query]);
+
+  const totalPages = Math.max(1, Math.ceil(filteredEntries.length / pageSize));
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [statusFilter, categoryFilter, query]);
+
+  const paginatedEntries = filteredEntries.slice(
+    (currentPage - 1) * pageSize,
+    currentPage * pageSize,
+  );
 
   return (
     <div className="space-y-6">
@@ -75,14 +115,81 @@ export function FeedbackTab({
           </p>
         </div>
 
+        <div className="mb-5 grid grid-cols-1 gap-3 lg:grid-cols-[1.1fr_0.7fr_0.7fr]">
+          <Input
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="Hanapin ang subject, sender, o laman ng feedback..."
+            className="rounded-xl bg-white"
+          />
+          <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+            <SelectTrigger className="w-full rounded-xl bg-white">
+              <SelectValue placeholder="Category" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Lahat ng category</SelectItem>
+              <SelectItem value="testimonial">Testimonial</SelectItem>
+              <SelectItem value="faq">FAQ</SelectItem>
+              <SelectItem value="general">General</SelectItem>
+              <SelectItem value="concern">Concern</SelectItem>
+            </SelectContent>
+          </Select>
+          <Select value={statusFilter} onValueChange={setStatusFilter}>
+            <SelectTrigger className="w-full rounded-xl bg-white">
+              <SelectValue placeholder="Status" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Lahat ng status</SelectItem>
+              <SelectItem value="open">Open</SelectItem>
+              <SelectItem value="in_review">In Review</SelectItem>
+              <SelectItem value="resolved">Resolved</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+
         <div className="space-y-4">
-          {entries.length === 0 ? (
+          {paginatedEntries.length === 0 ? (
             <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50 p-5 text-sm text-slate-500">
               Wala pang feedback entries sa ngayon.
             </div>
           ) : (
-            entries.map((entry) => <FeedbackRow key={entry.id} entry={entry} />)
+            paginatedEntries.map((entry) => <FeedbackRow key={entry.id} entry={entry} />)
           )}
+        </div>
+
+        <div className="mt-6 flex flex-col gap-3 border-t border-slate-100 pt-4 md:flex-row md:items-center md:justify-between">
+          <p className="text-sm text-slate-500">
+            Ipinapakita ang{" "}
+            <span className="font-bold text-slate-700">
+              {filteredEntries.length === 0 ? 0 : (currentPage - 1) * pageSize + 1}-
+              {Math.min(currentPage * pageSize, filteredEntries.length)}
+            </span>{" "}
+            ng <span className="font-bold text-slate-700">{filteredEntries.length}</span>{" "}
+            entries
+          </p>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              disabled={currentPage === 1}
+              onClick={() => setCurrentPage((page) => Math.max(1, page - 1))}
+              className="rounded-xl"
+            >
+              Previous
+            </Button>
+            <span className="rounded-xl bg-slate-100 px-3 py-2 text-sm font-bold text-slate-700">
+              {currentPage} / {totalPages}
+            </span>
+            <Button
+              variant="outline"
+              disabled={currentPage === totalPages}
+              onClick={() =>
+                setCurrentPage((page) => Math.min(totalPages, page + 1))
+              }
+              className="rounded-xl"
+            >
+              Next
+            </Button>
+          </div>
         </div>
       </div>
     </div>
@@ -185,4 +292,3 @@ function FeedbackRow({ entry }: { entry: FeedbackItem }) {
     </div>
   );
 }
-

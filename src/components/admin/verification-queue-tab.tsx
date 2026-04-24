@@ -100,50 +100,52 @@ function PendingLoansSection({ loans }: { loans: any[] }) {
         {loans.length === 0 ? (
           <EmptyState message="Walang nakabinbing loan applications." />
         ) : (
-          loans.map((loan: any) => (
-            <div
-              key={loan.loan_id}
-              className="bg-white p-6 rounded-[2rem] border border-slate-100 shadow-sm"
-            >
-              <div className="flex justify-between items-start mb-6">
-                <ApplicantSummary
-                  firstName={loan.user?.profile?.first_name}
-                  lastName={loan.user?.profile?.last_name}
-                  subtitle={loan.product?.name}
-                />
-                <AmountSummary
-                  amount={Number(loan.principal_amount)}
-                  caption={`${loan.term_months} buwan`}
-                />
-              </div>
-
-              <div className="flex items-center justify-between text-[10px] text-slate-400 font-medium mb-4">
-                <div className="flex items-center gap-2">
-                  <Calendar className="w-3 h-3" />
-                  {format(new Date(loan.applied_at), "MMM d, yyyy")}
+          <div className="max-h-[32rem] space-y-4 overflow-y-auto pr-2">
+            {loans.map((loan: any) => (
+              <div
+                key={loan.loan_id}
+                className="bg-white p-6 rounded-[2rem] border border-slate-100 shadow-sm"
+              >
+                <div className="flex justify-between items-start mb-6">
+                  <ApplicantSummary
+                    firstName={loan.user?.profile?.first_name}
+                    lastName={loan.user?.profile?.last_name}
+                    subtitle={loan.product?.name}
+                  />
+                  <AmountSummary
+                    amount={Number(loan.principal_amount)}
+                    caption={`${loan.term_months} buwan`}
+                  />
                 </div>
-                <span className="uppercase tracking-widest">{loan.loan_reference}</span>
-              </div>
 
-              <div className="flex gap-3">
-                <Button
-                  disabled={isPending}
-                  onClick={() => handleApprove(loan.loan_id)}
-                  className="flex-1 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white"
-                >
-                  Approve
-                </Button>
-                <Button
-                  disabled={isPending}
-                  variant="outline"
-                  onClick={() => handleReject(loan.loan_id)}
-                  className="flex-1 rounded-xl border-rose-200 text-rose-600 hover:bg-rose-50"
-                >
-                  Reject
-                </Button>
+                <div className="flex items-center justify-between text-[10px] text-slate-400 font-medium mb-4">
+                  <div className="flex items-center gap-2">
+                    <Calendar className="w-3 h-3" />
+                    {format(new Date(loan.applied_at), "MMM d, yyyy")}
+                  </div>
+                  <span className="uppercase tracking-widest">{loan.loan_reference}</span>
+                </div>
+
+                <div className="flex gap-3">
+                  <Button
+                    disabled={isPending}
+                    onClick={() => handleApprove(loan.loan_id)}
+                    className="flex-1 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white"
+                  >
+                    Approve
+                  </Button>
+                  <Button
+                    disabled={isPending}
+                    variant="outline"
+                    onClick={() => handleReject(loan.loan_id)}
+                    className="flex-1 rounded-xl border-rose-200 text-rose-600 hover:bg-rose-50"
+                  >
+                    Reject
+                  </Button>
+                </div>
               </div>
-            </div>
-          ))
+            ))}
+          </div>
         )}
       </div>
     </div>
@@ -163,9 +165,11 @@ function ReleaseQueueSection({ loans }: { loans: any[] }) {
         {loans.length === 0 ? (
           <EmptyState message="Walang approved loans na handa para i-release." />
         ) : (
-          loans.map((loan: any) => (
-            <ReleaseLoanCard key={loan.loan_id} loan={loan} />
-          ))
+          <div className="max-h-[32rem] space-y-4 overflow-y-auto pr-2">
+            {loans.map((loan: any) => (
+              <ReleaseLoanCard key={loan.loan_id} loan={loan} />
+            ))}
+          </div>
         )}
       </div>
     </div>
@@ -185,9 +189,11 @@ function PendingPaymentsSection({ payments }: { payments: any[] }) {
         {payments.length === 0 ? (
           <EmptyState message="Walang repayment submissions na naghihintay ng verification." />
         ) : (
-          payments.map((payment: any) => (
-            <ReviewPaymentCard key={payment.payment_id} payment={payment} />
-          ))
+          <div className="max-h-[32rem] space-y-4 overflow-y-auto pr-2">
+            {payments.map((payment: any) => (
+              <ReviewPaymentCard key={payment.payment_id} payment={payment} />
+            ))}
+          </div>
         )}
       </div>
     </div>
@@ -207,23 +213,25 @@ function IdentityVerificationSection({ verifications }: { verifications: any[] }
         {verifications.length === 0 ? (
           <EmptyState message="Walang nakabinbing identity checks." />
         ) : (
-          verifications.map((user: any) => (
-            <div
-              key={user.user_id}
-              className="group bg-white p-6 rounded-[2rem] border border-slate-100 shadow-sm hover:shadow-md transition-all"
-            >
-              <div className="flex justify-between items-center">
-                <ApplicantSummary
-                  firstName={user.profile?.first_name}
-                  lastName={user.profile?.last_name}
-                  subtitle={`${user.documents.length} file(s) uploaded`}
-                />
-                <button className="flex items-center justify-center w-10 h-10 rounded-2xl bg-slate-50 group-hover:bg-slate-900 group-hover:text-white transition-all">
-                  <UserCheck className="w-4 h-4" />
-                </button>
+          <div className="max-h-[32rem] space-y-4 overflow-y-auto pr-2">
+            {verifications.map((user: any) => (
+              <div
+                key={user.user_id}
+                className="group bg-white p-6 rounded-[2rem] border border-slate-100 shadow-sm hover:shadow-md transition-all"
+              >
+                <div className="flex justify-between items-center">
+                  <ApplicantSummary
+                    firstName={user.profile?.first_name}
+                    lastName={user.profile?.last_name}
+                    subtitle={`${user.documents.length} file(s) uploaded`}
+                  />
+                  <button className="flex items-center justify-center w-10 h-10 rounded-2xl bg-slate-50 group-hover:bg-slate-900 group-hover:text-white transition-all">
+                    <UserCheck className="w-4 h-4" />
+                  </button>
+                </div>
               </div>
-            </div>
-          ))
+            ))}
+          </div>
         )}
       </div>
     </div>

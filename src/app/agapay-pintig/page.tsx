@@ -1,4 +1,4 @@
-import { Tabs, TabsContent } from "@/components/ui/tabs";
+import { TabsContent } from "@/components/ui/tabs";
 import {
   Wallet,
   HandCoins,
@@ -14,9 +14,9 @@ import { TwoFactorSetup } from "@/components/auth/two-factor-setup";
 import prisma from "@/lib/prisma";
 import { redirect } from "next/navigation";
 import {
-  AuthenticatedShell,
   type ShellNavItem,
 } from "@/components/layout/authenticated-shell";
+import { DashboardTabsShell } from "@/components/layout/dashboard-tabs-shell";
 
 export default async function AgapayPintigPage() {
   const session = await auth();
@@ -90,8 +90,8 @@ export default async function AgapayPintigPage() {
     }).format(val);
 
   return (
-    <Tabs defaultValue="overview" className="min-h-screen">
-      <AuthenticatedShell
+    <DashboardTabsShell
+        defaultValue="overview"
         title="Pangkalahatan"
         subtitle="Ang iyong katuwang sa mas malinaw na loan, repayment, at branch support."
         portalLabel="member portal"
@@ -232,7 +232,6 @@ export default async function AgapayPintigPage() {
             </div>
           </TabsContent>
         </div>
-      </AuthenticatedShell>
-    </Tabs>
+      </DashboardTabsShell>
   );
 }
