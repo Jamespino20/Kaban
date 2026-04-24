@@ -62,6 +62,8 @@ export function AuthenticatedShell({
   accountName,
   accountRole,
   accent = "emerald",
+  tenantName,
+  tenantLogoUrl,
   navItems,
   children,
 }: {
@@ -71,6 +73,8 @@ export function AuthenticatedShell({
   accountName: string;
   accountRole: string;
   accent?: "emerald" | "blue";
+  tenantName?: string;
+  tenantLogoUrl?: string;
   navItems: ShellNavItem[];
   children: React.ReactNode;
 }) {
@@ -124,21 +128,59 @@ export function AuthenticatedShell({
     >
       <div className="flex items-center justify-between border-b border-white/10 px-4 py-5">
         <div
-          className={`flex min-w-0 items-center gap-3 overflow-hidden transition-all ${
+          className={`flex min-w-0 flex-col gap-1 transition-all ${
             collapsed ? "xl:w-0 xl:opacity-0" : "xl:w-auto xl:opacity-100"
           }`}
         >
-          <div className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-2xl border border-white/10 bg-white/8 text-xl font-black italic text-white shadow-[0_10px_30px_rgba(15,23,42,0.35)]">
-            A
+          <div className="flex items-center gap-3">
+            <div
+              className={`flex h-11 w-11 flex-shrink-0 items-center justify-center overflow-hidden border border-white/10 bg-white shadow-[0_10px_30px_rgba(15,23,42,0.35)] ${
+                tenantName ? "rounded-2xl" : "rounded-full"
+              }`}
+            >
+              {tenantLogoUrl ? (
+                <img
+                  src={tenantLogoUrl}
+                  alt={tenantName || "Logo"}
+                  className="h-full w-full object-cover"
+                />
+              ) : tenantName ? (
+                <span className="text-xl font-black text-slate-900">
+                  {tenantName.charAt(0).toUpperCase()}
+                </span>
+              ) : (
+                <img
+                  src="/images/agapay_solo.png"
+                  alt="Agapay Symbol"
+                  className="h-[22px] w-[22px] object-contain"
+                />
+              )}
+            </div>
+            <div className="min-w-0">
+              <p className="truncate text-lg font-black italic tracking-tight text-white">
+                {tenantName || "Agapay"}
+              </p>
+              <p
+                className={`truncate text-[11px] uppercase tracking-[0.24em] ${
+                  tenantName ? "text-slate-300" : "text-slate-400"
+                }`}
+              >
+                {tenantName ? "Cooperative" : "Cooperative SaaS"}
+              </p>
+            </div>
           </div>
-          <div className="min-w-0">
-            <p className="truncate text-lg font-black italic tracking-tight text-white">
-              Agapay
-            </p>
-            <p className="truncate text-[11px] uppercase tracking-[0.24em] text-slate-400">
-              Cooperative SaaS
-            </p>
-          </div>
+          {tenantName && (
+            <div className="mt-1 flex items-center gap-1.5 pl-1 opacity-60">
+              <span className="text-[9px] font-bold uppercase tracking-wider text-slate-300">
+                Powered by
+              </span>
+              <img
+                src="/images/agapay_titled.png"
+                alt="Agapay"
+                className="h-3 object-contain opacity-80"
+              />
+            </div>
+          )}
         </div>
 
         <div className="flex items-center gap-2">
@@ -171,7 +213,7 @@ export function AuthenticatedShell({
         ref={navScrollRef}
         className={`flex-1 px-3 pt-3 pb-3 ${navReady ? "overflow-y-auto" : "overflow-y-hidden"}`}
       >
-        <TabsList className="flex h-auto w-full flex-col gap-1 bg-transparent p-0">
+        <TabsList className="flex h-auto w-full flex-col justify-start gap-1 bg-transparent p-0">
           {navItems.map((item) => {
             const Icon = ICON_MAP[item.icon];
             return (
@@ -192,7 +234,7 @@ export function AuthenticatedShell({
                       collapsed ? "xl:hidden" : ""
                     }`}
                   >
-                    <p className="truncate font-display text-[13px] font-bold italic">
+                    <p className="truncate text-[13px] font-bold">
                       {item.label}
                     </p>
                   </div>
