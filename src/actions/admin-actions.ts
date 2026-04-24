@@ -3,6 +3,7 @@
 import prisma from "@/lib/prisma";
 import { requireTanawSession } from "@/lib/authorization";
 import { Role, UserStatus } from "@prisma/client";
+import { runAutomatedDefaultEnforcement } from "@/lib/default-enforcement";
 
 export async function getTenantMembers() {
   const session = await requireTanawSession();
@@ -166,9 +167,19 @@ export async function getDashboardMetrics() {
   const tenantFilter = tenantId ? { tenant_id: tenantId } : {};
   const loanRelationFilter = tenantId ? { loan: { tenant_id: tenantId } } : {};
 
+  await runAutomatedDefaultEnforcement({
+    tenantId,
+    actorUserId: session.user.user_id,
+  });
+
   // 1. Total Liquidity (Total Savings Pool)
   const liquidity = await prisma.savingsAccount.aggregate({
-    where: tenantFilter,
+    where: {
+      ...tenantFilter,
+      account_type: {
+        in: ["regular_savings", "share_capital"],
+      },
+    },
     _sum: { balance: true },
   });
 

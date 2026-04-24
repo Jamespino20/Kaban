@@ -324,6 +324,7 @@ const PRODUCTS = [
     min: 5000,
     max: 20000,
     rate: 5.0,
+    liabilityRate: 25,
     term: 6,
   },
   {
@@ -332,6 +333,7 @@ const PRODUCTS = [
     min: 10000,
     max: 50000,
     rate: 4.5,
+    liabilityRate: 25,
     term: 12,
   },
   {
@@ -340,6 +342,7 @@ const PRODUCTS = [
     min: 3000,
     max: 15000,
     rate: 4.0,
+    liabilityRate: 25,
     term: 3,
   },
   {
@@ -348,6 +351,7 @@ const PRODUCTS = [
     min: 15000,
     max: 100000,
     rate: 3.5,
+    liabilityRate: 25,
     term: 12,
   },
 ];
@@ -882,6 +886,7 @@ async function seedTenant(
         min_amount: p.min,
         max_amount: p.max,
         interest_rate_percent: p.rate,
+        guarantor_liability_rate: p.liabilityRate,
         max_term_months: p.term,
         tenant_id: ctx.tenantId,
       },
@@ -928,7 +933,13 @@ async function seedTenant(
     account_type: AccountType.regular_savings,
     balance: pesos(500, 25000),
   }));
-  await prisma.savingsAccount.createMany({ data: savingsBatch });
+  const walletBatch = members.map((m) => ({
+    user_id: m.user_id,
+    tenant_id: ctx.tenantId,
+    account_type: AccountType.personal_wallet,
+    balance: pesos(100, 3000),
+  }));
+  await prisma.savingsAccount.createMany({ data: [...savingsBatch, ...walletBatch] });
 
   // Loans + schedules + payments (with behavior engine)
   await seedLoansWithSchedulesAndPayments(

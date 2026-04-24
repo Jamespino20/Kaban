@@ -113,9 +113,10 @@ export const GuaranteeRequestPanel = ({
 
         <div className="space-y-3 rounded-2xl border border-white/70 bg-white/80 p-4">
           <p className="text-xs leading-6 text-slate-600">
-            Ang guarantors ay kapwa miyembro na sasalo ng <strong>20% to 30%</strong>{" "}
-            ng obligasyon kapag nag-default ang loan. Kaya branch-active members
-            lang ang pinapayagan sa pagpili.
+            Ang guarantors ay kapwa miyembro na sasalo ng humigit-kumulang{" "}
+            <strong>{MICROFINANCE_POLICY.defaultGuarantorLiabilityRate}%</strong>{" "}
+            ng obligasyon bawat isa kapag nag-default ang loan. Kaya branch-active
+            members lang ang pinapayagan sa pagpili.
           </p>
         </div>
 

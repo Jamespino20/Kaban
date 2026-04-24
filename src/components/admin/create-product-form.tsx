@@ -24,6 +24,10 @@ const LoanProductSchema = z.object({
   min_amount: z.number().min(0, "Min amount must be positive"),
   max_amount: z.number().min(0, "Max amount must be positive"),
   interest_rate_percent: z.number().min(0, "Interest rate must be positive"),
+  guarantor_liability_rate: z
+    .number()
+    .min(0, "Liability rate must be positive")
+    .max(100, "Liability rate cannot exceed 100%"),
   max_term_months: z.number().min(1, "Term must be at least 1 month"),
 });
 
@@ -42,6 +46,7 @@ export const CreateProductForm = ({ onSuccess }: CreateProductFormProps) => {
       min_amount: MICROFINANCE_POLICY.minAmount,
       max_amount: 20_000,
       interest_rate_percent: 5,
+      guarantor_liability_rate: MICROFINANCE_POLICY.defaultGuarantorLiabilityRate,
       max_term_months: 6,
     },
   });
@@ -57,7 +62,7 @@ export const CreateProductForm = ({ onSuccess }: CreateProductFormProps) => {
           form.reset();
           onSuccess();
         }
-      } catch (error) {
+      } catch {
         toast.error("Something went wrong!");
       }
     });
@@ -154,6 +159,29 @@ export const CreateProductForm = ({ onSuccess }: CreateProductFormProps) => {
               </FormItem>
             )}
           />
+          <FormField
+            control={form.control}
+            name="guarantor_liability_rate"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Guarantor Liability (%)</FormLabel>
+                <FormControl>
+                  <Input
+                    {...field}
+                    value={field.value ?? ""}
+                    onChange={(event) => field.onChange(Number(event.target.value))}
+                    type="number"
+                    step="1"
+                    disabled={isPending}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
+
+        <div className="grid grid-cols-1 gap-4">
           <FormField
             control={form.control}
             name="max_term_months"

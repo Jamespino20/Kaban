@@ -62,7 +62,13 @@ export async function calculateTrustScore(
     const overdueCount = allSchedules.filter(
       (s: any) => s.status === "overdue",
     ).length;
-    paymentScore = (onTimeCount / allSchedules.length) * 100 - overdueCount * 5;
+    const defaultedLoanCount = user.loans.filter(
+      (loan: any) => loan.status === "defaulted",
+    ).length;
+    paymentScore =
+      (onTimeCount / allSchedules.length) * 100 -
+      overdueCount * 5 -
+      defaultedLoanCount * 20;
   }
   paymentScore = Math.max(0, Math.min(100, paymentScore));
 
@@ -90,8 +96,13 @@ export async function calculateTrustScore(
   const vouchedGuarantees = user.guarantees.filter(
     (g: any) => g.status === "vouched",
   );
+  const chargedGuarantees = user.guarantees.filter(
+    (g: any) => g.status === "charged" || g.loan.status === "defaulted",
+  );
   guarantorScore += vouchedGuarantees.length * 10;
+  guarantorScore -= chargedGuarantees.length * 15;
   guarantorScore = Math.min(100, guarantorScore);
+  guarantorScore = Math.max(0, guarantorScore);
 
   // Final Weighted Calculation
   const finalScore =

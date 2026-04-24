@@ -11,6 +11,7 @@ export const MICROFINANCE_POLICY = {
   maxTermMonths: 12,
   minGuarantors: 1,
   maxGuarantors: 2,
+  defaultGuarantorLiabilityRate: 25,
   processingFeeRate: 0.02,
   processingFeeMinimum: 50,
   missedPenaltyCapRate: 0.2,
