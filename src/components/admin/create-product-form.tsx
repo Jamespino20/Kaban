@@ -3,7 +3,7 @@
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { useState, useTransition } from "react";
+import { useTransition } from "react";
 import { toast } from "sonner";
 import {
   Form,
@@ -16,6 +16,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { createLoanProduct } from "@/actions/loan-product";
+import { MICROFINANCE_POLICY } from "@/lib/microfinance-policy";
 
 const LoanProductSchema = z.object({
   name: z.string().min(1, "Name is required"),
@@ -38,8 +39,8 @@ export const CreateProductForm = ({ onSuccess }: CreateProductFormProps) => {
     defaultValues: {
       name: "",
       description: "",
-      min_amount: 500,
-      max_amount: 10000,
+      min_amount: MICROFINANCE_POLICY.minAmount,
+      max_amount: 20_000,
       interest_rate_percent: 5,
       max_term_months: 6,
     },
@@ -65,6 +66,14 @@ export const CreateProductForm = ({ onSuccess }: CreateProductFormProps) => {
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+        <div className="rounded-2xl border border-emerald-100 bg-emerald-50/70 p-4 text-sm leading-7 text-slate-600">
+          Current Agapay policy band: PHP{" "}
+          {MICROFINANCE_POLICY.minAmount.toLocaleString()} to PHP{" "}
+          {MICROFINANCE_POLICY.maxAmount.toLocaleString()}, 3% to 5% monthly,
+          at {MICROFINANCE_POLICY.minTermMonths} to{" "}
+          {MICROFINANCE_POLICY.maxTermMonths} months.
+        </div>
+
         <FormField
           control={form.control}
           name="name"
@@ -75,7 +84,7 @@ export const CreateProductForm = ({ onSuccess }: CreateProductFormProps) => {
                 <Input
                   {...field}
                   disabled={isPending}
-                  placeholder="Micro-Business Loan"
+                  placeholder="Starter Puhunan Loan"
                 />
               </FormControl>
               <FormMessage />
@@ -89,9 +98,15 @@ export const CreateProductForm = ({ onSuccess }: CreateProductFormProps) => {
             name="min_amount"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Min Amount (₱)</FormLabel>
+                <FormLabel>Min Amount (PHP)</FormLabel>
                 <FormControl>
-                  <Input {...field} type="number" disabled={isPending} />
+                  <Input
+                    {...field}
+                    value={field.value ?? ""}
+                    onChange={(event) => field.onChange(Number(event.target.value))}
+                    type="number"
+                    disabled={isPending}
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -102,9 +117,15 @@ export const CreateProductForm = ({ onSuccess }: CreateProductFormProps) => {
             name="max_amount"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Max Amount (₱)</FormLabel>
+                <FormLabel>Max Amount (PHP)</FormLabel>
                 <FormControl>
-                  <Input {...field} type="number" disabled={isPending} />
+                  <Input
+                    {...field}
+                    value={field.value ?? ""}
+                    onChange={(event) => field.onChange(Number(event.target.value))}
+                    type="number"
+                    disabled={isPending}
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -122,8 +143,10 @@ export const CreateProductForm = ({ onSuccess }: CreateProductFormProps) => {
                 <FormControl>
                   <Input
                     {...field}
+                    value={field.value ?? ""}
+                    onChange={(event) => field.onChange(Number(event.target.value))}
                     type="number"
-                    step="0.1"
+                    step="0.5"
                     disabled={isPending}
                   />
                 </FormControl>
@@ -138,7 +161,13 @@ export const CreateProductForm = ({ onSuccess }: CreateProductFormProps) => {
               <FormItem>
                 <FormLabel>Max Term (Months)</FormLabel>
                 <FormControl>
-                  <Input {...field} type="number" disabled={isPending} />
+                  <Input
+                    {...field}
+                    value={field.value ?? ""}
+                    onChange={(event) => field.onChange(Number(event.target.value))}
+                    type="number"
+                    disabled={isPending}
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -149,7 +178,7 @@ export const CreateProductForm = ({ onSuccess }: CreateProductFormProps) => {
         <Button
           disabled={isPending}
           type="submit"
-          className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold"
+          className="w-full bg-emerald-600 font-bold text-white hover:bg-emerald-700"
         >
           {isPending ? "Creating..." : "Save Product"}
         </Button>

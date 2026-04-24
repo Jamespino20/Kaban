@@ -2,9 +2,18 @@
 
 import * as z from "zod";
 import prisma from "@/lib/prisma";
-import { requireAdminSession, requireAuthenticatedSession } from "@/lib/authorization";
+import {
+  requireAdminSession,
+  requireAuthenticatedSession,
+} from "@/lib/authorization";
 import { PaymentStatus, ScheduleStatus } from "@prisma/client";
 import { revalidatePath } from "next/cache";
+import {
+  buildMonthlyRepaymentSchedule,
+  computeMonthlyLoanQuote,
+  getCompassionPolicyCopy,
+  MICROFINANCE_POLICY,
+} from "@/lib/microfinance-policy";
 
 const ApproveLoanSchema = z.object({
   loanId: z.number().int().positive(),
@@ -36,35 +45,21 @@ const ReviewPaymentSchema = z.object({
   notes: z.string().trim().max(500).optional(),
 });
 
-function buildRepaymentSchedule(loan: {
-  loan_id: number;
-  approved_at: Date | null;
-  term_months: number;
-  principal_amount: any;
-  interest_applied: any;
-  fees_applied: any;
-}) {
-  const principalAmount = Number(loan.principal_amount);
-  const interestApplied = Number(loan.interest_applied);
-  const feesApplied = Number(loan.fees_applied);
-  const approvedAt = loan.approved_at ? new Date(loan.approved_at) : new Date();
-  const monthlyPrincipal = principalAmount / loan.term_months;
-  const monthlyInterest = interestApplied / loan.term_months;
+async function syncOverdueSchedules(tx: any, loanId: number) {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
 
-  return Array.from({ length: loan.term_months }, (_, index) => {
-    const dueDate = new Date(approvedAt);
-    dueDate.setMonth(dueDate.getMonth() + index + 1);
-
-    const serviceFee = index === 0 ? feesApplied : 0;
-    return {
-      loan_id: loan.loan_id,
-      installment_number: index + 1,
-      due_date: dueDate,
-      principal_amount: monthlyPrincipal,
-      interest_amount: monthlyInterest + serviceFee,
-      total_due: monthlyPrincipal + monthlyInterest + serviceFee,
+  await tx.loanSchedule.updateMany({
+    where: {
+      loan_id: loanId,
       status: ScheduleStatus.pending,
-    };
+      due_date: {
+        lt: today,
+      },
+    },
+    data: {
+      status: ScheduleStatus.overdue,
+    },
   });
 }
 
@@ -105,7 +100,9 @@ async function requireLoanAdminAccess(loanId: number) {
   return { session, loan };
 }
 
-export async function approveLoanApplication(input: z.infer<typeof ApproveLoanSchema>) {
+export async function approveLoanApplication(
+  input: z.infer<typeof ApproveLoanSchema>,
+) {
   try {
     const { loanId } = ApproveLoanSchema.parse(input);
     const { session, loan } = await requireLoanAdminAccess(loanId);
@@ -142,7 +139,9 @@ export async function approveLoanApplication(input: z.infer<typeof ApproveLoanSc
   }
 }
 
-export async function rejectLoanApplication(input: z.infer<typeof RejectLoanSchema>) {
+export async function rejectLoanApplication(
+  input: z.infer<typeof RejectLoanSchema>,
+) {
   try {
     const { loanId, notes } = RejectLoanSchema.parse(input);
     const { session, loan } = await requireLoanAdminAccess(loanId);
@@ -178,7 +177,9 @@ export async function rejectLoanApplication(input: z.infer<typeof RejectLoanSche
   }
 }
 
-export async function releaseLoanFunds(input: z.infer<typeof ReleaseLoanSchema>) {
+export async function releaseLoanFunds(
+  input: z.infer<typeof ReleaseLoanSchema>,
+) {
   try {
     const { loanId, methodId, releaseReference, notes } =
       ReleaseLoanSchema.parse(input);
@@ -201,8 +202,21 @@ export async function releaseLoanFunds(input: z.infer<typeof ReleaseLoanSchema>)
       });
 
       if (existingSchedules === 0) {
+        const quote = computeMonthlyLoanQuote({
+          principalAmount: Number(loan.principal_amount),
+          termMonths: loan.term_months,
+          monthlyRatePercent: Number(loan.product.interest_rate_percent),
+        });
+
         await tx.loanSchedule.createMany({
-          data: buildRepaymentSchedule(loan),
+          data: buildMonthlyRepaymentSchedule({
+            loanId: loan.loan_id,
+            approvedAt: loan.approved_at ?? new Date(),
+            termMonths: loan.term_months,
+            principalAmount: Number(loan.principal_amount),
+            totalInterest: quote.totalInterest,
+            processingFee: quote.processingFee,
+          }),
         });
       }
 
@@ -227,6 +241,7 @@ export async function releaseLoanFunds(input: z.infer<typeof ReleaseLoanSchema>)
             release_method: paymentMethod.provider_name,
             release_reference: releaseReference,
             notes,
+            compassion_policy: getCompassionPolicyCopy(),
             mockFlow: true,
           },
         },
@@ -242,7 +257,9 @@ export async function releaseLoanFunds(input: z.infer<typeof ReleaseLoanSchema>)
   }
 }
 
-export async function submitMockRepayment(input: z.infer<typeof SubmitPaymentSchema>) {
+export async function submitMockRepayment(
+  input: z.infer<typeof SubmitPaymentSchema>,
+) {
   try {
     const session = await requireAuthenticatedSession();
     const { loanId, methodId, amount, reference, receiptUrl, notes } =
@@ -261,6 +278,14 @@ export async function submitMockRepayment(input: z.infer<typeof SubmitPaymentSch
       },
       include: {
         product: true,
+        schedules: {
+          where: {
+            status: {
+              in: [ScheduleStatus.pending, ScheduleStatus.overdue],
+            },
+          },
+          orderBy: { installment_number: "asc" },
+        },
       },
     });
 
@@ -282,6 +307,22 @@ export async function submitMockRepayment(input: z.infer<typeof SubmitPaymentSch
 
     if (amount > Number(loan.balance_remaining)) {
       return { error: "Payment amount exceeds your remaining balance." };
+    }
+
+    const nextSchedule = loan.schedules[0];
+    if (nextSchedule) {
+      const minimumInstallment = Number(nextSchedule.total_due);
+      const isFinalSettlement =
+        Math.abs(Number(loan.balance_remaining) - amount) <= 0.01;
+
+      if (!isFinalSettlement && amount + 0.01 < minimumInstallment) {
+        return {
+          error: `Minimum repayment is PHP ${minimumInstallment.toLocaleString(undefined, {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2,
+          })} for the next installment.`,
+        };
+      }
     }
 
     await prisma.payment.create({
@@ -322,7 +363,9 @@ export async function submitMockRepayment(input: z.infer<typeof SubmitPaymentSch
   }
 }
 
-export async function verifySubmittedPayment(input: z.infer<typeof ReviewPaymentSchema>) {
+export async function verifySubmittedPayment(
+  input: z.infer<typeof ReviewPaymentSchema>,
+) {
   try {
     const { paymentId, notes } = ReviewPaymentSchema.parse(input);
     const session = await requireAdminSession();
@@ -330,14 +373,7 @@ export async function verifySubmittedPayment(input: z.infer<typeof ReviewPayment
     const payment = await prisma.payment.findUnique({
       where: { payment_id: paymentId },
       include: {
-        loan: {
-          include: {
-            schedules: {
-              where: { status: { in: [ScheduleStatus.pending, ScheduleStatus.overdue] } },
-              orderBy: { installment_number: "asc" },
-            },
-          },
-        },
+        loan: true,
         payment_method: true,
       },
     });
@@ -358,6 +394,26 @@ export async function verifySubmittedPayment(input: z.infer<typeof ReviewPayment
     }
 
     await prisma.$transaction(async (tx) => {
+      await syncOverdueSchedules(tx, payment.loan_id);
+
+      const refreshedLoan = await tx.loan.findUnique({
+        where: { loan_id: payment.loan_id },
+        include: {
+          schedules: {
+            where: {
+              status: {
+                in: [ScheduleStatus.pending, ScheduleStatus.overdue],
+              },
+            },
+            orderBy: { installment_number: "asc" },
+          },
+        },
+      });
+
+      if (!refreshedLoan) {
+        throw new Error("Loan not found during payment verification.");
+      }
+
       await tx.payment.update({
         where: { payment_id: paymentId },
         data: {
@@ -369,7 +425,7 @@ export async function verifySubmittedPayment(input: z.infer<typeof ReviewPayment
       });
 
       let remaining = Number(payment.amount_paid);
-      for (const schedule of payment.loan.schedules) {
+      for (const schedule of refreshedLoan.schedules) {
         const scheduleDue = Number(schedule.total_due);
         if (remaining + 0.01 < scheduleDue) {
           break;
@@ -387,14 +443,14 @@ export async function verifySubmittedPayment(input: z.infer<typeof ReviewPayment
 
       const nextBalance = Math.max(
         0,
-        Number(payment.loan.balance_remaining) - Number(payment.amount_paid),
+        Number(refreshedLoan.balance_remaining) - Number(payment.amount_paid),
       );
 
       await tx.loan.update({
         where: { loan_id: payment.loan_id },
         data: {
           balance_remaining: nextBalance,
-          status: nextBalance <= 0 ? "paid" : payment.loan.status,
+          status: nextBalance <= 0 ? "paid" : refreshedLoan.status,
         },
       });
 
@@ -424,7 +480,9 @@ export async function verifySubmittedPayment(input: z.infer<typeof ReviewPayment
   }
 }
 
-export async function rejectSubmittedPayment(input: z.infer<typeof ReviewPaymentSchema>) {
+export async function rejectSubmittedPayment(
+  input: z.infer<typeof ReviewPaymentSchema>,
+) {
   try {
     const { paymentId, notes } = ReviewPaymentSchema.parse(input);
     const session = await requireAdminSession();

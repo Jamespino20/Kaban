@@ -2,16 +2,27 @@
 
 import * as z from "zod";
 import prisma from "@/lib/prisma";
-import { requireAdminSession } from "@/lib/authorization";
+import {
+  requireAdminSession,
+  requireAuthenticatedSession,
+} from "@/lib/authorization";
 import { revalidatePath } from "next/cache";
+import {
+  MICROFINANCE_POLICY,
+  validateLoanProductPolicy,
+} from "@/lib/microfinance-policy";
 
 const LoanProductSchema = z.object({
   name: z.string().min(1, "Name is required"),
   description: z.string().optional(),
-  min_amount: z.number().min(0, "Min amount must be positive"),
-  max_amount: z.number().min(0, "Max amount must be positive"),
-  interest_rate_percent: z.number().min(0, "Interest rate must be positive"),
-  max_term_months: z.number().min(1, "Term must be at least 1 month"),
+  min_amount: z.coerce.number().min(0, "Min amount must be positive"),
+  max_amount: z.coerce.number().min(0, "Max amount must be positive"),
+  interest_rate_percent: z.coerce
+    .number()
+    .min(0, "Interest rate must be positive"),
+  max_term_months: z.coerce
+    .number()
+    .min(1, "Term must be at least 1 month"),
 });
 
 export const createLoanProduct = async (
@@ -42,6 +53,17 @@ export const createLoanProduct = async (
     max_term_months,
   } = validatedFields.data;
 
+  const policyError = validateLoanProductPolicy({
+    minAmount: min_amount,
+    maxAmount: max_amount,
+    interestRatePercent: interest_rate_percent,
+    maxTermMonths: max_term_months,
+  });
+
+  if (policyError) {
+    return { error: policyError };
+  }
+
   try {
     await prisma.loanProduct.create({
       data: {
@@ -57,6 +79,7 @@ export const createLoanProduct = async (
     });
 
     revalidatePath("/agapay-pintig");
+    revalidatePath("/agapay-tanaw");
     return { success: "Loan product created!" };
   } catch (error) {
     return { error: "Something went wrong!" };
@@ -66,7 +89,7 @@ export const createLoanProduct = async (
 export const getLoanProducts = async () => {
   let session;
   try {
-    session = await requireAdminSession();
+    session = await requireAuthenticatedSession();
   } catch {
     return [];
   }
@@ -93,6 +116,10 @@ export const getLoanProducts = async () => {
       max_term_months: product.max_term_months,
       is_active: product.is_active,
       tenant_id: product.tenant_id,
+      policy_min_amount: MICROFINANCE_POLICY.minAmount,
+      policy_max_amount: MICROFINANCE_POLICY.maxAmount,
+      policy_min_term_months: MICROFINANCE_POLICY.minTermMonths,
+      policy_max_term_months: MICROFINANCE_POLICY.maxTermMonths,
     }));
   } catch (error) {
     console.error(error);

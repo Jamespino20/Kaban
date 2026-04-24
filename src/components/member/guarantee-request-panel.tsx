@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { searchEligibleGuarantors } from "@/actions/member-search";
 import { Users, Search, X, ShieldAlert, CheckCircle2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
+import { MICROFINANCE_POLICY } from "@/lib/microfinance-policy";
 
 interface Guarantor {
   user_id: number;
@@ -39,7 +39,6 @@ export const GuaranteeRequestPanel = ({
       setLoading(true);
       const res = await searchEligibleGuarantors(query);
       if (res.data) {
-        // Filter out already selected guarantors from results
         setResults(
           res.data.filter((g: any) => !selectedGuarantors.includes(g.user_id)),
         );
@@ -52,6 +51,10 @@ export const GuaranteeRequestPanel = ({
   }, [query, selectedGuarantors]);
 
   const addGuarantor = (guarantor: Guarantor) => {
+    if (selectedGuarantors.length >= MICROFINANCE_POLICY.maxGuarantors) {
+      return;
+    }
+
     setGuarantorDetails((prev) => [...prev, guarantor]);
     onChange([...selectedGuarantors, guarantor.user_id]);
     setQuery("");
@@ -63,76 +66,92 @@ export const GuaranteeRequestPanel = ({
     onChange(selectedGuarantors.filter((gid: number) => gid !== id));
   };
 
-  const remainingNeeded = Math.max(0, 3 - selectedGuarantors.length);
+  const remainingNeeded = Math.max(
+    0,
+    MICROFINANCE_POLICY.minGuarantors - selectedGuarantors.length,
+  );
+  const remainingSlots = Math.max(
+    0,
+    MICROFINANCE_POLICY.maxGuarantors - selectedGuarantors.length,
+  );
 
   return (
     <div className="space-y-6">
-      <div className="bg-emerald-50/50 p-6 rounded-3xl border border-emerald-100 space-y-4">
-        <div className="flex items-center gap-3 pb-4 border-b border-emerald-100/50">
-          <div className="w-10 h-10 bg-emerald-100 rounded-xl flex items-center justify-center text-emerald-600">
-            <Users className="w-5 h-5" />
+      <div className="space-y-4 rounded-3xl border border-emerald-100 bg-emerald-50/50 p-6">
+        <div className="flex items-center gap-3 border-b border-emerald-100/50 pb-4">
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-100 text-emerald-600">
+            <Users className="h-5 w-5" />
           </div>
           <div>
-            <h3 className="font-display font-bold text-emerald-900 leading-none">
-              Paluwagan 2.0 Group Guarantee
+            <h3 className="font-display font-bold leading-none text-emerald-900">
+              Guarantor Support
             </h3>
-            <p className="text-xs text-emerald-700 mt-1">
-              Bumuo ng grupo upang maaprubahan ang iyong loan.
+            <p className="mt-1 text-xs text-emerald-700">
+              Kumuha ng 1 hanggang 2 kapwa miyembro mula sa parehong branch.
             </p>
           </div>
         </div>
 
         {remainingNeeded > 0 ? (
-          <div className="flex items-start gap-3 text-amber-600 bg-amber-50 p-3 rounded-xl border border-amber-100">
-            <ShieldAlert className="w-5 h-5 shrink-0" />
+          <div className="flex items-start gap-3 rounded-xl border border-amber-100 bg-amber-50 p-3 text-amber-600">
+            <ShieldAlert className="h-5 w-5 shrink-0" />
             <p className="text-xs font-medium">
-              Kailangan mo pa ng <strong>{remainingNeeded} guarantors</strong>{" "}
-              upang magpatuloy. Sila ay makakatanggap ng notification para
-              sumang-ayon.
+              Kailangan mo pa ng <strong>{remainingNeeded} guarantor</strong> bago
+              magsumite. Maaari kang magdagdag ng hanggang {remainingSlots} pang
+              guarantor para mas matibay ang social backing mo.
             </p>
           </div>
         ) : (
-          <div className="flex items-center gap-3 text-emerald-600 bg-emerald-100/50 p-3 rounded-xl border border-emerald-200">
-            <CheckCircle2 className="w-5 h-5 shrink-0" />
+          <div className="flex items-center gap-3 rounded-xl border border-emerald-200 bg-emerald-100/50 p-3 text-emerald-600">
+            <CheckCircle2 className="h-5 w-5 shrink-0" />
             <p className="text-xs font-medium">
-              Kumpleto na ang iyong guarantors! Maaari ka nang magpatuloy.
+              Kumpleto na ang minimum guarantor requirement mo. Maaari ka pang
+              magdagdag ng isa kung gusto mo ng mas matibay na support signal.
             </p>
           </div>
         )}
 
-        <div className="space-y-3 relative">
+        <div className="space-y-3 rounded-2xl border border-white/70 bg-white/80 p-4">
+          <p className="text-xs leading-6 text-slate-600">
+            Ang guarantors ay kapwa miyembro na sasalo ng <strong>20% to 30%</strong>{" "}
+            ng obligasyon kapag nag-default ang loan. Kaya branch-active members
+            lang ang pinapayagan sa pagpili.
+          </p>
+        </div>
+
+        <div className="relative space-y-3">
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-emerald-400" />
+            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-emerald-400" />
             <Input
               placeholder="Hanapin ang pangalan o username ng miyembro..."
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              className="pl-9 h-12 rounded-xl border-emerald-200 focus:border-emerald-500 focus:ring-emerald-500/20 bg-white"
+              className="h-12 rounded-xl border-emerald-200 bg-white pl-9 focus:border-emerald-500 focus:ring-emerald-500/20"
             />
           </div>
 
           {loading && (
-            <div className="absolute top-full left-0 right-0 mt-2 p-4 bg-white border border-emerald-100 rounded-xl shadow-xl z-10 text-center text-xs text-slate-500">
+            <div className="absolute left-0 right-0 top-full z-10 mt-2 rounded-xl border border-emerald-100 bg-white p-4 text-center text-xs text-slate-500 shadow-xl">
               Naghahanap...
             </div>
           )}
 
-          {results.length > 0 && query.length >= 3 && (
-            <div className="absolute top-full left-0 right-0 mt-2 bg-white border border-emerald-100 rounded-xl shadow-xl z-10 overflow-hidden">
+          {results.length > 0 && query.length >= 3 && remainingSlots > 0 && (
+            <div className="absolute left-0 right-0 top-full z-10 mt-2 overflow-hidden rounded-xl border border-emerald-100 bg-white shadow-xl">
               {results.map((g: any) => (
                 <button
                   key={g.user_id}
                   type="button"
                   onClick={() => addGuarantor(g)}
-                  className="w-full text-left px-4 py-3 hover:bg-emerald-50 transition-colors flex items-center justify-between border-b border-slate-50 last:border-0"
+                  className="flex w-full items-center justify-between border-b border-slate-50 px-4 py-3 text-left transition-colors hover:bg-emerald-50 last:border-0"
                 >
                   <div>
-                    <p className="font-bold text-sm text-slate-900">
+                    <p className="text-sm font-bold text-slate-900">
                       {g.profile?.first_name} {g.profile?.last_name}
                     </p>
                     <p className="text-xs text-slate-500">@{g.username}</p>
                   </div>
-                  <span className="text-xs font-bold text-emerald-600 bg-emerald-50 px-2 py-1 rounded-md">
+                  <span className="rounded-md bg-emerald-50 px-2 py-1 text-xs font-bold text-emerald-600">
                     I-add
                   </span>
                 </button>
@@ -142,25 +161,25 @@ export const GuaranteeRequestPanel = ({
         </div>
 
         {guarantorDetails.length > 0 && (
-          <div className="pt-4 space-y-3">
-            <h4 className="text-xs font-bold text-slate-400 uppercase tracking-widest">
+          <div className="space-y-3 pt-4">
+            <h4 className="text-xs font-bold uppercase tracking-widest text-slate-400">
               Selected Guarantors
             </h4>
             <div className="space-y-2">
               {guarantorDetails.map((g: any) => (
                 <div
                   key={g.user_id}
-                  className="flex items-center justify-between bg-white p-3 rounded-xl border border-emerald-100 shadow-sm"
+                  className="flex items-center justify-between rounded-xl border border-emerald-100 bg-white p-3 shadow-sm"
                 >
                   <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-700 font-bold text-xs uppercase">
+                    <div className="flex h-8 w-8 items-center justify-center rounded-full bg-emerald-100 text-xs font-bold uppercase text-emerald-700">
                       {g.profile?.first_name?.[0] || g.username[0]}
                     </div>
                     <div>
-                      <p className="font-bold text-sm text-slate-900 leading-none">
+                      <p className="text-sm font-bold leading-none text-slate-900">
                         {g.profile?.first_name} {g.profile?.last_name}
                       </p>
-                      <p className="text-[10px] text-slate-500 mt-0.5">
+                      <p className="mt-0.5 text-[10px] text-slate-500">
                         @{g.username}
                       </p>
                     </div>
@@ -168,9 +187,9 @@ export const GuaranteeRequestPanel = ({
                   <button
                     type="button"
                     onClick={() => removeGuarantor(g.user_id)}
-                    className="p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                    className="rounded-lg p-1.5 text-slate-400 transition-colors hover:bg-red-50 hover:text-red-500"
                   >
-                    <X className="w-4 h-4" />
+                    <X className="h-4 w-4" />
                   </button>
                 </div>
               ))}

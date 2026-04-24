@@ -3,7 +3,7 @@
 import React from "react";
 import { cn } from "@/lib/utils";
 import { TrustScoreBreakdown } from "@/lib/trust-engine";
-import { InterestTier } from "@prisma/client";
+import { formatTierLabel } from "@/lib/microfinance-policy";
 
 interface TrustMeterProps {
   data: TrustScoreBreakdown;
@@ -126,12 +126,7 @@ export function TrustMeter({ data, className, size = "md" }: TrustMeterProps) {
         )}
       >
         <span className="w-2 h-2 rounded-full bg-current animate-pulse" />
-        Tier:{" "}
-        {tier === InterestTier.T5_3_PERCENT
-          ? "Elite (3%)"
-          : tier === InterestTier.T4_3_5_PERCENT
-            ? "Growth (3.5%)"
-            : "Starter (5%)"}
+        Tier: {formatTierLabel(tier)}
       </div>
 
       {/* Factor Breakdown */}

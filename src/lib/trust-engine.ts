@@ -1,5 +1,8 @@
 import prisma from "@/lib/prisma";
 import { InterestTier } from "@prisma/client";
+import {
+  determineInterestTierFromScore,
+} from "@/lib/microfinance-policy";
 
 /**
  * Agapay Socio-Economic Trust Engine
@@ -98,9 +101,7 @@ export async function calculateTrustScore(
     guarantorScore * 0.2;
 
   // Determine Tier (AGAPAY.md 3.3)
-  let tier: InterestTier = InterestTier.T1_5_PERCENT;
-  if (finalScore >= 85) tier = InterestTier.T5_3_PERCENT;
-  else if (finalScore >= 70) tier = InterestTier.T4_3_5_PERCENT;
+  const tier = determineInterestTierFromScore(finalScore);
 
   return {
     score: Math.round(finalScore),

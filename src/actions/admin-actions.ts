@@ -230,14 +230,18 @@ export async function getTenantTrustMetrics() {
     where: {
       ...tenantFilter,
       role: Role.member,
-      interest_tier: "T4_3_5_PERCENT",
+      interest_tier: {
+        in: ["T3_4_PERCENT", "T4_3_5_PERCENT"],
+      },
     },
   });
   const starterCount = await prisma.user.count({
     where: {
       ...tenantFilter,
       role: Role.member,
-      interest_tier: "T1_5_PERCENT",
+      interest_tier: {
+        in: ["T1_5_PERCENT", "T2_4_5_PERCENT"],
+      },
     },
   });
   const atRiskCount = await prisma.user.count({

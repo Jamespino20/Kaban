@@ -17,6 +17,12 @@ import {
   type ShellNavItem,
 } from "@/components/layout/authenticated-shell";
 import { DashboardTabsShell } from "@/components/layout/dashboard-tabs-shell";
+import {
+  formatTierLabel,
+  getAvailableCreditForTier,
+  getCompassionPolicyCopy,
+  getPenaltyPolicyCopy,
+} from "@/lib/microfinance-policy";
 
 export default async function AgapayPintigPage() {
   const session = await auth();
@@ -32,7 +38,11 @@ export default async function AgapayPintigPage() {
   const userId = session?.user?.user_id;
   const tenantId = session.user.tenantId;
 
-  const [savings, activeLoans, loanProducts, paymentMethods, tfa] = await Promise.all([
+  const [member, savings, activeLoans, loanProducts, paymentMethods, tfa] = await Promise.all([
+    prisma.user.findUnique({
+      where: { user_id: userId },
+      select: { interest_tier: true },
+    }),
     prisma.savingsAccount.findMany({
       where: { user_id: userId, tenant_id: tenantId },
     }),
@@ -74,8 +84,11 @@ export default async function AgapayPintigPage() {
   );
   const is2FAEnabled = tfa?.is_enabled || false;
 
-  // Simple Credit Limit Logic (Starter Tier default)
-  const availableCredit = 50000 - totalLoanBalance;
+  const availableCredit = getAvailableCreditForTier(
+    member?.interest_tier,
+    totalLoanBalance,
+  );
+  const memberTierLabel = formatTierLabel(member?.interest_tier);
   const navItems: ShellNavItem[] = [
     { value: "overview", label: "Pangkalahatan", icon: "overview" },
     { value: "apply", label: "Mag-loan", icon: "apply" },
@@ -115,6 +128,9 @@ export default async function AgapayPintigPage() {
                   </p>
                   <p className="text-2xl font-display font-bold text-slate-900">
                     {formatCurrency(availableCredit)}
+                  </p>
+                  <p className="mt-1 text-sm text-slate-500">
+                    Batay sa iyong kasalukuyang tier: <span className="font-semibold text-slate-700">{memberTierLabel}</span>
                   </p>
                 </div>
               </div>
@@ -172,6 +188,25 @@ export default async function AgapayPintigPage() {
                   </p>
                 </div>
               ))}
+            </div>
+
+            <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+              <div className="rounded-[2rem] border border-amber-100 bg-amber-50/70 p-6 shadow-sm">
+                <p className="text-xs font-bold uppercase tracking-[0.22em] text-amber-700">
+                  Penalty Policy
+                </p>
+                <p className="mt-3 text-sm leading-7 text-slate-600">
+                  {getPenaltyPolicyCopy()}
+                </p>
+              </div>
+              <div className="rounded-[2rem] border border-blue-100 bg-blue-50/70 p-6 shadow-sm">
+                <p className="text-xs font-bold uppercase tracking-[0.22em] text-blue-700">
+                  Compassion Support
+                </p>
+                <p className="mt-3 text-sm leading-7 text-slate-600">
+                  {getCompassionPolicyCopy()}
+                </p>
+              </div>
             </div>
 
             {totalLoanBalance === 0 && totalSavings === 0 ? (

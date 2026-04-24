@@ -5,14 +5,40 @@ import prisma from "@/lib/prisma";
 import { requireAuthenticatedSession } from "@/lib/authorization";
 import { Role, UserStatus } from "@prisma/client";
 import { revalidatePath } from "next/cache";
+import {
+  computeMonthlyLoanQuote,
+  MICROFINANCE_POLICY,
+  validateLoanRequestAgainstPolicy,
+} from "@/lib/microfinance-policy";
 
 const LoanApplicationSchema = z.object({
   product_id: z.coerce.number().min(1, "Product is required"),
-  amount: z.coerce.number().min(100, "Minimum ₱100 is required"),
-  term_months: z.coerce.number().min(1, "Minimum 1 month is required"),
+  amount: z.coerce
+    .number()
+    .min(
+      MICROFINANCE_POLICY.minAmount,
+      `Minimum PHP ${MICROFINANCE_POLICY.minAmount.toLocaleString()} is required`,
+    ),
+  term_months: z.coerce
+    .number()
+    .min(
+      MICROFINANCE_POLICY.minTermMonths,
+      `Minimum ${MICROFINANCE_POLICY.minTermMonths} months is required`,
+    )
+    .max(
+      MICROFINANCE_POLICY.maxTermMonths,
+      `Maximum ${MICROFINANCE_POLICY.maxTermMonths} months is allowed`,
+    ),
   guarantor_ids: z
     .array(z.coerce.number())
-    .min(3, "At least 3 guarantors are required for Paluwagan 2.0"),
+    .min(
+      MICROFINANCE_POLICY.minGuarantors,
+      `At least ${MICROFINANCE_POLICY.minGuarantors} guarantor is required`,
+    )
+    .max(
+      MICROFINANCE_POLICY.maxGuarantors,
+      `At most ${MICROFINANCE_POLICY.maxGuarantors} guarantors are allowed`,
+    ),
 });
 
 export const applyForLoan = async (
@@ -41,13 +67,24 @@ export const applyForLoan = async (
     validatedFields.data;
 
   try {
-    // 1. Double check the product exists and constraints are met
-    const product = await prisma.loanProduct.findFirst({
-      where: { product_id, tenant_id: tenantId },
-    });
+    const [product, member] = await Promise.all([
+      prisma.loanProduct.findFirst({
+        where: { product_id, tenant_id: tenantId },
+      }),
+      prisma.user.findUnique({
+        where: { user_id: userId },
+        select: {
+          interest_tier: true,
+        },
+      }),
+    ]);
 
     if (!product || !product.is_active) {
       return { error: "Product not available." };
+    }
+
+    if (!member) {
+      return { error: "Member account not found." };
     }
 
     if (
@@ -55,7 +92,7 @@ export const applyForLoan = async (
       amount > Number(product.max_amount)
     ) {
       return {
-        error: `Amount must be between ₱${Number(product.min_amount).toLocaleString()} and ₱${Number(product.max_amount).toLocaleString()}`,
+        error: `Amount must be between PHP ${Number(product.min_amount).toLocaleString()} and PHP ${Number(product.max_amount).toLocaleString()}.`,
       };
     }
 
@@ -66,8 +103,15 @@ export const applyForLoan = async (
     const uniqueGuarantorIds = [...new Set(guarantor_ids)].filter(
       (guarantorId) => guarantorId !== userId,
     );
-    if (uniqueGuarantorIds.length < 3) {
-      return { error: "At least 3 distinct guarantors are required." };
+    const policyValidationError = validateLoanRequestAgainstPolicy({
+      amount,
+      termMonths: term_months,
+      guarantorCount: uniqueGuarantorIds.length,
+      tier: member.interest_tier,
+    });
+
+    if (policyValidationError) {
+      return { error: policyValidationError };
     }
 
     const eligibleGuarantors = await prisma.user.findMany({
@@ -81,16 +125,17 @@ export const applyForLoan = async (
     });
 
     if (eligibleGuarantors.length !== uniqueGuarantorIds.length) {
-      return { error: "Selected guarantors must be active members of your branch." };
+      return {
+        error: "Selected guarantors must be active members of your branch.",
+      };
     }
 
-    // 2. Server-side calculation (must match client-side UI for transparency)
-    const rate = Number(product.interest_rate_percent) / 100;
-    const totalInterest = amount * rate * term_months;
-    const processingFee = Math.max(50, amount * 0.02);
-    const totalPayable = amount + totalInterest + processingFee;
+    const quote = computeMonthlyLoanQuote({
+      principalAmount: amount,
+      termMonths: term_months,
+      monthlyRatePercent: Number(product.interest_rate_percent),
+    });
 
-    // 2. Create the loan record and guarantees in a transaction
     await prisma.$transaction(async (tx: any) => {
       const loan = await tx.loan.create({
         data: {
@@ -102,28 +147,26 @@ export const applyForLoan = async (
           loan_reference: `LN-${tenantId}-${Date.now()}`,
           principal_amount: amount,
           purpose: "General Purpose",
-          interest_applied: totalInterest,
-          fees_applied: processingFee,
-          total_payable: totalPayable,
-          balance_remaining: totalPayable,
+          interest_applied: quote.totalInterest,
+          principal_receivable: amount,
+          interest_receivable: quote.totalInterest,
+          fees_applied: quote.processingFee,
+          total_payable: quote.totalPayable,
+          balance_remaining: quote.totalPayable,
         },
       });
 
-      // 3. Create the LoanGuarantee records for the Paluwagan 2.0 group
-      if (uniqueGuarantorIds.length >= 3) {
-        const guaranteeData = uniqueGuarantorIds.map((gId) => ({
+      await tx.loanGuarantee.createMany({
+        data: uniqueGuarantorIds.map((guarantorId) => ({
           loan_id: loan.loan_id,
-          guarantor_id: gId,
+          guarantor_id: guarantorId,
           status: "pending" as const,
-        }));
-
-        await tx.loanGuarantee.createMany({
-          data: guaranteeData,
-        });
-      }
+        })),
+      });
     });
 
     revalidatePath("/agapay-tanaw");
+    revalidatePath("/agapay-pintig");
     return { success: "Application submitted successfully!" };
   } catch (error) {
     console.error(error);

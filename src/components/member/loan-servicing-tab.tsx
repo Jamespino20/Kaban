@@ -22,6 +22,10 @@ import {
 } from "@/components/ui/select";
 import { submitMockRepayment } from "@/actions/loan-servicing";
 import { CreditCard, ReceiptText, Send, Clock3 } from "lucide-react";
+import {
+  getCompassionPolicyCopy,
+  getPenaltyPolicyCopy,
+} from "@/lib/microfinance-policy";
 
 export function LoanServicingTab({
   loans,
@@ -240,6 +244,12 @@ function LoanServicingCard({
           Sa prototype na ito, ang pera ay ipinapasa sa tunay na buhay sa pamamagitan ng
           branch cashier, GCash transfer, bank transfer, o field collection. Dito sa Agapay,
           itinatala at bine-verify natin ang repayment para may malinaw na records at digital receipt.
+        </p>
+        <p className="text-sm text-slate-500">
+          {getPenaltyPolicyCopy()}
+        </p>
+        <p className="text-sm text-slate-500">
+          {getCompassionPolicyCopy()}
         </p>
       </div>
 
