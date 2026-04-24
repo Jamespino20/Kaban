@@ -4,13 +4,12 @@ import React, { useState, useTransition } from "react";
 import {
   FileText,
   UserCheck,
-  ArrowRight,
   Fingerprint,
   Calendar,
   Wallet,
   Send,
   BadgeCheck,
-  XCircle,
+  ShieldAlert,
 } from "lucide-react";
 import { format } from "date-fns";
 import { toast } from "sonner";
@@ -46,17 +45,25 @@ interface VerificationQueueTabProps {
     verifications: any[];
     approvedLoans?: any[];
     pendingPayments?: any[];
+    recoveryLoans?: any[];
   };
 }
 
 export function VerificationQueueTab({ data }: VerificationQueueTabProps) {
-  const { loans, verifications, approvedLoans = [], pendingPayments = [] } = data;
+  const {
+    loans,
+    verifications,
+    approvedLoans = [],
+    pendingPayments = [],
+    recoveryLoans = [],
+  } = data;
 
   return (
     <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
       <PendingLoansSection loans={loans} />
       <ReleaseQueueSection loans={approvedLoans} />
       <PendingPaymentsSection payments={pendingPayments} />
+      <RecoveryLoansSection loans={recoveryLoans} />
       <IdentityVerificationSection verifications={verifications} />
     </div>
   );
@@ -192,6 +199,64 @@ function PendingPaymentsSection({ payments }: { payments: any[] }) {
           <div className="max-h-[32rem] space-y-4 overflow-y-auto pr-2">
             {payments.map((payment: any) => (
               <ReviewPaymentCard key={payment.payment_id} payment={payment} />
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function RecoveryLoansSection({ loans }: { loans: any[] }) {
+  return (
+    <div className="space-y-6">
+      <SectionHeader
+        icon={<ShieldAlert className="w-5 h-5" />}
+        title="Recovery Loans"
+        count={loans.length}
+        accent="rose"
+      />
+      <div className="space-y-4">
+        {loans.length === 0 ? (
+          <EmptyState message="Walang aktibong recovery loans sa kasalukuyan." />
+        ) : (
+          <div className="max-h-[32rem] space-y-4 overflow-y-auto pr-2">
+            {loans.map((loan: any) => (
+              <div
+                key={loan.loan_id}
+                className="bg-white p-6 rounded-[2rem] border border-rose-100 shadow-sm"
+              >
+                <div className="flex justify-between items-start mb-6">
+                  <ApplicantSummary
+                    firstName={loan.user?.profile?.first_name}
+                    lastName={loan.user?.profile?.last_name}
+                    subtitle={`Parent: ${loan.recovery_parent?.loan_reference || "N/A"}`}
+                  />
+                  <AmountSummary
+                    amount={Number(loan.balance_remaining)}
+                    caption="Natitirang recovery"
+                  />
+                </div>
+
+                <div className="space-y-2 text-xs text-slate-500">
+                  <p className="font-medium text-rose-600 uppercase tracking-widest">
+                    Recovery Loan
+                  </p>
+                  <p>
+                    Reference:{" "}
+                    <span className="font-mono text-slate-700">{loan.loan_reference}</span>
+                  </p>
+                  <p>
+                    Borrower: {loan.user?.profile?.first_name} {loan.user?.profile?.last_name}
+                  </p>
+                  <p>
+                    Source default:{" "}
+                    <span className="font-mono text-slate-700">
+                      {loan.recovery_parent?.loan_reference || "Unknown"}
+                    </span>
+                  </p>
+                </div>
+              </div>
             ))}
           </div>
         )}
@@ -432,13 +497,14 @@ function SectionHeader({
   icon: React.ReactNode;
   title: string;
   count: number;
-  accent: "indigo" | "amber" | "slate" | "emerald";
+  accent: "indigo" | "amber" | "slate" | "emerald" | "rose";
 }) {
   const accentMap = {
     indigo: "bg-indigo-500/10 text-indigo-600 bg-indigo-500",
     amber: "bg-amber-500/10 text-amber-600 bg-amber-500",
     slate: "bg-slate-500/10 text-slate-600 bg-slate-500",
     emerald: "bg-emerald-500/10 text-emerald-600 bg-emerald-500",
+    rose: "bg-rose-500/10 text-rose-600 bg-rose-500",
   }[accent];
 
   const [chipBg, chipText, badgeBg] = accentMap.split(" ");

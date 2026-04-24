@@ -122,6 +122,15 @@ export function MemberDirectoryTab({ members }: MemberDirectoryTabProps) {
                 const name = member.profile
                   ? `${member.profile.first_name} ${member.profile.last_name}`
                   : member.username;
+                const walletBalance = member.savings_accounts
+                  .filter((account: any) => account.account_type === "personal_wallet")
+                  .reduce((sum: number, account: any) => sum + Number(account.balance), 0);
+                const recoveryLoans = member.loans.filter(
+                  (loan: any) => loan.is_recovery_loan,
+                ).length;
+                const chargedGuarantees = member.guarantees.filter(
+                  (guarantee: any) => guarantee.status === "charged",
+                ).length;
                 return (
                   <tr
                     key={member.user_id}
@@ -164,8 +173,28 @@ export function MemberDirectoryTab({ members }: MemberDirectoryTabProps) {
                       </div>
                     </td>
                     <td className="px-6 py-4 text-sm font-medium text-slate-600">
-                      {member.loans.length}{" "}
-                      {member.loans.length === 1 ? "Loan" : "mga Loan"}
+                      <div className="space-y-1">
+                        <p>
+                          {member.loans.length}{" "}
+                          {member.loans.length === 1 ? "Loan" : "mga Loan"}
+                        </p>
+                        <p className="text-[10px] uppercase tracking-widest text-slate-400">
+                          Wallet: ₱{walletBalance.toLocaleString(undefined, {
+                            minimumFractionDigits: 2,
+                            maximumFractionDigits: 2,
+                          })}
+                        </p>
+                        {recoveryLoans > 0 && (
+                          <p className="text-[10px] uppercase tracking-widest text-rose-500">
+                            Recovery: {recoveryLoans}
+                          </p>
+                        )}
+                        {chargedGuarantees > 0 && (
+                          <p className="text-[10px] uppercase tracking-widest text-amber-500">
+                            Charged guarantees: {chargedGuarantees}
+                          </p>
+                        )}
+                      </div>
                     </td>
                     <td className="px-6 py-4 text-right">
                       <button className="p-2 hover:bg-white hover:shadow-sm rounded-lg transition-all text-slate-400 hover:text-slate-900 border border-transparent hover:border-slate-100">

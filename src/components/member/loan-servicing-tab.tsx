@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState, useTransition } from "react";
+import type { ReactNode } from "react";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
@@ -27,12 +28,49 @@ import {
   getPenaltyPolicyCopy,
 } from "@/lib/microfinance-policy";
 
+type PaymentMethodOption = {
+  method_id: number;
+  provider_name: string;
+};
+
+type MoneyLike = number | string | { toString(): string };
+
+type LoanScheduleItem = {
+  schedule_id: number;
+  status: "pending" | "overdue" | "paid";
+  total_due: MoneyLike;
+};
+
+type LoanPaymentItem = {
+  payment_id: number;
+  amount_paid: MoneyLike;
+  payment_reference: string;
+  status: string;
+  payment_method?: {
+    provider_name?: string | null;
+  } | null;
+};
+
+type LoanProductInfo = {
+  name?: string | null;
+};
+
+type ServicingLoan = {
+  loan_id: number;
+  loan_reference: string;
+  balance_remaining: MoneyLike;
+  is_recovery_loan?: boolean | null;
+  product?: LoanProductInfo | null;
+  schedules: LoanScheduleItem[];
+  payments: LoanPaymentItem[];
+};
+
 export function LoanServicingTab({
   loans,
   paymentMethods,
 }: {
-  loans: any[];
-  paymentMethods: any[];
+  loans: ServicingLoan[];
+  paymentMethods: PaymentMethodOption[];
 }) {
   const [productFilter, setProductFilter] = useState("all");
   const [currentPage, setCurrentPage] = useState(1);
@@ -135,8 +173,8 @@ function LoanServicingCard({
   loan,
   paymentMethods,
 }: {
-  loan: any;
-  paymentMethods: any[];
+  loan: ServicingLoan;
+  paymentMethods: PaymentMethodOption[];
 }) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
@@ -150,7 +188,7 @@ function LoanServicingCard({
   const nextSchedule = useMemo(
     () =>
       loan.schedules.find(
-        (schedule: any) => schedule.status === "pending" || schedule.status === "overdue",
+        (schedule) => schedule.status === "pending" || schedule.status === "overdue",
       ),
     [loan.schedules],
   );
@@ -190,12 +228,24 @@ function LoanServicingCard({
     <div className="bg-white rounded-[2.5rem] border border-slate-100 shadow-sm p-8 space-y-6">
       <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
         <div className="space-y-2">
-          <h3 className="text-2xl font-display font-bold text-slate-900">
-            {loan.product?.name}
-          </h3>
+          <div className="flex flex-wrap items-center gap-2">
+            <h3 className="text-2xl font-display font-bold text-slate-900">
+              {loan.product?.name}
+            </h3>
+            {loan.is_recovery_loan && (
+              <span className="rounded-full bg-rose-100 px-3 py-1 text-[10px] font-bold uppercase tracking-widest text-rose-600">
+                Recovery Loan
+              </span>
+            )}
+          </div>
           <p className="text-sm text-slate-500">
             Loan Reference: <span className="font-mono">{loan.loan_reference}</span>
           </p>
+          {loan.is_recovery_loan && (
+            <p className="text-xs text-rose-600">
+              Ang loan na ito ay nabuo mula sa natitirang balanse matapos ang awtomatikong default recovery.
+            </p>
+          )}
         </div>
         <div className="text-left md:text-right">
           <p className="text-xs font-bold uppercase tracking-widest text-slate-400">
@@ -223,7 +273,7 @@ function LoanServicingCard({
         <MetricCard
           icon={<CreditCard className="w-4 h-4" />}
           label="Installments"
-          value={`${loan.schedules.filter((s: any) => s.status === "paid").length}/${loan.schedules.length} paid`}
+          value={`${loan.schedules.filter((s) => s.status === "paid").length}/${loan.schedules.length} paid`}
         />
         <MetricCard
           icon={<ReceiptText className="w-4 h-4" />}
@@ -297,7 +347,7 @@ function LoanServicingCard({
                     <SelectValue placeholder="Pumili ng channel" />
                   </SelectTrigger>
                   <SelectContent>
-                    {paymentMethods.map((method: any) => (
+                    {paymentMethods.map((method) => (
                       <SelectItem key={method.method_id} value={String(method.method_id)}>
                         {method.provider_name}
                       </SelectItem>
@@ -352,7 +402,7 @@ function LoanServicingCard({
           {loan.payments.length === 0 ? (
             <p className="text-sm text-slate-400 italic">Wala pang naipapasang repayment.</p>
           ) : (
-            loan.payments.map((payment: any) => (
+            loan.payments.map((payment) => (
               <div
                 key={payment.payment_id}
                 className="flex items-center justify-between rounded-2xl bg-slate-50 px-4 py-3"
@@ -387,7 +437,7 @@ function MetricCard({
   label,
   value,
 }: {
-  icon: React.ReactNode;
+  icon: ReactNode;
   label: string;
   value: string;
 }) {

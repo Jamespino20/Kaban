@@ -20,9 +20,23 @@ export async function getTenantMembers() {
     },
     include: {
       profile: true,
+      savings_accounts: {
+        select: {
+          account_type: true,
+          balance: true,
+        },
+      },
       loans: {
         select: {
           loan_id: true,
+          status: true,
+          is_recovery_loan: true,
+          balance_remaining: true,
+        },
+      },
+      guarantees: {
+        select: {
+          id: true,
           status: true,
         },
       },
@@ -151,11 +165,42 @@ export async function getPendingApprovals() {
     orderBy: { requested_at: "asc" },
   });
 
+  const recoveryLoans = await prisma.loan.findMany({
+    where: {
+      ...loanTenantFilter,
+      is_recovery_loan: true as never,
+      status: {
+        in: ["active", "defaulted"],
+      },
+    },
+    include: {
+      user: {
+        include: {
+          profile: true,
+        },
+      },
+      product: true,
+      recovery_parent: {
+        include: {
+          user: {
+            include: {
+              profile: true,
+            },
+          },
+        },
+      },
+    },
+    orderBy: {
+      loan_id: "desc",
+    },
+  });
+
   return {
     loans: pendingLoans,
     verifications: pendingVerifications,
     approvedLoans,
     pendingPayments,
+    recoveryLoans: recoveryLoans as any,
     compassion: pendingCompassionActions as any,
   };
 }

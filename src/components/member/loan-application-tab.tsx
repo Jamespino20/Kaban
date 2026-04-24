@@ -8,17 +8,29 @@ import { LoanApplicationForm } from "./loan-application-form";
 import { toast } from "sonner";
 import { MICROFINANCE_POLICY } from "@/lib/microfinance-policy";
 
+type LoanProductCard = {
+  product_id: number;
+  name: string;
+  description: string | null;
+  min_amount: number;
+  max_amount: number;
+  interest_rate_percent: number;
+  guarantor_liability_rate: number;
+  max_term_months: number;
+  is_active: boolean;
+};
+
 export const LoanApplicationTab = () => {
-  const [products, setProducts] = useState<any[]>([]);
-  const [selectedProduct, setSelectedProduct] = useState<any>(null);
+  const [products, setProducts] = useState<LoanProductCard[]>([]);
+  const [selectedProduct, setSelectedProduct] = useState<LoanProductCard | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetch = async () => {
       try {
         const data = await getLoanProducts();
-        setProducts(data.filter((p: any) => p.is_active));
-      } catch (error) {
+        setProducts(data.filter((p) => p.is_active) as LoanProductCard[]);
+      } catch {
         toast.error("Hindi ma-load ang mga produkto.");
       } finally {
         setLoading(false);
@@ -84,6 +96,13 @@ export const LoanApplicationTab = () => {
                   {MICROFINANCE_POLICY.maxGuarantors}
                 </span>
               </div>
+              <div className="flex items-center gap-3">
+                <div className="h-2 w-2 rounded-full bg-emerald-500" />
+                <span className="text-sm font-medium">
+                  Liability kada guarantor:{" "}
+                  {selectedProduct.guarantor_liability_rate}%
+                </span>
+              </div>
             </div>
           </div>
 
@@ -116,7 +135,7 @@ export const LoanApplicationTab = () => {
             bumalik muli mamaya.
           </div>
         ) : (
-          products.map((product: any) => (
+          products.map((product) => (
             <div
               key={product.product_id}
               className="group flex flex-col justify-between rounded-[2rem] border border-slate-100 bg-white p-8 shadow-sm transition-all hover:-translate-y-2 hover:shadow-2xl"
@@ -143,6 +162,9 @@ export const LoanApplicationTab = () => {
                   Maaaring hiramin mula PHP{" "}
                   {Number(product.min_amount).toLocaleString()} hanggang PHP{" "}
                   {Number(product.max_amount).toLocaleString()}.
+                </p>
+                <p className="text-xs font-medium text-slate-400">
+                  Recovery share kada guarantor: {product.guarantor_liability_rate}%
                 </p>
               </div>
 
