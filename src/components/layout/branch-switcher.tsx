@@ -32,27 +32,36 @@ export function BranchSwitcher() {
     setLoading(true);
     const result = await getAvailableTenants(session?.user?.email!);
     if (result.success) {
-      setTenants(
-        isSuperadmin
-          ? result.tenants.filter((tenant: any) => tenant.tenant_id)
-          : result.tenants.filter((tenant: any) =>
-              accessibleTenantIds.includes(tenant.tenant_id),
-            ),
-      );
+      const nextTenants = isSuperadmin
+        ? [
+            {
+              tenant_id: null,
+              name: "Global View",
+              groupName: "Superadmin Scope",
+              slug: "global",
+              role: "superadmin",
+            },
+            ...result.tenants.filter((tenant: any) => tenant.tenant_id),
+          ]
+        : result.tenants.filter((tenant: any) =>
+            accessibleTenantIds.includes(tenant.tenant_id),
+          );
+
+      setTenants(nextTenants);
     }
     setLoading(false);
   }
 
-  async function handleSwitch(tenantId: number) {
+  async function handleSwitch(tenantId: number | null) {
     if (tenantId === session?.user?.tenantId) return;
-    if (!isSuperadmin && !accessibleTenantIds.includes(tenantId)) return;
+    if (!isSuperadmin && tenantId !== null && !accessibleTenantIds.includes(tenantId)) return;
 
     setSwitching(tenantId);
 
     // Utilize NextAuth seamless token update mechanism built into auth.config.ts
     await update({
       action: "switch_tenant",
-      tenantId: tenantId.toString(),
+      tenantId: tenantId === null ? "global" : tenantId.toString(),
     });
 
     // Force a hard reload to ensure layout/providers catch the new tenant context
@@ -101,7 +110,7 @@ export function BranchSwitcher() {
         ) : (
           tenants.map((t: any) => (
             <DropdownMenuItem
-              key={t.tenant_id}
+              key={t.tenant_id ?? "global"}
               onClick={() => handleSwitch(t.tenant_id)}
               className={`flex items-center justify-between p-3 rounded-xl cursor-pointer transition-colors ${
                 t.tenant_id === session?.user?.tenantId

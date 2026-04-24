@@ -29,13 +29,16 @@ export const authConfig = {
         const connectionString = getDbUrl();
         if (connectionString) {
           const sql = neon(connectionString);
-          const targetTenantId = parseInt(session.tenantId);
+          const switchingToGlobal = session.tenantId === "global";
+          const targetTenantId = switchingToGlobal
+            ? null
+            : parseInt(session.tenantId);
           const isSuperadmin = token.role === "superadmin";
           const allowedTenantIds = Array.isArray(token.accessibleTenantIds)
             ? token.accessibleTenantIds.map((value: any) => parseInt(String(value)))
             : [];
 
-          if (!isSuperadmin && !allowedTenantIds.includes(targetTenantId)) {
+          if (!switchingToGlobal && !isSuperadmin && !allowedTenantIds.includes(targetTenantId as number)) {
             console.warn(
               "Rejected unauthorized tenant switch attempt",
               token.user_id,
@@ -46,6 +49,11 @@ export const authConfig = {
 
           try {
             if (isSuperadmin) {
+              if (switchingToGlobal) {
+                token.tenantId = null;
+                return token;
+              }
+
               const tenants = await sql`
                 SELECT tenant_id
                 FROM tenants
@@ -90,9 +98,8 @@ export const authConfig = {
       if (token?.role) {
         session.user.role = token.role as string;
       }
-      if (token?.tenantId) {
-        session.user.tenantId = token.tenantId as number;
-      }
+      session.user.tenantId =
+        typeof token?.tenantId === "number" ? (token.tenantId as number) : null;
       if (token?.username) {
         session.user.username = token.username as string;
       }
