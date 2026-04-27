@@ -1,4 +1,6 @@
+import { Prisma } from "@prisma/client";
 import prisma from "@/lib/prisma";
+
 import { headers } from "next/headers";
 
 /**
@@ -94,7 +96,7 @@ export async function logInteraction(params: {
         event_type: params.eventType,
         tenant_id: params.tenantId,
         user_id: params.userId,
-        metadata: params.metadata,
+        metadata: params.metadata as Prisma.InputJsonValue | undefined,
         ip_address: meta.ip,
         city: meta.city,
         region: meta.region,
