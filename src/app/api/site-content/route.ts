@@ -1,9 +1,9 @@
 import { NextResponse } from "next/server";
-import { getHomepageContent } from "@/actions/site-content";
+import { fetchHomepageContent } from "@/actions/site-content";
 
 export async function GET() {
   try {
-    const content = await getHomepageContent();
+    const content = await fetchHomepageContent();
     return NextResponse.json(content);
   } catch (error) {
     return NextResponse.json(

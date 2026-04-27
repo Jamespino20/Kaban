@@ -86,7 +86,11 @@ function ensureHomepageEditorRole(role?: string | null) {
   }
 }
 
-export async function getHomepageContent() {
+/**
+ * Core fetching logic for homepage content.
+ * Extracted into a plain function to allow calling from API routes without Server Action manifest triggers.
+ */
+export async function fetchHomepageContent() {
   const [faqs, testimonials] = await Promise.all([
     prisma.homepageFaq.findMany({
       where: { is_active: true, workflow_status: CONTENT_STATUS.published },
@@ -99,6 +103,10 @@ export async function getHomepageContent() {
   ]);
 
   return { faqs, testimonials };
+}
+
+export async function getHomepageContent() {
+  return fetchHomepageContent();
 }
 
 export async function getHomepageContentAdmin() {

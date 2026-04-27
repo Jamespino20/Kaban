@@ -32,6 +32,15 @@ const createPrismaClient = () => {
     connectionString ? "PRESENT" : "MISSING",
   );
 
+  if (!connectionString) {
+    const errorMsg =
+      "AGAPAY_PRISMA: Critical Error - Database Connection String is missing. Check Vercel Environment Variables.";
+    console.error(errorMsg);
+    if (process.env.NODE_ENV === "production") {
+      throw new Error(errorMsg);
+    }
+  }
+
   const adapterMode = getAdapterMode();
   const adapter =
     adapterMode === "ws"
