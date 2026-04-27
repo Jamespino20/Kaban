@@ -79,6 +79,7 @@ export default function RootLayout({
           <Toaster />
           <SpeedInsights />
         </AuthProvider>
+        <Analytics />
       </body>
     </html>
   );
