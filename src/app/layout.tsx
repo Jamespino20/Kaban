@@ -3,7 +3,7 @@ import { Plus_Jakarta_Sans, Fraunces } from "next/font/google";
 import "./globals.css";
 import { Toaster } from "@/components/ui/sonner";
 import { AuthProvider } from "@/components/providers/session-provider";
-import { Analytics } from "@vercel/analytics/next";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 
 const plusJakartaSans = Plus_Jakarta_Sans({
   variable: "--font-sans",
@@ -77,6 +77,7 @@ export default function RootLayout({
             <main className="relative z-10">{children}</main>
           </div>
           <Toaster />
+          <SpeedInsights />
         </AuthProvider>
         <Analytics />
       </body>
