@@ -44,6 +44,7 @@ import { type ShellNavItem } from "@/components/layout/authenticated-shell";
 import { DashboardTabsShell } from "@/components/layout/dashboard-tabs-shell";
 import { getCommunityStaffSummary } from "@/actions/community-actions";
 import { CommunityOperationsTab } from "@/components/admin/community-operations-tab";
+import { AnalyticsDashboardTab } from "@/components/admin/analytics-dashboard-tab";
 
 export default async function AgapayTanawPage() {
   const session = await auth();
@@ -150,7 +151,6 @@ export default async function AgapayTanawPage() {
       icon: "audit",
     });
   }
-
   if (isAdmin || isSuperAdmin) {
     navItems.push({
       value: "compassion",
@@ -158,6 +158,12 @@ export default async function AgapayTanawPage() {
       icon: "compassion",
     });
   }
+
+  navItems.push({
+    value: "analytics",
+    label: "Analytics Insights",
+    icon: "analytics",
+  });
 
   return (
     <DashboardTabsShell
@@ -379,6 +385,10 @@ export default async function AgapayTanawPage() {
             />
           </TabsContent>
         )}
+
+        <TabsContent value="analytics" className="outline-none">
+          <AnalyticsDashboardTab />
+        </TabsContent>
       </div>
     </DashboardTabsShell>
   );

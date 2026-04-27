@@ -21,6 +21,7 @@ import {
   HeartPulse,
   Wallet,
   MessagesSquare,
+  TrendingUp,
 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
@@ -45,7 +46,8 @@ export type ShellIconName =
   | "settings"
   | "compassion"
   | "wallet"
-  | "community";
+  | "community"
+  | "analytics";
 
 const ICON_MAP = {
   overview: LayoutDashboard,
@@ -62,6 +64,7 @@ const ICON_MAP = {
   compassion: HeartPulse,
   wallet: Wallet,
   community: MessagesSquare,
+  analytics: TrendingUp,
 } satisfies Record<ShellIconName, React.ComponentType<{ className?: string }>>;
 
 export function AuthenticatedShell({

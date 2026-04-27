@@ -5,6 +5,7 @@ import { requireAuthenticatedSession } from "@/lib/authorization";
 import { revalidatePath } from "next/cache";
 import { Prisma, ScheduleStatus } from "@prisma/client";
 import { postLedgerEntry } from "./ledger";
+import { logInteraction } from "@/lib/analytics-logger";
 
 const PERSONAL_WALLET = "personal_wallet";
 
@@ -72,6 +73,13 @@ export async function depositToWallet(amount: number) {
           processed_by: userId,
         },
       });
+    });
+
+    await logInteraction({
+      eventType: "WALLET_DEPOSIT",
+      tenantId,
+      userId,
+      metadata: { amount },
     });
 
     revalidatePath("/agapay-pintig");
@@ -205,6 +213,13 @@ export async function payLoanWithWallet(loanId: number, amount: number) {
       },
       { timeout: 10000 },
     );
+
+    await logInteraction({
+      eventType: "LOAN_PAYMENT_VIA_WALLET",
+      tenantId,
+      userId,
+      metadata: { loanId, amount },
+    });
 
     revalidatePath("/agapay-pintig");
     return { success: "Matagumpay na nakapagbayad gamit ang iyong wallet." };

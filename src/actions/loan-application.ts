@@ -5,6 +5,7 @@ import prisma from "@/lib/prisma";
 import { requireAuthenticatedSession } from "@/lib/authorization";
 import { Role, UserStatus, RepaymentFrequency } from "@prisma/client";
 import { revalidatePath } from "next/cache";
+import { logInteraction } from "@/lib/analytics-logger";
 import {
   computeLoanQuote,
   evaluateOverindebtedness,
@@ -230,6 +231,18 @@ export const applyForLoan = async (
           status: "pending" as const,
         })),
       });
+    });
+
+    await logInteraction({
+      eventType: "LOAN_APPLICATION_SUBMITTED",
+      tenantId,
+      userId,
+      metadata: {
+        amount,
+        term_months,
+        product_id,
+        repayment_frequency,
+      },
     });
 
     revalidatePath("/agapay-tanaw");

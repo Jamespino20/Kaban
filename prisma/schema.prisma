@@ -43,6 +43,8 @@ model Tenant {
   homepage_testimonials  HomepageTestimonial[]
   payment_methods        PaymentMethod[]
   savings                SavingsAccount[]
+  traffic_logs           TrafficLog[]
+  interaction_logs       InteractionLog[]
   tenant_group           TenantGroup?            @relation(fields: [tenant_group_id], references: [id])
   users                  User[]
 
@@ -87,6 +89,7 @@ model User {
   notifications           Notification[]          @relation("NotificationRecipient")
   requested_compassions   CompassionAction[]      @relation("RequestedCompassion")
   approved_compassions    CompassionAction[]      @relation("ApprovedCompassion")
+  interaction_logs        InteractionLog[]
   profile                 UserProfile?
   tenant                  Tenant?                 @relation(fields: [tenant_id], references: [tenant_id])
 
@@ -287,13 +290,47 @@ model AuditLog {
   entity_id   Int?
   old_values  Json?
   new_values  Json?
-  ip_address  String?  @db.VarChar(45)
+  ip_address  String?  @db.VarChar(45) // Anonymized
+  city        String?  @db.VarChar(100)
+  region      String?  @db.VarChar(100)
   user_agent  String?
   created_at  DateTime @default(now())
-  tenant      Tenant?  @relation(fields: [tenant_id], references: [tenant_id])
-  user        User?    @relation(fields: [user_id], references: [user_id])
+  tenant      Tenant?  @relation(fields: [tenant_id], references: [tenant_id], onDelete: SetNull)
+  user        User?    @relation(fields: [user_id], references: [user_id], onDelete: SetNull)
 
   @@map("audit_logs")
+}
+
+model TrafficLog {
+  id          String   @id @default(cuid())
+  tenant_id   Int?
+  path        String
+  ip_address  String?  @db.VarChar(45) // Anonymized
+  city        String?  @db.VarChar(100)
+  region      String?  @db.VarChar(100)
+  user_agent  String?
+  created_at  DateTime @default(now())
+  tenant      Tenant?  @relation(fields: [tenant_id], references: [tenant_id], onDelete: SetNull)
+
+  @@index([tenant_id, created_at])
+  @@map("traffic_logs")
+}
+
+model InteractionLog {
+  id          String   @id @default(cuid())
+  tenant_id   Int?
+  user_id     Int?
+  event_type  String   @db.VarChar(100) // e.g. "LOAN_CALC_USE", "SOA_VIEW"
+  metadata    Json?
+  ip_address  String?  @db.VarChar(45) // Anonymized
+  city        String?  @db.VarChar(100)
+  region      String?  @db.VarChar(100)
+  created_at  DateTime @default(now())
+  tenant      Tenant?  @relation(fields: [tenant_id], references: [tenant_id], onDelete: SetNull)
+  user        User?    @relation(fields: [user_id], references: [user_id], onDelete: SetNull)
+
+  @@index([tenant_id, event_type, created_at])
+  @@map("interaction_logs")
 }
 
 model HomepageFaq {

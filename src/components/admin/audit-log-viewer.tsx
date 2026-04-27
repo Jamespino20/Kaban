@@ -19,6 +19,8 @@ import {
   ChevronDown,
   ChevronUp,
   Eye,
+  MapPin,
+  Globe,
 } from "lucide-react";
 import { getAuditLogs } from "@/actions/tenant-management";
 import { format } from "date-fns";
@@ -167,6 +169,17 @@ export function AuditLogViewer({ tenantId }: { tenantId?: number }) {
                           "MMM d, yyyy HH:mm:ss",
                         )}
                       </div>
+                      {log.city && (
+                        <div className="flex items-center gap-1 text-[11px] text-emerald-600 font-bold">
+                          <MapPin className="w-3 h-3" /> {log.city},{" "}
+                          {log.region}
+                        </div>
+                      )}
+                      {log.ip_address && (
+                        <div className="flex items-center gap-1 text-[11px] text-slate-400 font-mono">
+                          <Globe className="w-3 h-3" /> {log.ip_address}
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -199,6 +212,14 @@ export function AuditLogViewer({ tenantId }: { tenantId?: number }) {
                       </pre>
                     </div>
                   </div>
+                  {log.user_agent && (
+                    <div className="mt-4 p-3 bg-slate-100 rounded-lg text-[10px] text-slate-500 break-all">
+                      <span className="font-bold uppercase mr-2">
+                        User Agent:
+                      </span>
+                      {log.user_agent}
+                    </div>
+                  )}
                 </div>
               )}
             </Card>
@@ -208,10 +229,16 @@ export function AuditLogViewer({ tenantId }: { tenantId?: number }) {
             <p className="text-sm text-slate-500">
               Ipinapakita ang{" "}
               <span className="font-bold text-slate-700">
-                {filteredLogs.length === 0 ? 0 : (currentPage - 1) * pageSize + 1}-
-                {Math.min(currentPage * pageSize, filteredLogs.length)}
+                {filteredLogs.length === 0
+                  ? 0
+                  : (currentPage - 1) * pageSize + 1}
+                -{Math.min(currentPage * pageSize, filteredLogs.length)}
               </span>{" "}
-              ng <span className="font-bold text-slate-700">{filteredLogs.length}</span> logs
+              ng{" "}
+              <span className="font-bold text-slate-700">
+                {filteredLogs.length}
+              </span>{" "}
+              logs
             </p>
             <div className="flex items-center gap-2">
               <button

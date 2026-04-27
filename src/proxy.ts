@@ -1,16 +1,24 @@
 import NextAuth from "next-auth";
+import { logTraffic } from "@/lib/analytics-logger";
 import { authConfig } from "@/lib/auth.config";
 import { NextResponse } from "next/server";
 
 const { auth } = NextAuth(authConfig);
 
-const authProxy = auth((req) => {
+const authProxy = auth(async (req) => {
   const { nextUrl } = req;
   const isLoggedIn = !!req.auth;
   const role = req.auth?.user?.role;
+  const tenantId = (req.auth?.user as any)?.tenant_id;
+
+  // Asynchronously log traffic to avoid blocking the request
+  // Note: In middleware, database operations should be as fast as possible.
+  logTraffic(nextUrl.pathname, tenantId).catch((err) =>
+    console.error("Traffic log failed:", err),
+  );
 
   console.log(
-    `[PROXY] ${req.method} ${nextUrl.pathname} | LoggedIn: ${isLoggedIn} | Role: ${role}`,
+    `[PROXY] ${req.method} ${nextUrl.pathname} | LoggedIn: ${isLoggedIn} | Role: ${role} | Tenant: ${tenantId}`,
   );
 
   const isApiAuthRoute = nextUrl.pathname.startsWith("/api/auth");
