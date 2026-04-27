@@ -3,7 +3,9 @@
 import * as psgc from "@jobuntux/psgc";
 
 export async function fetchPsgcRegions() {
-  return psgc.listRegions().map((r: any) => ({
+  return (
+    psgc.listRegions() as unknown as { regCode: string; regionName: string }[]
+  ).map((r) => ({
     code: r.regCode,
     name: r.regionName,
   }));
@@ -11,10 +13,14 @@ export async function fetchPsgcRegions() {
 
 export async function fetchPsgcProvinces(regionCode: string) {
   if (!regionCode) return [];
-  const allProvinces = psgc.listProvinces();
+  const allProvinces = psgc.listProvinces() as unknown as {
+    regCode: string;
+    provCode: string;
+    provName: string;
+  }[];
   return allProvinces
-    .filter((p: any) => p.regCode === regionCode)
-    .map((p: any) => ({
+    .filter((p) => p.regCode === regionCode)
+    .map((p) => ({
       code: p.provCode,
       name: p.provName,
     }));
@@ -27,9 +33,10 @@ export async function fetchPsgcCities(territoryCode: string) {
   const allCitiesMuns = psgc.listMuncities();
   return allCitiesMuns
     .filter(
-      (c: any) => c.provCode === territoryCode || c.regCode === territoryCode,
+      (c: { provCode?: string; regCode: string }) =>
+        c.provCode === territoryCode || c.regCode === territoryCode,
     )
-    .map((c: any) => ({
+    .map((c: { munCityCode: string; munCityName: string }) => ({
       code: c.munCityCode,
       name: c.munCityName,
     }));
@@ -40,8 +47,8 @@ export async function fetchPsgcBarangays(cityMunCode: string) {
 
   const allBarangays = psgc.listBarangays();
   return allBarangays
-    .filter((b: any) => b.munCityCode === cityMunCode)
-    .map((b: any) => ({
+    .filter((b: { munCityCode: string }) => b.munCityCode === cityMunCode)
+    .map((b: { brgyCode: string; brgyName: string }) => ({
       code: b.brgyCode,
       name: b.brgyName,
     }));

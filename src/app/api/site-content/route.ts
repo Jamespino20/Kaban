@@ -5,7 +5,7 @@ export async function GET() {
   try {
     const content = await fetchHomepageContent();
     return NextResponse.json(content);
-  } catch (error) {
+  } catch (_error) {
     return NextResponse.json(
       { error: "Failed to load site content." },
       { status: 500 },

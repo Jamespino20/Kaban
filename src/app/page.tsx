@@ -4,7 +4,6 @@ import { AuthModal } from "@/components/auth/auth-modal";
 import { Footer } from "@/components/layout/footer";
 import { Navbar } from "@/components/layout/navbar";
 import {
-  ArrowRight,
   BadgeCheck,
   Calculator,
   CheckCircle2,
@@ -243,15 +242,25 @@ export default function Home() {
           payload.testimonials.length > 0
         ) {
           setTestimonials(
-            payload.testimonials.map((testimonial: any, index: number) => ({
-              name: testimonial.name,
-              role: testimonial.role_label,
-              photo:
-                testimonial.photo_url ||
-                FALLBACK_TESTIMONIALS[index % FALLBACK_TESTIMONIALS.length]
-                  .photo,
-              content: testimonial.content,
-            })),
+            payload.testimonials.map(
+              (
+                testimonial: {
+                  name: string;
+                  role_label: string;
+                  photo_url?: string;
+                  content: string;
+                },
+                index: number,
+              ) => ({
+                name: testimonial.name,
+                role: testimonial.role_label,
+                photo:
+                  testimonial.photo_url ||
+                  FALLBACK_TESTIMONIALS[index % FALLBACK_TESTIMONIALS.length]
+                    .photo,
+                content: testimonial.content,
+              }),
+            ),
           );
         }
       } catch {}

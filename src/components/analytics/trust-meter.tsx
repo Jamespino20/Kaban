@@ -27,11 +27,6 @@ export function TrustMeter({ data, className, size = "md" }: TrustMeterProps) {
   const normalizedRadius = radius - strokeWidth / 2;
   const circumference = normalizedRadius * Math.PI; // Semi-circle
 
-  // Calculate offsets for segments
-  // Red: 0-70, Yellow: 70-85, Green: 85-100
-  const redEnd = 70;
-  const yellowEnd = 85;
-
   const scoreColor =
     score >= 85
       ? "text-emerald-500"
@@ -48,15 +43,6 @@ export function TrustMeter({ data, className, size = "md" }: TrustMeterProps) {
   const getStrokeDashoffset = (val: number) => {
     const percentage = Math.max(0, Math.min(100, val));
     return circumference - (percentage / 100) * circumference;
-  };
-
-  const needleRotation = (score / 100) * 180 - 90; // -90 to 90 degrees
-
-  const factorColors = {
-    payment: paymentScore >= 70 ? "bg-emerald-500" : "bg-rose-500",
-    business: businessScore >= 70 ? "bg-emerald-500" : "bg-rose-500",
-    peer: peerScore >= 70 ? "bg-emerald-500" : "bg-rose-500",
-    guarantor: guarantorScore >= 70 ? "bg-emerald-500" : "bg-rose-500",
   };
 
   return (
@@ -136,7 +122,7 @@ export function TrustMeter({ data, className, size = "md" }: TrustMeterProps) {
           { label: "Business", val: businessScore },
           { label: "Peer", val: peerScore },
           { label: "Guarantor", val: guarantorScore },
-        ].map((f: any) => (
+        ].map((f: { label: string; val: number }) => (
           <div key={f.label} className="space-y-1.5">
             <div className="flex justify-between items-center px-1">
               <span className="text-[10px] font-bold text-slate-500 uppercase">

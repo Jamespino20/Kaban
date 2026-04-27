@@ -12,7 +12,6 @@ import {
   buildRepaymentSchedule,
   computeLoanQuote,
   getCompassionPolicyCopy,
-  MICROFINANCE_POLICY,
 } from "@/lib/microfinance-policy";
 import { postLedgerEntry } from "./ledger";
 

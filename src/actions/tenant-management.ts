@@ -64,7 +64,7 @@ export async function getTenants() {
   }
 
   try {
-    const tenants = await (prisma.tenant as any).findMany({
+    const tenants = await prisma.tenant.findMany({
       include: {
         tenant_group: true,
         _count: {
@@ -85,7 +85,7 @@ export async function getTenants() {
     const tenants = await prisma.tenant.findMany({
       orderBy: { name: "asc" },
     });
-    return tenants.map((t: any) => ({
+    return tenants.map((t) => ({
       ...t,
       tenant_group: null,
       _count: { users: 0, loans: 0, savings: 0 },
@@ -100,7 +100,7 @@ export async function decommissionBranch(tenantId: number) {
 
   try {
     // Transaction to ensure data consistency
-    const result = await prisma.$transaction(async (tx: any) => {
+    const result = await prisma.$transaction(async (tx) => {
       // 1. Mark tenant as inactive
 
       const tenant = await tx.tenant.update({
@@ -130,12 +130,12 @@ export async function decommissionBranch(tenantId: number) {
       // 3. Generate CSV Content
       let csvContent =
         "Member Code,Name,Role,Status,Total Loans,Total Savings Balance\n";
-      users.forEach((u: any) => {
+      users.forEach((u) => {
         const name = u.profile
           ? `${u.profile.first_name} ${u.profile.last_name}`
           : "Unknown";
         const totalSavings = u.savings_accounts.reduce(
-          (sum: number, acc: any) => sum + Number(acc.balance),
+          (sum: number, acc) => sum + Number(acc.balance),
           0,
         );
         csvContent += `${u.member_code || "N/A"},"${name}",${u.role},${u.status},${u.loans.length},${totalSavings}\n`;
@@ -166,7 +166,7 @@ export async function decommissionBranch(tenantId: number) {
           entity_type: "Tenant",
           entity_id: tenantId,
           user_id: parseInt(session.user.id),
-          new_values: { is_active: false, backup_id: backupRecord.id },
+          new_values: { is_active: false, backup_id: backupRecord.id } as any,
         },
       });
 
@@ -239,7 +239,7 @@ export async function getAuditLogs(tenantId?: number) {
       orderBy: { created_at: "desc" },
       take: 50,
     });
-    return (logs as any).map((log: any) => ({
+    return logs.map((log) => ({
       ...log,
       username: log.user?.username || "System",
     }));

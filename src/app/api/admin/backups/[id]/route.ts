@@ -33,7 +33,7 @@ export async function GET(
         "Content-Disposition": `attachment; filename="${path.basename(resolvedPath)}"`,
       },
     });
-  } catch (error) {
+  } catch (_error) {
     return NextResponse.json(
       { error: "Backup file is unavailable" },
       { status: 404 },

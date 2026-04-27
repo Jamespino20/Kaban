@@ -25,9 +25,7 @@ const LoanProductSchema = z.object({
     .number()
     .min(0, "Liability rate must be positive")
     .max(100, "Liability rate cannot exceed 100%"),
-  max_term_months: z.coerce
-    .number()
-    .min(1, "Term must be at least 1 month"),
+  max_term_months: z.coerce.number().min(1, "Term must be at least 1 month"),
 });
 
 export const createLoanProduct = async (
@@ -82,7 +80,7 @@ export const createLoanProduct = async (
         max_term_months,
         is_active: true,
         tenant_id: session.user.tenantId,
-      } as never,
+      },
     });
 
     revalidatePath("/agapay-pintig");
@@ -121,11 +119,7 @@ export const getLoanProducts = async () => {
       max_amount: Number(product.max_amount),
       interest_rate_percent: Number(product.interest_rate_percent),
       guarantor_liability_rate: Number(
-        (
-          product as typeof product & {
-            guarantor_liability_rate?: Prisma.Decimal | number | null;
-          }
-        ).guarantor_liability_rate ?? 25,
+        (product as any).guarantor_liability_rate ?? 25,
       ),
       max_term_months: product.max_term_months,
       is_active: product.is_active,
@@ -135,8 +129,8 @@ export const getLoanProducts = async () => {
       policy_min_term_months: MICROFINANCE_POLICY.minTermMonths,
       policy_max_term_months: MICROFINANCE_POLICY.maxTermMonths,
     }));
-  } catch (error) {
-    console.error(error);
+  } catch (_error) {
+    console.error(_error);
     return [];
   }
 };

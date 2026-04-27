@@ -1,6 +1,5 @@
 "use server";
 
-import prisma from "@/lib/prisma";
 import { Prisma } from "@prisma/client";
 
 /**
@@ -19,7 +18,7 @@ export async function postLedgerEntry(
     createdBy?: number;
     transactionId?: string; // Optional: specify a custom ID to link multi-account entries
     loanId?: number; // Optional: Link to a specific loan
-    metadata?: any; // Optional: extra context
+    metadata?: Record<string, unknown>; // Optional: extra context
   },
 ) {
   const {
@@ -32,11 +31,8 @@ export async function postLedgerEntry(
   } = params;
 
   // 1. Validate Zero-Sum Integrity (Assets = Liabilities + Equity)
-  const totalDebits = entries.reduce((sum: number, e: any) => sum + e.debit, 0);
-  const totalCredits = entries.reduce(
-    (sum: number, e: any) => sum + e.credit,
-    0,
-  );
+  const totalDebits = entries.reduce((sum: number, e) => sum + e.debit, 0);
+  const totalCredits = entries.reduce((sum: number, e) => sum + e.credit, 0);
 
   if (Math.abs(totalDebits - totalCredits) > 0.001) {
     throw new Error(
@@ -45,14 +41,15 @@ export async function postLedgerEntry(
   }
 
   // 2. Fetch Account IDs by Codes
-  const accountCodes = entries.map((e: any) => e.accountCode);
+  const accountCodes = entries.map((e) => e.accountCode);
   const accounts = await (tx as any).ledgerAccount.findMany({
     where: { code: { in: accountCodes } },
   });
 
   if (accounts.length < accountCodes.length) {
     const missing = accountCodes.filter(
-      (code: string) => !accounts.find((a: any) => a.code === code),
+      (code: string) =>
+        !(accounts as { code: string }[]).find((a) => a.code === code),
     );
     throw new Error(
       `Ledger Error: Missing account codes: ${missing.join(", ")}`,
@@ -65,8 +62,10 @@ export async function postLedgerEntry(
     `TX-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
 
   // 4. Record Entries
-  const ledgerPromises = entries.map((entry: any) => {
-    const account = accounts.find((a: any) => a.code === entry.accountCode)!;
+  const ledgerPromises = entries.map((entry) => {
+    const account = (accounts as { id: number; code: string }[]).find(
+      (a) => a.code === entry.accountCode,
+    )!;
     return (tx as any).businessLedger.create({
       data: {
         transaction_id: linkId,

@@ -74,29 +74,33 @@ export function TrustDistributionChart({
       </div>
 
       <div className="h-4 w-full flex bg-slate-100 rounded-full overflow-hidden">
-        {segments.map((s: any, i) => (
-          <div
-            key={i}
-            className={cn("h-full transition-all duration-1000", s.color)}
-            style={{ width: `${total === 0 ? 0 : (s.value / total) * 100}%` }}
-          />
-        ))}
+        {segments.map(
+          (s: { label: string; value: number; color: string }, i) => (
+            <div
+              key={i}
+              className={cn("h-full transition-all duration-1000", s.color)}
+              style={{ width: `${total === 0 ? 0 : (s.value / total) * 100}%` }}
+            />
+          ),
+        )}
       </div>
 
       <div className="grid grid-cols-1 gap-y-3 gap-x-8 md:grid-cols-2">
-        {segments.map((s: any, i) => (
-          <div key={i} className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <div className={cn("w-2 h-2 rounded-full", s.color)} />
-              <span className="text-[10px] font-bold text-slate-500 uppercase">
-                {s.label}
+        {segments.map(
+          (s: { label: string; value: number; color: string }, i) => (
+            <div key={i} className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <div className={cn("w-2 h-2 rounded-full", s.color)} />
+                <span className="text-[10px] font-bold text-slate-500 uppercase">
+                  {s.label}
+                </span>
+              </div>
+              <span className="text-[10px] font-bold text-slate-900">
+                {total === 0 ? 0 : Math.round((s.value / total) * 100)}%
               </span>
             </div>
-            <span className="text-[10px] font-bold text-slate-900">
-              {total === 0 ? 0 : Math.round((s.value / total) * 100)}%
-            </span>
-          </div>
-        ))}
+          ),
+        )}
       </div>
 
       <div className="rounded-2xl border border-rose-100 bg-rose-50 px-4 py-3">

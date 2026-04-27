@@ -6,6 +6,24 @@ import { requireAuthenticatedSession } from "@/lib/authorization";
 import { getDbUrl } from "@/lib/db-url";
 import { validateBranchMembershipLimit } from "@/lib/microfinance-policy";
 
+interface User {
+  id: number;
+  tenant_id: number | null;
+  role: string;
+  password_hash: string;
+  status: string;
+  email: string;
+  username: string;
+}
+
+interface Tenant {
+  tenant_id: number | null;
+  name: string;
+  groupName: string;
+  slug: string;
+  role: string;
+}
+
 export async function getAvailableTenants(username: string, password?: string) {
   try {
     let authenticatedSession = null;
@@ -17,7 +35,9 @@ export async function getAvailableTenants(username: string, password?: string) {
       }
 
       const normalizedLookup = username.trim().toLowerCase();
-      const sessionEmail = authenticatedSession.user.email?.trim().toLowerCase();
+      const sessionEmail = authenticatedSession.user.email
+        ?.trim()
+        .toLowerCase();
       if (!sessionEmail || sessionEmail !== normalizedLookup) {
         return { error: "Unauthorized" };
       }
@@ -51,7 +71,14 @@ export async function getAvailableTenants(username: string, password?: string) {
 
       return {
         success: true,
-        tenants: tenants.map((tenant: any) => ({
+        tenants: (
+          tenants as unknown as {
+            tenant_id: number;
+            name: string;
+            group_name?: string;
+            slug: string;
+          }[]
+        ).map((tenant) => ({
           tenant_id: tenant.tenant_id,
           name: tenant.name,
           groupName: tenant.group_name || "Agapay HQ",
@@ -62,17 +89,17 @@ export async function getAvailableTenants(username: string, password?: string) {
     }
 
     // Atomic SQL queries — no Prisma adapter dependency
-    const users: any[] = await sql`
+    const users = (await sql`
       SELECT 
         user_id as id, tenant_id, role, password_hash, status, email, username
       FROM users
       WHERE (username = ${username} OR email = ${username})
       AND status != 'suspended'
-    `;
+    `) as unknown as User[];
 
     if (users.length === 0) return { error: "User not found" };
 
-    const validTenants = [];
+    const validTenants: Tenant[] = [];
 
     for (const user of users) {
       if (password) {
@@ -114,9 +141,7 @@ export async function getAvailableTenants(username: string, password?: string) {
     const dedupedTenants = validTenants.filter((tenant, index, self) => {
       return (
         index ===
-        self.findIndex(
-          (candidate) => candidate.tenant_id === tenant.tenant_id,
-        )
+        self.findIndex((candidate) => candidate.tenant_id === tenant.tenant_id)
       );
     });
 

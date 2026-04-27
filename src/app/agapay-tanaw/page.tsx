@@ -1,17 +1,6 @@
 import { TabsContent } from "@/components/ui/tabs";
-import {
-  BarChart3,
-  Settings2,
-  Users2,
-  FileText,
-  ShieldAlert,
-  History,
-  TrendingUp,
-  Wallet,
-  CheckCircle2,
-  AlertTriangle,
-  Activity,
-} from "lucide-react";
+import { TrendingUp } from "lucide-react";
+
 import { LoanProductsTab } from "@/components/admin/loan-products-tab";
 import { TenantManagementTab } from "@/components/admin/tenant-management-tab";
 import { AuditLogViewer } from "@/components/admin/audit-log-viewer";

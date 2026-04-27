@@ -57,8 +57,10 @@ export async function GET(req: NextRequest) {
         "Content-Disposition": `attachment; filename="Agapay-SOA-${userId}.pdf"`,
       },
     });
-  } catch (error: any) {
+  } catch (error) {
+    const errorMsg =
+      error instanceof Error ? error.message : "Internal PDF Error";
     console.error("❌ PDF Generation Error:", error);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json({ error: errorMsg }, { status: 500 });
   }
 }

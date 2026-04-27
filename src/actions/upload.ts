@@ -1,9 +1,5 @@
 "use server";
 
-import { writeFile, mkdir } from "fs/promises";
-import { join } from "path";
-import { v4 as uuidv4 } from "uuid";
-
 export async function uploadIdPicture(formData: FormData) {
   const file = formData.get("file") as File;
   if (!file) {

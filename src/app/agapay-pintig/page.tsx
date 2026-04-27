@@ -49,40 +49,39 @@ export default async function AgapayPintigPage() {
     tfa,
     transactions,
     communityData,
-  ] =
-    await Promise.all([
-      prisma.user.findUnique({
-        where: { user_id: userId },
-        select: { interest_tier: true },
-      }),
-      prisma.savingsAccount.findMany({
-        where: { user_id: userId, tenant_id: tenantId },
-      }),
-      prisma.loan.findMany({
-        where: { user_id: userId, tenant_id: tenantId, status: "active" },
-        include: {
-          product: true,
-          schedules: {
-            orderBy: { installment_number: "asc" },
-          },
-          payments: {
-            include: {
-              payment_method: true,
-            },
-            orderBy: { submitted_at: "desc" },
-          },
+  ] = await Promise.all([
+    prisma.user.findUnique({
+      where: { user_id: userId },
+      select: { interest_tier: true },
+    }),
+    prisma.savingsAccount.findMany({
+      where: { user_id: userId, tenant_id: tenantId },
+    }),
+    prisma.loan.findMany({
+      where: { user_id: userId, tenant_id: tenantId, status: "active" },
+      include: {
+        product: true,
+        schedules: {
+          orderBy: { installment_number: "asc" },
         },
-      }),
-      prisma.paymentMethod.findMany({
-        where: { tenant_id: tenantId, is_active: true },
-        orderBy: { provider_name: "asc" },
-      }),
-      prisma.twoFactorAuth.findUnique({
-        where: { user_id: userId },
-      }),
-      getWalletTransactions(),
-      getCommunityDashboardData(),
-    ]);
+        payments: {
+          include: {
+            payment_method: true,
+          },
+          orderBy: { submitted_at: "desc" },
+        },
+      },
+    }),
+    prisma.paymentMethod.findMany({
+      where: { tenant_id: tenantId, is_active: true },
+      orderBy: { provider_name: "asc" },
+    }),
+    prisma.twoFactorAuth.findUnique({
+      where: { user_id: userId },
+    }),
+    getWalletTransactions(),
+    getCommunityDashboardData(),
+  ]);
 
   const totalSavings = savings.reduce(
     (acc, curr) =>
@@ -237,7 +236,7 @@ export default async function AgapayPintigPage() {
           {totalLoanBalance === 0 &&
           totalSavings === 0 &&
           totalWalletBalance === 0 ? (
-              <div className="flex flex-col items-center justify-center space-y-5 rounded-[1.75rem] border border-emerald-50 bg-white p-8 text-center shadow-sm">
+            <div className="flex flex-col items-center justify-center space-y-5 rounded-[1.75rem] border border-emerald-50 bg-white p-8 text-center shadow-sm">
               <div className="flex h-20 w-20 items-center justify-center rounded-full bg-emerald-50">
                 <LayoutDashboard className="h-10 w-10 text-emerald-200" />
               </div>
@@ -267,7 +266,7 @@ export default async function AgapayPintigPage() {
           value="wallet"
           className="outline-none animate-in fade-in slide-in-from-bottom-4 duration-500"
         >
-          <WalletTab savings={savings} transactions={transactions as any} />
+          <WalletTab savings={savings} transactions={transactions} />
         </TabsContent>
 
         <TabsContent

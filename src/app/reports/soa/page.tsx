@@ -1,3 +1,4 @@
+import { Prisma } from "@prisma/client";
 import prisma from "@/lib/prisma";
 import { notFound } from "next/navigation";
 import { format } from "date-fns";
@@ -71,7 +72,8 @@ export default async function SOAPage({
   const activeLoan = user.loans[0];
   const paidAmount =
     activeLoan?.payments.reduce(
-      (acc: number, p: any) => acc + Number(p.amount_paid),
+      (acc: number, p: { amount_paid: Prisma.Decimal | number | string }) =>
+        acc + Number(p.amount_paid),
       0,
     ) || 0;
   const balance = Number(activeLoan?.balance_remaining || 0);
@@ -147,42 +149,51 @@ export default async function SOAPage({
                 </tr>
               </thead>
               <tbody>
-                {activeLoan.schedules.map((s: any) => (
-                  <tr
-                    key={s.schedule_id}
-                    className="border-b border-slate-100 hover:bg-slate-50 transition-colors"
-                  >
-                    <td className="p-3 text-sm font-medium">
-                      {s.installment_number}
-                    </td>
-                    <td className="p-3 text-sm">
-                      {format(new Date(s.due_date), "MMM d, yyyy")}
-                    </td>
-                    <td className="p-3 text-sm text-right font-mono">
-                      ₱{Number(s.principal_amount).toLocaleString()}
-                    </td>
-                    <td className="p-3 text-sm text-right font-mono text-emerald-600">
-                      ₱{Number(s.interest_amount).toLocaleString()}
-                    </td>
-                    <td className="p-3">
-                      <span
-                        className={`px-2 py-1 rounded-full text-[10px] font-bold uppercase ${
-                          s.status === "paid"
-                            ? "bg-emerald-100 text-emerald-700"
+                {activeLoan.schedules.map(
+                  (s: {
+                    schedule_id: number;
+                    installment_number: number;
+                    due_date: Date | string;
+                    principal_amount: Prisma.Decimal | number;
+                    interest_amount: Prisma.Decimal | number;
+                    status: string;
+                  }) => (
+                    <tr
+                      key={s.schedule_id}
+                      className="border-b border-slate-100 hover:bg-slate-50 transition-colors"
+                    >
+                      <td className="p-3 text-sm font-medium">
+                        {s.installment_number}
+                      </td>
+                      <td className="p-3 text-sm">
+                        {format(new Date(s.due_date), "MMM d, yyyy")}
+                      </td>
+                      <td className="p-3 text-sm text-right font-mono">
+                        ₱{Number(s.principal_amount).toLocaleString()}
+                      </td>
+                      <td className="p-3 text-sm text-right font-mono text-emerald-600">
+                        ₱{Number(s.interest_amount).toLocaleString()}
+                      </td>
+                      <td className="p-3">
+                        <span
+                          className={`px-2 py-1 rounded-full text-[10px] font-bold uppercase ${
+                            s.status === "paid"
+                              ? "bg-emerald-100 text-emerald-700"
+                              : s.status === "overdue"
+                                ? "bg-red-100 text-red-700"
+                                : "bg-slate-100 text-slate-600"
+                          }`}
+                        >
+                          {s.status === "paid"
+                            ? "Bayad na"
                             : s.status === "overdue"
-                              ? "bg-red-100 text-red-700"
-                              : "bg-slate-100 text-slate-600"
-                        }`}
-                      >
-                        {s.status === "paid"
-                          ? "Bayad na"
-                          : s.status === "overdue"
-                            ? "Huli"
-                            : "Hinihintay"}
-                      </span>
-                    </td>
-                  </tr>
-                ))}
+                              ? "Huli"
+                              : "Hinihintay"}
+                        </span>
+                      </td>
+                    </tr>
+                  ),
+                )}
               </tbody>
             </table>
           </div>

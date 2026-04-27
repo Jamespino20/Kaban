@@ -29,11 +29,14 @@ export async function getTenantAnalytics(
     });
 
     // Aggregate by day
-    const trafficByDay = traffic.reduce((acc: any, log: any) => {
-      const date = format(log.created_at, "MMM dd");
-      acc[date] = (acc[date] || 0) + 1;
-      return acc;
-    }, {});
+    const trafficByDay = traffic.reduce(
+      (acc: Record<string, number>, log: any) => {
+        const date = format(log.created_at, "MMM dd");
+        acc[date] = (acc[date] || 0) + 1;
+        return acc;
+      },
+      {},
+    );
 
     // 2. Behavioral Heatmap (Interaction distribution)
     const interactions = await prisma.interactionLog.groupBy({
@@ -96,17 +99,17 @@ export async function getTenantAnalytics(
         count: count as number,
       })),
       interactionHeatmap: interactions.map((i: any) => ({
-        type: i.event_type,
-        count: i._count.id,
+        type: i.event_type as string,
+        count: i._count.id as number,
       })),
       geoData: geoDistribution.map((g: any) => ({
-        region: g.region || "Unknown",
-        city: g.city || "Unknown",
-        count: g._count.id,
+        region: (g.region as string) || "Unknown",
+        city: (g.city as string) || "Unknown",
+        count: g._count.id as number,
       })),
       activeUserDensity: activeUsers.map((u: any) => ({
-        userId: u.user_id,
-        count: u._count.id,
+        userId: u.user_id as number,
+        count: u._count.id as number,
       })),
     };
   } catch (error) {

@@ -3,7 +3,12 @@
 import prisma from "@/lib/prisma";
 import { requireAuthenticatedSession } from "@/lib/authorization";
 import { revalidatePath } from "next/cache";
-import { Prisma, ScheduleStatus } from "@prisma/client";
+import {
+  Prisma,
+  ScheduleStatus,
+  AccountType,
+  TransactionType,
+} from "@prisma/client";
 import { postLedgerEntry } from "./ledger";
 import { logInteraction } from "@/lib/analytics-logger";
 
@@ -40,7 +45,7 @@ export async function depositToWallet(amount: number) {
         where: {
           user_id: userId,
           tenant_id: tenantId || undefined,
-          account_type: PERSONAL_WALLET as any,
+          account_type: AccountType.personal_wallet,
         },
       });
 
@@ -49,7 +54,7 @@ export async function depositToWallet(amount: number) {
           data: {
             user_id: userId,
             tenant_id: tenantId!,
-            account_type: PERSONAL_WALLET as any,
+            account_type: AccountType.personal_wallet,
             balance: 0,
           },
         });
@@ -67,7 +72,7 @@ export async function depositToWallet(amount: number) {
       await tx.savingsTransaction.create({
         data: {
           account_id: wallet.account_id,
-          transaction_type: "deposit" as any,
+          transaction_type: TransactionType.deposit,
           amount: new Prisma.Decimal(amount),
           reference: `DEP-W-${Date.now()}`,
           processed_by: userId,
@@ -121,14 +126,14 @@ export async function payLoanWithWallet(loanId: number, amount: number) {
   if (amount <= 0) return { error: "Halaga ay dapat positibo." };
 
   try {
-    const result = await prisma.$transaction(
+    await prisma.$transaction(
       async (tx) => {
         // 1. Get wallet
         const wallet = await tx.savingsAccount.findFirst({
           where: {
             user_id: userId,
             tenant_id: tenantId || undefined,
-            account_type: PERSONAL_WALLET as any,
+            account_type: AccountType.personal_wallet,
           },
         });
 
@@ -148,7 +153,7 @@ export async function payLoanWithWallet(loanId: number, amount: number) {
         await tx.savingsTransaction.create({
           data: {
             account_id: wallet.account_id,
-            transaction_type: "withdrawal" as any,
+            transaction_type: TransactionType.withdrawal,
             amount: new Prisma.Decimal(amount),
             reference: `LOAN-PAY-${loanId}-${Date.now()}`,
             processed_by: userId,
@@ -223,10 +228,14 @@ export async function payLoanWithWallet(loanId: number, amount: number) {
 
     revalidatePath("/agapay-pintig");
     return { success: "Matagumpay na nakapagbayad gamit ang iyong wallet." };
-  } catch (error: any) {
+  } catch (error) {
     console.error("payLoanWithWallet failed:", error);
+    const message =
+      error instanceof Error
+        ? error.message
+        : "Hindi maiproseso ang bayad gamit ang wallet.";
     return {
-      error: error.message || "Hindi maiproseso ang bayad gamit ang wallet.",
+      error: message,
     };
   }
 }

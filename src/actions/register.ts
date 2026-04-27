@@ -3,7 +3,6 @@
 import * as z from "zod";
 import bcrypt from "bcryptjs";
 import prisma from "@/lib/prisma";
-import { InterestTier, MaritalStatus } from "@prisma/client";
 import { generateVerificationToken } from "@/lib/tokens";
 import { sendVerificationEmail, verifyEmailExists } from "@/lib/mail";
 
@@ -100,7 +99,7 @@ export const register = async (values: z.infer<typeof RegisterSchema>) => {
   }
 
   try {
-    const result = await prisma.$transaction(async (tx: any) => {
+    const result = await prisma.$transaction(async (tx) => {
       // 1. Generate Member Code (AGP-YYYY-SERIAL)
       const year = new Date().getFullYear();
       const count = await tx.user.count({
@@ -110,7 +109,7 @@ export const register = async (values: z.infer<typeof RegisterSchema>) => {
       const member_code = `AGP-${year}-${serial}`;
 
       // 2. Create User
-      const user = await (tx.user as any).create({
+      const user = await tx.user.create({
         data: {
           email,
           username,

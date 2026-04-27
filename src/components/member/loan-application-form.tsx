@@ -64,8 +64,19 @@ const LoanApplicationSchema = z.object({
   repayment_frequency: z.enum(["weekly", "bi_weekly", "monthly"]),
 });
 
+interface LoanProduct {
+  product_id: number;
+  name: string;
+  description: string | null;
+  min_amount: number;
+  max_amount: number;
+  interest_rate_percent: number;
+  max_term_months: number;
+  allowed_frequencies?: RepaymentFrequency[];
+}
+
 interface LoanApplicationFormProps {
-  product: any;
+  product: LoanProduct;
   onSuccess: () => void;
 }
 

@@ -9,7 +9,7 @@ export const authConfig = {
     signIn: "/auth/login",
   },
   callbacks: {
-    async jwt({ token, user, trigger, session }: any) {
+    async jwt({ token, user, trigger, session }) {
       if (user) {
         token.role = user.role;
         token.tenantId = user.tenantId;
@@ -35,10 +35,16 @@ export const authConfig = {
             : parseInt(session.tenantId);
           const isSuperadmin = token.role === "superadmin";
           const allowedTenantIds = Array.isArray(token.accessibleTenantIds)
-            ? token.accessibleTenantIds.map((value: any) => parseInt(String(value)))
+            ? token.accessibleTenantIds.map((value: unknown) =>
+                parseInt(String(value)),
+              )
             : [];
 
-          if (!switchingToGlobal && !isSuperadmin && !allowedTenantIds.includes(targetTenantId as number)) {
+          if (
+            !switchingToGlobal &&
+            !isSuperadmin &&
+            !allowedTenantIds.includes(targetTenantId as number)
+          ) {
             console.warn(
               "Rejected unauthorized tenant switch attempt",
               token.user_id,
@@ -106,7 +112,9 @@ export const authConfig = {
       if (token?.user_id) {
         session.user.user_id = token.user_id as number;
       }
-      session.user.accessibleTenantIds = Array.isArray(token?.accessibleTenantIds)
+      session.user.accessibleTenantIds = Array.isArray(
+        token?.accessibleTenantIds,
+      )
         ? (token.accessibleTenantIds as number[])
         : [];
       if (token?.id) {

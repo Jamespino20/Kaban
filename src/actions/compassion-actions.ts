@@ -45,7 +45,7 @@ export const requestCompassionAction = async (
 
   try {
     // Ensure loan belongs to member and is active (hardship usually applies to active loans)
-    const loan = await (prisma as any).loan.findFirst({
+    const loan = await prisma.loan.findFirst({
       where: {
         loan_id,
         user_id: userId,
@@ -62,7 +62,7 @@ export const requestCompassionAction = async (
 
     // Protect against spam (only 1 pending request allowed)
     const hasPending = loan.compassion_actions.some(
-      (c: any) => c.status === "pending",
+      (c) => c.status === "pending",
     );
     if (hasPending) {
       return { error: "You already have a pending requested action." };
@@ -70,7 +70,7 @@ export const requestCompassionAction = async (
 
     // Ensure they haven't exhausted the 1-per-cycle limit
     const approvedCount = loan.compassion_actions.filter(
-      (c: any) => c.status === "approved",
+      (c) => c.status === "approved",
     ).length;
     if (approvedCount >= 1) {
       return {
@@ -135,7 +135,7 @@ export const processCompassionAction = async (
   const { action_id, status, admin_notes } = validatedFields.data;
 
   try {
-    const action = await (prisma as any).compassionAction.findUnique({
+    const action = await prisma.compassionAction.findUnique({
       where: { action_id },
       include: { loan: { include: { product: true } } },
     });
@@ -158,7 +158,7 @@ export const processCompassionAction = async (
       await tx.compassionAction.update({
         where: { action_id },
         data: {
-          status: status as any,
+          status: status,
           admin_notes,
           approved_by: adminId,
           approved_at: new Date(),

@@ -35,7 +35,7 @@ export async function getTenantMembers() {
         select: {
           loan_id: true,
           status: true,
-          is_recovery_loan: true as any,
+          is_recovery_loan: true,
           balance_remaining: true,
         },
       },
@@ -151,9 +151,8 @@ export async function getPendingApprovals() {
     },
   });
 
-  const pendingCompassionActions = await (
-    prisma as any
-  ).compassionAction.findMany({
+  // CompassionAction is accessed via Prisma client directly as it is a known model
+  const pendingCompassionActions = await prisma.compassionAction.findMany({
     where: {
       status: "pending",
       loan: loanTenantFilter,
@@ -173,7 +172,7 @@ export async function getPendingApprovals() {
   const recoveryLoans = await prisma.loan.findMany({
     where: {
       ...loanTenantFilter,
-      is_recovery_loan: true as any,
+      is_recovery_loan: true,
       status: { in: ["active", "defaulted"] },
     },
     include: {
@@ -186,7 +185,7 @@ export async function getPendingApprovals() {
   const overdueLoans = await prisma.loan.findMany({
     where: {
       ...loanTenantFilter,
-      status: "active" as any,
+      status: "active",
       schedules: {
         some: {
           status: "overdue" as any,
@@ -208,9 +207,9 @@ export async function getPendingApprovals() {
     verifications: pendingVerifications,
     approvedLoans,
     pendingPayments,
-    recoveryLoans: recoveryLoans as any,
-    overdueLoans: overdueLoans as any,
-    compassion: pendingCompassionActions as any,
+    recoveryLoans,
+    overdueLoans,
+    compassion: pendingCompassionActions,
   };
 }
 
@@ -373,8 +372,10 @@ export async function manuallyDeclareDefault(loanId: number) {
     return {
       success: `Matagumpay na na-enforce ang default para sa loan #${loanId}.`,
     };
-  } catch (error: any) {
+  } catch (error) {
     console.error("manuallyDeclareDefault failed:", error);
-    return { error: error.message || "Failed to enforce default." };
+    const message =
+      error instanceof Error ? error.message : "Failed to enforce default.";
+    return { error: message };
   }
 }

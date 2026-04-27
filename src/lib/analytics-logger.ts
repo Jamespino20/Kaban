@@ -28,27 +28,22 @@ export function getRequestMetadata(req?: {
   ip?: string;
 }) {
   // If req is provided, use it (Middleware), otherwise use next/headers (Server Actions/RSC)
-  const source = req
-    ? req
+  // If req is provided, use it (Middleware), otherwise use next/headers (Server Actions/RSC)
+  const headersObj = req
+    ? req.headers
     : {
-        headers: {
-          get: (n: string) => {
-            // This is a bit of a hack to safely use headers() in a non-async context if needed,
-            // but it's better to just pass the headers in if available.
-            return null;
-          },
-        },
+        get: (_n: string) => null,
       };
 
   // Vercel specific headers
   const ip =
     req?.ip ||
-    req?.headers?.get("x-vercel-proxied-for") ||
-    req?.headers?.get("x-forwarded-for")?.split(",")[0] ||
+    headersObj.get("x-vercel-proxied-for") ||
+    headersObj.get("x-forwarded-for")?.split(",")[0] ||
     null;
-  const city = req?.headers?.get("x-vercel-ip-city");
-  const region = req?.headers?.get("x-vercel-ip-country-region");
-  const userAgent = req?.headers?.get("user-agent");
+  const city = headersObj.get("x-vercel-ip-city");
+  const region = headersObj.get("x-vercel-ip-country-region");
+  const userAgent = headersObj.get("user-agent");
 
   return {
     ip: anonymizeIP(ip),
@@ -88,7 +83,7 @@ export async function logInteraction(params: {
   eventType: string;
   tenantId?: number | null;
   userId?: number | null;
-  metadata?: any;
+  metadata?: Record<string, unknown>;
 }) {
   try {
     const head = await headers();
