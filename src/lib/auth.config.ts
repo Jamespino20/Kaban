@@ -9,13 +9,34 @@ export const authConfig = {
     signIn: "/auth/login",
   },
   callbacks: {
+    async redirect({ url, baseUrl }) {
+      // After sign-in, NextAuth calls this with url = callbackUrl (often "/").
+      // We intercept here to send the user straight to their dashboard
+      // by returning ONLY_SIGNIN_SENTINEL — actual role routing is handled
+      // server-side by the signIn action which sets the callbackUrl explicitly.
+      // If the callbackUrl is the base "/" or the login page, let the proxy
+      // handle the final role redirect (it will fire once, not twice).
+      if (
+        url === baseUrl ||
+        url === `${baseUrl}/` ||
+        url.includes("/auth/login")
+      ) {
+        // Return the base — the proxy will catch the logged-in user on "/" and
+        // redirect in the same request cycle (no visible flash on dashboard routes).
+        return baseUrl;
+      }
+      // Honor explicit callbackUrls (e.g. user was on /agapay-tanaw before logout)
+      if (url.startsWith(baseUrl)) return url;
+      if (url.startsWith("/")) return `${baseUrl}${url}`;
+      return baseUrl;
+    },
     async jwt({ token, user, trigger, session }) {
       if (user) {
         token.role = user.role;
         token.tenantId = user.tenantId;
         token.username = user.username;
         token.user_id = user.user_id;
-        token.email = user.email; // Ensure email is in token
+        token.email = user.email;
         token.accessibleTenantIds = user.accessibleTenantIds || [];
         if (user.id) token.id = user.id;
       }
