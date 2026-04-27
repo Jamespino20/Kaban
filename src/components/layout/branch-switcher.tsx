@@ -23,14 +23,17 @@ export function BranchSwitcher() {
   const isSuperadmin = session?.user?.role === "superadmin";
 
   useEffect(() => {
-    if (session?.user?.email && (isSuperadmin || accessibleTenantIds.length > 1)) {
+    if (
+      session?.user?.email &&
+      (isSuperadmin || accessibleTenantIds.length > 1)
+    ) {
       loadTenants();
     }
   }, [session?.user?.email, accessibleTenantIds.length, isSuperadmin]);
 
   async function loadTenants() {
     setLoading(true);
-    const result = await getAvailableTenants(session?.user?.email!);
+    const result = await getAvailableTenants(session?.user?.email || "");
     if (result.success) {
       const nextTenants = isSuperadmin
         ? [
@@ -54,7 +57,12 @@ export function BranchSwitcher() {
 
   async function handleSwitch(tenantId: number | null) {
     if (tenantId === session?.user?.tenantId) return;
-    if (!isSuperadmin && tenantId !== null && !accessibleTenantIds.includes(tenantId)) return;
+    if (
+      !isSuperadmin &&
+      tenantId !== null &&
+      !accessibleTenantIds.includes(tenantId)
+    )
+      return;
 
     setSwitching(tenantId);
 

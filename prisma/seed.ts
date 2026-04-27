@@ -939,7 +939,9 @@ async function seedTenant(
     account_type: AccountType.personal_wallet,
     balance: pesos(100, 3000),
   }));
-  await prisma.savingsAccount.createMany({ data: [...savingsBatch, ...walletBatch] });
+  await prisma.savingsAccount.createMany({
+    data: [...savingsBatch, ...walletBatch],
+  });
 
   // Loans + schedules + payments (with behavior engine)
   await seedLoansWithSchedulesAndPayments(
@@ -1082,7 +1084,7 @@ async function main() {
 
   // Ensure a stable cross-tenant identity remains in the test cohort
   const testUserEmail = "maria.santos.0001@gmail.com";
-  let testUser = allUsers.find((u) => u.email === testUserEmail);
+  const testUser = allUsers.find((u) => u.email === testUserEmail);
 
   if (testUser && !targets.find((u) => u.email === testUserEmail)) {
     targets.push(testUser);

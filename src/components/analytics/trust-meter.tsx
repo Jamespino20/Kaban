@@ -11,7 +11,11 @@ interface TrustMeterProps {
   size?: "sm" | "md" | "lg";
 }
 
-export function TrustMeter({ data, className, size = "md" }: TrustMeterProps) {
+export function TrustMeter({
+  data,
+  className,
+  size: _size = "md",
+}: TrustMeterProps) {
   const {
     score,
     paymentScore,

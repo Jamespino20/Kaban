@@ -1,0 +1,250 @@
+
+> agapay-web@0.1.0 lint
+> eslint
+
+
+C:\Users\James Bryant\Documents\Agapay\agapay-web\prisma-dist\seed.js
+  15:9  warning  'superadmin' is assigned a value but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+  38:9  warning  'admin' is assigned a value but never used. Allowed unused vars must match /^_/u       @typescript-eslint/no-unused-vars
+  57:9  warning  'member1' is assigned a value but never used. Allowed unused vars must match /^_/u     @typescript-eslint/no-unused-vars
+
+C:\Users\James Bryant\Documents\Agapay\agapay-web\prisma\seed.ts
+    24:56  warning  Unexpected any. Specify a different type                                          @typescript-eslint/no-explicit-any
+    35:7   warning  'chunk' is assigned a value but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+   615:17  warning  Unexpected any. Specify a different type                                          @typescript-eslint/no-explicit-any
+   616:17  warning  Unexpected any. Specify a different type                                          @typescript-eslint/no-explicit-any
+   617:28  warning  Unexpected any. Specify a different type                                          @typescript-eslint/no-explicit-any
+   697:25  warning  Unexpected any. Specify a different type                                          @typescript-eslint/no-explicit-any
+   698:23  warning  Unexpected any. Specify a different type                                          @typescript-eslint/no-explicit-any
+  1130:16  warning  'e' is defined but never used. Allowed unused caught errors must match /^_/u      @typescript-eslint/no-unused-vars
+
+C:\Users\James Bryant\Documents\Agapay\agapay-web\src\actions\admin-actions.ts
+  191:32  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\James Bryant\Documents\Agapay\agapay-web\src\actions\analytics-actions.ts
+   33:42  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  101:48  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  105:40  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  110:46  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\James Bryant\Documents\Agapay\agapay-web\src\actions\ledger.ts
+  45:33  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  69:19  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\James Bryant\Documents\Agapay\agapay-web\src\actions\loan-application.ts
+  206:42  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\James Bryant\Documents\Agapay\agapay-web\src\actions\loan-product.ts
+    5:10  warning  'Prisma' is defined but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+  122:21  warning  Unexpected any. Specify a different type                                  @typescript-eslint/no-explicit-any
+
+C:\Users\James Bryant\Documents\Agapay\agapay-web\src\actions\loan-servicing.ts
+   48:41  warning  Unexpected any. Specify a different type                                            @typescript-eslint/no-explicit-any
+  210:33  warning  Unexpected any. Specify a different type                                            @typescript-eslint/no-explicit-any
+  221:35  warning  Unexpected any. Specify a different type                                            @typescript-eslint/no-explicit-any
+  596:11  warning  'session' is assigned a value but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+
+C:\Users\James Bryant\Documents\Agapay\agapay-web\src\actions\tenant-management.ts
+  169:75  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\James Bryant\Documents\Agapay\agapay-web\src\actions\wallet-actions.ts
+  15:7  warning  'PERSONAL_WALLET' is assigned a value but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+
+C:\Users\James Bryant\Documents\Agapay\agapay-web\src\app\api\admin\backups\[id]\route.ts
+  30:43  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\James Bryant\Documents\Agapay\agapay-web\src\app\api\reports\soa\route.ts
+  54:42  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\James Bryant\Documents\Agapay\agapay-web\src\app\page.tsx
+  409:21  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+  574:9   warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+C:\Users\James Bryant\Documents\Agapay\agapay-web\src\components\admin\analytics-dashboard-tab.tsx
+  5:3  warning  'Globe' is defined but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+
+C:\Users\James Bryant\Documents\Agapay\agapay-web\src\components\admin\audit-log-viewer.tsx
+   29:36  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   44:42  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  122:36  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\James Bryant\Documents\Agapay\agapay-web\src\components\admin\community-operations-tab.tsx
+  118:55  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\James Bryant\Documents\Agapay\agapay-web\src\components\admin\compassion-actions-tab.tsx
+  18:62  warning  Unexpected any. Specify a different type                                      @typescript-eslint/no-explicit-any
+  20:56  warning  Unexpected any. Specify a different type                                      @typescript-eslint/no-explicit-any
+  43:16  warning  'e' is defined but never used. Allowed unused caught errors must match /^_/u  @typescript-eslint/no-unused-vars
+
+C:\Users\James Bryant\Documents\Agapay\agapay-web\src\components\admin\create-branch-form.tsx
+   8:21  warning  'Plus' is defined but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+  37:37  warning  Unexpected any. Specify a different type                                @typescript-eslint/no-explicit-any
+
+C:\Users\James Bryant\Documents\Agapay\agapay-web\src\components\admin\create-region-form.tsx
+  3:10  warning  'useState' is defined but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+  8:17  warning  'Plus' is defined but never used. Allowed unused vars must match /^_/u      @typescript-eslint/no-unused-vars
+
+C:\Users\James Bryant\Documents\Agapay\agapay-web\src\components\admin\homepage-content-tab.tsx
+  204:12  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  205:13  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  206:14  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  253:9   warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\James Bryant\Documents\Agapay\agapay-web\src\components\admin\loan-products-tab.tsx
+   18:44  warning  Unexpected any. Specify a different type                                          @typescript-eslint/no-explicit-any
+   25:14  warning  'error' is defined but never used. Allowed unused caught errors must match /^_/u  @typescript-eslint/no-unused-vars
+  108:40  warning  Unexpected any. Specify a different type                                          @typescript-eslint/no-explicit-any
+
+C:\Users\James Bryant\Documents\Agapay\agapay-web\src\components\admin\member-directory-tab.tsx
+    4:10  warning  'Users2' is defined but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+   14:12  warning  Unexpected any. Specify a different type                                  @typescript-eslint/no-explicit-any
+   24:36  warning  Unexpected any. Specify a different type                                  @typescript-eslint/no-explicit-any
+  121:45  warning  Unexpected any. Specify a different type                                  @typescript-eslint/no-explicit-any
+  126:37  warning  Unexpected any. Specify a different type                                  @typescript-eslint/no-explicit-any
+  127:50  warning  Unexpected any. Specify a different type                                  @typescript-eslint/no-explicit-any
+  129:26  warning  Unexpected any. Specify a different type                                  @typescript-eslint/no-explicit-any
+  132:31  warning  Unexpected any. Specify a different type                                  @typescript-eslint/no-explicit-any
+
+C:\Users\James Bryant\Documents\Agapay\agapay-web\src\components\admin\tenant-management-tab.tsx
+   15:3   warning  'getRegions' is defined but never used. Allowed unused vars must match /^_/u          @typescript-eslint/no-unused-vars
+   16:3   warning  'getTenantsByRegion' is defined but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+   34:19  warning  Unexpected any. Specify a different type                                              @typescript-eslint/no-explicit-any
+   56:24  warning  Unexpected any. Specify a different type                                              @typescript-eslint/no-explicit-any
+  130:26  warning  Unexpected any. Specify a different type                                              @typescript-eslint/no-explicit-any
+
+C:\Users\James Bryant\Documents\Agapay\agapay-web\src\components\admin\verification-queue-tab.tsx
+    5:3   warning  'FileText' is defined but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+   45:12  warning  Unexpected any. Specify a different type                                    @typescript-eslint/no-explicit-any
+   46:20  warning  Unexpected any. Specify a different type                                    @typescript-eslint/no-explicit-any
+   47:21  warning  Unexpected any. Specify a different type                                    @typescript-eslint/no-explicit-any
+   48:23  warning  Unexpected any. Specify a different type                                    @typescript-eslint/no-explicit-any
+   49:21  warning  Unexpected any. Specify a different type                                    @typescript-eslint/no-explicit-any
+   50:20  warning  Unexpected any. Specify a different type                                    @typescript-eslint/no-explicit-any
+   76:50  warning  Unexpected any. Specify a different type                                    @typescript-eslint/no-explicit-any
+  118:31  warning  Unexpected any. Specify a different type                                    @typescript-eslint/no-explicit-any
+  171:50  warning  Unexpected any. Specify a different type                                    @typescript-eslint/no-explicit-any
+  185:31  warning  Unexpected any. Specify a different type                                    @typescript-eslint/no-explicit-any
+  195:59  warning  Unexpected any. Specify a different type                                    @typescript-eslint/no-explicit-any
+  209:37  warning  Unexpected any. Specify a different type                                    @typescript-eslint/no-explicit-any
+  219:51  warning  Unexpected any. Specify a different type                                    @typescript-eslint/no-explicit-any
+  233:31  warning  Unexpected any. Specify a different type                                    @typescript-eslint/no-explicit-any
+  283:18  warning  Unexpected any. Specify a different type                                    @typescript-eslint/no-explicit-any
+  298:39  warning  Unexpected any. Specify a different type                                    @typescript-eslint/no-explicit-any
+  322:44  warning  Unexpected any. Specify a different type                                    @typescript-eslint/no-explicit-any
+  388:63  warning  Unexpected any. Specify a different type                                    @typescript-eslint/no-explicit-any
+  433:52  warning  Unexpected any. Specify a different type                                    @typescript-eslint/no-explicit-any
+  607:50  warning  Unexpected any. Specify a different type                                    @typescript-eslint/no-explicit-any
+  643:31  warning  Unexpected any. Specify a different type                                    @typescript-eslint/no-explicit-any
+
+C:\Users\James Bryant\Documents\Agapay\agapay-web\src\components\analytics\kpi-metric-card.tsx
+  6:3  warning  'LucideIcon' is defined but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+
+C:\Users\James Bryant\Documents\Agapay\agapay-web\src\components\auth\enhanced-register-form.tsx
+   13:3   warning  'UserCircle' is defined but never used. Allowed unused vars must match /^_/u                                                                                                                                                                                                             @typescript-eslint/no-unused-vars
+   14:3   warning  'MapPin' is defined but never used. Allowed unused vars must match /^_/u                                                                                                                                                                                                                 @typescript-eslint/no-unused-vars
+   94:10  warning  'idFile' is assigned a value but never used. Allowed unused vars must match /^_/u                                                                                                                                                                                                        @typescript-eslint/no-unused-vars
+   94:18  warning  'setIdFile' is assigned a value but never used. Allowed unused vars must match /^_/u                                                                                                                                                                                                     @typescript-eslint/no-unused-vars
+  165:32  warning  Unexpected any. Specify a different type                                                                                                                                                                                                                                                 @typescript-eslint/no-explicit-any
+  233:50  warning  Unexpected any. Specify a different type                                                                                                                                                                                                                                                 @typescript-eslint/no-explicit-any
+  717:48  warning  Unexpected any. Specify a different type                                                                                                                                                                                                                                                 @typescript-eslint/no-explicit-any
+  741:48  warning  Unexpected any. Specify a different type                                                                                                                                                                                                                                                 @typescript-eslint/no-explicit-any
+  903:29  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+  940:29  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+  979:29  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+C:\Users\James Bryant\Documents\Agapay\agapay-web\src\components\auth\login-form.tsx
+   44:60  warning  Unexpected any. Specify a different type                                          @typescript-eslint/no-explicit-any
+  109:16  warning  'error' is defined but never used. Allowed unused caught errors must match /^_/u  @typescript-eslint/no-unused-vars
+  208:48  warning  Unexpected any. Specify a different type                                          @typescript-eslint/no-explicit-any
+
+C:\Users\James Bryant\Documents\Agapay\agapay-web\src\components\auth\two-factor-setup.tsx
+    5:36  warning  'QrCode' is defined but never used. Allowed unused vars must match /^_/u                                                                                                                                                                                                                 @typescript-eslint/no-unused-vars
+    5:44  warning  'Key' is defined but never used. Allowed unused vars must match /^_/u                                                                                                                                                                                                                    @typescript-eslint/no-unused-vars
+  113:17  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+C:\Users\James Bryant\Documents\Agapay\agapay-web\src\components\layout\authenticated-shell.tsx
+  154:17  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+  164:17  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+  189:15  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+C:\Users\James Bryant\Documents\Agapay\agapay-web\src\components\layout\branch-switcher.tsx
+   19:42  warning  Unexpected any. Specify a different type                                                                        @typescript-eslint/no-explicit-any
+   32:6   warning  React Hook useEffect has a missing dependency: 'loadTenants'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+   47:47  warning  Unexpected any. Specify a different type                                                                        @typescript-eslint/no-explicit-any
+   49:42  warning  Unexpected any. Specify a different type                                                                        @typescript-eslint/no-explicit-any
+  119:27  warning  Unexpected any. Specify a different type                                                                        @typescript-eslint/no-explicit-any
+
+C:\Users\James Bryant\Documents\Agapay\agapay-web\src\components\layout\footer.tsx
+  12:15  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+C:\Users\James Bryant\Documents\Agapay\agapay-web\src\components\layout\navbar.tsx
+   53:13  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+   70:32  warning  Unexpected any. Specify a different type                                                                                                                                                                                                                                                 @typescript-eslint/no-explicit-any
+  120:34  warning  Unexpected any. Specify a different type                                                                                                                                                                                                                                                 @typescript-eslint/no-explicit-any
+
+C:\Users\James Bryant\Documents\Agapay\agapay-web\src\components\member\community-tab.tsx
+   40:40  warning  Unexpected any. Specify a different type                                                          @typescript-eslint/no-explicit-any
+   47:9   warning  'conversationDirectory' is assigned a value but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+   67:16  warning  'error' is defined but never used. Allowed unused caught errors must match /^_/u                  @typescript-eslint/no-unused-vars
+  334:45  warning  Unexpected any. Specify a different type                                                          @typescript-eslint/no-explicit-any
+  335:42  warning  Unexpected any. Specify a different type                                                          @typescript-eslint/no-explicit-any
+  352:49  warning  Unexpected any. Specify a different type                                                          @typescript-eslint/no-explicit-any
+
+C:\Users\James Bryant\Documents\Agapay\agapay-web\src\components\member\guarantee-request-panel.tsx
+   43:31  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   65:51  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  142:32  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  170:41  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\James Bryant\Documents\Agapay\agapay-web\src\components\member\loan-application-form.tsx
+  135:6   warning  React Hook useEffect has a missing dependency: 'watchFrequency'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+  149:16  warning  'error' is defined but never used. Allowed unused caught errors must match /^_/u                                   @typescript-eslint/no-unused-vars
+
+C:\Users\James Bryant\Documents\Agapay\agapay-web\src\components\member\wallet-tab.tsx
+   8:3   warning  'ArrowDownCircle' is defined but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+  36:12  warning  Unexpected any. Specify a different type                                           @typescript-eslint/no-explicit-any
+  37:17  warning  Unexpected any. Specify a different type                                           @typescript-eslint/no-explicit-any
+
+C:\Users\James Bryant\Documents\Agapay\agapay-web\src\lib\prisma-audit.ts
+  47:24  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  51:45  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  52:52  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  52:60  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  53:33  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  77:26  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  84:34  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  85:34  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  86:34  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  87:32  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  88:32  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  89:55  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  90:53  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  95:28  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\James Bryant\Documents\Agapay\agapay-web\src\lib\prisma.ts
+  47:48  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  48:52  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  59:8   warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\James Bryant\Documents\Agapay\agapay-web\src\lib\reporting\engine.ts
+  11:14  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  12:14  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\James Bryant\Documents\Agapay\agapay-web\src\lib\trust-engine.ts
+   57:47  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   60:11  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   63:11  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   66:14  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   78:27  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   87:26  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   97:9   warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  100:9   warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\James Bryant\Documents\Agapay\agapay-web\src\proxy.ts
+  12:39  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\James Bryant\Documents\Agapay\agapay-web\src\types\next-auth.d.ts
+  2:10  warning  'JWT' is defined but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+
+✖ 159 problems (0 errors, 159 warnings)
+
