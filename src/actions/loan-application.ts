@@ -13,6 +13,8 @@ import {
   validateLoanRequestAgainstPolicy,
 } from "@/lib/microfinance-policy";
 
+import { LoanService } from "@/services/loan-service";
+
 const LoanApplicationSchema = z.object({
   product_id: z.coerce.number().min(1, "Product is required"),
   amount: z.coerce
@@ -60,194 +62,28 @@ export const applyForLoan = async (
     return { error: "Not authenticated or tenant not found!" };
   }
 
-  const tenantId = session.user.tenantId;
-  const userId = session.user.user_id;
-
   const validatedFields = LoanApplicationSchema.safeParse(values);
   if (!validatedFields.success) {
     return { error: "Invalid fields!" };
   }
 
-  const {
-    product_id,
-    amount,
-    term_months,
-    guarantor_ids,
-    repayment_frequency,
-  } = validatedFields.data;
-
   try {
-    const [product, member] = await Promise.all([
-      prisma.loanProduct.findFirst({
-        where: { product_id, tenant_id: tenantId },
-      }),
-      prisma.user.findUnique({
-        where: { user_id: userId },
-        select: {
-          email: true,
-          interest_tier: true,
-        },
-      }),
-    ]);
-
-    if (!product || !product.is_active) {
-      return { error: "Product not available." };
-    }
-
-    if (!member) {
-      return { error: "Member account not found." };
-    }
-
-    const relatedAccounts = await prisma.user.findMany({
-      where: {
-        email: member.email,
-        role: Role.member,
+    const result = await LoanService.applyForLoan(
+      {
+        user_id: session.user.user_id,
+        tenant_id: session.user.tenantId,
+        role: session.user.role,
+        email: session.user.email!,
       },
-      select: {
-        user_id: true,
-      },
-    });
-
-    const relatedAccountIds = relatedAccounts.map((account) => account.user_id);
-
-    const [activeLoansAcrossBranches, defaultedLoanCount, overdueLoanCount] =
-      await Promise.all([
-        prisma.loan.findMany({
-          where: {
-            user_id: { in: relatedAccountIds },
-            status: { in: ["pending", "approved", "active"] },
-          },
-          select: {
-            balance_remaining: true,
-          },
-        }),
-        prisma.loan.count({
-          where: {
-            user_id: { in: relatedAccountIds },
-            status: "defaulted",
-          },
-        }),
-        prisma.loan.count({
-          where: {
-            user_id: { in: relatedAccountIds },
-            schedules: {
-              some: { status: "overdue" },
-            },
-          },
-        }),
-      ]);
-
-    const totalOutstandingBalance = activeLoansAcrossBranches.reduce(
-      (sum, loan) => sum + Number(loan.balance_remaining),
-      0,
+      validatedFields.data,
     );
-    const overindebtedness = evaluateOverindebtedness({
-      tier: member.interest_tier,
-      totalOutstandingBalance,
-      activeLoanCount: activeLoansAcrossBranches.length,
-      overdueLoanCount,
-      defaultedLoanCount,
-    });
 
-    if (overindebtedness.blocked) {
-      return { error: overindebtedness.reason };
+    if (result.success) {
+      revalidatePath("/agapay-tanaw");
+      revalidatePath("/agapay-pintig");
     }
 
-    if (
-      amount < Number(product.min_amount) ||
-      amount > Number(product.max_amount)
-    ) {
-      return {
-        error: `Amount must be between PHP ${Number(product.min_amount).toLocaleString()} and PHP ${Number(product.max_amount).toLocaleString()}.`,
-      };
-    }
-
-    if (term_months > product.max_term_months) {
-      return { error: `Max term is ${product.max_term_months} months.` };
-    }
-
-    const uniqueGuarantorIds = [...new Set(guarantor_ids)].filter(
-      (guarantorId) => guarantorId !== userId,
-    );
-    const policyValidationError = validateLoanRequestAgainstPolicy({
-      amount,
-      termMonths: term_months,
-      guarantorCount: uniqueGuarantorIds.length,
-      tier: member.interest_tier,
-    });
-
-    if (policyValidationError) {
-      return { error: policyValidationError };
-    }
-
-    const eligibleGuarantors = await prisma.user.findMany({
-      where: {
-        user_id: { in: uniqueGuarantorIds },
-        tenant_id: tenantId,
-        role: Role.member,
-        status: UserStatus.active,
-      },
-      select: { user_id: true },
-    });
-
-    if (eligibleGuarantors.length !== uniqueGuarantorIds.length) {
-      return {
-        error: "Selected guarantors must be active members of your branch.",
-      };
-    }
-
-    const quote = computeLoanQuote({
-      principalAmount: amount,
-      termMonths: term_months,
-      monthlyRatePercent: Number(product.interest_rate_percent),
-      frequency: repayment_frequency,
-    });
-
-    await prisma.$transaction(async (tx: any) => {
-      const loan = await tx.loan.create({
-        data: {
-          user_id: userId,
-          product_id,
-          term_months,
-          repayment_frequency,
-          status: "pending",
-          tenant_id: tenantId,
-          loan_reference: `LN-${tenantId}-${Date.now()}`,
-          principal_amount: amount,
-          purpose: "General Purpose",
-          interest_applied: quote.totalInterest,
-          principal_receivable: amount,
-          interest_receivable: quote.totalInterest,
-          fees_applied: quote.processingFee,
-          total_payable: quote.totalPayable,
-          balance_remaining: quote.totalPayable,
-        },
-      });
-
-      await tx.loanGuarantee.createMany({
-        data: uniqueGuarantorIds.map((guarantorId) => ({
-          loan_id: loan.loan_id,
-          guarantor_id: guarantorId,
-          status: "pending" as const,
-        })),
-      });
-    });
-
-    await logInteraction({
-      eventType: "LOAN_APPLICATION_SUBMITTED",
-      tenantId,
-      userId,
-      metadata: {
-        amount,
-        term_months,
-        product_id,
-        repayment_frequency,
-      },
-    });
-
-    revalidatePath("/agapay-tanaw");
-    revalidatePath("/agapay-pintig");
-    return { success: "Application submitted successfully!" };
+    return result;
   } catch (error) {
     console.error(error);
     return { error: "Something went wrong!" };
