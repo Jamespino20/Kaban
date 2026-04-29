@@ -25,12 +25,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { RepaymentFrequency } from "@prisma/client";
 import {
   computeLoanQuote,
   getCompassionPolicyCopy,
   getPenaltyPolicyCopy,
   MICROFINANCE_POLICY,
+  RepaymentFrequency,
 } from "@/lib/microfinance-policy";
 
 const LoanApplicationSchema = z.object({

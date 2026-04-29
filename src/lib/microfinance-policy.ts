@@ -1,8 +1,33 @@
-import {
-  InterestTier,
-  ScheduleStatus,
-  RepaymentFrequency,
+import type {
+  InterestTier as PrismaInterestTier,
+  ScheduleStatus as PrismaScheduleStatus,
+  RepaymentFrequency as PrismaRepaymentFrequency,
 } from "@prisma/client";
+
+export type InterestTier = PrismaInterestTier;
+export const InterestTier = {
+  T1_5_PERCENT: "T1_5_PERCENT",
+  T2_4_5_PERCENT: "T2_4_5_PERCENT",
+  T3_4_PERCENT: "T3_4_PERCENT",
+  T4_3_5_PERCENT: "T4_3_5_PERCENT",
+  T5_3_PERCENT: "T5_3_PERCENT",
+} as const;
+
+export type ScheduleStatus = PrismaScheduleStatus;
+export const ScheduleStatus = {
+  pending: "pending",
+  paid: "paid",
+  missed: "missed",
+  forgiven: "forgiven",
+  restructured: "restructured",
+} as const;
+
+export type RepaymentFrequency = PrismaRepaymentFrequency;
+export const RepaymentFrequency = {
+  weekly: "weekly",
+  bi_weekly: "bi_weekly",
+  monthly: "monthly",
+} as const;
 
 export const MICROFINANCE_POLICY = {
   minAmount: 5_000,

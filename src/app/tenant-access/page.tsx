@@ -1,6 +1,7 @@
 import { auth } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 import { redirect } from "next/navigation";
+import Link from "next/link";
 
 const COPY = {
   prospect: {
@@ -42,15 +43,14 @@ export default async function TenantAccessPage() {
     },
   });
 
-  if (
-    tenant &&
-    tenant.is_active &&
-    tenant.entitlement_status === "active"
-  ) {
-    redirect(session.user.role === "member" ? "/agapay-pintig" : "/agapay-tanaw");
+  if (tenant && tenant.is_active && tenant.entitlement_status === "active") {
+    redirect(
+      session.user.role === "member" ? "/agapay-pintig" : "/agapay-tanaw",
+    );
   }
 
-  const copyKey = !tenant || !tenant.is_active ? "inactive" : tenant.entitlement_status;
+  const copyKey =
+    !tenant || !tenant.is_active ? "inactive" : tenant.entitlement_status;
   const copy = COPY[copyKey as keyof typeof COPY] ?? COPY.inactive;
 
   return (
@@ -92,18 +92,18 @@ export default async function TenantAccessPage() {
         </div>
 
         <div className="mt-8 flex flex-wrap gap-3">
-          <a
+          <Link
             href="/contact"
             className="rounded-2xl bg-emerald-600 px-5 py-3 text-sm font-bold text-white transition-colors hover:bg-emerald-700"
           >
             Makipag-ugnayan sa Agapay
-          </a>
-          <a
+          </Link>
+          <Link
             href="/"
             className="rounded-2xl border border-slate-200 bg-white px-5 py-3 text-sm font-bold text-slate-700 transition-colors hover:bg-slate-50"
           >
             Bumalik sa Homepage
-          </a>
+          </Link>
         </div>
       </div>
     </main>
