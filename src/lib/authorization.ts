@@ -1,5 +1,6 @@
 import { auth } from "@/lib/auth";
 import prisma from "@/lib/prisma";
+import { redirect } from "next/navigation";
 
 export type AuthorizedSession = {
   user: {
@@ -24,9 +25,11 @@ export const isTanawRole = (role?: string | null) =>
 export async function requireAuthenticatedSession(): Promise<AuthorizedSession> {
   const session = await auth();
   if (!session?.user?.id) {
-    throw new Error("Unauthorized");
+    redirect("/auth/login");
   }
 
+  // Superadmins bypass tenant-specific availability checks for the session itself,
+  // but they will see alerts or restricted views elsewhere.
   if (session.user.role !== "superadmin" && session.user.tenantId) {
     const tenant = await prisma.tenant.findUnique({
       where: { tenant_id: session.user.tenantId },
@@ -38,7 +41,7 @@ export async function requireAuthenticatedSession(): Promise<AuthorizedSession> 
       !tenant.is_active ||
       tenant.entitlement_status !== "active"
     ) {
-      throw new Error("TenantAccessUnavailable");
+      redirect("/tenant-access");
     }
   }
 
@@ -60,10 +63,7 @@ export async function requireTanawSession(): Promise<AuthorizedSession> {
 
 export async function requireAdminSession(): Promise<AuthorizedSession> {
   const session = await requireAuthenticatedSession();
-  if (
-    session.user.role !== "admin" &&
-    session.user.role !== "superadmin"
-  ) {
+  if (session.user.role !== "admin" && session.user.role !== "superadmin") {
     throw new Error("Unauthorized");
   }
 
@@ -91,7 +91,9 @@ export function canAccessTenantStaffResource(
     return true;
   }
 
-  return isTenantStaffRole(session.user.role) && session.user.tenantId === tenantId;
+  return (
+    isTenantStaffRole(session.user.role) && session.user.tenantId === tenantId
+  );
 }
 
 export function canAccessOwnOrTenantStaffResource(

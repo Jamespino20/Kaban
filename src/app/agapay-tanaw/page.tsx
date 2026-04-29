@@ -38,11 +38,10 @@ import { CommunityOperationsTab } from "@/components/admin/community-operations-
 import { AnalyticsDashboardTab } from "@/components/admin/analytics-dashboard-tab";
 import { ReconciliationTab } from "@/components/admin/reconciliation-tab";
 
+import { requireTanawSession } from "@/lib/authorization";
+
 export default async function AgapayTanawPage() {
-  const session = await auth();
-  if (!session?.user?.id) {
-    redirect("/auth/login");
-  }
+  const session = await requireTanawSession();
 
   if (session.user.role === "member") {
     redirect("/agapay-pintig");

@@ -24,11 +24,10 @@ import { acceptConsent } from "@/actions/compliance-actions";
 
 const PERSONAL_WALLET = "personal_wallet";
 
+import { requireAuthenticatedSession } from "@/lib/authorization";
+
 export default async function AgapayPintigPage() {
-  const session = await auth();
-  if (!session?.user?.id) {
-    redirect("/auth/login");
-  }
+  const session = await requireAuthenticatedSession();
 
   if (session.user.role !== "member" || !session.user.tenantId) {
     redirect("/agapay-tanaw");
