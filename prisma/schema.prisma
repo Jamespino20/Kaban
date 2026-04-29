@@ -95,6 +95,8 @@ model User {
   requested_compassions   CompassionAction[]      @relation("RequestedCompassion")
   approved_compassions    CompassionAction[]      @relation("ApprovedCompassion")
   interaction_logs        InteractionLog[]
+  consent_accepted_at     DateTime?
+  consent_version         String?                 @db.VarChar(20)
   profile                 UserProfile?
   tenant                  Tenant?                 @relation(fields: [tenant_id], references: [tenant_id])
 

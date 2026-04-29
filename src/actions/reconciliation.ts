@@ -3,16 +3,19 @@
 import prisma from "@/lib/prisma";
 import { requireTanawSession } from "@/lib/authorization";
 
-export async function getEndOfDayReconciliation(dateCursor?: Date) {
+export async function getEndOfDayReconciliation(
+  dateCursor?: string,
+  overrideTenantId?: number,
+) {
   const session = await requireTanawSession();
-  const tenantId = session.user.tenantId;
+  const tenantId = overrideTenantId || session.user.tenantId;
 
   if (!tenantId && session.user.role !== "superadmin") {
     throw new Error("Unauthorized context");
   }
 
   // Use today if no date provided
-  const targetDate = dateCursor || new Date();
+  const targetDate = dateCursor ? new Date(dateCursor) : new Date();
   const startOfDay = new Date(targetDate);
   startOfDay.setHours(0, 0, 0, 0);
 
@@ -99,6 +102,27 @@ export async function getEndOfDayReconciliation(dateCursor?: Date) {
     0,
   );
 
+  // 5. Master Pulse Check: Treasury (Asset) vs. User Wallets (Liability)
+  // Sum of all CASH_EQUIVALENTS for this branch/tenant
+  const treasuryAccount = await prisma.ledgerAccount.findFirst({
+    where: { code: "CASH_EQUIVALENTS", tenant_id: tenantId },
+  });
+
+  const treasuryEntries = treasuryAccount
+    ? await prisma.businessLedger.findMany({
+        where: { account_id: treasuryAccount.id },
+        select: { debit: true, credit: true },
+      })
+    : [];
+
+  const totalTreasuryBalance = treasuryEntries.reduce(
+    (sum, e) => sum + Number(e.debit) - Number(e.credit),
+    0,
+  );
+
+  const imbalance = Math.abs(totalTreasuryBalance - totalBranchSavings);
+  const isTreasuryHealthy = imbalance <= 0.01;
+
   return {
     targetDate,
     totalDisbursed,
@@ -112,6 +136,9 @@ export async function getEndOfDayReconciliation(dateCursor?: Date) {
     },
     holdings: {
       totalBranchSavings,
+      totalTreasuryBalance,
+      imbalance,
+      isTreasuryHealthy,
     },
   };
 }

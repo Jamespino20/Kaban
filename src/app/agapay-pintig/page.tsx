@@ -19,6 +19,8 @@ import {
 } from "@/lib/microfinance-policy";
 import { runAutomatedDefaultEnforcement } from "@/lib/default-enforcement";
 import { CommunityTab } from "@/components/member/community-tab";
+import { ConsentDashboard } from "@/components/member/consent-dashboard";
+import { acceptConsent } from "@/actions/compliance-actions";
 
 const PERSONAL_WALLET = "personal_wallet";
 
@@ -53,7 +55,11 @@ export default async function AgapayPintigPage() {
   ] = await Promise.all([
     prisma.user.findUnique({
       where: { user_id: userId },
-      select: { interest_tier: true },
+      select: {
+        interest_tier: true,
+        consent_accepted_at: true,
+        consent_version: true,
+      },
     }),
     prisma.savingsAccount.findMany({
       where: { user_id: userId, tenant_id: tenantId },
@@ -165,6 +171,13 @@ export default async function AgapayPintigPage() {
       navItems={navItems}
     >
       <div className="space-y-6">
+        {!member?.consent_accepted_at && (
+          <ConsentDashboard
+            tenantName={tenant?.name || "Branch"}
+            isAccepted={false}
+            onAccept={acceptConsent}
+          />
+        )}
         <TabsContent
           value="overview"
           className="space-y-6 outline-none animate-in fade-in slide-in-from-bottom-4 duration-500"

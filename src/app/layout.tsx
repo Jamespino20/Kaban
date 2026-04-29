@@ -61,6 +61,8 @@ export const metadata: Metadata = {
   },
 };
 
+import { IdleSessionTimer } from "@/components/auth/idle-session-timer";
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -72,6 +74,7 @@ export default function RootLayout({
         className={`${plusJakartaSans.variable} ${fraunces.variable} font-sans selection:bg-emerald-100 selection:text-emerald-900 transition-colors duration-300`}
       >
         <AuthProvider>
+          <IdleSessionTimer />
           <div className="relative min-h-screen bg-white">
             <div className="pointer-events-none fixed right-0 top-0 z-0 h-[500px] w-[500px] translate-x-1/2 -translate-y-1/2 rounded-full bg-emerald-100/30 blur-[120px]" />
 

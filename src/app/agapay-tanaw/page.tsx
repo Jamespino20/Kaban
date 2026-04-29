@@ -1,5 +1,7 @@
 import { TabsContent } from "@/components/ui/tabs";
-import { TrendingUp } from "lucide-react";
+import { TrendingUp, AlertCircle, ShieldAlert } from "lucide-react";
+import { TenantNameSettingsCard } from "@/components/admin/tenant-name-settings-card";
+import { getEndOfDayReconciliation } from "@/actions/reconciliation";
 
 import { LoanProductsTab } from "@/components/admin/loan-products-tab";
 import { TenantManagementTab } from "@/components/admin/tenant-management-tab";
@@ -34,7 +36,6 @@ import { DashboardTabsShell } from "@/components/layout/dashboard-tabs-shell";
 import { getCommunityStaffSummary } from "@/actions/community-actions";
 import { CommunityOperationsTab } from "@/components/admin/community-operations-tab";
 import { AnalyticsDashboardTab } from "@/components/admin/analytics-dashboard-tab";
-import { TenantNameSettingsCard } from "@/components/admin/tenant-name-settings-card";
 import { ReconciliationTab } from "@/components/admin/reconciliation-tab";
 
 export default async function AgapayTanawPage() {
@@ -61,6 +62,14 @@ export default async function AgapayTanawPage() {
   const canViewAuditLogs = isAdmin || isSuperAdmin;
   const canManageHomepageContent = isAdmin || isSuperAdmin;
   const canViewFeedback = isAdmin || isSuperAdmin;
+
+  const reconciliation =
+    tenantContextId !== null
+      ? await getEndOfDayReconciliation(
+          new Date().toISOString().split("T")[0],
+          tenantContextId,
+        )
+      : null;
 
   const userWith2FA = await prisma.user.findUnique({
     where: { user_id: session?.user?.user_id },
@@ -200,6 +209,26 @@ export default async function AgapayTanawPage() {
       navItems={navItems}
     >
       <div className="space-y-5">
+        {reconciliation && !reconciliation.holdings.isTreasuryHealthy && (
+          <div className="animate-in fade-in slide-in-from-top-4 duration-500 rounded-[1.75rem] border border-red-200 bg-red-50 p-6 shadow-lg shadow-red-500/10 flex flex-col md:flex-row items-center gap-6">
+            <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-red-100 text-red-600 ring-4 ring-white shadow-sm">
+              <ShieldAlert className="h-7 w-7" />
+            </div>
+            <div className="flex-1 text-center md:text-left space-y-1">
+              <h3 className="text-xl font-display font-bold text-red-900 italic">
+                Imbalance Alert: Treasury Pulse Check Failed
+              </h3>
+              <p className="text-red-700 font-medium">
+                Mayroong imbalance na{" "}
+                <span className="font-black">
+                  ₱{reconciliation.holdings.imbalance.toLocaleString()}
+                </span>{" "}
+                sa pagitan ng Co-op Treasury at Member Wallets. Pakisuri ang EOD
+                Reconciliation tab.
+              </p>
+            </div>
+          </div>
+        )}
         <TabsContent value="overview" className="space-y-6 outline-none">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <KPIMetricCard
