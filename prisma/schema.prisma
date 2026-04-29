@@ -19,86 +19,86 @@ model TenantGroup {
 }
 
 model Tenant {
-    tenant_id              Int                     @id @default(autoincrement())
-    tenant_group_id        Int?
-    name                   String                  @db.VarChar(100)
-    slug                   String                  @unique @db.VarChar(50)
-    brand_color            String?                 @db.VarChar(20)
-    logo_url               String?                 @db.VarChar(255)
-    is_active              Boolean                 @default(true)
-    entitlement_status     TenantEntitlementStatus @default(prospect)
-    lifetime_availed_at    DateTime?
-    entitlement_reference  String?                 @db.VarChar(120)
-    entitlement_notes      String?
-    entitled_by_user_id    Int?
-    created_at             DateTime                @default(now())
-    updated_at             DateTime                @updatedAt
-    audit_logs             AuditLog[]
-  feedbackEntries        FeedbackEntry[]
+  tenant_id              Int                     @id @default(autoincrement())
+  tenant_group_id        Int?
+  name                   String                  @db.VarChar(100)
+  slug                   String                  @unique @db.VarChar(50)
+  brand_color            String?                 @db.VarChar(20)
+  logo_url               String?                 @db.VarChar(255)
+  is_active              Boolean                 @default(true)
+  created_at             DateTime                @default(now())
+  updated_at             DateTime                @updatedAt
+  entitlement_status     TenantEntitlementStatus @default(prospect)
+  lifetime_availed_at    DateTime?
+  entitlement_reference  String?                 @db.VarChar(120)
+  entitlement_notes      String?
+  entitled_by_user_id    Int?
+  audit_logs             AuditLog[]
   transfers_out          BranchTransferRequest[] @relation("TransferOut")
   transfers_in           BranchTransferRequest[] @relation("TransferIn")
-  decommissioned_backups DecommissionedBackup[]
   conversations          Conversation[]
-  mentorship_connections MentorshipConnection[]
-  notifications          Notification[]
-  products               LoanProduct[]
-  loans                  Loan[]
-  messages               Message[]
+  decommissioned_backups DecommissionedBackup[]
+  feedbackEntries        FeedbackEntry[]
   homepage_faqs          HomepageFaq[]
   homepage_testimonials  HomepageTestimonial[]
+  interaction_logs       InteractionLog[]
+  products               LoanProduct[]
+  loans                  Loan[]
+  mentorship_connections MentorshipConnection[]
+  messages               Message[]
+  notifications          Notification[]
   payment_methods        PaymentMethod[]
   savings                SavingsAccount[]
-  traffic_logs           TrafficLog[]
-  interaction_logs       InteractionLog[]
   tenant_group           TenantGroup?            @relation(fields: [tenant_group_id], references: [id])
+  traffic_logs           TrafficLog[]
   users                  User[]
 
   @@map("tenants")
 }
 
 model User {
-  user_id                 Int                     @id @default(autoincrement())
-  member_code             String?                 @db.VarChar(20)
-  username                String                  @db.VarChar(50)
-  email                   String                  @db.VarChar(150)
-  phone                   String?                 @db.VarChar(20)
-  password_hash           String                  @db.VarChar(255)
-  tenant_id               Int?
-  role                    Role                    @default(member)
-  status                  UserStatus              @default(pending)
-  interest_tier           InterestTier            @default(T1_5_PERCENT)
-  is_deactivation_locked  Boolean                 @default(false)
-  deleted_at              DateTime?
-  created_at              DateTime                @default(now())
-  updated_at              DateTime                @updatedAt
-  audit_logs              AuditLog[]
-  created_conversations   Conversation[]          @relation("ConversationCreator")
+  user_id                   Int                       @id @default(autoincrement())
+  member_code               String?                   @db.VarChar(20)
+  username                  String                    @db.VarChar(50)
+  email                     String                    @db.VarChar(150)
+  phone                     String?                   @db.VarChar(20)
+  password_hash             String                    @db.VarChar(255)
+  tenant_id                 Int?
+  role                      Role                      @default(member)
+  status                    UserStatus                @default(pending)
+  interest_tier             InterestTier              @default(T1_5_PERCENT)
+  is_deactivation_locked    Boolean                   @default(false)
+  deleted_at                DateTime?
+  created_at                DateTime                  @default(now())
+  updated_at                DateTime                  @updatedAt
+  consent_accepted_at       DateTime?
+  consent_version           String?                   @db.VarChar(20)
+  audit_logs                AuditLog[]
+  transfer_requests         BranchTransferRequest[]
+  approved_compassions      CompassionAction[]        @relation("ApprovedCompassion")
+  requested_compassions     CompassionAction[]        @relation("RequestedCompassion")
   conversation_participants ConversationParticipant[]
-  transfer_requests       BranchTransferRequest[]
-  guarantees              LoanGuarantee[]         @relation("Guarantor")
-  approved_loans          Loan[]                  @relation("ApprovedLoans")
-  loans                   Loan[]                  @relation("UserLoans")
-  sent_messages           Message[]               @relation("SentMessages")
-  message_reactions       MessageReaction[]
-  verified_payments       Payment[]               @relation("VerifiedPayments")
-  savings_accounts        SavingsAccount[]
-  processed_savings       SavingsTransaction[]    @relation("ProcessedSavings")
-  social_vouches_received SocialVouch[]           @relation("Vouchee")
-  social_vouches_sent     SocialVouch[]           @relation("Voucher")
-  two_factor_auth         TwoFactorAuth?
-  documents               UserDocument[]
-  feedback_entries        FeedbackEntry[]
-  requested_mentorships   MentorshipConnection[]   @relation("MentorshipRequester")
-  received_mentorships    MentorshipConnection[]   @relation("MentorshipMentor")
-  endorsed_mentorships    MentorshipConnection[]   @relation("MentorshipEndorser")
-  notifications           Notification[]          @relation("NotificationRecipient")
-  requested_compassions   CompassionAction[]      @relation("RequestedCompassion")
-  approved_compassions    CompassionAction[]      @relation("ApprovedCompassion")
-  interaction_logs        InteractionLog[]
-  consent_accepted_at     DateTime?
-  consent_version         String?                 @db.VarChar(20)
-  profile                 UserProfile?
-  tenant                  Tenant?                 @relation(fields: [tenant_id], references: [tenant_id])
+  created_conversations     Conversation[]            @relation("ConversationCreator")
+  feedback_entries          FeedbackEntry[]
+  interaction_logs          InteractionLog[]
+  guarantees                LoanGuarantee[]           @relation("Guarantor")
+  approved_loans            Loan[]                    @relation("ApprovedLoans")
+  loans                     Loan[]                    @relation("UserLoans")
+  endorsed_mentorships      MentorshipConnection[]    @relation("MentorshipEndorser")
+  received_mentorships      MentorshipConnection[]    @relation("MentorshipMentor")
+  requested_mentorships     MentorshipConnection[]    @relation("MentorshipRequester")
+  message_reactions         MessageReaction[]
+  sent_messages             Message[]                 @relation("SentMessages")
+  notifications             Notification[]            @relation("NotificationRecipient")
+  verified_payments         Payment[]                 @relation("VerifiedPayments")
+  savings_accounts          SavingsAccount[]
+  processed_savings         SavingsTransaction[]      @relation("ProcessedSavings")
+  social_vouches_received   SocialVouch[]             @relation("Vouchee")
+  social_vouches_sent       SocialVouch[]             @relation("Voucher")
+  two_factor_auth           TwoFactorAuth?
+  documents                 UserDocument[]
+  profile                   UserProfile?
+  tenant                    Tenant?                   @relation(fields: [tenant_id], references: [tenant_id])
 
   @@unique([email, tenant_id])
   @@unique([username, tenant_id])
@@ -125,7 +125,7 @@ model UserProfile {
   province            String?        @db.VarChar(255)
   city                String?        @db.VarChar(255)
   barangay            String?        @db.VarChar(255)
-  photo_url           String?        @db.Text
+  photo_url           String?
   user                User           @relation(fields: [user_id], references: [user_id], onDelete: Cascade)
 
   @@map("user_profiles")
@@ -135,8 +135,8 @@ model UserDocument {
   document_id         Int                @id @default(autoincrement())
   user_id             Int
   document_type       DocumentType
-  id_type_name        String?        @db.VarChar(100)
-  file_url            String         @db.Text
+  id_type_name        String?            @db.VarChar(100)
+  file_url            String
   verification_status VerificationStatus @default(pending)
   uploaded_at         DateTime           @default(now())
   user                User               @relation(fields: [user_id], references: [user_id], onDelete: Cascade)
@@ -156,57 +156,57 @@ model TwoFactorAuth {
 }
 
 model LoanProduct {
-  product_id            Int                  @id @default(autoincrement())
-  name                  String               @db.VarChar(100)
-  description           String?
-  min_amount            Decimal              @db.Decimal(15, 2)
-  max_amount            Decimal              @db.Decimal(15, 2)
-  interest_rate_percent Decimal              @db.Decimal(5, 2)
-  guarantor_liability_rate Decimal           @default(25) @db.Decimal(5, 2)
-  max_term_months       Int
-  allowed_frequencies   RepaymentFrequency[] @default([monthly])
-  is_active             Boolean              @default(true)
-  tenant_id             Int
-  tenant                Tenant               @relation(fields: [tenant_id], references: [tenant_id])
-  loans                 Loan[]
+  product_id               Int                  @id @default(autoincrement())
+  name                     String               @db.VarChar(100)
+  description              String?
+  min_amount               Decimal              @db.Decimal(15, 2)
+  max_amount               Decimal              @db.Decimal(15, 2)
+  interest_rate_percent    Decimal              @db.Decimal(5, 2)
+  max_term_months          Int
+  is_active                Boolean              @default(true)
+  tenant_id                Int
+  allowed_frequencies      RepaymentFrequency[] @default([monthly])
+  guarantor_liability_rate Decimal              @default(25) @db.Decimal(5, 2)
+  tenant                   Tenant               @relation(fields: [tenant_id], references: [tenant_id])
+  loans                    Loan[]
 
   @@map("loan_products")
 }
 
 model Loan {
-  loan_id              Int                @id @default(autoincrement())
-  tenant_id            Int
-  user_id              Int
-  product_id           Int
+  loan_id                 Int                @id @default(autoincrement())
+  tenant_id               Int
+  user_id                 Int
+  product_id              Int
+  loan_reference          String             @unique @db.VarChar(50)
+  principal_amount        Decimal            @db.Decimal(15, 2)
+  purpose                 String
+  term_months             Int
+  interest_applied        Decimal            @db.Decimal(15, 2)
+  principal_receivable    Decimal            @default(0) @db.Decimal(15, 2)
+  interest_receivable     Decimal            @default(0) @db.Decimal(15, 2)
+  fees_applied            Decimal            @default(0) @db.Decimal(15, 2)
+  total_payable           Decimal            @db.Decimal(15, 2)
+  balance_remaining       Decimal            @db.Decimal(15, 2)
+  status                  LoanStatus         @default(pending)
+  applied_at              DateTime           @default(now())
+  approved_at             DateTime?
+  approved_by             Int?
+  repayment_frequency     RepaymentFrequency @default(monthly)
   recovery_parent_loan_id Int?
-  loan_reference       String             @unique @db.VarChar(50)
-  principal_amount     Decimal            @db.Decimal(15, 2)
-  purpose              String
-  term_months          Int
-  repayment_frequency  RepaymentFrequency @default(monthly)
-  interest_applied     Decimal            @db.Decimal(15, 2)
-  principal_receivable Decimal            @default(0) @db.Decimal(15, 2)
-  interest_receivable  Decimal            @default(0) @db.Decimal(15, 2)
-  fees_applied         Decimal            @default(0) @db.Decimal(15, 2)
-  total_payable        Decimal            @db.Decimal(15, 2)
-  balance_remaining    Decimal            @db.Decimal(15, 2)
-  is_recovery_loan     Boolean            @default(false)
-  status               LoanStatus         @default(pending)
-  applied_at           DateTime           @default(now())
-  approved_at          DateTime?
-  approved_by          Int?
-  interest_audit       InterestAudit?
-  compassion_actions   CompassionAction[]
-  guarantees           LoanGuarantee[]
-  schedules            LoanSchedule[]
-  approver             User?              @relation("ApprovedLoans", fields: [approved_by], references: [user_id])
-  product              LoanProduct        @relation(fields: [product_id], references: [product_id])
-  tenant               Tenant             @relation(fields: [tenant_id], references: [tenant_id])
-  user                 User               @relation("UserLoans", fields: [user_id], references: [user_id])
-  payments             Payment[]
-  recovery_parent      Loan?              @relation("RecoveryChain", fields: [recovery_parent_loan_id], references: [loan_id])
-  recovery_children    Loan[]             @relation("RecoveryChain")
-  ledger_entries       BusinessLedger[]
+  is_recovery_loan        Boolean            @default(false)
+  ledger_entries          BusinessLedger[]
+  compassion_actions      CompassionAction[]
+  interest_audit          InterestAudit?
+  guarantees              LoanGuarantee[]
+  schedules               LoanSchedule[]
+  approver                User?              @relation("ApprovedLoans", fields: [approved_by], references: [user_id])
+  product                 LoanProduct        @relation(fields: [product_id], references: [product_id])
+  recovery_parent         Loan?              @relation("RecoveryChain", fields: [recovery_parent_loan_id], references: [loan_id])
+  recovery_children       Loan[]             @relation("RecoveryChain")
+  tenant                  Tenant             @relation(fields: [tenant_id], references: [tenant_id])
+  user                    User               @relation("UserLoans", fields: [user_id], references: [user_id])
+  payments                Payment[]
 
   @@map("loans")
 }
@@ -219,10 +219,10 @@ model LoanSchedule {
   principal_amount   Decimal        @db.Decimal(15, 2)
   interest_amount    Decimal        @db.Decimal(15, 2)
   total_due          Decimal        @db.Decimal(15, 2)
-  penalty_applied    Decimal        @default(0) @db.Decimal(15, 2)
-  days_late          Int            @default(0)
   status             ScheduleStatus @default(pending)
   paid_at            DateTime?
+  days_late          Int            @default(0)
+  penalty_applied    Decimal        @default(0) @db.Decimal(15, 2)
   loan               Loan           @relation(fields: [loan_id], references: [loan_id], onDelete: Cascade)
 
   @@map("loan_schedules")
@@ -297,44 +297,44 @@ model AuditLog {
   entity_id   Int?
   old_values  Json?
   new_values  Json?
-  ip_address  String?  @db.VarChar(45) // Anonymized
-  city        String?  @db.VarChar(100)
-  region      String?  @db.VarChar(100)
+  ip_address  String?  @db.VarChar(45)
   user_agent  String?
   created_at  DateTime @default(now())
-  tenant      Tenant?  @relation(fields: [tenant_id], references: [tenant_id], onDelete: SetNull)
-  user        User?    @relation(fields: [user_id], references: [user_id], onDelete: SetNull)
+  city        String?  @db.VarChar(100)
+  region      String?  @db.VarChar(100)
+  tenant      Tenant?  @relation(fields: [tenant_id], references: [tenant_id])
+  user        User?    @relation(fields: [user_id], references: [user_id])
 
   @@map("audit_logs")
 }
 
 model TrafficLog {
-  id          String   @id @default(cuid())
-  tenant_id   Int?
-  path        String
-  ip_address  String?  @db.VarChar(45) // Anonymized
-  city        String?  @db.VarChar(100)
-  region      String?  @db.VarChar(100)
-  user_agent  String?
-  created_at  DateTime @default(now())
-  tenant      Tenant?  @relation(fields: [tenant_id], references: [tenant_id], onDelete: SetNull)
+  id         String   @id @default(cuid())
+  tenant_id  Int?
+  path       String
+  ip_address String?  @db.VarChar(45)
+  city       String?  @db.VarChar(100)
+  region     String?  @db.VarChar(100)
+  user_agent String?
+  created_at DateTime @default(now())
+  tenant     Tenant?  @relation(fields: [tenant_id], references: [tenant_id])
 
   @@index([tenant_id, created_at])
   @@map("traffic_logs")
 }
 
 model InteractionLog {
-  id          String   @id @default(cuid())
-  tenant_id   Int?
-  user_id     Int?
-  event_type  String   @db.VarChar(100) // e.g. "LOAN_CALC_USE", "SOA_VIEW"
-  metadata    Json?
-  ip_address  String?  @db.VarChar(45) // Anonymized
-  city        String?  @db.VarChar(100)
-  region      String?  @db.VarChar(100)
-  created_at  DateTime @default(now())
-  tenant      Tenant?  @relation(fields: [tenant_id], references: [tenant_id], onDelete: SetNull)
-  user        User?    @relation(fields: [user_id], references: [user_id], onDelete: SetNull)
+  id         String   @id @default(cuid())
+  tenant_id  Int?
+  user_id    Int?
+  event_type String   @db.VarChar(100)
+  metadata   Json?
+  ip_address String?  @db.VarChar(45)
+  city       String?  @db.VarChar(100)
+  region     String?  @db.VarChar(100)
+  created_at DateTime @default(now())
+  tenant     Tenant?  @relation(fields: [tenant_id], references: [tenant_id])
+  user       User?    @relation(fields: [user_id], references: [user_id])
 
   @@index([tenant_id, event_type, created_at])
   @@map("interaction_logs")
@@ -345,15 +345,15 @@ model HomepageFaq {
   tenant_id            Int?
   question             String   @db.VarChar(255)
   answer               String
+  is_active            Boolean  @default(true)
+  sort_order           Int      @default(0)
+  created_at           DateTime @default(now())
+  updated_at           DateTime @updatedAt
   season_tag           String?  @db.VarChar(100)
   workflow_status      String   @default("published") @db.VarChar(50)
   review_notes         String?
   submitted_by_user_id Int?
   reviewed_by_user_id  Int?
-  is_active            Boolean  @default(true)
-  sort_order           Int      @default(0)
-  created_at           DateTime @default(now())
-  updated_at           DateTime @updatedAt
   tenant               Tenant?  @relation(fields: [tenant_id], references: [tenant_id], onDelete: Cascade)
 
   @@index([tenant_id, workflow_status, is_active, sort_order])
@@ -368,14 +368,14 @@ model HomepageTestimonial {
   photo_url            String?  @db.VarChar(255)
   content              String
   season_tag           String?  @db.VarChar(100)
-  workflow_status      String   @default("published") @db.VarChar(50)
-  review_notes         String?
-  submitted_by_user_id Int?
-  reviewed_by_user_id  Int?
   is_active            Boolean  @default(true)
   sort_order           Int      @default(0)
   created_at           DateTime @default(now())
   updated_at           DateTime @updatedAt
+  workflow_status      String   @default("published") @db.VarChar(50)
+  review_notes         String?
+  submitted_by_user_id Int?
+  reviewed_by_user_id  Int?
   tenant               Tenant?  @relation(fields: [tenant_id], references: [tenant_id], onDelete: Cascade)
 
   @@index([tenant_id, workflow_status, is_active, sort_order])
@@ -395,8 +395,8 @@ model FeedbackEntry {
   status     String   @default("open") @db.VarChar(50)
   created_at DateTime @default(now())
   updated_at DateTime @updatedAt
-  tenant     Tenant?  @relation(fields: [tenant_id], references: [tenant_id], onDelete: SetNull)
-  user       User?    @relation(fields: [user_id], references: [user_id], onDelete: SetNull)
+  tenant     Tenant?  @relation(fields: [tenant_id], references: [tenant_id])
+  user       User?    @relation(fields: [user_id], references: [user_id])
 
   @@index([tenant_id, status, created_at])
   @@index([user_id, created_at])
@@ -405,10 +405,10 @@ model FeedbackEntry {
 
 model VerificationToken {
   id        Int      @id @default(autoincrement())
-  tenant_id Int?
   email     String
   token     String   @unique
   expires   DateTime
+  tenant_id Int?
 
   @@unique([tenant_id, email, token])
   @@index([tenant_id, email])
@@ -417,10 +417,10 @@ model VerificationToken {
 
 model TwoFactorToken {
   id        Int      @id @default(autoincrement())
-  tenant_id Int?
   email     String
   token     String   @unique
   expires   DateTime
+  tenant_id Int?
 
   @@unique([tenant_id, email, token])
   @@index([tenant_id, email])
@@ -440,22 +440,22 @@ model PasswordResetToken {
 }
 
 model Message {
-  id           String   @id @default(cuid())
-  tenant_id    Int
+  id              String              @id @default(cuid())
+  tenant_id       Int
+  sender_id       Int
+  content         String
+  is_broadcast    Boolean             @default(false)
+  created_at      DateTime            @default(now())
   conversation_id String
-  reply_to_id   String?
-  sender_id    Int
-  content      String
-  is_broadcast Boolean  @default(false)
-  created_at   DateTime @default(now())
-  updated_at   DateTime @updatedAt
-  conversation Conversation @relation(fields: [conversation_id], references: [id], onDelete: Cascade)
-  reply_to     Message?  @relation("MessageReplies", fields: [reply_to_id], references: [id], onDelete: SetNull)
-  replies      Message[] @relation("MessageReplies")
-  sender       User     @relation("SentMessages", fields: [sender_id], references: [user_id], onDelete: Cascade)
-  tenant       Tenant   @relation(fields: [tenant_id], references: [tenant_id], onDelete: Cascade)
-  attachments  MessageAttachment[]
-  reactions    MessageReaction[]
+  reply_to_id     String?
+  updated_at      DateTime            @updatedAt
+  attachments     MessageAttachment[]
+  reactions       MessageReaction[]
+  conversation    Conversation        @relation(fields: [conversation_id], references: [id], onDelete: Cascade)
+  reply_to        Message?            @relation("MessageReplies", fields: [reply_to_id], references: [id])
+  replies         Message[]           @relation("MessageReplies")
+  sender          User                @relation("SentMessages", fields: [sender_id], references: [user_id], onDelete: Cascade)
+  tenant          Tenant              @relation(fields: [tenant_id], references: [tenant_id], onDelete: Cascade)
 
   @@index([conversation_id, created_at])
   @@map("messages")
@@ -470,10 +470,10 @@ model Conversation {
   created_by   Int?
   created_at   DateTime                  @default(now())
   updated_at   DateTime                  @updatedAt
-  creator      User?                     @relation("ConversationCreator", fields: [created_by], references: [user_id], onDelete: SetNull)
+  participants ConversationParticipant[]
+  creator      User?                     @relation("ConversationCreator", fields: [created_by], references: [user_id])
   tenant       Tenant                    @relation(fields: [tenant_id], references: [tenant_id], onDelete: Cascade)
   messages     Message[]
-  participants ConversationParticipant[]
 
   @@unique([tenant_id, type, slug])
   @@index([tenant_id, type, updated_at])
@@ -495,20 +495,20 @@ model ConversationParticipant {
 }
 
 model MentorshipConnection {
-  id          String           @id @default(cuid())
-  tenant_id   Int
+  id           String           @id @default(cuid())
+  tenant_id    Int
   requester_id Int
-  mentor_id   Int
-  endorsed_by Int?
-  status      MentorshipStatus @default(pending_endorsement)
-  focus_area  String?          @db.VarChar(150)
-  notes       String?
-  created_at  DateTime         @default(now())
-  endorsed_at DateTime?
-  endorser    User?            @relation("MentorshipEndorser", fields: [endorsed_by], references: [user_id], onDelete: SetNull)
-  mentor      User             @relation("MentorshipMentor", fields: [mentor_id], references: [user_id], onDelete: Cascade)
-  requester   User             @relation("MentorshipRequester", fields: [requester_id], references: [user_id], onDelete: Cascade)
-  tenant      Tenant           @relation(fields: [tenant_id], references: [tenant_id], onDelete: Cascade)
+  mentor_id    Int
+  endorsed_by  Int?
+  status       MentorshipStatus @default(pending_endorsement)
+  focus_area   String?          @db.VarChar(150)
+  notes        String?
+  created_at   DateTime         @default(now())
+  endorsed_at  DateTime?
+  endorser     User?            @relation("MentorshipEndorser", fields: [endorsed_by], references: [user_id])
+  mentor       User             @relation("MentorshipMentor", fields: [mentor_id], references: [user_id], onDelete: Cascade)
+  requester    User             @relation("MentorshipRequester", fields: [requester_id], references: [user_id], onDelete: Cascade)
+  tenant       Tenant           @relation(fields: [tenant_id], references: [tenant_id], onDelete: Cascade)
 
   @@unique([tenant_id, requester_id, mentor_id])
   @@index([tenant_id, status, created_at])
@@ -516,27 +516,27 @@ model MentorshipConnection {
 }
 
 model MessageAttachment {
-  id          String         @id @default(cuid())
-  message_id  String
-  file_name   String         @db.VarChar(255)
-  file_url    String         @db.VarChar(255)
-  mime_type   String         @db.VarChar(100)
-  size_bytes  Int
-  created_at  DateTime       @default(now())
-  message     Message        @relation(fields: [message_id], references: [id], onDelete: Cascade)
+  id         String   @id @default(cuid())
+  message_id String
+  file_name  String   @db.VarChar(255)
+  file_url   String   @db.VarChar(255)
+  mime_type  String   @db.VarChar(100)
+  size_bytes Int
+  created_at DateTime @default(now())
+  message    Message  @relation(fields: [message_id], references: [id], onDelete: Cascade)
 
   @@index([message_id, created_at])
   @@map("message_attachments")
 }
 
 model MessageReaction {
-  id          String   @id @default(cuid())
-  message_id  String
-  user_id     Int
-  emoji       String   @db.VarChar(24)
-  created_at  DateTime @default(now())
-  message     Message  @relation(fields: [message_id], references: [id], onDelete: Cascade)
-  user        User     @relation(fields: [user_id], references: [user_id], onDelete: Cascade)
+  id         String   @id @default(cuid())
+  message_id String
+  user_id    Int
+  emoji      String   @db.VarChar(24)
+  created_at DateTime @default(now())
+  message    Message  @relation(fields: [message_id], references: [id], onDelete: Cascade)
+  user       User     @relation(fields: [user_id], references: [user_id], onDelete: Cascade)
 
   @@unique([message_id, user_id, emoji])
   @@index([user_id, created_at])
@@ -544,19 +544,19 @@ model MessageReaction {
 }
 
 model Notification {
-  id            String             @id @default(cuid())
-  tenant_id     Int?
-  user_id       Int
-  type          NotificationType
-  title         String             @db.VarChar(150)
-  body          String
-  action_url    String?            @db.VarChar(255)
-  channel       NotificationChannel @default(in_app)
-  is_read       Boolean            @default(false)
-  emailed_at    DateTime?
-  created_at    DateTime           @default(now())
-  recipient     User               @relation("NotificationRecipient", fields: [user_id], references: [user_id], onDelete: Cascade)
-  tenant        Tenant?            @relation(fields: [tenant_id], references: [tenant_id], onDelete: SetNull)
+  id         String              @id @default(cuid())
+  tenant_id  Int?
+  user_id    Int
+  type       NotificationType
+  title      String              @db.VarChar(150)
+  body       String
+  action_url String?             @db.VarChar(255)
+  channel    NotificationChannel @default(in_app)
+  is_read    Boolean             @default(false)
+  emailed_at DateTime?
+  created_at DateTime            @default(now())
+  tenant     Tenant?             @relation(fields: [tenant_id], references: [tenant_id])
+  recipient  User                @relation("NotificationRecipient", fields: [user_id], references: [user_id], onDelete: Cascade)
 
   @@index([user_id, is_read, created_at])
   @@index([tenant_id, type, created_at])
@@ -581,13 +581,13 @@ model BranchTransferRequest {
 }
 
 model DecommissionedBackup {
-  id            String   @id @default(cuid())
-  tenant_id     Int
-  file_url      String   @db.VarChar(255)
-  snapshot_content String @db.Text
-  snapshot_date DateTime @default(now())
-  created_at    DateTime @default(now())
-  tenant        Tenant   @relation(fields: [tenant_id], references: [tenant_id])
+  id               String   @id @default(cuid())
+  tenant_id        Int
+  file_url         String   @db.VarChar(255)
+  snapshot_date    DateTime @default(now())
+  created_at       DateTime @default(now())
+  snapshot_content String
+  tenant           Tenant   @relation(fields: [tenant_id], references: [tenant_id])
 
   @@map("decommissioned_backups")
 }
@@ -616,11 +616,10 @@ model CompassionAction {
   requested_at DateTime             @default(now())
   approved_by  Int?
   approved_at  DateTime?
-  admin_notes  String?    @db.Text
-
-  loan      Loan  @relation(fields: [loan_id], references: [loan_id], onDelete: Cascade)
-  requester User  @relation("RequestedCompassion", fields: [requested_by], references: [user_id])
-  approver  User? @relation("ApprovedCompassion", fields: [approved_by], references: [user_id])
+  admin_notes  String?
+  approver     User?                @relation("ApprovedCompassion", fields: [approved_by], references: [user_id])
+  loan         Loan                 @relation(fields: [loan_id], references: [loan_id], onDelete: Cascade)
+  requester    User                 @relation("RequestedCompassion", fields: [requested_by], references: [user_id])
 
   @@map("compassion_actions")
 }
@@ -629,14 +628,14 @@ model BusinessLedger {
   id             Int           @id @default(autoincrement())
   transaction_id String        @default(cuid())
   account_id     Int
-  loan_id        Int?          // Link to specific loan for SOA truth
   debit          Decimal       @default(0) @db.Decimal(15, 2)
   credit         Decimal       @default(0) @db.Decimal(15, 2)
   description    String
-  metadata       Json?         // Flexible extra context
   ledger_hash    String?       @db.VarChar(255)
   created_at     DateTime      @default(now())
   created_by     Int?
+  loan_id        Int?
+  metadata       Json?
   account        LedgerAccount @relation(fields: [account_id], references: [id])
   loan           Loan?         @relation(fields: [loan_id], references: [loan_id])
 
@@ -747,9 +746,9 @@ enum PaymentStatus {
 enum GuaranteeStatus {
   pending
   vouched
-  charged
   rejected
   voided
+  charged
 }
 
 enum LedgerAccountType {
