@@ -1,7 +1,10 @@
 "use client";
 
 import { Tabs } from "@/components/ui/tabs";
-import { type ShellNavItem, AuthenticatedShell } from "@/components/layout/authenticated-shell";
+import {
+  type ShellNavItem,
+  AuthenticatedShell,
+} from "@/components/layout/authenticated-shell";
 
 type DashboardTabsShellProps = {
   defaultValue: string;
@@ -11,6 +14,9 @@ type DashboardTabsShellProps = {
   accountName: string;
   accountRole: string;
   accent?: "emerald" | "blue";
+  tenantName?: string;
+  tenantLogoUrl?: string;
+  tenantBrandColor?: string | null;
   navItems: ShellNavItem[];
   children: React.ReactNode;
 };

@@ -73,9 +73,10 @@ export function BranchSwitcher() {
     });
 
     // Force a hard reload to ensure layout/providers catch the new tenant context.
-    // Navigating to /agapay-tanaw forces the authProxy to resolve the correct role
-    // dashboard and prevents the static homepage from briefly flashing.
-    window.location.href = "/agapay-tanaw";
+    // Determine the correct dashboard based on role to prevent members from hitting the admin dashboard.
+    const role = session?.user?.role;
+    const targetPath = role === "member" ? "/agapay-pintig" : "/agapay-tanaw";
+    window.location.href = targetPath;
   }
 
   if (!isSuperadmin && accessibleTenantIds.length <= 1 && !loading) return null;

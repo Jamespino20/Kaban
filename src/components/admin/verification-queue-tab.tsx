@@ -61,14 +61,86 @@ export function VerificationQueueTab({ data }: VerificationQueueTabProps) {
     overdueLoans = [],
   } = data;
 
+  const [activeQueue, setActiveQueue] = useState<
+    "loans" | "release" | "payments" | "identity" | "delinquent"
+  >("loans");
+
+  const tabs = [
+    {
+      key: "loans" as const,
+      label: "Loan Applications",
+      count: loans.length,
+      color: "text-indigo-600 border-indigo-500",
+    },
+    {
+      key: "release" as const,
+      label: "Fund Releases",
+      count: approvedLoans.length,
+      color: "text-emerald-600 border-emerald-500",
+    },
+    {
+      key: "payments" as const,
+      label: "Pending Payments",
+      count: pendingPayments.length,
+      color: "text-amber-600 border-amber-500",
+    },
+    {
+      key: "identity" as const,
+      label: "ID Verification",
+      count: verifications.length,
+      color: "text-blue-600 border-blue-500",
+    },
+    {
+      key: "delinquent" as const,
+      label: "Delinquent / Recovery",
+      count: overdueLoans.length + recoveryLoans.length,
+      color: "text-red-600 border-red-500",
+    },
+  ];
+
   return (
-    <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
-      <PendingLoansSection loans={loans} />
-      <ReleaseQueueSection loans={approvedLoans} />
-      <PendingPaymentsSection payments={pendingPayments} />
-      <OverdueLoansSection loans={overdueLoans} />
-      <RecoveryLoansSection loans={recoveryLoans} />
-      <IdentityVerificationSection verifications={verifications} />
+    <div className="space-y-6">
+      {/* Header tab selector */}
+      <div className="flex flex-wrap gap-2 border-b border-slate-200 pb-3">
+        {tabs.map((tab) => (
+          <button
+            key={tab.key}
+            onClick={() => setActiveQueue(tab.key)}
+            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition-all cursor-pointer ${
+              activeQueue === tab.key
+                ? `bg-white shadow-sm border-b-2 ${tab.color} text-slate-900`
+                : "text-slate-500 hover:text-slate-700 hover:bg-slate-50"
+            }`}
+          >
+            {tab.label}
+            {tab.count > 0 && (
+              <span className="ml-1 rounded-full bg-slate-100 px-2 py-0.5 text-xs font-black text-slate-600">
+                {tab.count}
+              </span>
+            )}
+          </button>
+        ))}
+      </div>
+
+      {/* Active queue panel */}
+      <div className="animate-in fade-in duration-300">
+        {activeQueue === "loans" && <PendingLoansSection loans={loans} />}
+        {activeQueue === "release" && (
+          <ReleaseQueueSection loans={approvedLoans} />
+        )}
+        {activeQueue === "payments" && (
+          <PendingPaymentsSection payments={pendingPayments} />
+        )}
+        {activeQueue === "identity" && (
+          <IdentityVerificationSection verifications={verifications} />
+        )}
+        {activeQueue === "delinquent" && (
+          <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+            <OverdueLoansSection loans={overdueLoans} />
+            <RecoveryLoansSection loans={recoveryLoans} />
+          </div>
+        )}
+      </div>
     </div>
   );
 }

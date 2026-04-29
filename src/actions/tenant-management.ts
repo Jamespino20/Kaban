@@ -1,8 +1,6 @@
 "use server";
 
 import prisma from "@/lib/prisma";
-import fs from "fs/promises";
-import path from "path";
 import * as z from "zod";
 
 import { neon } from "@neondatabase/serverless";
@@ -146,19 +144,14 @@ export async function decommissionBranch(tenantId: number) {
         // For this automated snapshot, we aggregate the high-level metrics.
       });
 
-      // 4. Save CSV locally
-      const backupDir = path.join(process.cwd(), "tmp", "backups");
-      await fs.mkdir(backupDir, { recursive: true });
       const fileName = `backup_${tenant.slug}_${Date.now()}.csv`;
-      const filePath = path.join(backupDir, fileName);
-
-      await fs.writeFile(filePath, csvContent);
 
       // 5. Create Metadata Record
       const backupRecord = await tx.decommissionedBackup.create({
         data: {
           tenant_id: tenantId,
-          file_url: filePath,
+          file_url: fileName,
+          snapshot_content: csvContent,
         },
       });
 

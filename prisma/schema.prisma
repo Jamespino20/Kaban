@@ -582,6 +582,7 @@ model DecommissionedBackup {
   id            String   @id @default(cuid())
   tenant_id     Int
   file_url      String   @db.VarChar(255)
+  snapshot_content String @db.Text
   snapshot_date DateTime @default(now())
   created_at    DateTime @default(now())
   tenant        Tenant   @relation(fields: [tenant_id], references: [tenant_id])

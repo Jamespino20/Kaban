@@ -49,6 +49,7 @@ export default async function AgapayPintigPage() {
     tfa,
     transactions,
     communityData,
+    tenantIdentity,
   ] = await Promise.all([
     prisma.user.findUnique({
       where: { user_id: userId },
@@ -81,7 +82,13 @@ export default async function AgapayPintigPage() {
     }),
     getWalletTransactions(),
     getCommunityDashboardData(),
+    prisma.tenant.findUnique({
+      where: { tenant_id: tenantId },
+      select: { name: true, brand_color: true, logo_url: true },
+    }),
   ]);
+
+  const tenant = tenantIdentity;
 
   const totalSavings = savings.reduce(
     (acc, curr) =>
@@ -152,6 +159,9 @@ export default async function AgapayPintigPage() {
       portalLabel="member portal"
       accountName={userName}
       accountRole="member"
+      tenantName={tenant?.name}
+      tenantLogoUrl={tenant?.logo_url || undefined}
+      tenantBrandColor={tenant?.brand_color}
       navItems={navItems}
     >
       <div className="space-y-6">

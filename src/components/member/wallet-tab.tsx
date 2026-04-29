@@ -237,14 +237,14 @@ export function WalletTab({ savings, transactions }: WalletTabProps) {
                     >
                       <td className="px-8 py-5">
                         <p className="text-sm font-semibold text-slate-600">
-                          {new Date(tx.created_at).toLocaleDateString("en-PH", {
+                          {new Date(tx.processed_at).toLocaleDateString("en-PH", {
                             month: "short",
                             day: "numeric",
                             year: "numeric",
                           })}
                         </p>
                         <p className="text-[10px] text-slate-400">
-                          {new Date(tx.created_at).toLocaleTimeString("en-PH", {
+                          {new Date(tx.processed_at).toLocaleTimeString("en-PH", {
                             hour: "2-digit",
                             minute: "2-digit",
                           })}

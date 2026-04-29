@@ -23,13 +23,22 @@ export async function GET(
     return NextResponse.json({ error: "Backup not found" }, { status: 404 });
   }
 
+  if (backup.snapshot_content) {
+    return new NextResponse(backup.snapshot_content, {
+      headers: {
+        "Content-Type": "text/csv; charset=utf-8",
+        "Content-Disposition": `attachment; filename="${backup.file_url}"`,
+      },
+    });
+  }
+
   try {
     const resolvedPath = path.resolve(backup.file_url);
     const fileBuffer = await fs.readFile(resolvedPath);
 
     return new NextResponse(fileBuffer as any, {
       headers: {
-        "Content-Type": "text/csv",
+        "Content-Type": "text/csv; charset=utf-8",
         "Content-Disposition": `attachment; filename="${path.basename(resolvedPath)}"`,
       },
     });

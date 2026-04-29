@@ -21,10 +21,14 @@ export async function getTenantMembers() {
   const members = await prisma.user.findMany({
     where: {
       ...tenantFilter,
-      role: Role.member,
     },
     include: {
       profile: true,
+      tenant: {
+        select: {
+          name: true,
+        },
+      },
       savings_accounts: {
         select: {
           account_type: true,

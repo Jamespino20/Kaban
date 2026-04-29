@@ -84,7 +84,13 @@ export default async function AgapayTanawPage() {
     tenantContextId !== null
       ? await prisma.tenant.findUnique({
           where: { tenant_id: tenantContextId },
-          select: { tenant_id: true, name: true, entitlement_status: true },
+          select: {
+            tenant_id: true,
+            name: true,
+            brand_color: true,
+            logo_url: true,
+            entitlement_status: true,
+          },
         })
       : null;
   const navItems: ShellNavItem[] = [
@@ -132,7 +138,7 @@ export default async function AgapayTanawPage() {
 
   navItems.push({
     value: "community",
-    label: "Community",
+    label: "Ka-Agapay Community",
     icon: "community",
   });
 
@@ -144,19 +150,6 @@ export default async function AgapayTanawPage() {
     });
   }
 
-  navItems.push({
-    value: "settings",
-    label: "Settings",
-    icon: "settings",
-  });
-
-  if (canViewAuditLogs) {
-    navItems.push({
-      value: "audit",
-      label: "Audit Logs",
-      icon: "audit",
-    });
-  }
   if (isAdmin || isSuperAdmin) {
     navItems.push({
       value: "compassion",
@@ -169,6 +162,20 @@ export default async function AgapayTanawPage() {
     value: "analytics",
     label: "Analytics Insights",
     icon: "analytics",
+  });
+
+  if (canViewAuditLogs) {
+    navItems.push({
+      value: "audit",
+      label: "Audit Logs",
+      icon: "audit",
+    });
+  }
+
+  navItems.push({
+    value: "settings",
+    label: "Settings",
+    icon: "settings",
   });
 
   return (
@@ -187,6 +194,9 @@ export default async function AgapayTanawPage() {
       portalLabel={`${userRole} portal`}
       accountName={userName}
       accountRole={userRole}
+      tenantName={currentTenantIdentity?.name}
+      tenantLogoUrl={currentTenantIdentity?.logo_url || undefined}
+      tenantBrandColor={currentTenantIdentity?.brand_color}
       navItems={navItems}
     >
       <div className="space-y-5">
@@ -302,7 +312,10 @@ export default async function AgapayTanawPage() {
         </TabsContent>
 
         <TabsContent value="members" className="outline-none">
-          <MemberDirectoryTab members={members} />
+          <MemberDirectoryTab
+            members={members}
+            userRole={session?.user?.role}
+          />
         </TabsContent>
 
         <TabsContent value="community" className="outline-none">
