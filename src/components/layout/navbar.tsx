@@ -49,20 +49,15 @@ export function Navbar({ forceSolid = false }: NavbarProps) {
       <div className="max-w-7xl mx-auto flex items-center justify-between">
         {/* Logo */}
         <Link href="/" className="flex items-center gap-4 group cursor-pointer">
-          <div className="w-12 h-12 flex items-center justify-center transition-transform group-hover:scale-105">
+          <div className="w-32 h-12 flex items-center justify-center transition-transform group-hover:scale-105">
             <img
-              src="/images/agapay_solo.png"
+              src="/images/agapay_titled.png"
               alt="Agapay"
-              className="w-12 h-12 object-contain"
+              className={`w-32 h-32 object-contain transition-all duration-500 ${
+                isScrolled ? "" : "brightness-0 invert"
+              }`}
             />
           </div>
-          <span
-            className={`text-3xl font-black tracking-tighter italic transition-colors duration-500 ${
-              isScrolled || isMenuOpen ? "text-slate-900" : "text-white"
-            }`}
-          >
-            Agapay
-          </span>
         </Link>
 
         {/* Desktop Nav */}
