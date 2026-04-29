@@ -15,6 +15,8 @@ import {
   getRegions,
   getTenantsByRegion,
   decommissionBranch,
+  renameTenant,
+  updateTenantEntitlement,
 } from "@/actions/tenant-management";
 
 import {
@@ -68,6 +70,80 @@ export function TenantManagementTab({
         );
       } else {
         setError(res.error || "Failed to decommission.");
+      }
+    });
+  };
+
+  const handleRename = (tenantId: number, currentName: string) => {
+    const nextName = window.prompt(
+      "Ilagay ang bagong company o branch name:",
+      currentName,
+    );
+
+    if (!nextName || nextName.trim() === currentName.trim()) return;
+
+    startTransition(async () => {
+      setError(null);
+      const res = await renameTenant({
+        tenantId,
+        name: nextName.trim(),
+      });
+
+      if (res.success && res.data) {
+        setTenants((prev) =>
+          prev.map((tenant: any) =>
+            tenant.tenant_id === tenantId
+              ? { ...tenant, name: res.data.name }
+              : tenant,
+          ),
+        );
+      } else {
+        setError(res.error || "Failed to rename tenant.");
+      }
+    });
+  };
+
+  const handleEntitlementUpdate = (
+    tenantId: number,
+    currentStatus: "prospect" | "active" | "suspended",
+  ) => {
+    const nextStatus =
+      currentStatus === "active"
+        ? "suspended"
+        : currentStatus === "suspended"
+          ? "active"
+          : "active";
+    const reference = window.prompt(
+      "Payment reference / manual receipt reference (optional):",
+      "",
+    );
+    const notes = window.prompt("Access notes (optional):", "");
+
+    startTransition(async () => {
+      setError(null);
+      const res = await updateTenantEntitlement({
+        tenantId,
+        entitlementStatus: nextStatus,
+        entitlementReference: reference || "",
+        entitlementNotes: notes || "",
+      });
+
+      if (res.success && res.data) {
+        setTenants((prev) =>
+          prev.map((tenant: any) =>
+            tenant.tenant_id === tenantId
+              ? {
+                  ...tenant,
+                  entitlement_status: res.data.entitlement_status,
+                  entitlement_reference: res.data.entitlement_reference,
+                  entitlement_notes: res.data.entitlement_notes,
+                  lifetime_availed_at: res.data.lifetime_availed_at,
+                }
+              : tenant,
+          ),
+        );
+      } else {
+        setError(res.error || "Failed to update tenant access.");
       }
     });
   };
@@ -141,6 +217,9 @@ export function TenantManagementTab({
                   <span className="text-xs font-semibold text-slate-500 uppercase tracking-widest mt-1 block">
                     {t.tenant_group?.name || "Unassigned Region"}
                   </span>
+                  <span className="mt-2 inline-flex rounded-full border border-slate-200 bg-white px-2 py-1 text-[10px] font-bold uppercase tracking-widest text-slate-600">
+                    Access: {t.entitlement_status}
+                  </span>
                 </div>
                 {t.is_active ? (
                   <span className="px-2 py-1 bg-emerald-100 text-emerald-700 text-[10px] font-bold rounded-full uppercase flex items-center gap-1">
@@ -181,18 +260,71 @@ export function TenantManagementTab({
                 </div>
               </div>
 
+              <div className="mb-4 space-y-2 text-xs text-slate-500">
+                {t.lifetime_availed_at ? (
+                  <p>
+                    Lifetime availed:{" "}
+                    <span className="font-semibold text-slate-700">
+                      {new Date(t.lifetime_availed_at).toLocaleDateString(
+                        "en-PH",
+                      )}
+                    </span>
+                  </p>
+                ) : (
+                  <p className="text-amber-700">
+                    Wala pang recorded lifetime availing.
+                  </p>
+                )}
+                {t.entitlement_reference ? (
+                  <p>
+                    Reference:{" "}
+                    <span className="font-semibold text-slate-700">
+                      {t.entitlement_reference}
+                    </span>
+                  </p>
+                ) : null}
+              </div>
+
               {t.is_active ? (
-                <Button
-                  variant="destructive"
-                  className="w-full text-xs font-bold"
-                  onClick={() => handleDecommission(t.tenant_id, t.name)}
-                  disabled={isPending || t.slug === "main-branch"}
-                >
-                  <PowerOff className="w-4 h-4 mr-2" />
-                  {t.slug === "main-branch"
-                    ? "Cannot Suspend HQ"
-                    : "Decommission Branch"}
-                </Button>
+                <div className="space-y-2">
+                  {role === "superadmin" && (
+                    <div className="grid grid-cols-2 gap-2">
+                      <Button
+                        variant="outline"
+                        className="text-xs font-bold"
+                        onClick={() => handleRename(t.tenant_id, t.name)}
+                        disabled={isPending}
+                      >
+                        Rename
+                      </Button>
+                      <Button
+                        className="text-xs font-bold bg-emerald-600 text-white hover:bg-emerald-700"
+                        onClick={() =>
+                          handleEntitlementUpdate(
+                            t.tenant_id,
+                            t.entitlement_status,
+                          )
+                        }
+                        disabled={isPending}
+                      >
+                        {t.entitlement_status === "active"
+                          ? "Suspend Access"
+                          : "Mark Availed"}
+                      </Button>
+                    </div>
+                  )}
+                  <Button
+                    variant="destructive"
+                    className="w-full text-xs font-bold"
+                    onClick={() => handleDecommission(t.tenant_id, t.name)}
+                    disabled={isPending || t.slug === "main-branch"}
+                  >
+                    <PowerOff className="w-4 h-4 mr-2" />
+                    {t.slug === "main-branch"
+                      ? "Cannot Suspend HQ"
+                      : "Decommission Branch"}
+                  </Button>
+                </div>
               ) : (
                 <div className="space-y-3">
                   <div className="p-3 bg-slate-100 rounded-xl text-sm text-slate-600 font-medium">

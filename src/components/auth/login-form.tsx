@@ -16,6 +16,7 @@ import {
   ChevronLeft,
 } from "lucide-react";
 import { getAvailableTenants } from "@/actions/identity";
+import Link from "next/link";
 
 import {
   Form,
@@ -104,7 +105,11 @@ export const LoginForm = () => {
           }
         } else {
           toast.success("Mabuhay! Login successful.");
-          window.location.href = "/"; // Force refresh to let proxy handle routing
+          // Instead of navigating to "/", we navigate to a server route that we know
+          // requires authentication. This forces a server-side request where the
+          // proxy middleware will intercept and route the user cleanly based on their role,
+          // without risking serving a cached version of the generic landing page.
+          window.location.href = "/agapay-tanaw"; // The proxy will correct this to pintig if they are a member.
         }
       } catch (error) {
         toast.error("Nagkaroon ng error habang nag-login.");
@@ -192,6 +197,14 @@ export const LoginForm = () => {
                         </button>
                       </div>
                     </FormControl>
+                    <div className="flex justify-end pt-1">
+                      <Link
+                        href="/auth/reset"
+                        className="text-xs text-emerald-600 font-medium hover:underline"
+                      >
+                        Nakalimutan ang Password?
+                      </Link>
+                    </div>
                     <FormMessage />
                   </FormItem>
                 )}

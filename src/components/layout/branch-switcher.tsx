@@ -72,8 +72,10 @@ export function BranchSwitcher() {
       tenantId: tenantId === null ? "global" : tenantId.toString(),
     });
 
-    // Force a hard reload to ensure layout/providers catch the new tenant context
-    window.location.href = "/";
+    // Force a hard reload to ensure layout/providers catch the new tenant context.
+    // Navigating to /agapay-tanaw forces the authProxy to resolve the correct role
+    // dashboard and prevents the static homepage from briefly flashing.
+    window.location.href = "/agapay-tanaw";
   }
 
   if (!isSuperadmin && accessibleTenantIds.length <= 1 && !loading) return null;

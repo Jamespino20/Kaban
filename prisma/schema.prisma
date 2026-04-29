@@ -19,16 +19,21 @@ model TenantGroup {
 }
 
 model Tenant {
-  tenant_id              Int                     @id @default(autoincrement())
-  tenant_group_id        Int?
-  name                   String                  @db.VarChar(100)
-  slug                   String                  @unique @db.VarChar(50)
-  brand_color            String?                 @db.VarChar(20)
-  logo_url               String?                 @db.VarChar(255)
-  is_active              Boolean                 @default(true)
-  created_at             DateTime                @default(now())
-  updated_at             DateTime                @updatedAt
-  audit_logs             AuditLog[]
+    tenant_id              Int                     @id @default(autoincrement())
+    tenant_group_id        Int?
+    name                   String                  @db.VarChar(100)
+    slug                   String                  @unique @db.VarChar(50)
+    brand_color            String?                 @db.VarChar(20)
+    logo_url               String?                 @db.VarChar(255)
+    is_active              Boolean                 @default(true)
+    entitlement_status     TenantEntitlementStatus @default(prospect)
+    lifetime_availed_at    DateTime?
+    entitlement_reference  String?                 @db.VarChar(120)
+    entitlement_notes      String?
+    entitled_by_user_id    Int?
+    created_at             DateTime                @default(now())
+    updated_at             DateTime                @updatedAt
+    audit_logs             AuditLog[]
   feedbackEntries        FeedbackEntry[]
   transfers_out          BranchTransferRequest[] @relation("TransferOut")
   transfers_in           BranchTransferRequest[] @relation("TransferIn")
@@ -114,11 +119,11 @@ model UserProfile {
   mothers_maiden_name String?        @db.VarChar(150)
   place_of_birth      String?        @db.VarChar(150)
   tin                 String?        @db.VarChar(20)
-  region              String?        @db.VarChar(100)
-  province            String?        @db.VarChar(100)
-  city                String?        @db.VarChar(100)
-  barangay            String?        @db.VarChar(100)
-  photo_url           String?        @db.VarChar(255)
+  region              String?        @db.VarChar(255)
+  province            String?        @db.VarChar(255)
+  city                String?        @db.VarChar(255)
+  barangay            String?        @db.VarChar(255)
+  photo_url           String?        @db.Text
   user                User           @relation(fields: [user_id], references: [user_id], onDelete: Cascade)
 
   @@map("user_profiles")
@@ -128,8 +133,8 @@ model UserDocument {
   document_id         Int                @id @default(autoincrement())
   user_id             Int
   document_type       DocumentType
-  id_type_name        String?            @db.VarChar(100)
-  file_url            String             @db.VarChar(255)
+  id_type_name        String?        @db.VarChar(100)
+  file_url            String         @db.Text
   verification_status VerificationStatus @default(pending)
   uploaded_at         DateTime           @default(now())
   user                User               @relation(fields: [user_id], references: [user_id], onDelete: Cascade)
@@ -418,6 +423,18 @@ model TwoFactorToken {
   @@unique([tenant_id, email, token])
   @@index([tenant_id, email])
   @@map("two_factor_tokens")
+}
+
+model PasswordResetToken {
+  id        Int      @id @default(autoincrement())
+  tenant_id Int?
+  email     String
+  token     String   @unique
+  expires   DateTime
+
+  @@unique([tenant_id, email, token])
+  @@index([tenant_id, email])
+  @@map("password_reset_tokens")
 }
 
 model Message {
@@ -799,4 +816,10 @@ enum NotificationChannel {
   in_app
   email
   both
+}
+
+enum TenantEntitlementStatus {
+  prospect
+  active
+  suspended
 }

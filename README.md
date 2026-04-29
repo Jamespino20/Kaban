@@ -3,7 +3,7 @@
 **Iyong Agapay, ating Tagumpay.**  
 A modern, microfinancing digital lending SaaS platform designed for Filipino cooperatives and micro-entrepreneurs. Agapay provides low-interest, transparent, and secure financial services with a focus on community and growth.
 
-![Agapay Hero Preview](file:///c:/xampp/htdocs/Agapay/agapay-web/public/images/agapay_growth.png)
+![Agapay Hero Preview]((file:\AGAPAY SCREENSHOTS\1) Homepage.png)
 
 ## 🚀 Quick Start
 
@@ -67,15 +67,15 @@ A modern, microfinancing digital lending SaaS platform designed for Filipino coo
 
 ## ⚙️ Configuration
 
-| Variable                | Description                                    | Source                    |
-| ----------------------- | ---------------------------------------------- | ------------------------- |
-| `AGAPAYSTORAGE_POSTGRES_URL` | Neon pooled connection string             | Vercel / Neon             |
-| `AGAPAYSTORAGE_POSTGRES_URL_NON_POOLING` | Neon direct connection string | Vercel / Neon             |
-| `DATABASE_URL`          | Fallback pooled connection string              | Prisma / Neon             |
-| `AUTH_SECRET`           | Secret for NextAuth session encryption         | `openssl rand -base64 32` |
-| `AUTH_URL`             | Canonical application base URL                  | Deployment Environment    |
-| `SMTP_*`                | Server, Port, User, Pass for system emails     | Email Provider            |
-| `NEXT_PUBLIC_APP_URL`   | Base URL of the application                    | Deployment Environment    |
+| Variable                                 | Description                                | Source                    |
+| ---------------------------------------- | ------------------------------------------ | ------------------------- |
+| `AGAPAYSTORAGE_POSTGRES_URL`             | Neon pooled connection string              | Vercel / Neon             |
+| `AGAPAYSTORAGE_POSTGRES_URL_NON_POOLING` | Neon direct connection string              | Vercel / Neon             |
+| `DATABASE_URL`                           | Fallback pooled connection string          | Prisma / Neon             |
+| `AUTH_SECRET`                            | Secret for NextAuth session encryption     | `openssl rand -base64 32` |
+| `AUTH_URL`                               | Canonical application base URL             | Deployment Environment    |
+| `SMTP_*`                                 | Server, Port, User, Pass for system emails | Email Provider            |
+| `NEXT_PUBLIC_APP_URL`                    | Base URL of the application                | Deployment Environment    |
 
 ---
 

@@ -34,6 +34,8 @@ import { DashboardTabsShell } from "@/components/layout/dashboard-tabs-shell";
 import { getCommunityStaffSummary } from "@/actions/community-actions";
 import { CommunityOperationsTab } from "@/components/admin/community-operations-tab";
 import { AnalyticsDashboardTab } from "@/components/admin/analytics-dashboard-tab";
+import { TenantNameSettingsCard } from "@/components/admin/tenant-name-settings-card";
+import { ReconciliationTab } from "@/components/admin/reconciliation-tab";
 
 export default async function AgapayTanawPage() {
   const session = await auth();
@@ -78,6 +80,13 @@ export default async function AgapayTanawPage() {
     : { faqs: [], testimonials: [] };
   const feedbackEntries = canViewFeedback ? await getFeedbackEntries() : [];
   const communitySummary = await getCommunityStaffSummary();
+  const currentTenantIdentity =
+    tenantContextId !== null
+      ? await prisma.tenant.findUnique({
+          where: { tenant_id: tenantContextId },
+          select: { tenant_id: true, name: true, entitlement_status: true },
+        })
+      : null;
   const navItems: ShellNavItem[] = [
     { value: "overview", label: "Pangkalahatan", icon: "overview" },
     {
@@ -126,6 +135,14 @@ export default async function AgapayTanawPage() {
     label: "Community",
     icon: "community",
   });
+
+  if (isAdmin || isSuperAdmin) {
+    navItems.push({
+      value: "reconciliation",
+      label: "EOD Reconciliation",
+      icon: "reconciliation",
+    });
+  }
 
   navItems.push({
     value: "settings",
@@ -335,15 +352,41 @@ export default async function AgapayTanawPage() {
 
         <TabsContent value="settings" className="outline-none">
           <div className="flex flex-col items-center justify-center space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-            <div className="text-center space-y-2">
-              <h2 className="text-3xl font-display font-bold text-slate-900 italic">
-                Account Security
-              </h2>
-              <p className="text-slate-500">
-                I-secure ang iyong administrative access gamit ang 2FA.
-              </p>
+            <div className="grid w-full max-w-5xl gap-6">
+              {currentTenantIdentity ? (
+                <TenantNameSettingsCard
+                  tenantId={
+                    session.user.role === "superadmin"
+                      ? currentTenantIdentity.tenant_id
+                      : undefined
+                  }
+                  initialName={currentTenantIdentity.name}
+                  title="Tenant Name"
+                  description={
+                    session.user.role === "superadmin"
+                      ? "Maaari mong i-update ang company o branch name ng kasalukuyang tenant context."
+                      : "Maaari mong i-update ang company o branch name ng iyong tenant."
+                  }
+                />
+              ) : session.user.role === "superadmin" ? (
+                <div className="w-full max-w-2xl rounded-[1.75rem] border border-amber-200 bg-amber-50 p-6 text-sm text-amber-800 shadow-sm">
+                  Pumili muna ng branch sa sidebar kung gusto mong palitan ang
+                  tenant name mula sa `Global View`.
+                </div>
+              ) : null}
+
+              <div className="text-center space-y-2">
+                <h2 className="text-3xl font-display font-bold text-slate-900 italic">
+                  Account Security
+                </h2>
+                <p className="text-slate-500">
+                  I-secure ang iyong administrative access gamit ang 2FA.
+                </p>
+              </div>
+              <div className="flex justify-center">
+                <TwoFactorSetup isEnabledInitial={is2FAEnabled} />
+              </div>
             </div>
-            <TwoFactorSetup isEnabledInitial={is2FAEnabled} />
           </div>
         </TabsContent>
 
@@ -377,6 +420,10 @@ export default async function AgapayTanawPage() {
 
         <TabsContent value="analytics" className="outline-none">
           <AnalyticsDashboardTab />
+        </TabsContent>
+
+        <TabsContent value="reconciliation" className="outline-none">
+          <ReconciliationTab />
         </TabsContent>
       </div>
     </DashboardTabsShell>

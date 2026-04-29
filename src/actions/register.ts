@@ -82,6 +82,26 @@ export const register = async (values: z.infer<typeof RegisterSchema>) => {
 
   const hashedPassword = await bcrypt.hash(password, 10);
 
+  const targetTenant = await prisma.tenant.findUnique({
+    where: { tenant_id: tenantId },
+    select: {
+      tenant_id: true,
+      is_active: true,
+      entitlement_status: true,
+    },
+  });
+
+  if (
+    !targetTenant ||
+    !targetTenant.is_active ||
+    targetTenant.entitlement_status !== "active"
+  ) {
+    return {
+      error:
+        "Hindi pa available ang branch na ito para sa bagong registrations.",
+    };
+  }
+
   const existingUser = await prisma.user.findFirst({
     where: { email, tenant_id: tenantId },
   });

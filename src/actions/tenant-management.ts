@@ -3,6 +3,7 @@
 import prisma from "@/lib/prisma";
 import fs from "fs/promises";
 import path from "path";
+import * as z from "zod";
 
 import { neon } from "@neondatabase/serverless";
 import {
@@ -44,7 +45,9 @@ export async function getTenantsByRegion(regionId: number) {
     const tenants = await sql`
       SELECT tenant_id, name, slug 
       FROM tenants 
-      WHERE tenant_group_id = ${regionId} AND is_active = true 
+      WHERE tenant_group_id = ${regionId}
+      AND is_active = true
+      AND entitlement_status = 'active'
       ORDER BY name ASC
     `;
 
@@ -209,13 +212,176 @@ export async function createBranch(
 
   try {
     const branch = await prisma.tenant.create({
-      data: { name, slug, tenant_group_id: groupId },
+      data: {
+        name,
+        slug,
+        tenant_group_id: groupId,
+        entitlement_status: "prospect",
+      },
     });
 
     return { success: true, data: branch };
   } catch (error) {
     console.error("Failed to create branch:", error);
     return { success: false, error: "Failed to create branch." };
+  }
+}
+
+const RenameTenantSchema = z.object({
+  tenantId: z.number().int().positive().optional(),
+  name: z.string().trim().min(3).max(100),
+});
+
+export async function renameTenant(values: z.infer<typeof RenameTenantSchema>) {
+  const session = await requireAdminSession();
+  const parsed = RenameTenantSchema.safeParse(values);
+
+  if (!parsed.success) {
+    return { success: false, error: "Invalid tenant name." };
+  }
+
+  const requestedTenantId = parsed.data.tenantId ?? undefined;
+  const targetTenantId =
+    session.user.role === "superadmin"
+      ? requestedTenantId
+      : session.user.tenantId ?? undefined;
+
+  if (!targetTenantId) {
+    return { success: false, error: "No tenant selected." };
+  }
+
+  if (
+    session.user.role !== "superadmin" &&
+    session.user.tenantId !== targetTenantId
+  ) {
+    return { success: false, error: "Unauthorized." };
+  }
+
+  try {
+    const result = await prisma.$transaction(async (tx) => {
+      const existing = await tx.tenant.findUnique({
+        where: { tenant_id: targetTenantId },
+        select: { tenant_id: true, name: true },
+      });
+
+      if (!existing) {
+        throw new Error("Tenant not found.");
+      }
+
+      const updated = await tx.tenant.update({
+        where: { tenant_id: targetTenantId },
+        data: { name: parsed.data.name },
+      });
+
+      await tx.auditLog.create({
+        data: {
+          tenant_id: targetTenantId,
+          user_id: session.user.user_id,
+          action: "RENAME_TENANT",
+          entity_type: "Tenant",
+          entity_id: targetTenantId,
+          old_values: { name: existing.name } as any,
+          new_values: { name: parsed.data.name } as any,
+        },
+      });
+
+      return updated;
+    });
+
+    return { success: true, data: result };
+  } catch (error) {
+    console.error("Failed to rename tenant:", error);
+    return { success: false, error: "Failed to rename tenant." };
+  }
+}
+
+const UpdateTenantEntitlementSchema = z.object({
+  tenantId: z.number().int().positive(),
+  entitlementStatus: z.enum(["prospect", "active", "suspended"]),
+  entitlementReference: z
+    .string()
+    .trim()
+    .max(120)
+    .optional()
+    .or(z.literal("")),
+  entitlementNotes: z.string().trim().optional().or(z.literal("")),
+});
+
+export async function updateTenantEntitlement(
+  values: z.infer<typeof UpdateTenantEntitlementSchema>,
+) {
+  const session = await requireSuperadminSession();
+  const parsed = UpdateTenantEntitlementSchema.safeParse(values);
+
+  if (!parsed.success) {
+    return { success: false, error: "Invalid entitlement update." };
+  }
+
+  try {
+    const result = await prisma.$transaction(async (tx) => {
+      const existing = await tx.tenant.findUnique({
+        where: { tenant_id: parsed.data.tenantId },
+        select: {
+          tenant_id: true,
+          entitlement_status: true,
+          lifetime_availed_at: true,
+          entitlement_reference: true,
+          entitlement_notes: true,
+        },
+      });
+
+      if (!existing) {
+        throw new Error("Tenant not found.");
+      }
+
+      const activatingForFirstTime =
+        parsed.data.entitlementStatus === "active" &&
+        existing.lifetime_availed_at === null;
+
+      const updated = await tx.tenant.update({
+        where: { tenant_id: parsed.data.tenantId },
+        data: {
+          entitlement_status: parsed.data.entitlementStatus,
+          entitlement_reference:
+            parsed.data.entitlementReference?.trim() || null,
+          entitlement_notes: parsed.data.entitlementNotes?.trim() || null,
+          entitled_by_user_id: session.user.user_id,
+          lifetime_availed_at: activatingForFirstTime
+            ? new Date()
+            : existing.lifetime_availed_at,
+        },
+      });
+
+      await tx.auditLog.create({
+        data: {
+          tenant_id: parsed.data.tenantId,
+          user_id: session.user.user_id,
+          action: "UPDATE_TENANT_ENTITLEMENT",
+          entity_type: "Tenant",
+          entity_id: parsed.data.tenantId,
+          old_values: {
+            entitlement_status: existing.entitlement_status,
+            lifetime_availed_at: existing.lifetime_availed_at,
+            entitlement_reference: existing.entitlement_reference,
+            entitlement_notes: existing.entitlement_notes,
+          } as any,
+          new_values: {
+            entitlement_status: updated.entitlement_status,
+            lifetime_availed_at: updated.lifetime_availed_at,
+            entitlement_reference: updated.entitlement_reference,
+            entitlement_notes: updated.entitlement_notes,
+            entitled_by_user_id: updated.entitled_by_user_id,
+          } as any,
+        },
+      });
+
+      return updated;
+    });
+
+    return { success: true, data: result };
+  } catch (error) {
+    console.error("Failed to update tenant entitlement:", error);
+    return { success: false, error: "Failed to update tenant access." };
   }
 }
 

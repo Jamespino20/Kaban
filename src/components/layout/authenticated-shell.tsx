@@ -47,7 +47,8 @@ export type ShellIconName =
   | "compassion"
   | "wallet"
   | "community"
-  | "analytics";
+  | "analytics"
+  | "reconciliation";
 
 const ICON_MAP = {
   overview: LayoutDashboard,
@@ -65,6 +66,7 @@ const ICON_MAP = {
   wallet: Wallet,
   community: MessagesSquare,
   analytics: TrendingUp,
+  reconciliation: History,
 } satisfies Record<ShellIconName, React.ComponentType<{ className?: string }>>;
 
 export function AuthenticatedShell({
@@ -76,6 +78,7 @@ export function AuthenticatedShell({
   accent = "emerald",
   tenantName,
   tenantLogoUrl,
+  tenantBrandColor,
   navItems,
   children,
 }: {
@@ -87,6 +90,7 @@ export function AuthenticatedShell({
   accent?: "emerald" | "blue";
   tenantName?: string;
   tenantLogoUrl?: string;
+  tenantBrandColor?: string | null;
   navItems: ShellNavItem[];
   children: React.ReactNode;
 }) {
@@ -95,36 +99,26 @@ export function AuthenticatedShell({
   const [navReady, setNavReady] = useState(false);
   const navScrollRef = useRef<HTMLDivElement>(null);
 
-  const accentStyles =
-    accent === "blue"
-      ? {
-          active:
-            "data-[state=active]:border-blue-400/40 data-[state=active]:bg-blue-500/20 data-[state=active]:text-white",
-          badge:
-            "border-blue-400/20 bg-blue-500/12 text-blue-200 shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]",
-          dot: "bg-blue-400",
-          icon: "text-blue-300",
-          panel:
-            "border border-blue-200/80 bg-gradient-to-br from-blue-50 to-white",
-          highlight:
-            "border-blue-500/25 bg-blue-500/12 text-blue-100 hover:border-blue-400/35 hover:bg-blue-500/18",
-          surface:
-            "border-white/10 bg-[linear-gradient(180deg,rgba(15,23,42,0.96),rgba(2,6,23,0.98))]",
-        }
-      : {
-          active:
-            "data-[state=active]:border-emerald-400/40 data-[state=active]:bg-emerald-500/20 data-[state=active]:text-white",
-          badge:
-            "border-emerald-400/20 bg-emerald-500/12 text-emerald-200 shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]",
-          dot: "bg-emerald-400",
-          icon: "text-emerald-300",
-          panel:
-            "border border-emerald-200/80 bg-gradient-to-br from-emerald-50 to-white",
-          highlight:
-            "border-emerald-500/25 bg-emerald-500/12 text-emerald-100 hover:border-emerald-400/35 hover:bg-emerald-500/18",
-          surface:
-            "border-white/10 bg-[linear-gradient(180deg,rgba(15,23,42,0.96),rgba(2,6,23,0.98))]",
-        };
+  // We explicitly apply the 'dark' variant internally for the sidebar if needed,
+  // but using generic CSS variable utilities allows the injected --primary to shine.
+  const dynamicStyles = {
+    active:
+      "data-[state=active]:border-primary/40 data-[state=active]:bg-primary/20 data-[state=active]:text-white",
+    badge:
+      "border-primary/20 bg-primary/12 text-primary shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]",
+    dot: "bg-primary",
+    icon: "text-primary",
+    panel:
+      "border border-primary/20 bg-gradient-to-br from-primary/5 to-white/95",
+    highlight:
+      "border-primary/25 bg-primary/12 text-primary hover:border-primary/35 hover:bg-primary/18",
+    surface:
+      "border-white/10 bg-[linear-gradient(180deg,rgba(15,23,42,0.96),rgba(2,6,23,0.98))]",
+  };
+
+  const cssVars = tenantBrandColor
+    ? ({ "--primary": tenantBrandColor } as React.CSSProperties)
+    : {};
 
   useEffect(() => {
     // Delay enabling scroll so Radix's focus-triggered scrollIntoView
@@ -136,7 +130,7 @@ export function AuthenticatedShell({
 
   const renderSidebar = () => (
     <div
-      className={`flex h-full flex-col border-r ${accentStyles.surface} text-white`}
+      className={`flex h-full flex-col border-r ${dynamicStyles.surface} text-white`}
     >
       <div className="flex items-center justify-between border-b border-white/10 px-4 py-5">
         <div
@@ -169,30 +163,21 @@ export function AuthenticatedShell({
               )}
             </div>
             <div className="min-w-0">
-              <p className="truncate text-lg font-black italic tracking-tight text-white">
+              <p className="truncate text-lg font-black tracking-tight text-white">
                 {tenantName || "Agapay"}
               </p>
-              <p
-                className={`truncate text-[11px] uppercase tracking-[0.24em] ${
-                  tenantName ? "text-slate-300" : "text-slate-400"
-                }`}
-              >
-                {tenantName ? "Cooperative" : "Cooperative SaaS"}
-              </p>
+              <div className="flex items-center gap-1.5 opacity-60">
+                <span className="text-[9px] font-bold uppercase tracking-wider text-slate-300">
+                  Powered by
+                </span>
+                <img
+                  src="/images/agapay_titled.png"
+                  alt="Agapay"
+                  className="h-3 object-contain opacity-80 filter brightness-200"
+                />
+              </div>
             </div>
           </div>
-          {tenantName && (
-            <div className="mt-1 flex items-center gap-1.5 pl-1 opacity-60">
-              <span className="text-[9px] font-bold uppercase tracking-wider text-slate-300">
-                Powered by
-              </span>
-              <img
-                src="/images/agapay_titled.png"
-                alt="Agapay"
-                className="h-3 object-contain opacity-80"
-              />
-            </div>
-          )}
         </div>
 
         <div className="flex items-center gap-2">
@@ -233,7 +218,7 @@ export function AuthenticatedShell({
                 key={item.value}
                 value={item.value}
                 onClick={() => setMobileOpen(false)}
-                className={`group h-auto w-full justify-start rounded-2xl border px-3 py-2 text-left text-slate-300 transition-all hover:border-white/12 hover:bg-white/6 hover:text-white ${accentStyles.active} ${
+                className={`group h-auto w-full justify-start rounded-2xl border px-3 py-2 text-left text-slate-300 transition-all hover:border-white/12 hover:bg-white/6 hover:text-white ${dynamicStyles.active} ${
                   collapsed ? "xl:px-2.5" : ""
                 }`}
               >
@@ -254,11 +239,7 @@ export function AuthenticatedShell({
                     <span
                       className={`rounded-full border border-white/10 px-2 py-1 text-[10px] font-black ${
                         collapsed ? "xl:hidden" : ""
-                      } ${
-                        accent === "blue"
-                          ? "bg-blue-400/15 text-blue-200"
-                          : "bg-emerald-400/15 text-emerald-200"
-                      }`}
+                      } ${dynamicStyles.badge}`}
                     >
                       {item.badge}
                     </span>
@@ -278,7 +259,7 @@ export function AuthenticatedShell({
 
           <div className="flex items-center gap-3">
             <div
-              className={`flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-2xl font-black ${accentStyles.panel} ${accentStyles.icon}`}
+              className={`flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-2xl font-black ${dynamicStyles.panel} ${dynamicStyles.icon}`}
             >
               {accountName.slice(0, 2).toUpperCase()}
             </div>
@@ -295,7 +276,7 @@ export function AuthenticatedShell({
           <Button
             variant="ghost"
             onClick={() => signOut({ callbackUrl: "/" })}
-            className={`w-full justify-start rounded-2xl border px-4 py-3 text-slate-100 ${accentStyles.highlight}`}
+            className={`w-full justify-start rounded-2xl border px-4 py-3 text-slate-100 ${dynamicStyles.highlight}`}
           >
             <LogOut className="mr-3 h-4 w-4" />
             <span className={collapsed ? "xl:hidden" : ""}>Logout</span>
@@ -306,7 +287,10 @@ export function AuthenticatedShell({
   );
 
   return (
-    <div className="min-h-screen bg-slate-950 text-white lg:flex lg:h-screen lg:overflow-hidden">
+    <div
+      className="min-h-screen bg-slate-950 text-white lg:flex lg:h-screen lg:overflow-hidden"
+      style={cssVars}
+    >
       <div
         className={`fixed inset-0 z-40 bg-slate-950/55 backdrop-blur-sm transition-opacity duration-200 lg:hidden ${
           mobileOpen
@@ -365,9 +349,11 @@ export function AuthenticatedShell({
               </div>
             </div>
             <div
-              className={`inline-flex items-center gap-2 self-start rounded-full border px-4 py-2 lg:self-auto ${accentStyles.badge}`}
+              className={`inline-flex items-center gap-2 self-start rounded-full border px-4 py-2 lg:self-auto ${dynamicStyles.badge}`}
             >
-              <div className={`h-2.5 w-2.5 rounded-full ${accentStyles.dot}`} />
+              <div
+                className={`h-2.5 w-2.5 rounded-full ${dynamicStyles.dot}`}
+              />
               <span className="text-xs font-bold uppercase tracking-[0.2em]">
                 {portalLabel}
               </span>

@@ -1,0 +1,235 @@
+I made a PRD issue list along with the business flow audit, encompassing every aspect from general issues to role-based issues and discrepancies.
+
+GENERAL:
+- Login should have a Forgot Password flow where it sends an email for a tokenized, expiring password reset link.
+- The Pangkalahatan header bit remains stagnant with the exception of the [role] portal
+- Logging in, registering, and changing branches leads users back to the homepage
+- Homepage's Calculator should have Weekly, Bi-weekly, and Monthly for Payment Cadences
+- Registering an account makes this error:
+prisma:error 
+Invalid `prisma.userProfile.create()` invocation:
+
+
+The provided value for the column is too long for the column's type. Column: (not available)
+Registration transaction error: Error [PrismaClientKnownRequestError]: 
+Invalid `prisma.userProfile.create()` invocation:
+
+
+The provided value for the column is too long for the column's type. Column: (not available)
+    at async (.next/server/chunks/553.js:1:48586)
+    at async x (.next/server/chunks/553.js:1:48278) {
+  code: 'P2000',
+  meta: [Object],
+  clientVersion: '7.8.0'
+}
+- Feedback systems are missing in every transactional request, loan application, mock fund release, recovery loan, payments, cancellations, rejections, and other processes. 
+- Inactivity timer should be existing
+- Messaging module is not designed and laid out like conventional socmed chat systems.
+- Modules are not similar in naming across some roles.
+- Updates do not dynamically happen (I have to reload it just for updates to come in)
+- The scroll location does not reset to the top whenever the user switch modules
+- Notifications are missing
+- All emails should use the @agapay_titled.png photo for its header.
+- Branches should have their cooperatives logo with a "Powered by @agapay_titled.png" caption
+- Contact Us page in homepage should also allow cooperatives application through the mailing system [should have specific criteria and documents first before superadmin allows it]
+- There is no way right now to actually rate cooperatives and members/lenders' vouch scores and trust meters (We'll need to have a solid and realistic criteria and score for this one)
+
+
+SUPERADMIN (Maintains the global view, no branch swapping in the sidebar):
+- Pangkalahatan Module could use a design overhaul as well as more optimized KPIs
+- Mga Pag-apruba module looks really clunky. It could use a header selector that separates Loan Applications, Mock Fund Releases, and so on and forth. The cards could use more information attached to it.
+- Mga Miyembro module could use more management actions like role filters, branch filters, and three-dot actions. Vouch Scores, Trust Meters, and other information. Standardize the information displayed. Add a branch column. Add lenders and admins in the members list. Superadmins should allow creation of admins and lenders, along with assigning them to one vacant cooperative region.
+- Produkto ng Loan module should be a global view. It could use a header selector that separates the information from branches (in the header selector, there should be a global view). Add three-dot actions as well. The global view should be the default products. Add a guarantor liability percentage column. Add a setting to define what payment cadance should the loan product be.
+- Global Tenant Mgmt module should segregate branches according to regions. Add Branch should include the logo upload and the hexcolors (implement color pickers). Decommissioning a branch doesn't work due to this error:
+Decommissioning failed: Error: ENOENT: no such file or directory, mkdir '/var/task/tmp'
+    at async (.next/server/app/agapay-tanaw/page.js:18:51)
+    at async p (.next/server/app/agapay-tanaw/page.js:17:546) {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'mkdir',
+  path: '/var/task/tmp'
+}
+- In Homepage Content, Testimonial Moderation's Photo URL does not show the picture in the homepage. The pending, rejected, published part should be pending, published, rejected, all with their own internal scrollbars. For Pending, it should reveal what admin made the FAQ or Testimonial push.
+- Community Module should be renamed to Ka-Agapay Community, and should be laid out more properly.
+- Audit Logs module has a problem where if one card was expanded, the rest does.
+- Compassion Actions does not have any responses due to lack of actions from other roles.
+- Analytics Insights has no data
+- Settings should be more expanded to allow profile image, username, email, and phone number changes. There should be other preferences like dark mode, accessibility, and other relevant settings.
+- It should be Compassion Actions, Analytics Insights, Audit Logs, then Settings.
+
+
+ADMIN (scoped tenant view)
+- Pangkalahatan Module could use a design overhaul as well as more optimized KPIs
+- Mga Pag-apruba module looks really clunky. It could use a header selector that separates Loan Applications, Mock Fund Releases, and so on and forth. The cards could use more information attached to it.
+- Mga Miyembro module could use more management actions like role filters, branch filters, and three-dot actions. Vouch Scores, Trust Meters, and other information. Standardize the information displayed. Add a branch column. Add lenders and admins in the members list. Admins should allow creation of lenders but as a way to send creation requests to the superadmin.
+- Produkto ng Loan module should be a global view. It could use a header selector that separates the information from branches (in the header selector, there should be a global view). Add three-dot actions as well. The global view should be the default products. Add a guarantor liability percentage column. Add a setting to define what payment cadance should the loan product be.
+- In Homepage Content, Testimonial Moderation's Photo URL does not show the picture in the homepage. The pending, rejected, published part should be pending, published, rejected, all with their own internal scrollbars.
+- Community Module should be renamed to Ka-Agapay Community, and should be laid out more properly.
+- Audit Logs module has a problem where if one card was expanded, the rest does.
+- Compassion Actions does not have any responses due to lack of actions from other roles.
+- Analytics Insights has no data
+- Settings should be more expanded to allow profile image, username, email, and phone number changes. There should be other preferences like dark mode, accessibility, and other relevant settings.
+- It should be Compassion Actions, Analytics Insights, Audit Logs, then Settings.
+
+
+LENDER (scoped tenant view, limited systems perms)
+- Pangkalahatan Module could use a design overhaul as well as more optimized KPIs
+- Mga Pag-apruba module looks really clunky. It could use a header selector that separates Loan Applications, Mock Fund Releases, and so on and forth. The cards could use more information attached to it.
+- Mga Miyembro module could use more management actions like role filters, branch filters, and three-dot actions. Vouch Scores, Trust Meters, and other information. Standardize the information displayed. Add a branch column. Add admins in the members list.
+- Community Module should be renamed to Ka-Agapay Community, and should be laid out more properly.
+- Compassion Actions is non-existent and does not have any responses due to lack of actions from other roles.
+- Analytics Insights and Audit Logs are not under the lender's responsibility
+- Settings should be more expanded to allow profile image, username, email, and phone number changes. There should be other preferences like dark mode, accessibility, and other relevant settings.
+- It should be Compassion Actions, then Settings.
+
+
+MEMBER (scoped tenant view)
+- Pangkalahatan Module could use a design overhaul as well as more optimized KPIs
+- Wallet & Ipon module could use more information content. The Petsa in Kumakailang Transaksyon all have invalid dates. That table could use a dropdown mechanic to display more details. The Magdagdag sa Wallet button should be stricter in terms of depositing money (incase the money just came from other branches as a way to pay off one debt from Branch A by having one from Branch B for example)
+- Mag-loan button should already warn the user if they have already made a loan (provide what that loan is) to avoid making too many loans that end up not being paid. When checking for a loan, the application form UI is very clunky. The Dalas ng Pagbabayad should reflect available payment cadences. The guarantor search bar could become a dropdown checkbox with better lazyloading suggestions from co-branch members.
+- Community Module should be renamed to Ka-Agapay Community, and should be laid out more properly.
+- Compassion Actions is non-existent and does not have any responses due to lack of actions from other roles.
+- Settings should be more expanded to allow profile image, username, email, and phone number changes. There should be other preferences like dark mode, accessibility, and other relevant settings.
+
+
+
+For the checklist, here's what I got:
+
+1. Multi-Tenant Architecture & Identity
+Multi-tenancy isolation via tenant_id and strict data privacy.
+[/] Cross-Tenant Leakage Check: Verify that a user cannot access loans, messages, or ledgers from a different tenant.
+[/] Email Singularity Validation: Ensure the same email can register in multiple tenants but holds distinct trust scores and passwords per cooperative.
+[/] Branch Switcher Integrity: Does switching branches correctly route the user and invalidate cross-tenant sessions securely?
+[ ] UI Branding Isolation: Confirm dynamic CSS tokens (brand_color, logo_url) inject safely without flashing or bleeding.
+
+2. Member Onboarding & Verification
+Secured multi-layer KYC and trust initiation.
+[ ] KYC Document Upload: Validate handling of ID, Barangay Cert, Business Permit.
+[ ] Starter Tier Restriction: Ensure newly verified users strictly default to the "Starter" loan limit (₱5,000).
+[/] Guarantor Endorsement Logic: Can a user legally invite/select guarantors only from their active tenant? (Also allows for same member, different tenant suggestions)
+[ ] Admin Approval Flow: Verify the Tanaw queue accurately displays pending profiles without truncation.
+
+3. The Loan Lifecycle & Computation
+Core financial pipeline from application to clearance.
+[ ] Tier Checks: Reject loan applications exceeding the member's current Trust Tier limit.
+[ ] Fixed vs Declining Balance Math: Ensure entry-level loans strictly use Fixed, while Trusted/Elite users are dynamically offered Declining Balance math.
+[ ] Repayment Frequency Matrix: Validate computations correctly branch based on weekly, bi_weekly, and monthly frequencies.
+[/] SOA Truth Extraction: Ensure the Statement of Account derives balances from business_ledger rather than isolated double-subtractions to prevent desync.
+[ ] Edge Case: Partial repayments lower the principal but correctly handle remnant balances in subsequent schedules.
+
+4. Default, Penalties & Guarantor Catchment
+Ethical penalty caps and community accountability.
+[ ] Penalty Rates Logic: Verify the exact mathematical steps (1-3 days: 2%, 4-7 days: 5%, 8-14 days: 8%, 15-30 days: 12%).
+[ ] Maximum Penalty Cap: Test that penalties NEVER exceed 20% of the missed installment. (No compounding).
+[ ] Guarantor Liability Trigger: Upon system declaration of "Default", ensure 20-30% liability is legally bound to the Guarantor's ledger.
+[ ] Trust Graph Impact: Ensure both borrower and guarantor suffer localized (tenant-scoped) Trust Score drops.
+
+5. Compassion Policy Enforcement
+Ethical overrides for emergencies.
+[ ] Approval Mechanism: Triggering a Compassion Action requires Admin verification.
+[ ] Frequency Rule Enforcement: Guarantee the system hard-blocks a second Compassion use within the same loan cycle.
+[ ] Action Integrity: Test "Grace Period" (shifting schedules without late hits), "Restructuring" (altering terms), and "Penalty Freeze".
+
+
+6. Community, Mentorship & Messaging
+The social engine of Agapay.
+[/] Intra-Tenant Boundaries: Confirm that Direct Messages and Branch Rooms strictly forbid cross-tenant querying.
+[/] Hybrid Mentorship Protocol: Verify a member can request mentorship, but it remains "pending" structurally until an Admin/Lender endorses it.
+[ ] Compact Composer UX: Ensure the chat interface is visually integrated and not floating arbitrarily.
+
+7. UI/UX, Localization, and Roles
+[/] Tagalog-first ecosystem with compact SaaS density. [SaaS density is the issue]
+[/] 100% Tagalog Coverage (Non-Technical): Verify all operational strings (Loan, Repayment, Dashboard) are localized properly, leaving "API", "SSL" in English.
+[/] Compact Layout Architecture: Ensure the newer Tailwind v4 CSS variables layout works cleanly without excessive "empty state" padding for low-literacy users.
+[/] Role Authorization: Attempt to access agapay-tanaw with a Member session.user.role to ensure strict middleware rebounds.
+
+
+Now here are some things I've gotten from some sources of mine:
+
+### 1. The "Paper Trail" & Legal Compliance (DPA 2012)
+Your current audit focuses on the **technical** isolation of data, but lacks the **legal** isolation required by the **Philippine Data Privacy Act (DPA) of 2012**.
+**Missing Feature:** **Tenant-Specific Terms & Conditions (T&C).** Because these are separate legal entities (Cooperatives), a member must "Sign" a T&C specifically for *that* tenant during onboarding. 
+* **Missing Feature:** **Data Privacy Consent Dashboard.** Members should see a clear "What this Co-op sees" vs. "What Agapay (Superadmin) sees" toggle to ensure compliance.
+
+### 2. Financial Reconciliation (The "Master vs. Member" Ledger)
+[cite_start]You mentioned ensuring the **Statement of Account (SOA)** derives from a `business_ledger`[cite: 77], which is excellent. However, there is no mention of **Reconciliation**.
+* **The Problem:** What happens if a database update fails halfway through a payment?
+* [cite_start]**Missing Feature:** **End-of-Day (EOD) Reconciliation.** An automated "Pulse Check" in **Agapay Tanaw** [cite: 29] that compares the sum of all Member Wallets against the Co-op’s declared Treasury. If they don't match, the Admin gets an "Imbalance Alert."
+
+### 3. The "Kaagapay" (Guarantor) Exit Strategy
+[cite_start]Your PRD handles what happens when things go *wrong* (Liability Trigger)[cite: 82], but not when things stay *right* for too long.
+* **Missing Feature:** **Guarantor Revocation/Transfer.** Can a Kaagapay "retire" from their responsibility if the borrower has already paid 80% of the loan? 
+* **The "Grey Area":** If a Kaagapay wants to leave the Cooperative entirely but is still "on the hook" for a borrower's active loan, the system needs a protocol for "Transferring Liability" to a new guarantor.
+
+### 4. Operational Resilience (The "Brownout" Factor)
+[cite_start]You noted the need for **Tailwind v4** for low-literacy users[cite: 92], but we must consider **Low-Connectivity** users.
+* **Missing Feature:** **Offline-First Payment Schedules.** In **Agapay Pintig**, the user’s current loan schedule and "Trust Score" should be cached locally. A vendor shouldn't need a 5G signal just to check when their next ₱500 payment is due.
+* [cite_start]**Missing Feature:** **SMS Gateway Integration.** While you mentioned email for header photos[cite: 8], most market vendors rely 100% on SMS. [cite_start]Your "Forgot Password" [cite: 2] [cite_start]and "Calamity Alerts" [cite: 86] need an SMS fallback to be "Anti-GCash" in terms of accessibility.
+
+### 5. Advanced Trust Metrics (Objectifying the "Vouch Score")
+[cite_start]You correctly identified that a "Solid and realistic criteria" is missing for trust meters[cite: 9]. 
+* **Missing Logic:** **The "Reciprocity Score."** * If I vouch for someone and they pay on time, *my* score goes up. 
+    * If I vouch for someone and they default, *my* score goes down. 
+    * If I have a high score but refuse to vouch for anyone, my "Community Contribution" score stays stagnant. This encourages the "Bayanihan" growth you want.
+
+---
+
+### [cite_start]**Coach's Refinement of the "Compassion Policy"** [cite: 84]
+[cite_start]You have a "Frequency Rule" (limited to once per cycle)[cite: 85]. I suggest adding a **"Tier-Based Mercy"** system:
+* **Starter Tier:** 1 week grace period max.
+* **Suki (Elite) Tier:** 2 weeks grace period + option for "Term Extension" without a credit hit. This makes the "Elite" status more than just a higher limit—it’s a safety net.
+
+
+Your professor’s instruction on **Locked Access** is a cornerstone of "Software as a Service" (SaaS) and fintech. It prevents "feature creep" for users and manages risk for the cooperative. 
+
+To make this platform more than just a utility, we need to lean into **Behavioral Economics**. Here is how to implement the locked access and the "hooks" to keep the **Kaagapay** (members) engaged and disciplined.
+
+---
+
+### 1. Implementing "Locked Access" (Tier-Gated UI)
+
+The goal is to show members what they *could* have, but prevent them from touching it until they prove their reliability.
+
+* **For Members (The "Loan Ladder"):**
+    * [cite_start]**Visual Gates:** In the **Agapay Pintig** app, display higher-tier loan products (e.g., the ₱50,000 "Suki" loan) but with a "lock" icon and a progress bar[cite: 74].
+    * [cite_start]**Requirement Tooltips:** When a user clicks a locked loan, the system should say: *"Tapusin ang 2 pang loan cycles para ma-unlock ito"* (Finish 2 more loan cycles to unlock this)[cite: 70, 72].
+    * [cite_start]**Math Transformation:** Only "Elite" users should even see the option for **Declining Balance** math, which is a reward for financial literacy[cite: 75].
+* **For Lenders (Role-Based Permissions):**
+    * [cite_start]**Scoped Authority:** Lenders can view member profiles and vouch scores but are "locked out" of changing branch-wide hex colors or global loan products, as those are Admin/Superadmin responsibilities[cite: 52, 13].
+    * [cite_start]**Approval Siloing:** Lenders may have "Partial Approval" rights, where they verify the documents, but the "Final Release" button remains locked until an Admin clears it[cite: 30, 47].
+
+---
+
+### 2. Psychological Hooks: Making Agapay "Sticky"
+
+To compete with the convenience of GCash, Agapay must use **Social Capital** and **Progressive Rewards**.
+
+#### **A. The "Suki" Prestige System (Status Hook)**
+In Philippine culture, being a *"Suki"* isn't just about being a customer; it’s a relationship. 
+* **Feature:** Give Tier 3 users a digital "Suki Badge" in the app.
+* **Psychology:** This acts as **Social Proof**. [cite_start]When they vouch for someone else, their badge appears next to their name, making their endorsement more valuable[cite: 9, 12].
+
+#### **B. Interest Rate "Level-Downs" (Variable Reward)**
+Instead of a flat rate, frame interest as something the user has the power to change.
+* [cite_start]**Feature:** If a user pays 100% of their installments early for three months, the interest rate for their *next* loan drops by 0.5% (down to your 3% floor)[cite: 43].
+* **The Formula:** $$Interest_{next} = Rate_{base} - (Reliability\_Score \times Multiplier)$$
+* **Psychology:** This triggers **Loss Aversion**. Once they "earn" a 3.5% rate, they will work twice as hard to not "lose" it by being late.
+
+#### **C. The "Vouch" Streak (Social Reciprocity)**
+* **Feature:** Create a "Community Hero" score. [cite_start]Every time a person you vouched for pays on time, your own Trust Meter grows[cite: 12, 16].
+* **Psychology:** This creates **Group Accountability**. It’s no longer just about their debt; it’s about their friend’s reputation.
+
+#### **D. Milestone Celebrations (Dopamine Hits)**
+* **Feature:** When a loan is fully paid (*Clearance*), don't just show a list. [cite_start]Show a "Certificate of Completion" or an animation of the **Asenso** sun rising[cite: 77]. 
+* **Psychology:** This provides a sense of **Achievement** and closure, making the user eager to start the next cycle.
+
+---
+
+### 3. Updated "Kaagapay" Engagement Matrix
+
+| Hook | Mechanism | Psychological Trigger |
+| :--- | :--- | :--- |
+| **Locked Tiers** | Displaying "Elite" ₱100k limits to Starter users. | [cite_start]**Aspiration** (The "OVM" or One-Up Effect)[cite: 74]. |
+| **Vouch Points** | Earning "Vouch Power" to help family members. | [cite_start]**Altruism & Authority** (Community leadership)[cite: 71]. |
+| **Penalty Freeze** | The "Calamity" notification during a storm. | [cite_start]**Gratitude & Trust** (The "Anti-Predatory" hook)[cite: 86]. |
+| **Streak Rewards** | Small interest rebates for early payments. | **Gamification** (Beat the "House" rate). |

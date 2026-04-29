@@ -1,4 +1,5 @@
 import { auth } from "@/lib/auth";
+import prisma from "@/lib/prisma";
 
 export type AuthorizedSession = {
   user: {
@@ -24,6 +25,21 @@ export async function requireAuthenticatedSession(): Promise<AuthorizedSession> 
   const session = await auth();
   if (!session?.user?.id) {
     throw new Error("Unauthorized");
+  }
+
+  if (session.user.role !== "superadmin" && session.user.tenantId) {
+    const tenant = await prisma.tenant.findUnique({
+      where: { tenant_id: session.user.tenantId },
+      select: { is_active: true, entitlement_status: true },
+    });
+
+    if (
+      !tenant ||
+      !tenant.is_active ||
+      tenant.entitlement_status !== "active"
+    ) {
+      throw new Error("TenantAccessUnavailable");
+    }
   }
 
   return session as unknown as AuthorizedSession;

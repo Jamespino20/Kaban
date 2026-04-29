@@ -5,7 +5,7 @@ import prisma from "@/lib/prisma";
 export async function getTenants() {
   try {
     const tenants = await prisma.tenant.findMany({
-      where: { is_active: true },
+      where: { is_active: true, entitlement_status: "active" },
       select: {
         tenant_id: true,
         name: true,

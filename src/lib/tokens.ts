@@ -69,3 +69,36 @@ export const generateTwoFactorToken = async (
     email,
   };
 };
+
+export const generatePasswordResetToken = async (
+  email: string,
+  tenantId: number | null,
+) => {
+  const token = uuidv4();
+  const expires = new Date(new Date().getTime() + 3600 * 1000); // 1 hour
+  const normalizedEmail = normalizeEmail(email);
+
+  const existingToken = await prisma.passwordResetToken.findFirst({
+    where: { email: normalizedEmail, tenant_id: tenantId },
+  });
+
+  if (existingToken) {
+    await prisma.passwordResetToken.delete({
+      where: { id: existingToken.id },
+    });
+  }
+
+  const passwordResetToken = await prisma.passwordResetToken.create({
+    data: {
+      tenant_id: tenantId,
+      email: normalizedEmail,
+      token,
+      expires,
+    },
+  });
+
+  return {
+    ...passwordResetToken,
+    email,
+  };
+};

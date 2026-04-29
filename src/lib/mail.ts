@@ -80,6 +80,30 @@ export const sendVerificationEmail = async (email: string, token: string) => {
   });
 };
 
+export const sendPasswordResetEmail = async (email: string, token: string) => {
+  const resetLink = `${process.env.NEXT_PUBLIC_APP_URL}/auth/new-password?token=${token}`;
+
+  await transporter.sendMail({
+    from: process.env.SMTP_FROM,
+    to: email,
+    subject: "I-reset ang iyong Password - Agapay",
+    html: `
+      <div style="font-family: sans-serif; max-width: 600px; margin: auto; border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden;">
+        <div style="background-color: #059669; padding: 40px; text-align: center;">
+          <h1 style="color: white; margin: 0; font-style: italic;">Agapay</h1>
+        </div>
+        <div style="padding: 40px; color: #1e293b;">
+          <h2>Nakalimutan ang Password?</h2>
+          <p>I-click ang button sa ibaba upang i-reset ang iyong password para sa Agapay. Ang link na ito ay valid lamang sa loob ng isang oras.</p>
+          <a href="${resetLink}" style="display: block; width: 200px; margin: 30px auto; padding: 15px; background-color: #059669; color: white; text-decoration: none; text-align: center; border-radius: 30px; font-weight: bold;">I-reset ang Password</a>
+          <p style="font-size: 14px; color: #64748b;">O i-copy itong link sa iyong browser: ${resetLink}</p>
+          <p style="font-size: 14px; color: #64748b; margin-top: 20px;">Kung hindi mo ito hiningi, maaari mo itong balewalain nang ligtas.</p>
+        </div>
+      </div>
+    `,
+  });
+};
+
 export const sendFeedbackNotificationEmail = async ({
   name,
   email,
