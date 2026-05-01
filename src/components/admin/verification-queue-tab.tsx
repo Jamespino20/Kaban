@@ -2,14 +2,13 @@
 
 import React, { useState, useTransition } from "react";
 import {
-  FileText,
-  UserCheck,
-  Fingerprint,
-  Calendar,
-  Wallet,
-  Send,
   BadgeCheck,
+  Calendar,
+  Fingerprint,
+  Send,
   ShieldAlert,
+  UserCheck,
+  Wallet,
 } from "lucide-react";
 import { format } from "date-fns";
 import { toast } from "sonner";
@@ -34,8 +33,8 @@ import {
   approveLoanApplication,
   rejectLoanApplication,
   releaseLoanFunds,
-  verifySubmittedPayment,
   rejectSubmittedPayment,
+  verifySubmittedPayment,
 } from "@/actions/loan-servicing";
 import { manuallyDeclareDefault } from "@/actions/admin-actions";
 import { useRouter } from "next/navigation";
@@ -51,6 +50,45 @@ interface VerificationQueueTabProps {
   };
 }
 
+type QueueKey =
+  | "loans"
+  | "release"
+  | "payments"
+  | "identity"
+  | "delinquent";
+
+const QUEUE_TABS: Array<{
+  key: QueueKey;
+  label: string;
+  color: string;
+}> = [
+  {
+    key: "loans",
+    label: "Loan Applications",
+    color: "border-indigo-300 text-indigo-700 bg-indigo-50",
+  },
+  {
+    key: "release",
+    label: "Fund Releases",
+    color: "border-emerald-300 text-emerald-700 bg-emerald-50",
+  },
+  {
+    key: "payments",
+    label: "Pending Payments",
+    color: "border-amber-300 text-amber-700 bg-amber-50",
+  },
+  {
+    key: "identity",
+    label: "ID Verification",
+    color: "border-sky-300 text-sky-700 bg-sky-50",
+  },
+  {
+    key: "delinquent",
+    label: "Delinquent / Recovery",
+    color: "border-rose-300 text-rose-700 bg-rose-50",
+  },
+];
+
 export function VerificationQueueTab({ data }: VerificationQueueTabProps) {
   const {
     loans,
@@ -61,68 +99,75 @@ export function VerificationQueueTab({ data }: VerificationQueueTabProps) {
     overdueLoans = [],
   } = data;
 
-  const [activeQueue, setActiveQueue] = useState<
-    "loans" | "release" | "payments" | "identity" | "delinquent"
-  >("loans");
+  const [activeQueue, setActiveQueue] = useState<QueueKey>("loans");
 
-  const tabs = [
-    {
-      key: "loans" as const,
-      label: "Loan Applications",
-      count: loans.length,
-      color: "text-indigo-600 border-indigo-500",
-    },
-    {
-      key: "release" as const,
-      label: "Fund Releases",
-      count: approvedLoans.length,
-      color: "text-emerald-600 border-emerald-500",
-    },
-    {
-      key: "payments" as const,
-      label: "Pending Payments",
-      count: pendingPayments.length,
-      color: "text-amber-600 border-amber-500",
-    },
-    {
-      key: "identity" as const,
-      label: "ID Verification",
-      count: verifications.length,
-      color: "text-blue-600 border-blue-500",
-    },
-    {
-      key: "delinquent" as const,
-      label: "Delinquent / Recovery",
-      count: overdueLoans.length + recoveryLoans.length,
-      color: "text-red-600 border-red-500",
-    },
-  ];
+  const counts: Record<QueueKey, number> = {
+    loans: loans.length,
+    release: approvedLoans.length,
+    payments: pendingPayments.length,
+    identity: verifications.length,
+    delinquent: overdueLoans.length + recoveryLoans.length,
+  };
+
+  const activeMeta = QUEUE_TABS.find((tab) => tab.key === activeQueue);
 
   return (
-    <div className="space-y-6">
-      {/* Header tab selector */}
-      <div className="flex flex-wrap gap-2 border-b border-slate-200 pb-3">
-        {tabs.map((tab) => (
-          <button
-            key={tab.key}
-            onClick={() => setActiveQueue(tab.key)}
-            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition-all cursor-pointer ${
-              activeQueue === tab.key
-                ? `bg-white shadow-sm border-b-2 ${tab.color} text-slate-900`
-                : "text-slate-500 hover:text-slate-700 hover:bg-slate-50"
-            }`}
-          >
-            {tab.label}
-            {tab.count > 0 && (
-              <span className="ml-1 rounded-full bg-slate-100 px-2 py-0.5 text-xs font-black text-slate-600">
-                {tab.count}
+    <div className="space-y-4">
+      <div className="rounded-[1.75rem] border border-slate-200/70 bg-white/90 p-4 shadow-sm">
+        <div className="mb-4 flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
+          <div className="space-y-1">
+            <p className="text-[11px] font-black uppercase tracking-[0.2em] text-slate-400">
+              Verification Queue
+            </p>
+            <h2 className="text-xl font-display font-bold italic text-slate-950">
+              Mga aksyong naghihintay ng review
+            </h2>
+            <p className="text-sm text-slate-500">
+              Isang compact na view para sa approvals, releases, payments, at
+              delinquency handling.
+            </p>
+          </div>
+
+          <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3">
+            <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400">
+              Aktibong Queue
+            </p>
+            <div className="mt-1 flex items-center gap-3">
+              <span className="text-sm font-black text-slate-900">
+                {activeMeta?.label}
               </span>
-            )}
-          </button>
-        ))}
+              <span className="rounded-full bg-slate-900 px-2 py-1 text-[10px] font-black text-white">
+                {activeMeta ? counts[activeMeta.key] : 0}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <div className="flex flex-wrap gap-2">
+          {QUEUE_TABS.map((tab) => {
+            const isActive = activeQueue === tab.key;
+            return (
+              <button
+                key={tab.key}
+                onClick={() => setActiveQueue(tab.key)}
+                className={`flex items-center gap-2 rounded-2xl border px-3 py-2 text-sm font-bold transition-all ${
+                  isActive
+                    ? `${tab.color} shadow-sm`
+                    : "border-slate-200 text-slate-500 hover:bg-slate-50 hover:text-slate-700"
+                }`}
+              >
+                <span>{tab.label}</span>
+                {counts[tab.key] > 0 ? (
+                  <span className="rounded-full bg-slate-900 px-2 py-1 text-[10px] font-black text-white">
+                    {counts[tab.key]}
+                  </span>
+                ) : null}
+              </button>
+            );
+          })}
+        </div>
       </div>
 
-      {/* Active queue panel */}
       <div className="animate-in fade-in duration-300">
         {activeQueue === "loans" && <PendingLoansSection loans={loans} />}
         {activeQueue === "release" && (
@@ -135,7 +180,7 @@ export function VerificationQueueTab({ data }: VerificationQueueTabProps) {
           <IdentityVerificationSection verifications={verifications} />
         )}
         {activeQueue === "delinquent" && (
-          <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 gap-4 xl:grid-cols-2">
             <OverdueLoansSection loans={overdueLoans} />
             <RecoveryLoansSection loans={recoveryLoans} />
           </div>
@@ -152,8 +197,9 @@ function PendingLoansSection({ loans }: { loans: any[] }) {
   const handleApprove = (loanId: number) => {
     startTransition(async () => {
       const res = await approveLoanApplication({ loanId });
-      if (res.error) toast.error(res.error);
-      else {
+      if (res.error) {
+        toast.error(res.error);
+      } else {
         toast.success(res.success);
         router.refresh();
       }
@@ -166,8 +212,10 @@ function PendingLoansSection({ loans }: { loans: any[] }) {
         loanId,
         notes: "Needs manual reassessment.",
       });
-      if (res.error) toast.error(res.error);
-      else {
+
+      if (res.error) {
+        toast.error(res.error);
+      } else {
         toast.success(res.success);
         router.refresh();
       }
@@ -175,177 +223,136 @@ function PendingLoansSection({ loans }: { loans: any[] }) {
   };
 
   return (
-    <div className="space-y-6">
-      <SectionHeader
-        icon={<Wallet className="w-5 h-5" />}
-        title="Mga Loan Application"
-        count={loans.length}
-        accent="indigo"
-      />
-      <div className="space-y-4">
-        {loans.length === 0 ? (
-          <EmptyState message="Walang nakabinbing loan applications." />
-        ) : (
-          <div className="max-h-[32rem] space-y-4 overflow-y-auto pr-2">
-            {loans.map((loan: any) => (
-              <div
-                key={loan.loan_id}
-                className="bg-white p-6 rounded-[2rem] border border-slate-100 shadow-sm"
+    <QueueSection
+      icon={<Wallet className="h-5 w-5" />}
+      title="Mga Loan Application"
+      description="Mga bagong aplikasyon na naghihintay ng initial decision."
+      count={loans.length}
+      accent="indigo"
+      emptyMessage="Walang nakabinbing loan applications."
+    >
+      {loans.map((loan: any) => (
+        <QueueCard
+          key={loan.loan_id}
+          accent="indigo"
+          summary={
+            <ApplicantSummary
+              firstName={loan.user?.profile?.first_name}
+              lastName={loan.user?.profile?.last_name}
+              subtitle={loan.product?.name}
+            />
+          }
+          amount={
+            <AmountSummary
+              amount={Number(loan.principal_amount)}
+              caption={`${loan.term_months} buwan`}
+            />
+          }
+          meta={[
+            {
+              label: "Applied",
+              value: format(new Date(loan.applied_at), "MMM d, yyyy"),
+            },
+            { label: "Reference", value: loan.loan_reference },
+            { label: "Purpose", value: loan.purpose || "Walang note" },
+          ]}
+          actions={
+            <>
+              <Button
+                disabled={isPending}
+                onClick={() => handleApprove(loan.loan_id)}
+                className="flex-1 rounded-xl bg-emerald-600 text-white hover:bg-emerald-700"
               >
-                <div className="flex justify-between items-start mb-6">
-                  <ApplicantSummary
-                    firstName={loan.user?.profile?.first_name}
-                    lastName={loan.user?.profile?.last_name}
-                    subtitle={loan.product?.name}
-                  />
-                  <AmountSummary
-                    amount={Number(loan.principal_amount)}
-                    caption={`${loan.term_months} buwan`}
-                  />
-                </div>
-
-                <div className="flex items-center justify-between text-[10px] text-slate-400 font-medium mb-4">
-                  <div className="flex items-center gap-2">
-                    <Calendar className="w-3 h-3" />
-                    {format(new Date(loan.applied_at), "MMM d, yyyy")}
-                  </div>
-                  <span className="uppercase tracking-widest">
-                    {loan.loan_reference}
-                  </span>
-                </div>
-
-                <div className="flex gap-3">
-                  <Button
-                    disabled={isPending}
-                    onClick={() => handleApprove(loan.loan_id)}
-                    className="flex-1 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white"
-                  >
-                    Approve
-                  </Button>
-                  <Button
-                    disabled={isPending}
-                    variant="outline"
-                    onClick={() => handleReject(loan.loan_id)}
-                    className="flex-1 rounded-xl border-rose-200 text-rose-600 hover:bg-rose-50"
-                  >
-                    Reject
-                  </Button>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
-    </div>
+                Approve
+              </Button>
+              <Button
+                disabled={isPending}
+                variant="outline"
+                onClick={() => handleReject(loan.loan_id)}
+                className="flex-1 rounded-xl border-rose-200 text-rose-600 hover:bg-rose-50"
+              >
+                Reject
+              </Button>
+            </>
+          }
+        />
+      ))}
+    </QueueSection>
   );
 }
 
 function ReleaseQueueSection({ loans }: { loans: any[] }) {
   return (
-    <div className="space-y-6">
-      <SectionHeader
-        icon={<Send className="w-5 h-5" />}
-        title="Mock Fund Release"
-        count={loans.length}
-        accent="emerald"
-      />
-      <div className="space-y-4">
-        {loans.length === 0 ? (
-          <EmptyState message="Walang approved loans na handa para i-release." />
-        ) : (
-          <div className="max-h-[32rem] space-y-4 overflow-y-auto pr-2">
-            {loans.map((loan: any) => (
-              <ReleaseLoanCard key={loan.loan_id} loan={loan} />
-            ))}
-          </div>
-        )}
-      </div>
-    </div>
+    <QueueSection
+      icon={<Send className="h-5 w-5" />}
+      title="Mock Fund Release"
+      description="Mga approved loan na kailangan nang maitala bilang released."
+      count={loans.length}
+      accent="emerald"
+      emptyMessage="Walang approved loans na handa para i-release."
+    >
+      {loans.map((loan: any) => (
+        <ReleaseLoanCard key={loan.loan_id} loan={loan} />
+      ))}
+    </QueueSection>
   );
 }
 
 function PendingPaymentsSection({ payments }: { payments: any[] }) {
   return (
-    <div className="space-y-6">
-      <SectionHeader
-        icon={<BadgeCheck className="w-5 h-5" />}
-        title="Repayment Verification"
-        count={payments.length}
-        accent="amber"
-      />
-      <div className="space-y-4">
-        {payments.length === 0 ? (
-          <EmptyState message="Walang repayment submissions na naghihintay ng verification." />
-        ) : (
-          <div className="max-h-[32rem] space-y-4 overflow-y-auto pr-2">
-            {payments.map((payment: any) => (
-              <ReviewPaymentCard key={payment.payment_id} payment={payment} />
-            ))}
-          </div>
-        )}
-      </div>
-    </div>
+    <QueueSection
+      icon={<BadgeCheck className="h-5 w-5" />}
+      title="Repayment Verification"
+      description="Mga repayment proof na naghihintay ng verification o rejection."
+      count={payments.length}
+      accent="amber"
+      emptyMessage="Walang repayment submissions na naghihintay ng verification."
+    >
+      {payments.map((payment: any) => (
+        <ReviewPaymentCard key={payment.payment_id} payment={payment} />
+      ))}
+    </QueueSection>
   );
 }
 
 function RecoveryLoansSection({ loans }: { loans: any[] }) {
   return (
-    <div className="space-y-6">
-      <SectionHeader
-        icon={<ShieldAlert className="w-5 h-5" />}
-        title="Recovery Loans"
-        count={loans.length}
-        accent="rose"
-      />
-      <div className="space-y-4">
-        {loans.length === 0 ? (
-          <EmptyState message="Walang aktibong recovery loans sa kasalukuyan." />
-        ) : (
-          <div className="max-h-[32rem] space-y-4 overflow-y-auto pr-2">
-            {loans.map((loan: any) => (
-              <div
-                key={loan.loan_id}
-                className="bg-white p-6 rounded-[2rem] border border-rose-100 shadow-sm"
-              >
-                <div className="flex justify-between items-start mb-6">
-                  <ApplicantSummary
-                    firstName={loan.user?.profile?.first_name}
-                    lastName={loan.user?.profile?.last_name}
-                    subtitle={`Parent: ${loan.recovery_parent?.loan_reference || "N/A"}`}
-                  />
-                  <AmountSummary
-                    amount={Number(loan.balance_remaining)}
-                    caption="Natitirang recovery"
-                  />
-                </div>
-
-                <div className="space-y-2 text-xs text-slate-500">
-                  <p className="font-medium text-rose-600 uppercase tracking-widest">
-                    Recovery Loan
-                  </p>
-                  <p>
-                    Reference:{" "}
-                    <span className="font-mono text-slate-700">
-                      {loan.loan_reference}
-                    </span>
-                  </p>
-                  <p>
-                    Borrower: {loan.user?.profile?.first_name}{" "}
-                    {loan.user?.profile?.last_name}
-                  </p>
-                  <p>
-                    Source default:{" "}
-                    <span className="font-mono text-slate-700">
-                      {loan.recovery_parent?.loan_reference || "Unknown"}
-                    </span>
-                  </p>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
-    </div>
+    <QueueSection
+      icon={<ShieldAlert className="h-5 w-5" />}
+      title="Recovery Loans"
+      description="Mga loan na galing sa recovery/default handling."
+      count={loans.length}
+      accent="rose"
+      emptyMessage="Walang aktibong recovery loans sa kasalukuyan."
+    >
+      {loans.map((loan: any) => (
+        <QueueCard
+          key={loan.loan_id}
+          accent="rose"
+          summary={
+            <ApplicantSummary
+              firstName={loan.user?.profile?.first_name}
+              lastName={loan.user?.profile?.last_name}
+              subtitle={loan.product?.name}
+            />
+          }
+          amount={
+            <AmountSummary
+              amount={Number(loan.balance_remaining)}
+              caption="Natitirang balanse"
+            />
+          }
+          meta={[
+            { label: "Type", value: "Recovery Loan" },
+            { label: "Reference", value: loan.loan_reference },
+            {
+              label: "Parent",
+              value: loan.recovery_parent?.loan_reference || "Unknown",
+            },
+          ]}
+        />
+      ))}
+    </QueueSection>
   );
 }
 
@@ -355,39 +362,41 @@ function IdentityVerificationSection({
   verifications: any[];
 }) {
   return (
-    <div className="space-y-6">
-      <SectionHeader
-        icon={<Fingerprint className="w-5 h-5" />}
-        title="Identity Verification"
-        count={verifications.length}
-        accent="slate"
-      />
-      <div className="space-y-4">
-        {verifications.length === 0 ? (
-          <EmptyState message="Walang nakabinbing identity checks." />
-        ) : (
-          <div className="max-h-[32rem] space-y-4 overflow-y-auto pr-2">
-            {verifications.map((user: any) => (
-              <div
-                key={user.user_id}
-                className="group bg-white p-6 rounded-[2rem] border border-slate-100 shadow-sm hover:shadow-md transition-all"
-              >
-                <div className="flex justify-between items-center">
-                  <ApplicantSummary
-                    firstName={user.profile?.first_name}
-                    lastName={user.profile?.last_name}
-                    subtitle={`${user.documents.length} file(s) uploaded`}
-                  />
-                  <button className="flex items-center justify-center w-10 h-10 rounded-2xl bg-slate-50 group-hover:bg-slate-900 group-hover:text-white transition-all">
-                    <UserCheck className="w-4 h-4" />
-                  </button>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
-    </div>
+    <QueueSection
+      icon={<Fingerprint className="h-5 w-5" />}
+      title="Identity Verification"
+      description="Mga profile at document bundle na kailangan ng manual check."
+      count={verifications.length}
+      accent="slate"
+      emptyMessage="Walang nakabinbing identity checks."
+    >
+      {verifications.map((user: any) => (
+        <QueueCard
+          key={user.user_id}
+          accent="slate"
+          summary={
+            <ApplicantSummary
+              firstName={user.profile?.first_name}
+              lastName={user.profile?.last_name}
+              subtitle={`${user.documents.length} file(s) uploaded`}
+            />
+          }
+          meta={[
+            {
+              label: "Status",
+              value: user.status?.replaceAll("_", " ") || "pending",
+            },
+            { label: "Files", value: String(user.documents.length) },
+            { label: "Tenant", value: user.tenant?.name || "Current branch" },
+          ]}
+          sideAction={
+            <button className="flex h-10 w-10 items-center justify-center rounded-2xl bg-slate-50 transition-all hover:bg-slate-900 hover:text-white">
+              <UserCheck className="h-4 w-4" />
+            </button>
+          }
+        />
+      ))}
+    </QueueSection>
   );
 }
 
@@ -420,85 +429,96 @@ function ReleaseLoanCard({ loan }: { loan: any }) {
   };
 
   return (
-    <div className="bg-white p-6 rounded-[2rem] border border-slate-100 shadow-sm">
-      <div className="flex justify-between items-start mb-6">
+    <QueueCard
+      accent="emerald"
+      summary={
         <ApplicantSummary
           firstName={loan.user?.profile?.first_name}
           lastName={loan.user?.profile?.last_name}
-          subtitle={`${loan.product?.name} • ${loan.tenant?.name}`}
+          subtitle={loan.product?.name}
         />
+      }
+      amount={
         <AmountSummary
           amount={Number(loan.total_payable)}
           caption="Kabuuang babayaran"
         />
-      </div>
-
-      <Dialog open={open} onOpenChange={setOpen}>
-        <DialogTrigger asChild>
-          <Button className="w-full rounded-xl bg-slate-900 hover:bg-emerald-600 text-white">
-            I-release ang Mock Funds
-          </Button>
-        </DialogTrigger>
-        <DialogContent className="sm:max-w-lg">
-          <DialogHeader>
-            <DialogTitle>Mock Fund Release</DialogTitle>
-            <DialogDescription>
-              Itala kung paano matatanggap ng miyembro ang pera sa tunay na
-              buhay.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4">
-            <div className="space-y-2">
-              <label className="text-sm font-bold text-slate-700">
-                Release Method
-              </label>
-              <Select value={methodId} onValueChange={setMethodId}>
-                <SelectTrigger className="rounded-xl">
-                  <SelectValue placeholder="Pumili ng release method" />
-                </SelectTrigger>
-                <SelectContent>
-                  {loan.tenant?.payment_methods?.map((method: any) => (
-                    <SelectItem
-                      key={method.method_id}
-                      value={String(method.method_id)}
-                    >
-                      {method.provider_name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-2">
-              <label className="text-sm font-bold text-slate-700">
-                Reference Number
-              </label>
-              <Input
-                value={reference}
-                onChange={(e) => setReference(e.target.value)}
-                placeholder="GCASH-REF-001 / CASH-RELEASE-001"
-                className="rounded-xl"
-              />
-            </div>
-            <div className="space-y-2">
-              <label className="text-sm font-bold text-slate-700">Notes</label>
-              <textarea
-                value={notes}
-                onChange={(e) => setNotes(e.target.value)}
-                placeholder="Halimbawa: Over-the-counter cash release sa branch."
-                className="min-h-24 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm"
-              />
-            </div>
-            <Button
-              disabled={isPending || !methodId || !reference.trim()}
-              onClick={handleRelease}
-              className="w-full rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white"
-            >
-              Confirm Release
+      }
+      meta={[
+        { label: "Branch", value: loan.tenant?.name || "N/A" },
+        { label: "Product", value: loan.product?.name || "N/A" },
+        { label: "Reference", value: loan.loan_reference },
+      ]}
+      actions={
+        <Dialog open={open} onOpenChange={setOpen}>
+          <DialogTrigger asChild>
+            <Button className="w-full rounded-xl bg-slate-900 text-white hover:bg-emerald-600">
+              I-release ang Mock Funds
             </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
-    </div>
+          </DialogTrigger>
+          <DialogContent className="sm:max-w-lg">
+            <DialogHeader>
+              <DialogTitle>Mock Fund Release</DialogTitle>
+              <DialogDescription>
+                Itala kung paano matatanggap ng miyembro ang pera sa tunay na
+                buhay.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <label className="text-sm font-bold text-slate-700">
+                  Release Method
+                </label>
+                <Select value={methodId} onValueChange={setMethodId}>
+                  <SelectTrigger className="rounded-xl">
+                    <SelectValue placeholder="Pumili ng release method" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {loan.tenant?.payment_methods?.map((method: any) => (
+                      <SelectItem
+                        key={method.method_id}
+                        value={String(method.method_id)}
+                      >
+                        {method.provider_name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-bold text-slate-700">
+                  Reference Number
+                </label>
+                <Input
+                  value={reference}
+                  onChange={(e) => setReference(e.target.value)}
+                  placeholder="GCASH-REF-001 / CASH-RELEASE-001"
+                  className="rounded-xl"
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-bold text-slate-700">
+                  Notes
+                </label>
+                <textarea
+                  value={notes}
+                  onChange={(e) => setNotes(e.target.value)}
+                  placeholder="Halimbawa: Over-the-counter cash release sa branch."
+                  className="min-h-24 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm"
+                />
+              </div>
+              <Button
+                disabled={isPending || !methodId || !reference.trim()}
+                onClick={handleRelease}
+                className="w-full rounded-xl bg-emerald-600 text-white hover:bg-emerald-700"
+              >
+                Confirm Release
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
+      }
+    />
   );
 }
 
@@ -512,8 +532,9 @@ function ReviewPaymentCard({ payment }: { payment: any }) {
         paymentId: payment.payment_id,
         notes: "Verified by admin in mock flow.",
       });
-      if (res.error) toast.error(res.error);
-      else {
+      if (res.error) {
+        toast.error(res.error);
+      } else {
         toast.success(res.success);
         router.refresh();
       }
@@ -526,8 +547,9 @@ function ReviewPaymentCard({ payment }: { payment: any }) {
         paymentId: payment.payment_id,
         notes: "Reference mismatch. Please resubmit proof.",
       });
-      if (res.error) toast.error(res.error);
-      else {
+      if (res.error) {
+        toast.error(res.error);
+      } else {
         toast.success(res.success);
         router.refresh();
       }
@@ -535,51 +557,213 @@ function ReviewPaymentCard({ payment }: { payment: any }) {
   };
 
   return (
-    <div className="bg-white p-6 rounded-[2rem] border border-slate-100 shadow-sm">
-      <div className="flex justify-between items-start mb-6">
+    <QueueCard
+      accent="amber"
+      summary={
         <ApplicantSummary
           firstName={payment.loan?.user?.profile?.first_name}
           lastName={payment.loan?.user?.profile?.last_name}
-          subtitle={`${payment.payment_method?.provider_name} • ${payment.loan?.product?.name}`}
+          subtitle={payment.loan?.product?.name}
         />
+      }
+      amount={
         <AmountSummary
           amount={Number(payment.amount_paid)}
           caption={payment.payment_reference}
         />
-      </div>
-      <div className="space-y-1 text-xs text-slate-500 mb-4">
-        <p>
-          Submitted:{" "}
-          {format(new Date(payment.submitted_at), "MMM d, yyyy h:mm a")}
-        </p>
-        {payment.receipt_url && (
-          <a
-            href={payment.receipt_url}
-            target="_blank"
-            className="text-emerald-600 underline"
+      }
+      meta={[
+        {
+          label: "Submitted",
+          value: format(new Date(payment.submitted_at), "MMM d, yyyy h:mm a"),
+        },
+        {
+          label: "Method",
+          value: payment.payment_method?.provider_name || "N/A",
+        },
+        { label: "Reference", value: payment.payment_reference },
+      ]}
+      extra={
+        <div className="space-y-1 text-xs text-slate-500">
+          {payment.receipt_url ? (
+            <a
+              href={payment.receipt_url}
+              target="_blank"
+              className="font-medium text-emerald-600 underline"
+            >
+              Tingnan ang proof / receipt
+            </a>
+          ) : null}
+          {payment.notes ? <p>Notes: {payment.notes}</p> : null}
+        </div>
+      }
+      actions={
+        <>
+          <Button
+            disabled={isPending}
+            onClick={handleVerify}
+            className="flex-1 rounded-xl bg-emerald-600 text-white hover:bg-emerald-700"
           >
-            Tingnan ang proof / receipt
-          </a>
-        )}
-        {payment.notes && <p>Notes: {payment.notes}</p>}
+            Verify
+          </Button>
+          <Button
+            disabled={isPending}
+            variant="outline"
+            onClick={() => handleReject()}
+            className="flex-1 rounded-xl border-rose-200 text-rose-600 hover:bg-rose-50"
+          >
+            Reject
+          </Button>
+        </>
+      }
+    />
+  );
+}
+
+function OverdueLoansSection({ loans }: { loans: any[] }) {
+  const router = useRouter();
+  const [isPending, startTransition] = useTransition();
+
+  const handleEnforceDefault = (loanId: number) => {
+    if (
+      typeof window !== "undefined" &&
+      !window.confirm(
+        "Sigurado ka bang i-enforce ang default? Kakaltasan ang mga guarantors.",
+      )
+    ) {
+      return;
+    }
+
+    startTransition(async () => {
+      const res = await manuallyDeclareDefault(loanId);
+      if (res.error) {
+        toast.error(res.error);
+      } else {
+        toast.success(res.success);
+        router.refresh();
+      }
+    });
+  };
+
+  return (
+    <QueueSection
+      icon={<ShieldAlert className="h-5 w-5" />}
+      title="Overdue (At Risk)"
+      description="Mga loan na lampas due at handa para sa default protocol."
+      count={loans.length}
+      accent="rose"
+      emptyMessage="Walang overdue loans na naghihintay ng enforcement."
+    >
+      {loans.map((loan: any) => (
+        <QueueCard
+          key={loan.loan_id}
+          accent="rose"
+          summary={
+            <ApplicantSummary
+              firstName={loan.user?.profile?.first_name}
+              lastName={loan.user?.profile?.last_name}
+              subtitle={loan.product?.name}
+            />
+          }
+          amount={
+            <AmountSummary
+              amount={Number(loan.balance_remaining)}
+              caption="Natitirang balanse"
+            />
+          }
+          meta={[
+            { label: "Product", value: loan.product?.name || "N/A" },
+            { label: "Reference", value: loan.loan_reference },
+            {
+              label: "Status",
+              value: loan.status?.replaceAll("_", " ") || "overdue",
+            },
+          ]}
+          actions={
+            <Button
+              disabled={isPending}
+              onClick={() => handleEnforceDefault(loan.loan_id)}
+              className="w-full rounded-xl bg-slate-900 text-white hover:bg-rose-600"
+            >
+              {isPending ? "Processing..." : "Enforce Default Protocol"}
+            </Button>
+          }
+        />
+      ))}
+    </QueueSection>
+  );
+}
+
+function QueueSection({
+  icon,
+  title,
+  description,
+  count,
+  accent,
+  emptyMessage,
+  children,
+}: {
+  icon: React.ReactNode;
+  title: string;
+  description: string;
+  count: number;
+  accent: "indigo" | "amber" | "slate" | "emerald" | "rose";
+  emptyMessage: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="space-y-4">
+      <SectionHeader
+        icon={icon}
+        title={title}
+        description={description}
+        count={count}
+        accent={accent}
+      />
+      {count === 0 ? (
+        <EmptyState message={emptyMessage} />
+      ) : (
+        <QueueScroller>{children}</QueueScroller>
+      )}
+    </div>
+  );
+}
+
+function QueueCard({
+  accent,
+  summary,
+  amount,
+  meta,
+  actions,
+  extra,
+  sideAction,
+}: {
+  accent: "indigo" | "amber" | "slate" | "emerald" | "rose";
+  summary: React.ReactNode;
+  amount?: React.ReactNode;
+  meta?: Array<{ label: string; value: string }>;
+  actions?: React.ReactNode;
+  extra?: React.ReactNode;
+  sideAction?: React.ReactNode;
+}) {
+  const borderClass = {
+    indigo: "border-indigo-100",
+    amber: "border-amber-100",
+    slate: "border-slate-200/70",
+    emerald: "border-emerald-100",
+    rose: "border-rose-100",
+  }[accent];
+
+  return (
+    <div className={`rounded-[1.5rem] border ${borderClass} bg-white p-4 shadow-sm`}>
+      <div className="mb-4 flex items-start justify-between gap-4">
+        <div className="min-w-0 flex-1">{summary}</div>
+        {amount ? <div className="shrink-0">{amount}</div> : null}
+        {sideAction ? <div className="shrink-0">{sideAction}</div> : null}
       </div>
-      <div className="flex gap-3">
-        <Button
-          disabled={isPending}
-          onClick={handleVerify}
-          className="flex-1 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white"
-        >
-          Verify
-        </Button>
-        <Button
-          disabled={isPending}
-          variant="outline"
-          onClick={handleReject}
-          className="flex-1 rounded-xl border-rose-200 text-rose-600 hover:bg-rose-50"
-        >
-          Reject
-        </Button>
-      </div>
+      {meta && meta.length > 0 ? <CompactMetaGrid items={meta} /> : null}
+      {extra ? <div className="mt-3">{extra}</div> : null}
+      {actions ? <div className="mt-4 flex gap-3">{actions}</div> : null}
     </div>
   );
 }
@@ -587,11 +771,13 @@ function ReviewPaymentCard({ payment }: { payment: any }) {
 function SectionHeader({
   icon,
   title,
+  description,
   count,
   accent,
 }: {
   icon: React.ReactNode;
   title: string;
+  description: string;
   count: number;
   accent: "indigo" | "amber" | "slate" | "emerald" | "rose";
 }) {
@@ -606,28 +792,62 @@ function SectionHeader({
   const [chipBg, chipText, badgeBg] = accentMap.split(" ");
 
   return (
-    <div className="flex items-center gap-3">
-      <div
-        className={`w-10 h-10 rounded-2xl ${chipBg} flex items-center justify-center ${chipText}`}
-      >
-        {icon}
+    <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex items-start gap-3">
+        <div
+          className={`flex h-10 w-10 items-center justify-center rounded-2xl ${chipBg} ${chipText}`}
+        >
+          {icon}
+        </div>
+        <div className="space-y-0.5">
+          <div className="flex items-center gap-2">
+            <h3 className="text-lg font-display font-bold italic text-slate-900">
+              {title}
+            </h3>
+            <span
+              className={`${badgeBg} rounded-full px-2 py-0.5 text-[10px] font-bold text-white`}
+            >
+              {count}
+            </span>
+          </div>
+          <p className="text-sm text-slate-500">{description}</p>
+        </div>
       </div>
-      <h3 className="text-xl font-display font-bold text-slate-900 italic">
-        {title}
-      </h3>
-      <span
-        className={`${badgeBg} text-white text-[10px] font-bold px-2 py-0.5 rounded-full`}
-      >
-        {count}
-      </span>
     </div>
   );
 }
 
 function EmptyState({ message }: { message: string }) {
   return (
-    <div className="p-12 text-center bg-white border border-dashed border-slate-200 rounded-[2rem] text-slate-400">
+    <div className="rounded-[1.5rem] border border-dashed border-slate-200 bg-white p-8 text-center text-slate-400">
       <p className="font-medium">{message}</p>
+    </div>
+  );
+}
+
+function QueueScroller({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="max-h-[32rem] space-y-3 overflow-y-auto pr-2">
+      {children}
+    </div>
+  );
+}
+
+function CompactMetaGrid({
+  items,
+}: {
+  items: Array<{ label: string; value: string }>;
+}) {
+  return (
+    <div className="grid gap-2 rounded-2xl border border-slate-100 bg-slate-50/80 p-3 text-xs text-slate-600 md:grid-cols-3">
+      {items.map((item) => (
+        <div key={`${item.label}-${item.value}`} className="space-y-0.5">
+          <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-slate-400">
+            {item.label}
+          </p>
+          <p className="line-clamp-2 font-medium text-slate-700">{item.value}</p>
+        </div>
+      ))}
     </div>
   );
 }
@@ -643,15 +863,17 @@ function ApplicantSummary({
 }) {
   return (
     <div className="flex items-center gap-3">
-      <div className="w-11 h-11 rounded-full bg-slate-50 flex items-center justify-center text-slate-500 font-bold text-xs uppercase">
+      <div className="flex h-11 w-11 items-center justify-center rounded-full bg-slate-50 text-xs font-bold uppercase text-slate-500">
         {firstName?.[0]}
         {lastName?.[0]}
       </div>
-      <div>
-        <p className="text-sm font-bold text-slate-900 line-clamp-1">
+      <div className="min-w-0">
+        <p className="line-clamp-1 text-sm font-bold text-slate-900">
           {firstName} {lastName}
         </p>
-        <p className="text-[10px] text-slate-400 font-medium">{subtitle}</p>
+        <p className="line-clamp-1 text-[10px] font-medium text-slate-400">
+          {subtitle}
+        </p>
       </div>
     </div>
   );
@@ -667,82 +889,11 @@ function AmountSummary({
   return (
     <div className="text-right">
       <p className="text-sm font-bold text-emerald-600">
-        ₱{amount.toLocaleString()}
+        PHP {amount.toLocaleString()}
       </p>
-      <p className="text-[9px] text-slate-400 font-bold uppercase tracking-widest">
+      <p className="text-[9px] font-bold uppercase tracking-widest text-slate-400">
         {caption}
       </p>
-    </div>
-  );
-}
-
-function OverdueLoansSection({ loans }: { loans: any[] }) {
-  const router = useRouter();
-  const [isPending, startTransition] = useTransition();
-
-  const handleEnforceDefault = (loanId: number) => {
-    if (
-      typeof window !== "undefined" &&
-      !window.confirm(
-        "Sigurado ka bang i-enforce ang default? Kakaltasan ang mga guarantors.",
-      )
-    )
-      return;
-
-    startTransition(async () => {
-      const res = await manuallyDeclareDefault(loanId);
-      if (res.error) toast.error(res.error);
-      else {
-        toast.success(res.success);
-        router.refresh();
-      }
-    });
-  };
-
-  return (
-    <div className="space-y-6">
-      <SectionHeader
-        icon={<ShieldAlert className="w-5 h-5" />}
-        title="Overdue (At Risk)"
-        count={loans.length}
-        accent="rose"
-      />
-      <div className="space-y-4">
-        {loans.length === 0 ? (
-          <EmptyState message="Walang overdue loans na naghihintay ng enforcement." />
-        ) : (
-          <div className="max-h-[32rem] space-y-4 overflow-y-auto pr-2">
-            {loans.map((loan: any) => (
-              <div
-                key={loan.loan_id}
-                className="bg-white p-6 rounded-[2rem] border border-rose-100 shadow-sm"
-              >
-                <div className="flex justify-between items-start mb-6">
-                  <ApplicantSummary
-                    firstName={loan.user?.profile?.first_name}
-                    lastName={loan.user?.profile?.last_name}
-                    subtitle={loan.product?.name}
-                  />
-                  <AmountSummary
-                    amount={Number(loan.balance_remaining)}
-                    caption="Natitirang balanseng"
-                  />
-                </div>
-
-                <div className="flex gap-3">
-                  <Button
-                    disabled={isPending}
-                    onClick={() => handleEnforceDefault(loan.loan_id)}
-                    className="w-full rounded-xl bg-slate-900 hover:bg-rose-600 text-white"
-                  >
-                    {isPending ? "Processing..." : "Enforce Default Protocol"}
-                  </Button>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
     </div>
   );
 }

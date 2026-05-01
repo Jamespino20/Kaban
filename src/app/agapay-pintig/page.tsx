@@ -67,6 +67,9 @@ export default async function AgapayPintigPage() {
       where: { user_id: userId, tenant_id: tenantId, status: "active" },
       include: {
         product: true,
+        compassion_actions: {
+          orderBy: { requested_at: "desc" },
+        },
         schedules: {
           orderBy: { installment_number: "asc" },
         },

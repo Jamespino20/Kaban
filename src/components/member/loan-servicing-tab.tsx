@@ -23,6 +23,7 @@ import {
 } from "@/components/ui/select";
 import { submitMockRepayment } from "@/actions/loan-servicing";
 import { payLoanWithWallet } from "@/actions/wallet-actions";
+import { requestCompassionAction } from "@/actions/compassion-actions";
 import {
   CreditCard,
   ReceiptText,
@@ -30,6 +31,8 @@ import {
   Clock3,
   Wallet,
   Loader2,
+  HeartPulse,
+  ShieldAlert,
 } from "lucide-react";
 import {
   getCompassionPolicyCopy,
@@ -69,6 +72,15 @@ type ServicingLoan = {
   balance_remaining: MoneyLike;
   is_recovery_loan?: boolean | null;
   product?: LoanProductInfo | null;
+  compassion_actions: {
+    action_id: number;
+    action_type: "grace_period" | "term_extension" | "penalty_freeze";
+    status: "pending" | "approved" | "rejected";
+    reason: string;
+    requested_at: string | Date;
+    admin_notes?: string | null;
+    approved_at?: string | Date | null;
+  }[];
   schedules: LoanScheduleItem[];
   payments: LoanPaymentItem[];
 };
@@ -195,6 +207,11 @@ function LoanServicingCard({
   const [reference, setReference] = useState("");
   const [receiptUrl, setReceiptUrl] = useState("");
   const [notes, setNotes] = useState("");
+  const [compassionOpen, setCompassionOpen] = useState(false);
+  const [compassionType, setCompassionType] = useState<
+    "grace_period" | "term_extension" | "penalty_freeze"
+  >("grace_period");
+  const [compassionReason, setCompassionReason] = useState("");
   const [isPending, startTransition] = useTransition();
 
   const nextSchedule = useMemo(
@@ -209,6 +226,13 @@ function LoanServicingCard({
   const suggestedAmount = nextSchedule
     ? Number(nextSchedule.total_due)
     : Number(loan.balance_remaining);
+  const latestCompassion = loan.compassion_actions?.[0] || null;
+
+  const getCompassionLabel = (type: string) => {
+    if (type === "grace_period") return "Grace Period";
+    if (type === "term_extension") return "Term Extension";
+    return "Penalty Freeze";
+  };
 
   const handleSubmit = () => {
     startTransition(async () => {
@@ -246,6 +270,27 @@ function LoanServicingCard({
         toast.success(res.success);
         router.refresh();
       }
+    });
+  };
+
+  const handleCompassionRequest = () => {
+    startTransition(async () => {
+      const res = await requestCompassionAction({
+        loan_id: loan.loan_id,
+        action_type: compassionType,
+        reason: compassionReason,
+      });
+
+      if (res.error) {
+        toast.error(res.error);
+        return;
+      }
+
+      toast.success("Naipasa na ang compassion request mo para ma-review.");
+      setCompassionOpen(false);
+      setCompassionType("grace_period");
+      setCompassionReason("");
+      router.refresh();
     });
   };
 
@@ -326,6 +371,133 @@ function LoanServicingCard({
         </p>
         <p className="text-sm text-slate-500">{getPenaltyPolicyCopy()}</p>
         <p className="text-sm text-slate-500">{getCompassionPolicyCopy()}</p>
+      </div>
+
+      <div className="rounded-2xl border border-blue-100 bg-blue-50/60 p-4">
+        <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
+          <div className="space-y-1">
+            <p className="text-xs font-bold uppercase tracking-[0.2em] text-blue-700">
+              Compassion Support
+            </p>
+            <p className="text-sm text-slate-600">
+              Kung may valid hardship case, maaari kang humiling ng relief para
+              sa loan na ito. Isang active request lang ang puwedeng sabay.
+            </p>
+          </div>
+          <Dialog open={compassionOpen} onOpenChange={setCompassionOpen}>
+            <DialogTrigger asChild>
+              <Button
+                variant="outline"
+                className="rounded-2xl border-blue-200 bg-white text-blue-700 hover:bg-blue-100"
+              >
+                <HeartPulse className="mr-2 h-4 w-4" />
+                Humiling ng Compassion
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-lg">
+              <DialogHeader>
+                <DialogTitle>Compassion Request</DialogTitle>
+                <DialogDescription>
+                  Ilarawan ang hardship case at piliin ang relief na naaangkop
+                  sa iyong sitwasyon.
+                </DialogDescription>
+              </DialogHeader>
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <label className="text-sm font-bold text-slate-700">
+                    Uri ng Relief
+                  </label>
+                  <Select
+                    value={compassionType}
+                    onValueChange={(value) =>
+                      setCompassionType(
+                        value as
+                          | "grace_period"
+                          | "term_extension"
+                          | "penalty_freeze",
+                      )
+                    }
+                  >
+                    <SelectTrigger className="rounded-xl">
+                      <SelectValue placeholder="Pumili ng relief" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="grace_period">Grace Period</SelectItem>
+                      <SelectItem value="term_extension">
+                        Term Extension
+                      </SelectItem>
+                      <SelectItem value="penalty_freeze">
+                        Penalty Freeze
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-bold text-slate-700">
+                    Reason for Hardship
+                  </label>
+                  <textarea
+                    value={compassionReason}
+                    onChange={(e) => setCompassionReason(e.target.value)}
+                    placeholder="Ilarawan ang dahilan ng hardship case at bakit kailangan ng relief."
+                    className="min-h-28 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm"
+                  />
+                </div>
+                <Button
+                  disabled={isPending || compassionReason.trim().length < 10}
+                  onClick={handleCompassionRequest}
+                  className="w-full rounded-xl bg-blue-600 text-white hover:bg-blue-700"
+                >
+                  Isumite ang Request
+                </Button>
+              </div>
+            </DialogContent>
+          </Dialog>
+        </div>
+
+        {latestCompassion ? (
+          <div className="mt-4 rounded-2xl border border-white/70 bg-white px-4 py-3 shadow-sm">
+            <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
+              <div>
+                <p className="text-sm font-bold text-slate-900">
+                  Latest request: {getCompassionLabel(latestCompassion.action_type)}
+                </p>
+                <p className="text-xs text-slate-500">
+                  {new Date(latestCompassion.requested_at).toLocaleDateString()}
+                </p>
+              </div>
+              <span
+                className={`rounded-full px-3 py-1 text-[11px] font-bold uppercase tracking-widest ${
+                  latestCompassion.status === "approved"
+                    ? "bg-emerald-100 text-emerald-700"
+                    : latestCompassion.status === "rejected"
+                      ? "bg-rose-100 text-rose-700"
+                      : "bg-amber-100 text-amber-700"
+                }`}
+              >
+                {latestCompassion.status}
+              </span>
+            </div>
+            <p className="mt-3 text-sm text-slate-600">
+              {latestCompassion.reason}
+            </p>
+            {latestCompassion.admin_notes && (
+              <div className="mt-3 rounded-xl border border-slate-100 bg-slate-50 px-3 py-2">
+                <p className="mb-1 text-[11px] font-bold uppercase tracking-widest text-slate-500">
+                  Tugon ng Admin
+                </p>
+                <p className="text-sm text-slate-700">
+                  {latestCompassion.admin_notes}
+                </p>
+              </div>
+            )}
+          </div>
+        ) : (
+          <div className="mt-4 flex items-center gap-2 rounded-2xl border border-dashed border-blue-200 bg-white/80 px-4 py-3 text-sm text-slate-500">
+            <ShieldAlert className="h-4 w-4 text-blue-500" />
+            Wala ka pang naipapasang compassion request para sa loan na ito.
+          </div>
+        )}
       </div>
 
       <div className="flex flex-col md:flex-row gap-3 md:items-center md:justify-between">

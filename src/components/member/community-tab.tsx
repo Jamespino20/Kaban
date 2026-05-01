@@ -1,10 +1,11 @@
 "use client";
 
-import { useEffect, useMemo, useState, useTransition, useRef } from "react";
+import { useEffect, useMemo, useRef, useState, useTransition } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import {
+  createGroupConversation,
   getConversationThread,
   markConversationRead,
   openDirectConversation,
@@ -23,13 +24,14 @@ import {
   Reply,
   SmilePlus,
   FileText,
+  Layers3,
+  PlusCircle,
+  ChevronUp,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 
-// Utility to mock file upload
 const mockUploadFile = async (file: File) => {
   return new Promise<{ url: string }>((resolve) => {
-    // In actual production, upload to S3/Blob and return real URL.
     setTimeout(() => {
       resolve({ url: URL.createObjectURL(file) });
     }, 1000);
@@ -42,7 +44,6 @@ type CommunityOverview = Awaited<
   >
 >;
 
-// Predefined quick reactions
 const QUICK_REACTIONS = ["👍", "❤️", "🙏", "👏"];
 
 export function CommunityTab({
@@ -58,11 +59,13 @@ export function CommunityTab({
     string | null
   >(
     initialData.directConversations[0]?.id ||
+      initialData.groupChats?.[0]?.id ||
       initialData.branchRooms[0]?.id ||
       null,
   );
   const [thread, setThread] = useState<any | null>(null);
   const [messageDraft, setMessageDraft] = useState("");
+  const [hasOlderMessages, setHasOlderMessages] = useState(false);
 
   const [replyToMessage, setReplyToMessage] = useState<{
     id: string;
@@ -83,16 +86,29 @@ export function CommunityTab({
   const [selectedMentorId, setSelectedMentorId] = useState<string>("");
   const [focusArea, setFocusArea] = useState("");
   const [mentorNotes, setMentorNotes] = useState("");
+  const [newGroupTitle, setNewGroupTitle] = useState("");
+  const [groupParticipantIds, setGroupParticipantIds] = useState<number[]>([]);
   const [isPending, startTransition] = useTransition();
 
-  const conversationDirectory = useMemo(
-    () => [...initialData.branchRooms, ...initialData.directConversations],
-    [initialData.branchRooms, initialData.directConversations],
+  const allConversationCount =
+    initialData.branchRooms.length +
+    initialData.directConversations.length +
+    (initialData.groupChats?.length || 0);
+  const unreadCount =
+    initialData.branchRooms.filter((room) => room.hasUnread).length +
+    initialData.directConversations.filter((conversation) => conversation.hasUnread)
+      .length +
+    (initialData.groupChats?.filter((group) => group.hasUnread).length || 0);
+
+  const discoverableDirectory = useMemo(
+    () => initialData.discoverableUsers || [],
+    [initialData.discoverableUsers],
   );
 
   useEffect(() => {
     if (!selectedConversationId) {
       setThread(null);
+      setHasOlderMessages(false);
       return;
     }
 
@@ -103,9 +119,10 @@ export function CommunityTab({
         const nextThread = await getConversationThread(selectedConversationId);
         if (!cancelled) {
           setThread(nextThread);
+          setHasOlderMessages((nextThread.messages?.length || 0) >= 30);
         }
         await markConversationRead(selectedConversationId);
-      } catch (error) {
+      } catch {
         if (!cancelled) {
           toast.error("Hindi ma-load ang conversation na ito.");
         }
@@ -118,11 +135,22 @@ export function CommunityTab({
   }, [selectedConversationId]);
 
   useEffect(() => {
-    // Auto-scroll to bottom of chat
     if (scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
   }, [thread?.messages]);
+
+  const activeConversationLabel = useMemo(() => {
+    if (!thread) return "Conversation";
+    if (thread.title) return thread.title;
+    const otherParticipants = thread.participants.filter(
+      (participant: any) => participant.role !== "member",
+    );
+    return (
+      otherParticipants.map((participant: any) => participant.name).join(", ") ||
+      "Conversation"
+    );
+  }, [thread]);
 
   const handleStartConversation = (targetUserId: number) => {
     startTransition(async () => {
@@ -149,6 +177,7 @@ export function CommunityTab({
       sizeBytes: number;
       file: File;
     }> = [];
+
     for (let i = 0; i < files.length; i++) {
       const file = files[i];
       const res = await mockUploadFile(file);
@@ -160,6 +189,7 @@ export function CommunityTab({
         file,
       });
     }
+
     setAttachmentDrafts((prev) => [...prev, ...newDrafts]);
     setIsUploading(false);
     if (fileInputRef.current) fileInputRef.current.value = "";
@@ -169,12 +199,36 @@ export function CommunityTab({
     setAttachmentDrafts((prev) => prev.filter((_, i) => i !== index));
   };
 
+  const handleLoadOlder = () => {
+    if (!selectedConversationId || !thread?.messages?.length) return;
+
+    const oldestMessage = thread.messages[thread.messages.length - 1];
+    startTransition(async () => {
+      const olderThread = await getConversationThread(selectedConversationId, {
+        beforeMessageId: oldestMessage.id,
+        take: 30,
+      });
+
+      if (!olderThread?.messages?.length) {
+        setHasOlderMessages(false);
+        return;
+      }
+
+      setThread((prev: any) => ({
+        ...prev,
+        messages: [...prev.messages, ...olderThread.messages],
+      }));
+      setHasOlderMessages(olderThread.messages.length >= 30);
+    });
+  };
+
   const handleSendMessage = () => {
     if (
       !selectedConversationId ||
       (!messageDraft.trim() && attachmentDrafts.length === 0)
-    )
+    ) {
       return;
+    }
 
     startTransition(async () => {
       const finalAttachments = attachmentDrafts.map((draft) => ({
@@ -198,6 +252,7 @@ export function CommunityTab({
 
       const nextThread = await getConversationThread(selectedConversationId);
       setThread(nextThread);
+      setHasOlderMessages((nextThread.messages?.length || 0) >= 30);
       setMessageDraft("");
       setReplyToMessage(null);
       setAttachmentDrafts([]);
@@ -243,6 +298,39 @@ export function CommunityTab({
     });
   };
 
+  const handleCreateGroup = () => {
+    if (!newGroupTitle.trim()) {
+      toast.error("Maglagay muna ng malinaw na group title.");
+      return;
+    }
+
+    startTransition(async () => {
+      const result = await createGroupConversation({
+        title: newGroupTitle,
+        participantUserIds: groupParticipantIds,
+      });
+
+      if (result.error) {
+        toast.error(result.error);
+        return;
+      }
+
+      toast.success("Nagawa na ang group chat.");
+      setNewGroupTitle("");
+      setGroupParticipantIds([]);
+      setSelectedConversationId(result.conversationId ?? null);
+      router.refresh();
+    });
+  };
+
+  const toggleGroupParticipant = (userId: number) => {
+    setGroupParticipantIds((prev) =>
+      prev.includes(userId)
+        ? prev.filter((id) => id !== userId)
+        : [...prev, userId],
+    );
+  };
+
   if (initialData.requiresTenantContext) {
     return (
       <div className="rounded-[1.75rem] border border-amber-200 bg-amber-50/80 p-5 shadow-sm">
@@ -261,8 +349,25 @@ export function CommunityTab({
   }
 
   return (
-    <div className="grid grid-cols-1 gap-5 xl:grid-cols-[0.95fr_1.15fr]">
+    <div className="grid grid-cols-1 gap-5 xl:grid-cols-[0.92fr_1.08fr]">
       <div className="space-y-5">
+        <section className="rounded-[1.75rem] border border-slate-200 bg-white p-4 shadow-sm">
+          <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+            <div>
+              <h2 className="text-sm font-black uppercase tracking-[0.18em] text-slate-500">
+                Community Pulse
+              </h2>
+              <p className="text-xs text-slate-500">
+                Isang mas compact na view ng usapan, mentorship, at branch support.
+              </p>
+            </div>
+            <div className="grid grid-cols-2 gap-2 md:min-w-[220px]">
+              <PulseStat label="Conversations" value={allConversationCount} />
+              <PulseStat label="Unread" value={unreadCount} accent="emerald" />
+            </div>
+          </div>
+        </section>
+
         <section className="rounded-[1.75rem] border border-slate-200 bg-white p-4 shadow-sm">
           <div className="mb-3 flex items-center gap-2">
             <Users className="h-4 w-4 text-emerald-600" />
@@ -281,6 +386,11 @@ export function CommunityTab({
                 key={room.id}
                 title={room.title || "Branch Room"}
                 subtitle={room.lastMessagePreview || "Wala pang bagong usapan."}
+                meta={
+                  room.lastMessageSender
+                    ? `Huli: ${room.lastMessageSender}`
+                    : "Branch room"
+                }
                 active={room.id === selectedConversationId}
                 unread={room.hasUnread}
                 onClick={() => setSelectedConversationId(room.id)}
@@ -294,10 +404,10 @@ export function CommunityTab({
             <MessageSquareText className="h-4 w-4 text-indigo-600" />
             <div>
               <h2 className="text-sm font-black uppercase tracking-[0.18em] text-slate-500">
-                Direct Conversations
+                Direct Messages
               </h2>
               <p className="text-xs text-slate-500">
-                Mas personal na usapan para sa mentorship at guarantorship.
+                Personal na usapan para sa mentorship at guarantorship.
               </p>
             </div>
           </div>
@@ -317,12 +427,92 @@ export function CommunityTab({
                     conversation.counterparty?.subtitle ||
                     "Wala pang message."
                   }
+                  meta={conversation.counterparty?.role || "direct"}
                   active={conversation.id === selectedConversationId}
                   unread={conversation.hasUnread}
                   onClick={() => setSelectedConversationId(conversation.id)}
                 />
               ))
             )}
+          </div>
+        </section>
+
+        <section className="rounded-[1.75rem] border border-slate-200 bg-white p-4 shadow-sm">
+          <div className="mb-3 flex items-center gap-2">
+            <Layers3 className="h-4 w-4 text-violet-600" />
+            <div>
+              <h2 className="text-sm font-black uppercase tracking-[0.18em] text-slate-500">
+                Group Chats
+              </h2>
+              <p className="text-xs text-slate-500">
+                Maliit na working groups para sa support, coaching, at reminders.
+              </p>
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            {(initialData.groupChats || []).length === 0 ? (
+              <p className="rounded-2xl border border-dashed border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-500">
+                Wala ka pang group chat. Gumawa ng maliit na support group sa ibaba.
+              </p>
+            ) : (
+              (initialData.groupChats || []).map((group) => (
+                <ConversationButton
+                  key={group.id}
+                  title={group.title}
+                  subtitle={group.lastMessagePreview || "Wala pang usapan."}
+                  meta={`${group.participantCount} participants`}
+                  active={group.id === selectedConversationId}
+                  unread={group.hasUnread}
+                  onClick={() => setSelectedConversationId(group.id)}
+                />
+              ))
+            )}
+          </div>
+
+          <div className="mt-4 space-y-3 rounded-2xl border border-violet-100 bg-violet-50/70 p-4">
+            <p className="text-xs font-black uppercase tracking-[0.18em] text-violet-700">
+              Gumawa ng Group Chat
+            </p>
+            <Input
+              value={newGroupTitle}
+              onChange={(event) => setNewGroupTitle(event.target.value)}
+              placeholder="Halimbawa: Repayment Support Circle"
+              className="rounded-xl bg-white"
+            />
+            <div className="max-h-40 space-y-2 overflow-y-auto pr-1">
+              {discoverableDirectory.map((user) => (
+                <label
+                  key={user.userId}
+                  className="flex items-center gap-3 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700"
+                >
+                  <input
+                    type="checkbox"
+                    checked={groupParticipantIds.includes(user.userId)}
+                    onChange={() => toggleGroupParticipant(user.userId)}
+                    className="h-4 w-4 rounded border-slate-300"
+                  />
+                  <span className="flex-1">
+                    <span className="font-semibold text-slate-900">
+                      {user.name}
+                    </span>{" "}
+                    <span className="text-xs text-slate-500">({user.role})</span>
+                  </span>
+                </label>
+              ))}
+            </div>
+            <Button
+              className="w-full rounded-xl bg-violet-600 text-white hover:bg-violet-700"
+              onClick={handleCreateGroup}
+              disabled={isPending}
+            >
+              {isPending ? (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              ) : (
+                <PlusCircle className="mr-2 h-4 w-4" />
+              )}
+              Gumawa ng Group Chat
+            </Button>
           </div>
         </section>
 
@@ -338,8 +528,8 @@ export function CommunityTab({
               </p>
             </div>
           </div>
-          <div className="max-h-[26rem] space-y-2 overflow-y-auto pr-1">
-            {initialData.discoverableUsers.map((user) => (
+          <div className="max-h-[22rem] space-y-2 overflow-y-auto pr-1">
+            {discoverableDirectory.map((user) => (
               <div
                 key={user.userId}
                 className="rounded-2xl border border-slate-100 bg-slate-50 px-3 py-3"
@@ -353,7 +543,7 @@ export function CommunityTab({
                     <p className="mt-1 text-[10px] font-bold uppercase tracking-[0.18em] text-slate-400">
                       {user.role}
                       {typeof user.averageVouchScore === "number"
-                        ? ` • vouch ${user.averageVouchScore.toFixed(1)}`
+                        ? ` - vouch ${user.averageVouchScore.toFixed(1)}`
                         : ""}
                     </p>
                   </div>
@@ -381,7 +571,7 @@ export function CommunityTab({
               className="h-10 w-full rounded-xl border border-slate-200 bg-white px-3 text-sm text-slate-700"
             >
               <option value="">Pumili ng mentor o guarantor-fit</option>
-              {initialData.discoverableUsers.map((user) => (
+              {discoverableDirectory.map((user) => (
                 <option key={user.userId} value={String(user.userId)}>
                   {user.name} ({user.role})
                 </option>
@@ -415,47 +605,61 @@ export function CommunityTab({
         </section>
       </div>
 
-      <div className="space-y-5 flex flex-col h-[calc(100vh-150px)] max-h-[900px]">
-        <section className="rounded-[1.75rem] border border-slate-200 bg-white p-4 shadow-sm flex flex-col flex-1 overflow-hidden">
-          <div className="mb-3 flex items-center justify-between gap-3 shrink-0 border-b border-slate-100 pb-3">
-            <div>
-              <h2 className="text-sm font-black uppercase tracking-[0.18em] text-slate-500">
-                Active Thread
-              </h2>
+      <div className="flex h-[calc(100vh-150px)] max-h-[900px] flex-col space-y-5">
+        <section className="flex flex-1 flex-col overflow-hidden rounded-[1.75rem] border border-slate-200 bg-white p-4 shadow-sm">
+          <div className="mb-3 shrink-0 border-b border-slate-100 pb-3">
+            <div className="flex items-center justify-between gap-3">
+              <div>
+                <h2 className="text-sm font-black uppercase tracking-[0.18em] text-slate-500">
+                  Active Thread
+                </h2>
+                {thread && (
+                  <p className="mt-1 text-sm font-bold text-slate-900">
+                    {activeConversationLabel}
+                  </p>
+                )}
+              </div>
               {thread && (
-                <p className="text-sm font-bold text-slate-900 mt-1">
-                  {thread.title ||
-                    thread.participants
-                      .filter(
-                        (participant: any) => participant.role !== "member",
-                      )
-                      .map((participant: any) => participant.name)
-                      .join(", ") ||
-                    "Conversation"}
-                </p>
+                <span className="rounded-full bg-slate-100 px-3 py-1 text-[10px] font-black uppercase tracking-[0.16em] text-slate-500">
+                  {thread.type === "branch_room"
+                    ? "room"
+                    : thread.type === "group_chat"
+                      ? "group"
+                      : "direct"}
+                </span>
               )}
             </div>
-            {thread && (
-              <span className="rounded-full bg-slate-100 px-3 py-1 text-[10px] font-black uppercase tracking-[0.16em] text-slate-500">
-                {thread.type === "branch_room" ? "ROOM" : "DIRECT"}
-              </span>
-            )}
+            {thread?.participants?.length ? (
+              <p className="mt-2 text-xs text-slate-500">
+                {thread.participants.length} participants
+              </p>
+            ) : null}
           </div>
 
           {!selectedConversationId || !thread ? (
-            <div className="flex-1 flex items-center justify-center rounded-2xl border border-dashed border-slate-200 bg-slate-50 px-4 py-6 text-sm text-slate-500">
-              Pumili ng room o direct conversation para makita ang thread.
+            <div className="flex flex-1 items-center justify-center rounded-2xl border border-dashed border-slate-200 bg-slate-50 px-4 py-6 text-sm text-slate-500">
+              Pumili ng room, direct message, o group chat para makita ang thread.
             </div>
           ) : (
             <>
-              {/* Message List */}
+              <div className="mb-3 shrink-0">
+                <Button
+                  variant="outline"
+                  className="rounded-xl"
+                  onClick={handleLoadOlder}
+                  disabled={isPending || !hasOlderMessages}
+                >
+                  <ChevronUp className="mr-2 h-4 w-4" />
+                  {hasOlderMessages ? "Load older messages" : "No older messages"}
+                </Button>
+              </div>
+
               <div
                 ref={scrollRef}
-                className="flex-1 space-y-4 overflow-y-auto pr-2 py-2 flex flex-col-reverse"
+                className="flex-1 space-y-4 overflow-y-auto py-2 pr-2"
               >
-                {/* Messages usually come descedning from findMany so we might need to map them back to chronological order for flex-col-reverse or normal list */}
                 {thread.messages.length === 0 ? (
-                  <p className="rounded-2xl border border-dashed border-slate-200 bg-slate-50 px-4 py-5 text-sm text-slate-500 self-center w-full text-center">
+                  <p className="w-full self-center rounded-2xl border border-dashed border-slate-200 bg-slate-50 px-4 py-5 text-center text-sm text-slate-500">
                     Wala pang messages dito. Mauna ka na.
                   </p>
                 ) : (
@@ -484,21 +688,20 @@ export function CommunityTab({
                               )}
                             </p>
                           </div>
-                          {/* Quick Actions (Reply/React) */}
-                          <div className="opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1">
-                            <div className="relative group/reaction">
+                          <div className="flex items-center gap-1 opacity-0 transition-opacity group-hover:opacity-100">
+                            <div className="group/reaction relative">
                               <Button
                                 variant="ghost"
                                 size="icon"
                                 className="h-6 w-6 rounded-full"
                               >
-                                <SmilePlus className="w-3 h-3 text-slate-400 hover:text-emerald-600" />
+                                <SmilePlus className="h-3 w-3 text-slate-400 hover:text-emerald-600" />
                               </Button>
-                              <div className="absolute top-1/2 -translate-y-1/2 right-6 hidden group-hover/reaction:flex bg-white shadow-md border border-slate-100 rounded-full py-1 px-2 gap-1 z-10 animate-in fade-in zoom-in-95">
+                              <div className="absolute right-6 top-1/2 z-10 hidden -translate-y-1/2 gap-1 rounded-full border border-slate-100 bg-white px-2 py-1 shadow-md animate-in fade-in zoom-in-95 group-hover/reaction:flex">
                                 {QUICK_REACTIONS.map((emoji) => (
                                   <button
                                     key={emoji}
-                                    className="h-6 w-6 rounded-full hover:bg-slate-100 flex items-center justify-center text-sm"
+                                    className="flex h-6 w-6 items-center justify-center rounded-full text-sm hover:bg-slate-100"
                                     onClick={() =>
                                       handleReaction(message.id, emoji)
                                     }
@@ -520,28 +723,26 @@ export function CommunityTab({
                                 })
                               }
                             >
-                              <Reply className="w-3 h-3 text-slate-400 hover:text-emerald-600" />
+                              <Reply className="h-3 w-3 text-slate-400 hover:text-emerald-600" />
                             </Button>
                           </div>
                         </div>
 
-                        {/* Reply Context Render */}
                         {message.replyTo && (
-                          <div className="mt-1 mb-2 border-l-2 border-emerald-300 pl-3 py-1 bg-emerald-50/50 rounded-r-lg">
+                          <div className="mt-1 mb-2 rounded-r-lg border-l-2 border-emerald-300 bg-emerald-50/50 py-1 pl-3">
                             <p className="text-xs font-bold text-emerald-800">
                               {message.replyTo.senderName}
                             </p>
-                            <p className="text-xs text-slate-600 line-clamp-1">
+                            <p className="line-clamp-1 text-xs text-slate-600">
                               {message.replyTo.content}
                             </p>
                           </div>
                         )}
 
-                        <p className="mt-1 text-sm leading-6 text-slate-700 whitespace-pre-wrap">
+                        <p className="mt-1 whitespace-pre-wrap text-sm leading-6 text-slate-700">
                           {message.content}
                         </p>
 
-                        {/* Attachments Preview */}
                         {message.attachments?.length > 0 && (
                           <div className="mt-3 flex flex-wrap gap-2">
                             {message.attachments.map((file: any) => (
@@ -550,21 +751,17 @@ export function CommunityTab({
                                 target="_blank"
                                 title={file.fileName}
                                 key={file.id}
-                                className="flex items-center gap-2 px-3 py-2 bg-slate-100 border border-slate-200 rounded-xl hover:bg-emerald-50 hover:border-emerald-200 transition-colors text-xs text-slate-700 max-w-[200px]"
+                                className="flex max-w-[200px] items-center gap-2 rounded-xl border border-slate-200 bg-slate-100 px-3 py-2 text-xs text-slate-700 transition-colors hover:border-emerald-200 hover:bg-emerald-50"
                               >
-                                <FileText className="w-4 h-4 text-emerald-600 shrink-0" />
-                                <span className="truncate">
-                                  {file.fileName}
-                                </span>
+                                <FileText className="h-4 w-4 shrink-0 text-emerald-600" />
+                                <span className="truncate">{file.fileName}</span>
                               </a>
                             ))}
                           </div>
                         )}
 
-                        {/* Reactions Render */}
                         {message.reactions?.length > 0 && (
                           <div className="mt-2 flex flex-wrap gap-1">
-                            {/* Grouping reactions logic can be complex, mapped simple for now */}
                             {Array.from(
                               new Set(
                                 message.reactions.map((r: any) => r.emoji),
@@ -573,21 +770,16 @@ export function CommunityTab({
                               const count = message.reactions.filter(
                                 (r: any) => r.emoji === emoji,
                               ).length;
-                              const isUserReacted = message.reactions.some(
-                                (r: any) =>
-                                  r.emoji === emoji &&
-                                  r.user_id /* this requires current user id, but clicking toggles so it's fine */,
-                              );
                               return (
                                 <button
                                   key={emoji}
                                   onClick={() =>
                                     handleReaction(message.id, emoji)
                                   }
-                                  className="px-2 py-0.5 rounded-full bg-slate-50 border border-slate-100 hover:bg-emerald-50 text-[11px] flex items-center gap-1.5"
+                                  className="flex items-center gap-1.5 rounded-full border border-slate-100 bg-slate-50 px-2 py-0.5 text-[11px] hover:bg-emerald-50"
                                 >
                                   <span>{emoji}</span>
-                                  <span className="text-slate-500 font-bold">
+                                  <span className="font-bold text-slate-500">
                                     {count}
                                   </span>
                                 </button>
@@ -600,15 +792,14 @@ export function CommunityTab({
                 )}
               </div>
 
-              {/* Composition Area */}
-              <div className="pt-3 border-t border-slate-100 shrink-0 flex flex-col gap-2">
+              <div className="flex shrink-0 flex-col gap-2 border-t border-slate-100 pt-3">
                 {replyToMessage && (
-                  <div className="flex items-center justify-between bg-emerald-50/50 rounded-xl px-4 py-2 border border-emerald-100">
+                  <div className="flex items-center justify-between rounded-xl border border-emerald-100 bg-emerald-50/50 px-4 py-2">
                     <div className="flex flex-col">
                       <span className="text-xs font-bold text-emerald-800">
                         Replying to {replyToMessage.senderName}
                       </span>
-                      <span className="text-xs text-slate-500 line-clamp-1">
+                      <span className="line-clamp-1 text-xs text-slate-500">
                         {replyToMessage.content}
                       </span>
                     </div>
@@ -618,7 +809,7 @@ export function CommunityTab({
                       className="h-6 w-6 rounded-full hover:bg-emerald-100"
                       onClick={() => setReplyToMessage(null)}
                     >
-                      <X className="w-4 h-4 text-emerald-700" />
+                      <X className="h-4 w-4 text-emerald-700" />
                     </Button>
                   </div>
                 )}
@@ -628,9 +819,9 @@ export function CommunityTab({
                     {attachmentDrafts.map((draft, idx) => (
                       <div
                         key={idx}
-                        className="flex items-center gap-2 bg-slate-100 text-xs px-3 py-1.5 rounded-xl border border-slate-200 shrink-0"
+                        className="flex shrink-0 items-center gap-2 rounded-xl border border-slate-200 bg-slate-100 px-3 py-1.5 text-xs"
                       >
-                        <FileText className="w-3 h-3 text-slate-500" />
+                        <FileText className="h-3 w-3 text-slate-500" />
                         <span className="max-w-[100px] truncate">
                           {draft.fileName}
                         </span>
@@ -638,14 +829,14 @@ export function CommunityTab({
                           type="button"
                           onClick={() => removeAttachment(idx)}
                         >
-                          <X className="w-3 h-3 text-slate-400 hover:text-red-500" />
+                          <X className="h-3 w-3 text-slate-400 hover:text-red-500" />
                         </button>
                       </div>
                     ))}
                   </div>
                 )}
 
-                <div className="flex gap-2 items-end">
+                <div className="flex items-end gap-2">
                   <input
                     type="file"
                     className="hidden"
@@ -655,22 +846,22 @@ export function CommunityTab({
                   />
                   <Button
                     variant="outline"
-                    className="h-10 w-10 shrink-0 rounded-xl border-slate-200 bg-slate-50 text-slate-400 hover:text-emerald-600 hover:bg-white"
+                    className="h-10 w-10 shrink-0 rounded-xl border-slate-200 bg-slate-50 text-slate-400 hover:bg-white hover:text-emerald-600"
                     onClick={() => fileInputRef.current?.click()}
                     disabled={isPending || isUploading}
                     title="Attach file"
                   >
                     {isUploading ? (
-                      <Loader2 className="w-4 h-4 animate-spin" />
+                      <Loader2 className="h-4 w-4 animate-spin" />
                     ) : (
-                      <Paperclip className="w-4 h-4" />
+                      <Paperclip className="h-4 w-4" />
                     )}
                   </Button>
                   <textarea
                     value={messageDraft}
                     onChange={(event) => setMessageDraft(event.target.value)}
                     placeholder="Ilagay ang mensahe dito..."
-                    className="flex-1 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 resize-none min-h-10 max-h-32 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500"
+                    className="max-h-32 min-h-10 w-full flex-1 resize-none rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
                     rows={1}
                     onKeyDown={(e) => {
                       if (e.key === "Enter" && !e.shiftKey) {
@@ -699,7 +890,7 @@ export function CommunityTab({
           )}
         </section>
 
-        <section className="rounded-[1.75rem] border border-slate-200 bg-white p-4 shadow-sm shrink-0">
+        <section className="shrink-0 rounded-[1.75rem] border border-slate-200 bg-white p-4 shadow-sm">
           <h2 className="text-sm font-black uppercase tracking-[0.18em] text-slate-500">
             Mentorship Status
           </h2>
@@ -717,7 +908,7 @@ export function CommunityTab({
                   <div className="flex items-center justify-between gap-3">
                     <div>
                       <p className="text-sm font-bold text-slate-900">
-                        {mentorship.requesterName} → {mentorship.mentorName}
+                        {mentorship.requesterName} - {mentorship.mentorName}
                       </p>
                       <p className="text-xs text-slate-500">
                         {mentorship.focusArea || "General community support"}
@@ -745,12 +936,14 @@ export function CommunityTab({
 function ConversationButton({
   title,
   subtitle,
+  meta,
   active,
   unread,
   onClick,
 }: {
   title: string;
   subtitle: string;
+  meta?: string;
   active: boolean;
   unread: boolean;
   onClick: () => void;
@@ -770,10 +963,37 @@ function ConversationButton({
         <p className="mt-1 line-clamp-2 text-xs leading-5 text-slate-500">
           {subtitle}
         </p>
+        {meta ? (
+          <p className="mt-1 text-[10px] font-bold uppercase tracking-[0.16em] text-slate-400">
+            {meta}
+          </p>
+        ) : null}
       </div>
       {unread ? (
-        <span className="mt-1 h-2.5 w-2.5 rounded-full bg-emerald-500 shrink-0" />
+        <span className="mt-1 h-2.5 w-2.5 shrink-0 rounded-full bg-emerald-500" />
       ) : null}
     </button>
+  );
+}
+
+function PulseStat({
+  label,
+  value,
+  accent = "slate",
+}: {
+  label: string;
+  value: number;
+  accent?: "slate" | "emerald";
+}) {
+  const accentClasses =
+    accent === "emerald"
+      ? "border-emerald-200 bg-emerald-50 text-emerald-700"
+      : "border-slate-200 bg-slate-50 text-slate-700";
+
+  return (
+    <div className={`rounded-xl border px-3 py-2 ${accentClasses}`}>
+      <p className="text-[11px] font-semibold uppercase tracking-wide">{label}</p>
+      <p className="mt-1 text-lg font-bold text-slate-900">{value}</p>
+    </div>
   );
 }

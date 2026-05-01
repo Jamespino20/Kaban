@@ -119,6 +119,7 @@ export async function getCommunityDashboardData() {
       requiresTenantContext: true,
       branchRooms: [],
       directConversations: [],
+      groupChats: [],
       discoverableUsers: [],
       mentorships: [],
     };
@@ -126,7 +127,7 @@ export async function getCommunityDashboardData() {
 
   await ensureBranchRooms(tenantId, session.user.user_id);
 
-  const [branchRooms, directConversations, discoverableUsers, mentorships] =
+  const [branchRooms, directConversations, groupChats, discoverableUsers, mentorships] =
     await Promise.all([
       prisma.conversation.findMany({
         where: {
@@ -154,6 +155,36 @@ export async function getCommunityDashboardData() {
         where: {
           tenant_id: tenantId,
           type: ConversationType.direct,
+          participants: {
+            some: {
+              user_id: session.user.user_id,
+            },
+          },
+        },
+        include: {
+          messages: {
+            orderBy: { created_at: "desc" },
+            take: 1,
+            include: {
+              sender: {
+                include: { profile: true },
+              },
+            },
+          },
+          participants: {
+            include: {
+              user: {
+                include: { profile: true },
+              },
+            },
+          },
+        },
+        orderBy: { updated_at: "desc" },
+      }),
+      prisma.conversation.findMany({
+        where: {
+          tenant_id: tenantId,
+          type: ConversationType.group_chat,
           participants: {
             some: {
               user_id: session.user.user_id,
@@ -270,6 +301,28 @@ export async function getCommunityDashboardData() {
         lastMessagePreview: lastMessage?.content ?? null,
         lastMessageAt: lastMessage?.created_at ?? null,
         lastMessageSenderId: lastMessage?.sender_id ?? null,
+        hasUnread: buildUnreadFlag(
+          selfParticipant?.last_read_at,
+          lastMessage?.created_at,
+        ),
+      };
+    }),
+    groupChats: groupChats.map((conversation) => {
+      const selfParticipant = conversation.participants.find(
+        (participant) => participant.user_id === session.user.user_id,
+      );
+      const lastMessage = conversation.messages[0];
+
+      return {
+        id: conversation.id,
+        title: conversation.title || "Group Chat",
+        participantCount: conversation.participants.length,
+        lastMessagePreview: lastMessage?.content ?? null,
+        lastMessageAt: lastMessage?.created_at ?? null,
+        lastMessageSender:
+          lastMessage?.sender?.profile?.first_name ||
+          lastMessage?.sender?.username ||
+          null,
         hasUnread: buildUnreadFlag(
           selfParticipant?.last_read_at,
           lastMessage?.created_at,

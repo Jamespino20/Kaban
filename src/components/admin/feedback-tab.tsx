@@ -51,6 +51,10 @@ export function FeedbackTab({
   const testimonialCount = entries.filter(
     (entry) => entry.category === "testimonial",
   ).length;
+  const unresolvedCount = entries.filter(
+    (entry) => entry.status !== "resolved",
+  ).length;
+
   const filteredEntries = useMemo(() => {
     return entries.filter((entry) => {
       const matchesStatus =
@@ -79,43 +83,61 @@ export function FeedbackTab({
   );
 
   return (
-    <div className="space-y-6">
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+    <div className="space-y-4">
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
         <FeedbackMetric
-          icon={<MessageSquareMore className="w-5 h-5 text-sky-600" />}
+          icon={<MessageSquareMore className="h-5 w-5 text-sky-600" />}
           label="Kabuuang Feedback"
           value={entries.length}
           tone="sky"
         />
         <FeedbackMetric
-          icon={<Sparkles className="w-5 h-5 text-amber-600" />}
+          icon={<Sparkles className="h-5 w-5 text-amber-600" />}
           label="Testimonial Leads"
           value={testimonialCount}
           tone="amber"
         />
         <FeedbackMetric
-          icon={<RefreshCcw className="w-5 h-5 text-emerald-600" />}
+          icon={<RefreshCcw className="h-5 w-5 text-emerald-600" />}
           label="Open / In Review"
-          value={
-            entries.filter((entry) => entry.status !== "resolved").length
-          }
+          value={unresolvedCount}
           tone="emerald"
         />
       </div>
 
-      <div className="rounded-[2rem] border border-slate-200 bg-white p-6 shadow-sm">
-        <div className="mb-6">
-          <h3 className="text-2xl font-display font-bold text-slate-900 italic">
-            Feedback Inbox
-          </h3>
-          <p className="text-sm text-slate-500">
-            {role === "superadmin"
-              ? "Tingnan ang cross-tenant feedback, concerns, at testimonial leads."
-              : "Tingnan ang feedback mula sa inyong tenant at piliin ang puwedeng iangat bilang homepage stories."}
-          </p>
+      <div className="rounded-[1.75rem] border border-slate-200/70 bg-white/90 p-4 shadow-sm">
+        <div className="mb-4 flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
+          <div className="space-y-1">
+            <p className="text-[11px] font-black uppercase tracking-[0.2em] text-slate-400">
+              Feedback Operations
+            </p>
+            <h3 className="text-xl font-display font-bold italic text-slate-900">
+              Feedback Inbox
+            </h3>
+            <p className="text-sm text-slate-500">
+              {role === "superadmin"
+                ? "Cross-tenant feedback, concerns, at testimonial leads sa isang compact triage view."
+                : "Feedback mula sa inyong tenant at mga puwedeng iangat bilang homepage stories."}
+            </p>
+          </div>
+
+          <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3">
+            <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400">
+              Filtered Results
+            </p>
+            <div className="mt-1 flex items-center gap-3">
+              <span className="text-sm font-black text-slate-900">
+                {filteredEntries.length} entry
+                {filteredEntries.length === 1 ? "" : "ies"}
+              </span>
+              <span className="rounded-full bg-slate-900 px-2 py-1 text-[10px] font-black text-white">
+                {currentPage}/{totalPages}
+              </span>
+            </div>
+          </div>
         </div>
 
-        <div className="mb-5 grid grid-cols-1 gap-3 lg:grid-cols-[1.1fr_0.7fr_0.7fr]">
+        <div className="mb-4 grid grid-cols-1 gap-3 lg:grid-cols-[1.15fr_0.7fr_0.7fr]">
           <Input
             value={query}
             onChange={(e) => setQuery(e.target.value)}
@@ -147,24 +169,36 @@ export function FeedbackTab({
           </Select>
         </div>
 
-        <div className="space-y-4">
+        <div className="mb-4 rounded-2xl border border-slate-100 bg-slate-50/80 px-4 py-3 text-sm text-slate-600">
+          <span className="font-bold text-slate-800">{unresolvedCount}</span>{" "}
+          ang nangangailangan pa ng follow-up. Gamitin ang filters para mas
+          mabilis ang triage.
+        </div>
+
+        <div className="space-y-3">
           {paginatedEntries.length === 0 ? (
-            <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50 p-5 text-sm text-slate-500">
+            <div className="rounded-[1.5rem] border border-dashed border-slate-200 bg-slate-50 p-6 text-sm text-slate-500">
               Wala pang feedback entries sa ngayon.
             </div>
           ) : (
-            paginatedEntries.map((entry) => <FeedbackRow key={entry.id} entry={entry} />)
+            paginatedEntries.map((entry) => (
+              <FeedbackRow key={entry.id} entry={entry} />
+            ))
           )}
         </div>
 
-        <div className="mt-6 flex flex-col gap-3 border-t border-slate-100 pt-4 md:flex-row md:items-center md:justify-between">
+        <div className="mt-5 flex flex-col gap-3 border-t border-slate-100 pt-4 md:flex-row md:items-center md:justify-between">
           <p className="text-sm text-slate-500">
             Ipinapakita ang{" "}
             <span className="font-bold text-slate-700">
-              {filteredEntries.length === 0 ? 0 : (currentPage - 1) * pageSize + 1}-
+              {filteredEntries.length === 0 ? 0 : (currentPage - 1) * pageSize + 1}
+              -
               {Math.min(currentPage * pageSize, filteredEntries.length)}
             </span>{" "}
-            ng <span className="font-bold text-slate-700">{filteredEntries.length}</span>{" "}
+            ng{" "}
+            <span className="font-bold text-slate-700">
+              {filteredEntries.length}
+            </span>{" "}
             entries
           </p>
           <div className="flex items-center gap-2">
@@ -214,14 +248,14 @@ function FeedbackMetric({
   };
 
   return (
-    <div className={`rounded-[1.75rem] border p-5 ${toneClass[tone]}`}>
+    <div className={`rounded-[1.5rem] border p-4 ${toneClass[tone]}`}>
       <div className="flex items-center justify-between">
-        <span className="text-sm font-bold uppercase tracking-wider text-slate-500">
+        <span className="text-xs font-bold uppercase tracking-[0.18em] text-slate-500">
           {label}
         </span>
         {icon}
       </div>
-      <p className="mt-4 text-3xl font-black text-slate-900">{value}</p>
+      <p className="mt-3 text-3xl font-black text-slate-900">{value}</p>
     </div>
   );
 }
@@ -233,8 +267,9 @@ function FeedbackRow({ entry }: { entry: FeedbackItem }) {
   const handleUpdate = (status: "open" | "in_review" | "resolved") => {
     startTransition(async () => {
       const res = await updateFeedbackEntryStatus({ id: entry.id, status });
-      if (res.error) toast.error(res.error);
-      else {
+      if (res.error) {
+        toast.error(res.error);
+      } else {
         toast.success(res.success);
         router.refresh();
       }
@@ -242,42 +277,42 @@ function FeedbackRow({ entry }: { entry: FeedbackItem }) {
   };
 
   return (
-    <div className="rounded-2xl border border-slate-200 bg-slate-50 p-5 space-y-4">
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <div className="space-y-1">
+    <div className="space-y-3 rounded-[1.5rem] border border-slate-200/70 bg-white p-4 shadow-sm">
+      <div className="flex flex-col gap-3 xl:flex-row xl:items-start xl:justify-between">
+        <div className="min-w-0 flex-1 space-y-2">
           <div className="flex flex-wrap items-center gap-2">
-            <span className="rounded-full bg-white px-3 py-1 text-[11px] font-bold uppercase tracking-wider text-slate-600">
-              {entry.category}
-            </span>
-            <span className="rounded-full bg-white px-3 py-1 text-[11px] font-bold uppercase tracking-wider text-emerald-700">
+            <BadgePill>{entry.category}</BadgePill>
+            <BadgePill tone={entry.status === "resolved" ? "neutral" : "active"}>
               {entry.status}
-            </span>
-            {entry.tenant?.name ? (
-              <span className="rounded-full bg-white px-3 py-1 text-[11px] font-bold uppercase tracking-wider text-slate-500">
-                {entry.tenant.name}
-              </span>
-            ) : null}
+            </BadgePill>
+            {entry.tenant?.name ? <BadgePill>{entry.tenant.name}</BadgePill> : null}
           </div>
-          <p className="font-black text-slate-900">
+          <p className="line-clamp-2 font-black text-slate-900">
             {entry.subject || "Walang subject"}
           </p>
-          <p className="text-sm text-slate-500">
-            Mula kay {entry.name}
-            {entry.email ? ` (${entry.email})` : ""}
-            {entry.page_path ? ` • ${entry.page_path}` : ""}
-          </p>
+          <div className="grid gap-2 rounded-2xl border border-slate-100 bg-slate-50/80 p-3 text-xs text-slate-600 md:grid-cols-3">
+            <MetaCell
+              label="Mula kay"
+              value={`${entry.name}${entry.email ? ` (${entry.email})` : ""}`}
+            />
+            <MetaCell label="Page" value={entry.page_path || "Hindi tinukoy"} />
+            <MetaCell
+              label="Created"
+              value={new Date(entry.created_at).toLocaleString()}
+            />
+          </div>
         </div>
 
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap gap-2 xl:max-w-[18rem] xl:justify-end">
           {STATUS_OPTIONS.map((option) => (
             <Button
               key={option.value}
               disabled={isPending || entry.status === option.value}
               onClick={() => handleUpdate(option.value)}
-              className={`rounded-xl ${
+              className={`rounded-xl px-3 ${
                 entry.status === option.value
                   ? "bg-slate-900 text-white"
-                  : "bg-white text-slate-700 border border-slate-200 hover:bg-slate-100"
+                  : "border border-slate-200 bg-white text-slate-700 hover:bg-slate-100"
               }`}
             >
               {option.label}
@@ -286,9 +321,42 @@ function FeedbackRow({ entry }: { entry: FeedbackItem }) {
         </div>
       </div>
 
-      <div className="rounded-xl bg-white p-4 text-sm text-slate-700 border border-slate-200 whitespace-pre-line">
+      <div className="whitespace-pre-line rounded-2xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-700">
         {entry.message}
       </div>
+    </div>
+  );
+}
+
+function BadgePill({
+  children,
+  tone = "default",
+}: {
+  children: React.ReactNode;
+  tone?: "default" | "active" | "neutral";
+}) {
+  const toneClass = {
+    default: "bg-white text-slate-600",
+    active: "bg-emerald-50 text-emerald-700 border-emerald-100",
+    neutral: "bg-slate-100 text-slate-700",
+  };
+
+  return (
+    <span
+      className={`rounded-full border px-3 py-1 text-[11px] font-bold uppercase tracking-wider ${toneClass[tone]}`}
+    >
+      {children}
+    </span>
+  );
+}
+
+function MetaCell({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="space-y-0.5">
+      <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-slate-400">
+        {label}
+      </p>
+      <p className="line-clamp-2 font-medium text-slate-700">{value}</p>
     </div>
   );
 }

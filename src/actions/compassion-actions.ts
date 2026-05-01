@@ -88,8 +88,8 @@ export const requestCompassionAction = async (
       },
     });
 
-    revalidatePath("/(authenticated)/dashboard");
-    revalidatePath("/(authenticated)/loans");
+    revalidatePath("/agapay-pintig");
+    revalidatePath("/agapay-tanaw");
 
     return { success: true };
   } catch (error) {
@@ -194,7 +194,8 @@ export const processCompassionAction = async (
       }
     });
 
-    revalidatePath("/agapay-tanaw/(authenticated)/compassion");
+    revalidatePath("/agapay-tanaw");
+    revalidatePath("/agapay-pintig");
     return { success: true };
   } catch (error) {
     console.error("[PROCESS_COMPASSION_ERROR]", error);
