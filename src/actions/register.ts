@@ -3,6 +3,7 @@
 import * as z from "zod";
 import bcrypt from "bcryptjs";
 import prisma from "@/lib/prisma";
+import { Prisma } from "@prisma/client";
 import { generateVerificationToken } from "@/lib/tokens";
 import { sendVerificationEmail, verifyEmailExists } from "@/lib/mail";
 
@@ -47,30 +48,32 @@ export const register = async (values: z.infer<typeof RegisterSchema>) => {
   }
 
   const {
-    email,
     password,
-    username,
-    firstName,
-    middleName,
-    lastName,
-    phone,
-    businessName,
     maritalStatus,
     birthdate,
-    gender,
-    region,
-    province,
-    city,
-    barangay,
-    streetAddress,
-    idPicture,
-    brgyCertUrl,
-    businessPermitUrl,
-    mothersMaidenName,
-    placeOfBirth,
-    tin,
     tenantId,
   } = validatedFields.data;
+  const email = validatedFields.data.email.trim().toLowerCase();
+  const username = validatedFields.data.username.trim();
+  const firstName = validatedFields.data.firstName.trim();
+  const middleName = validatedFields.data.middleName?.trim() || undefined;
+  const lastName = validatedFields.data.lastName.trim();
+  const phone = validatedFields.data.phone.trim();
+  const businessName = validatedFields.data.businessName?.trim() || undefined;
+  const gender = validatedFields.data.gender.trim();
+  const region = validatedFields.data.region.trim();
+  const province = validatedFields.data.province.trim();
+  const city = validatedFields.data.city.trim();
+  const barangay = validatedFields.data.barangay.trim();
+  const streetAddress = validatedFields.data.streetAddress.trim();
+  const idPicture = validatedFields.data.idPicture.trim();
+  const brgyCertUrl = validatedFields.data.brgyCertUrl?.trim() || undefined;
+  const businessPermitUrl =
+    validatedFields.data.businessPermitUrl?.trim() || undefined;
+  const mothersMaidenName =
+    validatedFields.data.mothersMaidenName?.trim() || undefined;
+  const placeOfBirth = validatedFields.data.placeOfBirth?.trim() || undefined;
+  const tin = validatedFields.data.tin?.trim() || undefined;
 
   // Real-time SMTP Verification (Phase 2 Hardening)
   const isEmailReal = await verifyEmailExists(email);
@@ -215,6 +218,17 @@ export const register = async (values: z.infer<typeof RegisterSchema>) => {
     };
   } catch (error) {
     console.error("Registration transaction error:", error);
+
+    if (
+      error instanceof Prisma.PrismaClientKnownRequestError &&
+      error.code === "P2000"
+    ) {
+      return {
+        error:
+          "May isang detalye o uploaded document na masyadong mahaba para ma-save. Pakisubukang bawasan ang address fields o gumamit ng mas maliit na uploaded image.",
+      };
+    }
+
     return { error: "Something went wrong during registration!" };
   }
 };

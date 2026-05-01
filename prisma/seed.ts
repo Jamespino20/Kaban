@@ -73,7 +73,7 @@ const buildTenantScopedIdentity = (
 
   return {
     username: `${firstPart}_${lastPart}_${roleLabel}_${tenantPart}_${index + 1}`,
-    email: `${firstPart}.${lastPart}.${suffix}@agapay.demo`,
+    email: `${firstPart}.${lastPart}.${suffix}@gmail.com`,
   };
 };
 
@@ -99,8 +99,6 @@ const buildMemberIdentity = (
 const REGIONS = [
   { name: "NCR Sector", reg_code: "AGP-NCR" },
   { name: "Central Luzon Sector", reg_code: "AGP-CL" },
-  { name: "Calabarzon Sector", reg_code: "AGP-CBZ" },
-  { name: "Western Visayas Sector", reg_code: "AGP-WV" },
 ];
 
 const BRANCHES = [
@@ -122,25 +120,6 @@ const BRANCHES = [
     slug: "agapay-pampanga",
     groupIdx: 1,
     color: "#dc2626",
-  },
-  {
-    name: "Laguna Sta. Rosa",
-    slug: "agapay-laguna",
-    groupIdx: 2,
-    color: "#7c3aed",
-  },
-  {
-    name: "Cavite Bacoor",
-    slug: "agapay-cavite",
-    groupIdx: 2,
-    color: "#2563eb",
-  },
-  { name: "Iloilo City", slug: "agapay-iloilo", groupIdx: 3, color: "#ea580c" },
-  {
-    name: "Bacolod Silay",
-    slug: "agapay-bacolod",
-    groupIdx: 3,
-    color: "#65a30d",
   },
 ];
 
@@ -415,7 +394,7 @@ interface SeededUser {
 }
 
 async function seedAdmins(ctx: TenantContext): Promise<SeededUser[]> {
-  const count = rand(1, 2);
+  const count = 2; // Fixed as requested
   const admins: SeededUser[] = [];
   for (let i = 0; i < count; i++) {
     const isMale = Math.random() > 0.5;
@@ -461,7 +440,7 @@ async function seedAdmins(ctx: TenantContext): Promise<SeededUser[]> {
 }
 
 async function seedLenders(ctx: TenantContext): Promise<SeededUser[]> {
-  const count = rand(2, 3);
+  const count = 4; // Fixed as requested (2 per admin)
   const lenders: SeededUser[] = [];
   const lenderOrgs = [
     "Cooperative Lending Corp",
@@ -514,7 +493,7 @@ async function seedLenders(ctx: TenantContext): Promise<SeededUser[]> {
 }
 
 async function seedMembers(ctx: TenantContext): Promise<SeededUser[]> {
-  const count = rand(10, 15);
+  const count = 6; // Fixed as requested
   const members: SeededUser[] = [];
   for (let i = 0; i < count; i++) {
     const isMale = Math.random() > 0.45;
@@ -619,7 +598,7 @@ async function seedLoansWithSchedulesAndPayments(
   }[],
   payMethodId: number,
 ) {
-  const loanCount = rand(18, 30);
+  const loanCount = rand(10, 15);
   console.log(
     `  📄 Generating ${loanCount} loans with correlated schedules & payments...`,
   );
@@ -791,7 +770,7 @@ async function seedLoansWithSchedulesAndPayments(
 }
 
 async function seedSocialGraph(members: SeededUser[]) {
-  const vouchCount = rand(8, 20);
+  const vouchCount = rand(5, 10);
   const batch = [];
   for (let v = 0; v < vouchCount; v++) {
     const voucher = pick(members);
@@ -824,7 +803,7 @@ async function seedAuditLogs(ctx: TenantContext, staff: SeededUser[]) {
     { action: "COMPASSION_TRIGGERED", entity: "Loan" },
   ];
   const batch = [];
-  const logCount = rand(15, 30);
+  const logCount = rand(10, 20);
   for (let i = 0; i < logCount; i++) {
     const act = pick(ACTIONS);
     const actor = staff.length > 0 ? pick(staff) : null;

@@ -31,20 +31,26 @@ export async function createNotification(input: {
       notification.channel === NotificationChannel.both) &&
     notification.recipient.email
   ) {
-    await sendSystemNotificationEmail({
-      to: notification.recipient.email,
-      subject: `Agapay: ${notification.title}`,
-      title: notification.title,
-      body: notification.body,
-      actionUrl: notification.action_url,
-    });
+    try {
+      const result = await sendSystemNotificationEmail({
+        to: notification.recipient.email,
+        subject: `Agapay: ${notification.title}`,
+        title: notification.title,
+        body: notification.body,
+        actionUrl: notification.action_url,
+      });
 
-    await prisma.notification.update({
-      where: { id: notification.id },
-      data: {
-        emailed_at: new Date(),
-      },
-    });
+      if (result.delivered) {
+        await prisma.notification.update({
+          where: { id: notification.id },
+          data: {
+            emailed_at: new Date(),
+          },
+        });
+      }
+    } catch (error) {
+      console.error("Failed to send system notification email:", error);
+    }
   }
 
   return notification;

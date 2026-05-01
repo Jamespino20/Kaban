@@ -125,7 +125,7 @@ model UserProfile {
   province            String?        @db.VarChar(255)
   city                String?        @db.VarChar(255)
   barangay            String?        @db.VarChar(255)
-  photo_url           String?
+  photo_url           String?        @db.Text
   user                User           @relation(fields: [user_id], references: [user_id], onDelete: Cascade)
 
   @@map("user_profiles")
@@ -136,7 +136,7 @@ model UserDocument {
   user_id             Int
   document_type       DocumentType
   id_type_name        String?            @db.VarChar(100)
-  file_url            String
+  file_url            String             @db.Text
   verification_status VerificationStatus @default(pending)
   uploaded_at         DateTime           @default(now())
   user                User               @relation(fields: [user_id], references: [user_id], onDelete: Cascade)

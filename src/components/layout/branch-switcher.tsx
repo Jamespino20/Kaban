@@ -90,13 +90,13 @@ export function BranchSwitcher() {
       <DropdownMenuTrigger asChild>
         <Button
           variant="ghost"
-          className="flex items-center gap-2 h-10 px-3 rounded-xl hover:bg-emerald-50 transition-colors border border-transparent hover:border-emerald-100"
+          className="flex items-center gap-2 h-10 px-3 rounded-xl border border-transparent transition-colors hover:border-primary/15 hover:bg-primary/8"
         >
-          <div className="w-6 h-6 bg-emerald-100 rounded-md flex items-center justify-center text-emerald-600">
+          <div className="flex h-6 w-6 items-center justify-center rounded-md bg-primary/12 text-primary">
             <Building2 className="w-4 h-4" />
           </div>
           <div className="flex flex-col items-start text-left hidden sm:flex">
-            <span className="text-[10px] font-bold text-emerald-600 uppercase tracking-widest leading-none mb-0.5">
+            <span className="mb-0.5 text-[10px] font-bold uppercase tracking-widest leading-none text-primary">
               Sanga
             </span>
             <span className="text-xs font-black text-slate-900 truncate max-w-[120px]">
@@ -116,7 +116,7 @@ export function BranchSwitcher() {
         <DropdownMenuSeparator />
         {loading ? (
           <div className="p-4 flex justify-center">
-            <Loader2 className="w-4 h-4 animate-spin text-emerald-500" />
+            <Loader2 className="w-4 h-4 animate-spin text-primary" />
           </div>
         ) : (
           tenants.map((t: any) => (
@@ -125,7 +125,7 @@ export function BranchSwitcher() {
               onClick={() => handleSwitch(t.tenant_id)}
               className={`flex items-center justify-between p-3 rounded-xl cursor-pointer transition-colors ${
                 t.tenant_id === session?.user?.tenantId
-                  ? "bg-emerald-50 text-emerald-700"
+                  ? "bg-primary/10 text-primary"
                   : "hover:bg-slate-50"
               }`}
             >

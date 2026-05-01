@@ -1,6 +1,7 @@
 "use client";
 
 import { BranchSwitcher } from "@/components/layout/branch-switcher";
+import { NotificationBell } from "@/components/layout/notification-bell";
 import { Button } from "@/components/ui/button";
 import { TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { signOut } from "next-auth/react";
@@ -24,6 +25,36 @@ import {
   TrendingUp,
 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
+
+function normalizeHexColor(color?: string | null) {
+  if (!color) {
+    return null;
+  }
+
+  const value = color.trim();
+  const match = value.match(/^#?([0-9a-fA-F]{6})$/);
+  if (!match) {
+    return null;
+  }
+
+  return `#${match[1]}`;
+}
+
+function hexToRgb(hex: string) {
+  const normalized = hex.replace("#", "");
+  const parsed = Number.parseInt(normalized, 16);
+
+  return {
+    r: (parsed >> 16) & 255,
+    g: (parsed >> 8) & 255,
+    b: parsed & 255,
+  };
+}
+
+function rgba(hex: string, alpha: number) {
+  const { r, g, b } = hexToRgb(hex);
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+}
 
 export type ShellNavItem = {
   value: string;
@@ -116,9 +147,47 @@ export function AuthenticatedShell({
       "border-white/10 bg-[linear-gradient(180deg,rgba(15,23,42,0.96),rgba(2,6,23,0.98))]",
   };
 
-  const cssVars = tenantBrandColor
-    ? ({ "--primary": tenantBrandColor } as React.CSSProperties)
+  const normalizedTenantColor = normalizeHexColor(tenantBrandColor);
+  const cssVars = normalizedTenantColor
+    ? ({ "--primary": normalizedTenantColor } as React.CSSProperties)
     : {};
+  const sidebarStyle = ({
+    backgroundImage: normalizedTenantColor
+      ? `radial-gradient(circle at top left, ${rgba(normalizedTenantColor, 0.22)}, transparent 32%), linear-gradient(180deg, rgba(15,23,42,0.98), rgba(2,6,23,0.99))`
+      : "linear-gradient(180deg,rgba(15,23,42,0.96),rgba(2,6,23,0.98))",
+  } as React.CSSProperties);
+  const mainPaneStyle = ({
+    backgroundImage: normalizedTenantColor
+      ? `radial-gradient(circle at top, ${rgba(normalizedTenantColor, 0.12)}, transparent 28%), linear-gradient(180deg,#f8fafc 0%,#f1f5f9 100%)`
+      : "radial-gradient(circle at top,rgba(16,185,129,0.06),transparent 28%), linear-gradient(180deg,#f8fafc 0%,#f1f5f9 100%)",
+  } as React.CSSProperties);
+  const portalBadgeStyle = normalizedTenantColor
+    ? ({
+        borderColor: rgba(normalizedTenantColor, 0.25),
+        backgroundColor: rgba(normalizedTenantColor, 0.12),
+        color: normalizedTenantColor,
+      } as React.CSSProperties)
+    : undefined;
+  const accountPanelStyle = normalizedTenantColor
+    ? ({
+        borderColor: rgba(normalizedTenantColor, 0.18),
+        boxShadow: `0 10px 30px rgba(2,6,23,0.22), inset 0 1px 0 ${rgba(normalizedTenantColor, 0.14)}`,
+      } as React.CSSProperties)
+    : undefined;
+  const logoutButtonStyle = normalizedTenantColor
+    ? ({
+        borderColor: rgba(normalizedTenantColor, 0.28),
+        backgroundColor: rgba(normalizedTenantColor, 0.12),
+        color: "#f8fafc",
+      } as React.CSSProperties)
+    : undefined;
+  const accountBadgeStyle = normalizedTenantColor
+    ? ({
+        backgroundImage: `linear-gradient(135deg, ${rgba(normalizedTenantColor, 0.18)}, rgba(255,255,255,0.95))`,
+        borderColor: rgba(normalizedTenantColor, 0.22),
+        color: normalizedTenantColor,
+      } as React.CSSProperties)
+    : undefined;
 
   useEffect(() => {
     // Delay enabling scroll so Radix's focus-triggered scrollIntoView
@@ -131,7 +200,18 @@ export function AuthenticatedShell({
   const renderSidebar = () => (
     <div
       className={`flex h-full flex-col border-r ${dynamicStyles.surface} text-white`}
+      style={sidebarStyle}
     >
+      <div
+        className="h-1 w-full"
+        style={
+          normalizedTenantColor
+            ? {
+                background: `linear-gradient(90deg, ${rgba(normalizedTenantColor, 0.95)}, ${rgba(normalizedTenantColor, 0.4)})`,
+              }
+            : undefined
+        }
+      />
       <div className="flex items-center justify-between border-b border-white/10 px-4 py-5">
         <div
           className={`flex min-w-0 flex-col gap-1 transition-all ${
@@ -173,7 +253,7 @@ export function AuthenticatedShell({
                 <img
                   src="/images/agapay_titled.png"
                   alt="Agapay"
-                  className="h-3 object-contain opacity-80 filter brightness-200"
+                  className="h-[18px] object-contain opacity-90 filter brightness-200"
                 />
               </div>
             </div>
@@ -252,7 +332,10 @@ export function AuthenticatedShell({
       </div>
 
       <div className="border-t border-white/10 p-3">
-        <div className="space-y-3 rounded-[1.75rem] border border-white/8 bg-white/5 p-3 shadow-[0_10px_30px_rgba(2,6,23,0.22)]">
+        <div
+          className="space-y-3 rounded-[1.75rem] border border-white/8 bg-white/5 p-3 shadow-[0_10px_30px_rgba(2,6,23,0.22)]"
+          style={accountPanelStyle}
+        >
           <div className={collapsed ? "xl:hidden" : ""}>
             <BranchSwitcher />
           </div>
@@ -260,6 +343,7 @@ export function AuthenticatedShell({
           <div className="flex items-center gap-3">
             <div
               className={`flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-2xl font-black ${dynamicStyles.panel} ${dynamicStyles.icon}`}
+              style={accountBadgeStyle}
             >
               {accountName.slice(0, 2).toUpperCase()}
             </div>
@@ -277,6 +361,7 @@ export function AuthenticatedShell({
             variant="ghost"
             onClick={() => signOut({ callbackUrl: "/" })}
             className={`w-full justify-start rounded-2xl border px-4 py-3 text-slate-100 ${dynamicStyles.highlight}`}
+            style={logoutButtonStyle}
           >
             <LogOut className="mr-3 h-4 w-4" />
             <span className={collapsed ? "xl:hidden" : ""}>Logout</span>
@@ -315,7 +400,10 @@ export function AuthenticatedShell({
         {renderSidebar()}
       </aside>
 
-      <div className="min-w-0 flex-1 bg-[radial-gradient(circle_at_top,rgba(16,185,129,0.06),transparent_28%),linear-gradient(180deg,#f8fafc_0%,#f1f5f9_100%)] text-slate-950 lg:h-screen lg:overflow-y-auto">
+      <div
+        className="min-w-0 flex-1 text-slate-950 lg:h-screen lg:overflow-y-auto"
+        style={mainPaneStyle}
+      >
         <div className="border-b border-slate-200/80 bg-white/88 px-5 py-5 backdrop-blur-xl md:px-8 lg:sticky lg:top-0 lg:z-20">
           <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
             <div className="space-y-3">
@@ -348,15 +436,19 @@ export function AuthenticatedShell({
                 </p>
               </div>
             </div>
-            <div
-              className={`inline-flex items-center gap-2 self-start rounded-full border px-4 py-2 lg:self-auto ${dynamicStyles.badge}`}
-            >
+            <div className="flex items-center gap-3 self-start lg:self-auto">
+              <NotificationBell />
               <div
-                className={`h-2.5 w-2.5 rounded-full ${dynamicStyles.dot}`}
-              />
-              <span className="text-xs font-bold uppercase tracking-[0.2em]">
-                {portalLabel}
-              </span>
+                className={`inline-flex items-center gap-2 rounded-full border px-4 py-2 ${dynamicStyles.badge}`}
+                style={portalBadgeStyle}
+              >
+                <div
+                  className={`h-2.5 w-2.5 rounded-full ${dynamicStyles.dot}`}
+                />
+                <span className="text-xs font-bold uppercase tracking-[0.2em]">
+                  {portalLabel}
+                </span>
+              </div>
             </div>
           </div>
         </div>

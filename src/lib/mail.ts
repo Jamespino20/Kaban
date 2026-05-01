@@ -15,8 +15,66 @@ const FEEDBACK_NOTIFICATION_TO =
   process.env.SMTP_FEEDBACK_TO ||
   "agapay.saas@gmail.com";
 
+const NON_ROUTABLE_TLDS = new Set([
+  "demo",
+  "example",
+  "invalid",
+  "localhost",
+  "local",
+  "test",
+]);
+
+function getEmailDomain(email: string) {
+  return email.trim().toLowerCase().split("@")[1] || "";
+}
+
+export function isDeliverableEmailAddress(email: string) {
+  const normalized = email.trim().toLowerCase();
+  const domain = getEmailDomain(normalized);
+
+  if (!normalized || !domain) {
+    return false;
+  }
+
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalized)) {
+    return false;
+  }
+
+  const tld = domain.split(".").pop() || "";
+  if (NON_ROUTABLE_TLDS.has(tld)) {
+    return false;
+  }
+
+  return true;
+}
+
+async function guardedSendMail(options: nodemailer.SendMailOptions) {
+  const recipients = [options.to, options.cc, options.bcc]
+    .flat()
+    .filter(Boolean)
+    .flatMap((value) =>
+      typeof value === "string" ? value.split(",") : [String(value)],
+    )
+    .map((value) => value.trim())
+    .filter(Boolean);
+
+  const undeliverable = recipients.filter(
+    (email) => !isDeliverableEmailAddress(email),
+  );
+
+  if (undeliverable.length > 0) {
+    console.warn(
+      `[mail] Skipping outbound email for non-routable recipient(s): ${undeliverable.join(", ")}`,
+    );
+    return { delivered: false, skipped: true as const };
+  }
+
+  await transporter.sendMail(options);
+  return { delivered: true, skipped: false as const };
+}
+
 export const sendTwoFactorTokenEmail = async (email: string, token: string) => {
-  await transporter.sendMail({
+  return guardedSendMail({
     from: process.env.SMTP_FROM,
     to: email,
     subject: "2FA Code - Agapay Shared Treasury",
@@ -60,7 +118,7 @@ export const verifyEmailExists = async (email: string): Promise<boolean> => {
 export const sendVerificationEmail = async (email: string, token: string) => {
   const confirmLink = `${process.env.NEXT_PUBLIC_APP_URL}/auth/new-verification?token=${token}`;
 
-  await transporter.sendMail({
+  return guardedSendMail({
     from: process.env.SMTP_FROM,
     to: email,
     subject: "I-verify ang iyong Agapay Account",
@@ -82,8 +140,7 @@ export const sendVerificationEmail = async (email: string, token: string) => {
 
 export const sendPasswordResetEmail = async (email: string, token: string) => {
   const resetLink = `${process.env.NEXT_PUBLIC_APP_URL}/auth/new-password?token=${token}`;
-
-  await transporter.sendMail({
+  return guardedSendMail({
     from: process.env.SMTP_FROM,
     to: email,
     subject: "I-reset ang iyong Password - Agapay",
@@ -95,6 +152,39 @@ export const sendPasswordResetEmail = async (email: string, token: string) => {
         <div style="padding: 40px; color: #1e293b;">
           <h2>Nakalimutan ang Password?</h2>
           <p>I-click ang button sa ibaba upang i-reset ang iyong password para sa Agapay. Ang link na ito ay valid lamang sa loob ng isang oras.</p>
+          <a href="${resetLink}" style="display: block; width: 200px; margin: 30px auto; padding: 15px; background-color: #059669; color: white; text-decoration: none; text-align: center; border-radius: 30px; font-weight: bold;">I-reset ang Password</a>
+          <p style="font-size: 14px; color: #64748b;">O i-copy itong link sa iyong browser: ${resetLink}</p>
+          <p style="font-size: 14px; color: #64748b; margin-top: 20px;">Kung hindi mo ito hiningi, maaari mo itong balewalain nang ligtas.</p>
+        </div>
+      </div>
+    `,
+  });
+};
+
+export const sendTenantScopedPasswordResetEmail = async ({
+  email,
+  token,
+  tenantName,
+}: {
+  email: string;
+  token: string;
+  tenantName?: string | null;
+}) => {
+  const resetLink = `${process.env.NEXT_PUBLIC_APP_URL}/auth/new-password?token=${token}`;
+  const tenantLabel = tenantName?.trim() || "iyong cooperative account";
+
+  return guardedSendMail({
+    from: process.env.SMTP_FROM,
+    to: email,
+    subject: `I-reset ang iyong Password - ${tenantLabel}`,
+    html: `
+      <div style="font-family: sans-serif; max-width: 600px; margin: auto; border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden;">
+        <div style="background-color: #059669; padding: 40px; text-align: center;">
+          <h1 style="color: white; margin: 0; font-style: italic;">Agapay</h1>
+        </div>
+        <div style="padding: 40px; color: #1e293b;">
+          <h2>Nakalimutan ang Password?</h2>
+          <p>I-click ang button sa ibaba upang i-reset ang iyong password para sa <strong>${tenantLabel}</strong>. Ang link na ito ay valid lamang sa loob ng isang oras.</p>
           <a href="${resetLink}" style="display: block; width: 200px; margin: 30px auto; padding: 15px; background-color: #059669; color: white; text-decoration: none; text-align: center; border-radius: 30px; font-weight: bold;">I-reset ang Password</a>
           <p style="font-size: 14px; color: #64748b;">O i-copy itong link sa iyong browser: ${resetLink}</p>
           <p style="font-size: 14px; color: #64748b; margin-top: 20px;">Kung hindi mo ito hiningi, maaari mo itong balewalain nang ligtas.</p>
@@ -122,7 +212,7 @@ export const sendFeedbackNotificationEmail = async ({
   const normalizedSubject =
     subject?.trim() || `Bagong ${category} feedback mula sa ${name}`;
 
-  await transporter.sendMail({
+  return guardedSendMail({
     from: `"${name} via Agapay" <${process.env.SMTP_USER}>`,
     to: FEEDBACK_NOTIFICATION_TO,
     replyTo: email || undefined,
@@ -180,7 +270,7 @@ export const sendSystemNotificationEmail = async ({
   body: string;
   actionUrl?: string | null;
 }) => {
-  await transporter.sendMail({
+  return guardedSendMail({
     from: process.env.SMTP_FROM,
     to,
     subject,

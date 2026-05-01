@@ -3,7 +3,7 @@
 import * as z from "zod";
 import prisma from "@/lib/prisma";
 import { generatePasswordResetToken } from "@/lib/tokens";
-import { sendPasswordResetEmail } from "@/lib/mail";
+import { sendTenantScopedPasswordResetEmail } from "@/lib/mail";
 
 const ResetSchema = z.object({
   email: z.string().email({
@@ -18,31 +18,47 @@ export const reset = async (values: z.infer<typeof ResetSchema>) => {
     return { error: "Invalid email!" };
   }
 
-  const { email } = validatedFields.data;
+  const email = validatedFields.data.email.trim().toLowerCase();
 
-  // Find all users with this email (if multi-tenant ignores tenant temporarily for reset,
-  // or we just pick the primary/global one to send the email).
-  // In Agapay, if email is used across tenants, we send a token with tenant_id: null
-  // or just send it for the first found user and apply it everywhere.
-  // We'll tie the token to the first found user's tenant for simplicity, or
-  // ideally update all instances if they share credentials.
-  const existingUser = await prisma.user.findFirst({
-    where: { email },
+  const existingUsers = await prisma.user.findMany({
+    where: {
+      email,
+      status: {
+        not: "suspended",
+      },
+    },
+    select: {
+      user_id: true,
+      tenant_id: true,
+      tenant: {
+        select: {
+          name: true,
+        },
+      },
+    },
   });
 
-  if (!existingUser) {
-    return { error: "Email not found!" };
+  if (existingUsers.length === 0) {
+    return { success: "Kapag may katugmang account, magpapadala kami ng reset link sa iyong email." };
   }
 
-  const passwordResetToken = await generatePasswordResetToken(
-    email,
-    existingUser.tenant_id,
+  const uniqueTenantIds = Array.from(
+    new Set(existingUsers.map((user) => user.tenant_id)),
   );
 
-  await sendPasswordResetEmail(
-    passwordResetToken.email,
-    passwordResetToken.token,
-  );
+  for (const tenantId of uniqueTenantIds) {
+    const matchingUser = existingUsers.find((user) => user.tenant_id === tenantId);
+    const passwordResetToken = await generatePasswordResetToken(email, tenantId);
 
-  return { success: "Reset email sent!" };
+    await sendTenantScopedPasswordResetEmail({
+      email: passwordResetToken.email,
+      token: passwordResetToken.token,
+      tenantName: matchingUser?.tenant?.name,
+    });
+  }
+
+  return {
+    success:
+      "Kapag may katugmang account, ipinadala na ang reset instructions sa iyong email.",
+  };
 };
