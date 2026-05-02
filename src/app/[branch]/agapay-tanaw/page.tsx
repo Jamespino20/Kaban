@@ -40,6 +40,17 @@ import { CommunityOperationsTab } from "@/components/admin/community-operations-
 import { AnalyticsDashboardTab } from "@/components/admin/analytics-dashboard-tab";
 import { ReconciliationTab } from "@/components/admin/reconciliation-tab";
 import { SubscriptionSettings } from "@/components/admin/subscription-settings";
+import { SystemFileManagement } from "@/components/admin/system-file-management";
+function SystemFileManagementSkeleton() {
+  return (
+    <div className="rounded-[1.75rem] border border-slate-100 bg-white p-6 shadow-sm space-y-6">
+      <div className="animate-pulse flex items-center justify-between">
+        <div className="h-4 w-48 bg-slate-100 rounded" />
+      </div>
+      <div className="h-64 bg-slate-50 rounded-3xl animate-pulse" />
+    </div>
+  );
+}
 
 import { requireTanawSession } from "@/lib/authorization";
 import { getTranslations } from "next-intl/server";
@@ -138,6 +149,7 @@ export default async function AgapayTanawPage({
       badge: pendingData.loans.length + pendingData.verifications.length,
     },
     { value: "members", label: "Mga Miyembro", icon: "members" },
+    { value: "files", label: "Mga Dokumento", icon: "audit" },
   ];
 
   if (canViewProducts && isFeatureEnabled("advanced_products")) {
@@ -517,6 +529,36 @@ export default async function AgapayTanawPage({
                   : Number(session?.user?.tenantId || 0)
               }
             />
+          </TabsContent>
+        )}
+
+        {(isAdmin || isSuperAdmin) && (
+          <TabsContent value="files" className="outline-none">
+            <div className="space-y-6">
+              <div className="bg-white/40 border border-slate-200/60 p-6 rounded-[2rem] backdrop-blur-md">
+                <div className="flex items-center gap-4 mb-2">
+                  <div className="h-10 w-10 rounded-2xl bg-indigo-100 text-indigo-600 flex items-center justify-center">
+                    <ShieldAlert className="h-5 w-5" />
+                  </div>
+                  <h2 className="text-2xl font-display font-bold text-slate-900 italic">
+                    Repository ng mga Dokumento
+                  </h2>
+                </div>
+                <p className="text-sm text-slate-500 max-w-2xl">
+                  Dito makikita ang lahat ng system-generated reports, SOA, at
+                  mga dokumentong ini-upload ng mga miyembro na direktang
+                  nakatago sa ating secure database storage.
+                </p>
+              </div>
+
+              <SystemFileManagement
+                tenantId={
+                  session?.user?.role === "superadmin"
+                    ? (tenantContextId ?? undefined)
+                    : Number(session?.user?.tenantId || 0)
+                }
+              />
+            </div>
           </TabsContent>
         )}
 

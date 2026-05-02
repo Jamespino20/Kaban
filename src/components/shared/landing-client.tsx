@@ -1,5 +1,7 @@
 "use client";
 
+import Link from "next/link";
+
 import { AuthModal } from "@/components/auth/auth-modal";
 import { Footer } from "@/components/layout/footer";
 import { Navbar } from "@/components/layout/navbar";
@@ -534,13 +536,13 @@ export function LandingClient({ branches }: { branches: Branch[] }) {
               ))}
             </div>
             <div className="text-center">
-              <a
+              <Link
                 href="/pricing"
                 className="inline-flex items-center gap-2 font-bold text-emerald-600 hover:text-emerald-700 transition-colors"
               >
                 Tingnan ang buong Pricing Details{" "}
                 <ArrowRight className="w-4 h-4" />
-              </a>
+              </Link>
             </div>
           </section>
 
@@ -607,12 +609,12 @@ export function LandingClient({ branches }: { branches: Branch[] }) {
                 </p>
                 <div className="flex flex-wrap gap-6 justify-center">
                   <AuthModal />
-                  <a
+                  <Link
                     href="/contact"
                     className="px-12 py-5 bg-transparent border-2 border-white/40 text-white font-bold rounded-2xl hover:bg-white hover:text-emerald-700 transition-all text-lg shadow-xl shadow-black/5"
                   >
                     Makipag-ugnayan sa Amin
-                  </a>
+                  </Link>
                 </div>
               </div>
             </div>

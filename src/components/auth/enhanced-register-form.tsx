@@ -1,5 +1,7 @@
 "use client";
 
+import Link from "next/link";
+
 import { useState, useTransition, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -1011,12 +1013,12 @@ export function EnhancedRegisterForm() {
                           />
                           <span className="text-sm text-slate-600">
                             Tinatanggap ko ang{" "}
-                            <a
+                            <Link
                               href="/terms"
                               className="text-emerald-600 underline"
                             >
                               Terms of Service
-                            </a>
+                            </Link>
                           </span>
                         </div>
                       )}
@@ -1034,12 +1036,12 @@ export function EnhancedRegisterForm() {
                           />
                           <span className="text-sm text-slate-600">
                             Sumasang-ayon ako sa{" "}
-                            <a
+                            <Link
                               href="/privacy"
                               className="text-emerald-600 underline"
                             >
                               Privacy Policy
-                            </a>
+                            </Link>
                           </span>
                         </div>
                       )}
