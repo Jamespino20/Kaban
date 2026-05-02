@@ -220,6 +220,78 @@ export async function createBranch(
   }
 }
 
+const UpdateTenantBrandingSchema = z.object({
+  tenantId: z.number().int().positive().optional(),
+  brandColor: z
+    .string()
+    .regex(/^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/, "Invalid hex color")
+    .optional()
+    .or(z.literal("")),
+  accentColor: z
+    .string()
+    .regex(/^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/, "Invalid hex color")
+    .optional()
+    .or(z.literal("")),
+  fontPairing: z.string().max(50).optional(),
+  logoUrl: z.string().url().max(255).optional().or(z.literal("")),
+});
+
+export async function updateTenantBranding(
+  values: z.infer<typeof UpdateTenantBrandingSchema>,
+) {
+  const session = await requireAdminSession();
+  const parsed = UpdateTenantBrandingSchema.safeParse(values);
+
+  if (!parsed.success) {
+    return { success: false, error: "Invalid branding data." };
+  }
+
+  const requestedTenantId = parsed.data.tenantId ?? undefined;
+  const targetTenantId =
+    session.user.role === "superadmin"
+      ? requestedTenantId
+      : (session.user.tenantId ?? undefined);
+
+  if (!targetTenantId) {
+    return { success: false, error: "No tenant selected." };
+  }
+
+  if (
+    session.user.role !== "superadmin" &&
+    session.user.tenantId !== targetTenantId
+  ) {
+    return { success: false, error: "Unauthorized." };
+  }
+
+  try {
+    const updated = await prisma.tenant.update({
+      where: { tenant_id: targetTenantId },
+      data: {
+        brand_color: parsed.data.brandColor || null,
+        accent_color: parsed.data.accentColor || null,
+        font_pairing: parsed.data.fontPairing || null,
+        logo_url: parsed.data.logoUrl || null,
+      },
+    });
+
+    await prisma.auditLog.create({
+      data: {
+        tenant_id: targetTenantId,
+        user_id: session.user.user_id,
+        action: "UPDATE_TENANT_BRANDING",
+        entity_type: "Tenant",
+        entity_id: targetTenantId,
+        new_values: parsed.data as any,
+      },
+    });
+
+    return { success: true, data: updated };
+  } catch (error) {
+    console.error("Failed to update tenant branding:", error);
+    return { success: false, error: "Failed to update tenant branding." };
+  }
+}
+
 const RenameTenantSchema = z.object({
   tenantId: z.number().int().positive().optional(),
   name: z.string().trim().min(3).max(100),
@@ -237,7 +309,7 @@ export async function renameTenant(values: z.infer<typeof RenameTenantSchema>) {
   const targetTenantId =
     session.user.role === "superadmin"
       ? requestedTenantId
-      : session.user.tenantId ?? undefined;
+      : (session.user.tenantId ?? undefined);
 
   if (!targetTenantId) {
     return { success: false, error: "No tenant selected." };
@@ -291,12 +363,7 @@ export async function renameTenant(values: z.infer<typeof RenameTenantSchema>) {
 const UpdateTenantEntitlementSchema = z.object({
   tenantId: z.number().int().positive(),
   entitlementStatus: z.enum(["prospect", "active", "suspended"]),
-  entitlementReference: z
-    .string()
-    .trim()
-    .max(120)
-    .optional()
-    .or(z.literal("")),
+  entitlementReference: z.string().trim().max(120).optional().or(z.literal("")),
   entitlementNotes: z.string().trim().optional().or(z.literal("")),
 });
 

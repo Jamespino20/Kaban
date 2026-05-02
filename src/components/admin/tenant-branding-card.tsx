@@ -1,0 +1,210 @@
+"use client";
+
+import { useState, useTransition } from "react";
+import { toast } from "sonner";
+import { updateTenantBranding } from "@/actions/tenant-management";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Palette,
+  UploadCloud,
+  Type,
+  CheckCircle2,
+  ExternalLink,
+} from "lucide-react";
+
+const FONT_PAIRINGS = [
+  {
+    id: "inter_outfit",
+    label: "Inter & Outfit",
+    description: "Modern, clean, and highly readable.",
+  },
+  {
+    id: "roboto_playfair",
+    label: "Roboto & Playfair",
+    description: "Classic executive look with serif accents.",
+  },
+  {
+    id: "montserrat_poppins",
+    label: "Montserrat & Poppins",
+    description: "Geometric and friendly tech vibe.",
+  },
+];
+
+export function TenantBrandingCard({
+  tenantId,
+  initialBranding,
+}: {
+  tenantId?: number;
+  initialBranding: {
+    brand_color: string | null;
+    accent_color: string | null;
+    font_pairing: string | null;
+    logo_url: string | null;
+  };
+}) {
+  const [branding, setBranding] = useState({
+    brandColor: initialBranding.brand_color || "#10b981",
+    accentColor: initialBranding.accent_color || "#3b82f6",
+    fontPairing: initialBranding.font_pairing || "inter_outfit",
+    logoUrl: initialBranding.logo_url || "",
+  });
+
+  const [isPending, startTransition] = useTransition();
+
+  const handleSave = () => {
+    startTransition(async () => {
+      const result = await updateTenantBranding({
+        tenantId,
+        ...branding,
+      });
+
+      if (result.success) {
+        toast.success(
+          "Na-update ang branding settings. I-refresh para makita ang pagbabago.",
+        );
+      } else {
+        toast.error(result.error || "Hindi na-update ang branding.");
+      }
+    });
+  };
+
+  return (
+    <div className="w-full max-w-2xl rounded-[1.75rem] border border-slate-200 bg-white p-8 shadow-sm space-y-8">
+      <div className="flex items-center gap-3">
+        <div className="h-10 w-10 rounded-xl bg-emerald-100 text-emerald-600 flex items-center justify-center">
+          <Palette className="h-5 w-5" />
+        </div>
+        <div>
+          <h3 className="text-xl font-display font-bold text-slate-900">
+            Branding at Visuals
+          </h3>
+          <p className="text-sm text-slate-500">
+            I-customize ang anyo ng iyong workspace.
+          </p>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="space-y-3">
+          <Label htmlFor="brand-color" className="text-slate-700 font-bold">
+            Primary Brand Color
+          </Label>
+          <div className="flex gap-3">
+            <div
+              className="h-11 w-11 rounded-xl shadow-inner border border-slate-200 shrink-0"
+              style={{ backgroundColor: branding.brandColor }}
+            />
+            <Input
+              id="brand-color"
+              type="text"
+              value={branding.brandColor}
+              onChange={(e) =>
+                setBranding((prev) => ({ ...prev, brandColor: e.target.value }))
+              }
+              placeholder="#10b981"
+              className="h-11 rounded-xl font-mono uppercase"
+            />
+          </div>
+        </div>
+
+        <div className="space-y-3">
+          <Label htmlFor="accent-color" className="text-slate-700 font-bold">
+            Accent Color
+          </Label>
+          <div className="flex gap-3">
+            <div
+              className="h-11 w-11 rounded-xl shadow-inner border border-slate-200 shrink-0"
+              style={{ backgroundColor: branding.accentColor }}
+            />
+            <Input
+              id="accent-color"
+              type="text"
+              value={branding.accentColor}
+              onChange={(e) =>
+                setBranding((prev) => ({
+                  ...prev,
+                  accentColor: e.target.value,
+                }))
+              }
+              placeholder="#3b82f6"
+              className="h-11 rounded-xl font-mono uppercase"
+            />
+          </div>
+        </div>
+      </div>
+
+      <div className="space-y-3">
+        <Label htmlFor="logo-url" className="text-slate-700 font-bold">
+          Co-op Logo URL
+        </Label>
+        <div className="relative">
+          <Input
+            id="logo-url"
+            type="url"
+            value={branding.logoUrl}
+            onChange={(e) =>
+              setBranding((prev) => ({ ...prev, logoUrl: e.target.value }))
+            }
+            placeholder="https://example.com/logo.png"
+            className="h-11 pl-10 rounded-xl"
+          />
+          <UploadCloud className="absolute left-3 top-3 h-5 w-5 text-slate-400" />
+        </div>
+        <p className="text-[11px] text-slate-400 italic">
+          Nilalaman: SVG o Transparent PNG ang inirerekomenda.
+        </p>
+      </div>
+
+      <div className="space-y-4">
+        <Label className="text-slate-700 font-bold flex items-center gap-2">
+          <Type className="h-4 w-4" /> Font Pairing Styles
+        </Label>
+        <div className="grid grid-cols-1 gap-3">
+          {FONT_PAIRINGS.map((pairing) => (
+            <button
+              key={pairing.id}
+              onClick={() =>
+                setBranding((prev) => ({ ...prev, fontPairing: pairing.id }))
+              }
+              className={`flex items-center justify-between p-4 rounded-2xl border transition-all text-left group ${
+                branding.fontPairing === pairing.id
+                  ? "border-emerald-600 bg-emerald-50/50 ring-1 ring-emerald-600"
+                  : "border-slate-200 hover:border-slate-300 bg-slate-50/30"
+              }`}
+            >
+              <div className="space-y-0.5">
+                <p
+                  className={`font-bold ${branding.fontPairing === pairing.id ? "text-emerald-900" : "text-slate-900"}`}
+                >
+                  {pairing.label}
+                </p>
+                <p className="text-xs text-slate-500">{pairing.description}</p>
+              </div>
+              {branding.fontPairing === pairing.id && (
+                <CheckCircle2 className="h-5 w-5 text-emerald-600" />
+              )}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div className="pt-4 flex items-center justify-between gap-4">
+        <div className="flex items-center gap-2 text-xs text-slate-400">
+          <ExternalLink className="h-3 w-3" />
+          <span>
+            Ito ay magre-reflect sa lahat ng dashboard view ng tenant.
+          </span>
+        </div>
+        <Button
+          onClick={handleSave}
+          disabled={isPending}
+          className="h-12 px-8 rounded-2xl bg-slate-900 text-white hover:bg-slate-800 transition-all shadow-lg shadow-slate-900/10 font-bold"
+        >
+          {isPending ? "Pina-proseso..." : "I-save ang Branding"}
+        </Button>
+      </div>
+    </div>
+  );
+}

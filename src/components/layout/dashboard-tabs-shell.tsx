@@ -14,10 +14,11 @@ type DashboardTabsShellProps = {
   portalLabel: string;
   accountName: string;
   accountRole: string;
-  accent?: "emerald" | "blue";
   tenantName?: string;
   tenantLogoUrl?: string;
   tenantBrandColor?: string | null;
+  tenantAccentColor?: string | null;
+  tenantFontPairing?: string | null;
   navItems: ShellNavItem[];
   children: React.ReactNode;
 };

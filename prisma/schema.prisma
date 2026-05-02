@@ -24,6 +24,8 @@ model Tenant {
   name                   String                  @db.VarChar(100)
   slug                   String                  @unique @db.VarChar(50)
   brand_color            String?                 @db.VarChar(20)
+  accent_color           String?                 @db.VarChar(20)
+  font_pairing           String?                 @db.VarChar(50) @default("inter_outfit")
   logo_url               String?                 @db.VarChar(255)
   is_active              Boolean                 @default(true)
   created_at             DateTime                @default(now())

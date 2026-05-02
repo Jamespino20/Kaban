@@ -122,6 +122,8 @@ export function AuthenticatedShell({
   tenantName?: string;
   tenantLogoUrl?: string;
   tenantBrandColor?: string | null;
+  tenantAccentColor?: string | null;
+  tenantFontPairing?: string | null;
   navItems: ShellNavItem[];
   children: React.ReactNode;
 }) {
@@ -130,8 +132,40 @@ export function AuthenticatedShell({
   const [navReady, setNavReady] = useState(false);
   const navScrollRef = useRef<HTMLDivElement>(null);
 
-  // We explicitly apply the 'dark' variant internally for the sidebar if needed,
-  // but using generic CSS variable utilities allows the injected --primary to shine.
+  const normalizedTenantColor = normalizeHexColor(tenantBrandColor);
+  const normalizedAccentColor = normalizeHexColor(tenantAccentColor);
+
+  const getFontFamily = (pairing: string | null) => {
+    switch (pairing) {
+      case "roboto_playfair":
+        return "'Playfair Display', serif";
+      case "montserrat_poppins":
+        return "'Poppins', sans-serif";
+      default:
+        return "'Outfit', sans-serif";
+    }
+  };
+
+  const getBodyFontFamily = (pairing: string | null) => {
+    switch (pairing) {
+      case "roboto_playfair":
+        return "'Roboto', sans-serif";
+      case "montserrat_poppins":
+        return "'Montserrat', sans-serif";
+      default:
+        return "'Inter', sans-serif";
+    }
+  };
+
+  const cssVars = {
+    ...(normalizedTenantColor ? { "--primary": normalizedTenantColor } : {}),
+    ...(normalizedAccentColor
+      ? { "--accent-custom": normalizedAccentColor }
+      : {}),
+    "--font-display-custom": getFontFamily(tenantFontPairing),
+    "--font-sans-custom": getBodyFontFamily(tenantFontPairing),
+  } as React.CSSProperties;
+
   const dynamicStyles = {
     active:
       "data-[state=active]:border-primary/40 data-[state=active]:bg-primary/20 data-[state=active]:text-white",
@@ -147,20 +181,16 @@ export function AuthenticatedShell({
       "border-white/10 bg-[linear-gradient(180deg,rgba(15,23,42,0.96),rgba(2,6,23,0.98))]",
   };
 
-  const normalizedTenantColor = normalizeHexColor(tenantBrandColor);
-  const cssVars = normalizedTenantColor
-    ? ({ "--primary": normalizedTenantColor } as React.CSSProperties)
-    : {};
-  const sidebarStyle = ({
+  const sidebarStyle = {
     backgroundImage: normalizedTenantColor
       ? `radial-gradient(circle at top left, ${rgba(normalizedTenantColor, 0.22)}, transparent 32%), linear-gradient(180deg, rgba(15,23,42,0.98), rgba(2,6,23,0.99))`
       : "linear-gradient(180deg,rgba(15,23,42,0.96),rgba(2,6,23,0.98))",
-  } as React.CSSProperties);
-  const mainPaneStyle = ({
+  } as React.CSSProperties;
+  const mainPaneStyle = {
     backgroundImage: normalizedTenantColor
       ? `radial-gradient(circle at top, ${rgba(normalizedTenantColor, 0.12)}, transparent 28%), linear-gradient(180deg,#f8fafc 0%,#f1f5f9 100%)`
       : "radial-gradient(circle at top,rgba(16,185,129,0.06),transparent 28%), linear-gradient(180deg,#f8fafc 0%,#f1f5f9 100%)",
-  } as React.CSSProperties);
+  } as React.CSSProperties;
   const portalBadgeStyle = normalizedTenantColor
     ? ({
         borderColor: rgba(normalizedTenantColor, 0.25),
@@ -427,11 +457,17 @@ export function AuthenticatedShell({
                 </div>
               </div>
 
-              <div className="space-y-1">
+              <div
+                className="space-y-1"
+                style={{ fontFamily: "var(--font-display-custom)" }}
+              >
                 <h1 className="text-3xl font-display font-bold italic tracking-tight text-slate-950 md:text-4xl">
                   {title}
                 </h1>
-                <p className="max-w-3xl text-sm text-slate-500 md:text-base">
+                <p
+                  className="max-w-3xl text-sm text-slate-500 md:text-base"
+                  style={{ fontFamily: "var(--font-sans-custom)" }}
+                >
                   {subtitle}
                 </p>
               </div>

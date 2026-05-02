@@ -1,6 +1,7 @@
 import { TabsContent } from "@/components/ui/tabs";
 import { TrendingUp, AlertCircle, ShieldAlert } from "lucide-react";
 import { TenantNameSettingsCard } from "@/components/admin/tenant-name-settings-card";
+import { TenantBrandingCard } from "@/components/admin/tenant-branding-card";
 import { getEndOfDayReconciliation } from "@/actions/reconciliation";
 
 import { LoanProductsTab } from "@/components/admin/loan-products-tab";
@@ -98,11 +99,27 @@ export default async function AgapayTanawPage() {
             tenant_id: true,
             name: true,
             brand_color: true,
-            logo_url: true,
+            accent_color: true,
+            font_pairing: true,
             entitlement_status: true,
           },
         })
       : null;
+
+  // Fetch current subscription for feature gating
+  const currentSubRes = tenantContextId
+    ? await getCurrentSubscription(tenantContextId)
+    : { success: false, subscription: null };
+  const currentPlanFeatures =
+    currentSubRes.success && currentSubRes.subscription?.plan?.features
+      ? (currentSubRes.subscription.plan.features as string[])
+      : ["core_approvals", "core_members"]; // Default minimal features
+
+  const isFeatureEnabled = (feature: string) => {
+    if (isSuperAdmin) return true; // Superadmins override plan limits
+    return currentPlanFeatures.includes(feature);
+  };
+
   const navItems: ShellNavItem[] = [
     { value: "overview", label: "Pangkalahatan", icon: "overview" },
     {
@@ -114,7 +131,7 @@ export default async function AgapayTanawPage() {
     { value: "members", label: "Mga Miyembro", icon: "members" },
   ];
 
-  if (canViewProducts) {
+  if (canViewProducts && isFeatureEnabled("advanced_products")) {
     navItems.push({
       value: "products",
       label: "Produkto ng Loan",
@@ -122,7 +139,7 @@ export default async function AgapayTanawPage() {
     });
   }
 
-  if (canViewBranchOps) {
+  if (canViewBranchOps && isFeatureEnabled("multi_tenant_mgmt")) {
     navItems.push({
       value: "branches",
       label: isSuperAdmin ? "Global Tenant Mgmt" : "Branch Ops",
@@ -130,7 +147,7 @@ export default async function AgapayTanawPage() {
     });
   }
 
-  if (canManageHomepageContent) {
+  if (canManageHomepageContent && isFeatureEnabled("content_mgmt")) {
     navItems.push({
       value: "content",
       label: "Homepage Content",
@@ -152,7 +169,7 @@ export default async function AgapayTanawPage() {
     icon: "community",
   });
 
-  if (isAdmin || isSuperAdmin) {
+  if ((isAdmin || isSuperAdmin) && isFeatureEnabled("eod_reconciliation")) {
     navItems.push({
       value: "reconciliation",
       label: "EOD Reconciliation",
@@ -168,7 +185,7 @@ export default async function AgapayTanawPage() {
     });
   }
 
-  if (canViewAnalytics) {
+  if (canViewAnalytics && isFeatureEnabled("advanced_analytics")) {
     navItems.push({
       value: "analytics",
       label: "Analytics Insights",
@@ -176,7 +193,7 @@ export default async function AgapayTanawPage() {
     });
   }
 
-  if (canViewAuditLogs) {
+  if (canViewAuditLogs && isFeatureEnabled("audit_logs")) {
     navItems.push({
       value: "audit",
       label: "Audit Logs",
@@ -209,6 +226,8 @@ export default async function AgapayTanawPage() {
       tenantName={currentTenantIdentity?.name}
       tenantLogoUrl={currentTenantIdentity?.logo_url || undefined}
       tenantBrandColor={currentTenantIdentity?.brand_color}
+      tenantAccentColor={currentTenantIdentity?.accent_color}
+      tenantFontPairing={currentTenantIdentity?.font_pairing}
       navItems={navItems}
     >
       <div className="space-y-5">
@@ -420,6 +439,22 @@ export default async function AgapayTanawPage() {
                   tenant name mula sa `Global View`.
                 </div>
               ) : null}
+
+              {currentTenantIdentity && (
+                <TenantBrandingCard
+                  tenantId={
+                    session.user.role === "superadmin"
+                      ? currentTenantIdentity.tenant_id
+                      : undefined
+                  }
+                  initialBranding={{
+                    brand_color: currentTenantIdentity.brand_color,
+                    accent_color: currentTenantIdentity.accent_color,
+                    font_pairing: currentTenantIdentity.font_pairing,
+                    logo_url: currentTenantIdentity.logo_url,
+                  }}
+                />
+              )}
 
               <div className="flex justify-center -mx-4 md:mx-0">
                 {tenantContextId && (
