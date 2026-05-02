@@ -4,7 +4,6 @@ import { useState, useEffect } from "react";
 import { Menu, X, LayoutDashboard } from "lucide-react";
 import Link from "next/link";
 import { useSession } from "next-auth/react";
-import { LanguageToggle } from "@/components/shared/language-toggle";
 import { AuthModal } from "@/components/auth/auth-modal";
 
 interface NavbarProps {
@@ -12,7 +11,6 @@ interface NavbarProps {
 }
 
 export function Navbar({ forceSolid = false }: NavbarProps) {
-  // Use client-side only state to avoid hydration mismatch and prerender issues
   const [isMounted, setIsMounted] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -23,7 +21,6 @@ export function Navbar({ forceSolid = false }: NavbarProps) {
       setIsScrolled(true);
       return;
     }
-
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 50);
     };
@@ -32,10 +29,10 @@ export function Navbar({ forceSolid = false }: NavbarProps) {
   }, [forceSolid]);
 
   const navItems = [
-    { ph: "Bakit Agapay", href: "/#why-agapay" },
-    { ph: "Mga Tampok", href: "/#features" },
-    { ph: "Mga Patotoo", href: "/#testimonials" },
-    { ph: "FAQs", href: "/#faqs" },
+    { label: "Why Agapay", href: "/#why-agapay" },
+    { label: "Features", href: "/#features" },
+    { label: "Testimonials", href: "/#testimonials" },
+    { label: "FAQs", href: "/#faqs" },
   ];
 
   return (
@@ -62,9 +59,9 @@ export function Navbar({ forceSolid = false }: NavbarProps) {
 
         {/* Desktop Nav */}
         <nav className="hidden md:flex items-center gap-10">
-          {navItems.map((item: any) => (
+          {navItems.map((item) => (
             <Link
-              key={item.ph}
+              key={item.label}
               href={item.href}
               className={`text-sm font-bold transition-colors flex flex-col items-center group ${
                 isScrolled
@@ -73,7 +70,7 @@ export function Navbar({ forceSolid = false }: NavbarProps) {
               }`}
             >
               <span className="group-hover:translate-y-[-2px] transition-transform">
-                {item.ph}
+                {item.label}
               </span>
             </Link>
           ))}
@@ -82,8 +79,7 @@ export function Navbar({ forceSolid = false }: NavbarProps) {
         {/* Auth & Mobile Toggle */}
         <div className="flex items-center gap-4">
           <div className="hidden md:flex items-center gap-4">
-            <LanguageToggle />
-            {isMounted && <AuthOrDashboard />}
+            <AuthOrDashboard isMounted={isMounted} />
           </div>
           <button
             onClick={() => setIsMenuOpen(!isMenuOpen)}
@@ -100,38 +96,28 @@ export function Navbar({ forceSolid = false }: NavbarProps) {
         </div>
       </div>
 
-      {/* Mobile Menu Overlay */}
+      {/* Mobile Menu */}
       {isMenuOpen && (
         <div className="md:hidden absolute top-full left-0 right-0 bg-white border-t border-slate-100 shadow-xl p-6 animate-in slide-in-from-top duration-300">
           <nav className="flex flex-col gap-6">
-            <div className="flex items-center justify-between p-2">
-              <span className="text-sm font-bold text-slate-500 uppercase tracking-widest">
-                Wika / Language
-              </span>
-              <LanguageToggle />
-            </div>
-            {navItems.map((item: any) => (
+            {navItems.map((item) => (
               <Link
-                key={item.ph}
+                key={item.label}
                 href={item.href}
                 onClick={() => setIsMenuOpen(false)}
                 className="flex flex-col items-start p-4 rounded-2xl hover:bg-slate-50 transition-colors border border-transparent hover:border-slate-100"
               >
                 <span className="text-lg font-black text-slate-900 italic">
-                  {item.ph}
-                </span>
-                <span className="text-xs font-bold text-emerald-600 uppercase tracking-widest">
-                  {item.ph}
+                  {item.label}
                 </span>
               </Link>
             ))}
             <div className="pt-4 border-t border-slate-100 w-full">
-              {isMounted && (
-                <AuthOrDashboard
-                  isMobile
-                  closeMenu={() => setIsMenuOpen(false)}
-                />
-              )}
+              <AuthOrDashboard
+                isMounted={isMounted}
+                isMobile
+                closeMenu={() => setIsMenuOpen(false)}
+              />
             </div>
           </nav>
         </div>
@@ -143,11 +129,16 @@ export function Navbar({ forceSolid = false }: NavbarProps) {
 function AuthOrDashboard({
   isMobile,
   closeMenu,
+  isMounted,
 }: {
   isMobile?: boolean;
   closeMenu?: () => void;
+  isMounted: boolean;
 }) {
-  const { data: session } = useSession();
+  const { data: session, status } = useSession();
+
+  if (!isMounted) return null;
+  if (status === "loading") return null;
 
   if (session) {
     const dashboardHref =

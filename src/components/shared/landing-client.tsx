@@ -35,42 +35,42 @@ import { useEffect, useRef, useState } from "react";
 const FEATURE_CARDS = [
   {
     icon: <Shield className="w-8 h-8" />,
-    title: "Digital Receipts at malinaw na records",
+    title: "Digital Receipts and clear transaction records",
     description:
-      "Bawat hulog, release, at verification ay may malinaw na history. Hindi ka aasa sa screenshot lang o sa sabi-sabi.",
+      "Every repayment, release, and verification has a clear history. You don't have to rely on screenshots or hearsay.",
   },
   {
     icon: <TrendingUp className="w-8 h-8" />,
-    title: "Trust Score na may paliwanag",
+    title: "Trust Score with full transparency",
     description:
-      "Hindi static ang pagtingin sa miyembro. Nakikita ang repayment behavior, community standing, at lending readiness sa mas malinaw na paraan.",
+      "Member evaluation is dynamic. Repayment behavior, community standing, and lending readiness are visible in a clear, explainable way.",
   },
   {
     icon: <HandHelping className="w-8 h-8" />,
-    title: "Guarantors, Mentorship, at community support",
+    title: "Guarantors, Mentorship, and community support",
     description:
-      "Hindi lang ito wallet app. Cooperative lending ito na may Guarantors, Mentorship, at mas makataong paggabay habang lumalago ang negosyo.",
+      "This is not just a wallet app. It's cooperative lending with Guarantors, Mentorship, and more human guidance as your business grows.",
   },
 ];
 
 const SPLIT_SECTIONS = [
   {
-    title: "Transparent Tracking sa iyong palad",
-    body: "Sa Agapay, kita ang balance, due dates, repayment history, at verification status sa isang malinaw na Dashboard. Hindi ito static na app na bahala ka na sa paghahanap ng detalye.",
+    title: "Transparent Tracking at your fingertips",
+    body: "With Agapay, your balance, due dates, repayment history, and verification status are visible in one clear Dashboard. This is not a static app that leaves you hunting for details.",
     bullets: [
-      "Real-time status ng application, release, at repayment",
-      "Statement of Account at digital receipts na madaling balikan",
+      "Real-time status of application, release, and repayment",
+      "Statement of Account and digital receipts you can always refer back to",
     ],
     image: "/images/agapay_growth.png",
     imageAlt: "Agapay member dashboard",
     reverse: false,
   },
   {
-    title: "Mas angkop sa cooperative lending kaysa sa generic wallet apps",
-    body: "GCash ay magaling para sa payments at transfers, pero hindi ito ginawa para sa Guarantor-backed lending, Trust Score, at Mentorship workflows. Ang Agapay ay para sa relasyong pinansyal, hindi lang sa transaction feed.",
+    title: "Better suited for cooperative lending than generic wallet apps",
+    body: "GCash is great for payments and transfers, but it was not built for Guarantor-backed lending, Trust Scores, and Mentorship workflows. Agapay is for financial relationships, not just a transaction feed.",
     bullets: [
-      "Mock money flow na puwedeng i-verify ng branch staff",
-      "Mas malinaw na support para sa branch release at repayment",
+      "Mock money flow that can be verified by branch staff",
+      "Clearer support for branch release and repayment tracking",
     ],
     image: "/images/agapay_security.png",
     imageAlt: "Agapay cooperative operations",
@@ -80,34 +80,34 @@ const SPLIT_SECTIONS = [
 
 const FALLBACK_FAQS = [
   {
-    question: "Ano ang Agapay?",
+    question: "What is Agapay?",
     answer:
-      "Ang Agapay ay isang cooperative microfinance platform na tumutulong sa branches, lenders, at members na mag-manage ng applications, releases, repayments, Trust Score, at reports sa isang digital at mas malinaw na sistema.",
+      "Agapay is a cooperative microfinance platform that helps branches, lenders, and members manage applications, releases, repayments, Trust Scores, and reports in a digital, transparent system.",
   },
   {
-    question: "Paano ito naiiba sa GCash?",
+    question: "How is it different from GCash?",
     answer:
-      "Hindi wallet app ang Agapay. Ang focus nito ay cooperative lending: may Guarantors, Trust Score, Mentorship, branch approval flow, at mas malinaw na operational records para sa staff at miyembro.",
+      "Agapay is not a wallet app. Its focus is cooperative lending: with Guarantors, Trust Scores, Mentorship, a branch approval flow, and clearer operational records for staff and members.",
   },
   {
-    question: "Paano nakukuha ng member ang pera sa prototype na ito?",
+    question: "How does a member receive funds in this prototype?",
     answer:
-      "Sa school-project prototype na ito, ang actual fund release ay ginagawa sa tunay na buhay sa pamamagitan ng Cash release, GCash transfer, Bank transfer, o Field collection. Ang Agapay ang nagtatala, nagve-verify, at gumagawa ng digital records at receipts.",
+      "In this school-project prototype, actual fund release happens in real life via cash release, GCash transfer, bank transfer, or field collection. Agapay records, verifies, and generates digital records and receipts.",
   },
   {
-    question: "Paano nagbabayad ang member sa Agapay?",
+    question: "How does a member make repayments?",
     answer:
-      "Ang member ay puwedeng magsumite ng repayment gamit ang branch cashier, GCash transfer, bank transfer, o field collection. Pagkatapos, ang admin ay magve-verify ng submission bago ito pumasok bilang verified repayment sa system.",
+      "A member can submit a repayment through a branch cashier, GCash transfer, bank transfer, or field collection. The admin then verifies the submission before it enters the system as a verified repayment.",
   },
   {
-    question: "May hidden fees ba?",
+    question: "Are there hidden fees?",
     answer:
-      "Wala dapat. Sa demo calculator at sa application flow, ipinapakita ang principal, interest, processing fee, at kabuuang babayaran para malinaw ang cost of credit.",
+      "There shouldn't be. In the demo calculator and in the application flow, the principal, interest, processing fee, and total payable are all displayed so the cost of credit is always clear.",
   },
   {
-    question: "Bakit mahalaga ang Guarantors at Trust Score?",
+    question: "Why are Guarantors and Trust Scores important?",
     answer:
-      "Dito lumalabas ang community model ng Agapay. Ang Guarantors at Trust Score ay tumutulong sa mas responsableng lending, mas malinaw na accountability, at mas suportadong paglago ng miyembro.",
+      "This is where Agapay's community model shines. Guarantors and Trust Scores promote more responsible lending, clearer accountability, and better-supported member growth.",
   },
 ];
 
@@ -117,35 +117,35 @@ const FALLBACK_TESTIMONIALS = [
     role: "Sari-sari Store Owner",
     photo: "/images/testimonial_1.png",
     content:
-      "Dati, ang option ko lang ay 5-6 o mabilis pero magulong apps. Sa Agapay, malinaw ang hulog, may digital receipt, at may paliwanag ang branch bago ako mag-commit.",
+      "Before, my only options were 5-6 lenders or fast but confusing apps. With Agapay, my repayment schedule is clear, I have a digital receipt, and the branch explains everything before I commit.",
   },
   {
     name: "Juanito Reyes",
     role: "Tricycle Driver",
     photo: "/images/testimonial_2.png",
     content:
-      "Mas kampante ako rito kasi hindi lang transaction ang tinitingnan. May Guarantors, may Trust Score, at may tao talagang pwedeng kausapin kapag kailangan ng tulong.",
+      "I feel more comfortable here because it's not just about the transaction. There are Guarantors, a Trust Score, and real people I can talk to when I need help.",
   },
   {
     name: "Eliza Sanchez",
     role: "Online Seller",
     photo: "/images/testimonial_3.png",
     content:
-      "Maganda ang repayment flow dahil puwede kong i-record ang GCash transfer ko at ma-verify ito ng branch. Hindi ako nalilito kung pumasok na ba o hindi.",
+      "The repayment flow is great because I can record my GCash transfer and have it verified by the branch. I'm never confused about whether it went through or not.",
   },
   {
     name: "Cassandra Martinez",
     role: "Floral Designer",
     photo: "/images/testimonial_4.png",
     content:
-      "Malinaw ang computation at hindi mukhang static na dashboard lang. Ramdam mong ginawa ito para sa cooperative lending at hindi simpleng generic fintech template.",
+      "The computation is clear and it doesn't feel like a static dashboard. You can tell it was built for cooperative lending, not just a generic fintech template.",
   },
   {
     name: "Nestor Dizon",
     role: "Marketplace Reseller",
     photo: "/images/testimonial_5.png",
     content:
-      "Sa totoong negosyo, cash flow ang laban. Gusto ko na puwede kong makita ang due, remaining balance, at next action nang hindi naghahanap sa kung saan-saan.",
+      "In real business, cash flow is everything. I love that I can see what's due, the remaining balance, and what to do next — all in one place.",
   },
 ];
 
@@ -154,7 +154,7 @@ const LOAN_OFFERS = [
     id: "starter",
     name: "Sari-Sari Starter",
     description:
-      "Para sa restocking, maliit na inventory build-up, at unang expansion ng tindahan.",
+      "For restocking, small inventory build-up, and first-time store expansion.",
     minAmount: 5000,
     maxAmount: 20000,
     maxTerm: 3,
@@ -165,7 +165,7 @@ const LOAN_OFFERS = [
     id: "growth",
     name: "Negosyo Growth",
     description:
-      "Para sa mas regular na negosyo tulad ng online selling, food operations, at service-based microbusiness.",
+      "For more established businesses like online selling, food operations, and service-based microbusinesses.",
     minAmount: 10000,
     maxAmount: 50000,
     maxTerm: 6,
@@ -176,7 +176,7 @@ const LOAN_OFFERS = [
     id: "community",
     name: "Paluwagan Plus",
     description:
-      "Para sa community-backed groups na may Guarantors at mas malapit na support ng branch staff.",
+      "For community-backed groups with Guarantors and closer support from branch staff.",
     minAmount: 3000,
     maxAmount: 15000,
     maxTerm: 6,
@@ -187,7 +187,7 @@ const LOAN_OFFERS = [
     id: "agri",
     name: "Agri-Agapay",
     description:
-      "Para sa mas malaking puhunan gaya ng farm inputs, equipment support, o branch-managed livelihood expansion.",
+      "For larger capital needs such as farm inputs, equipment support, or branch-managed livelihood expansion.",
     minAmount: 15000,
     maxAmount: 100000,
     maxTerm: 12,
@@ -355,10 +355,9 @@ export function LandingClient({ branches }: { branches: Branch[] }) {
             <p
               className={`text-xl md:text-2xl font-medium mb-12 leading-relaxed max-w-3xl transition-colors duration-500 ${isScrolled ? "text-slate-700" : "text-white/85"}`}
             >
-              Filipino-first na lending platform na may{" "}
-              <strong>Guarantors</strong>,<strong> Trust Score</strong>,{" "}
-              <strong>Mentorship</strong>, at mas malinaw na records para sa mga
-              miyembro, admin, at cooperative branches.
+              A Filipino-first lending platform with <strong>Guarantors</strong>
+              ,<strong> Trust Score</strong>, <strong>Mentorship</strong>, and
+              clearer records for members, admins, and cooperative branches.
             </p>
             <div className="flex flex-wrap gap-4">
               <AuthModal />
@@ -367,7 +366,7 @@ export function LandingClient({ branches }: { branches: Branch[] }) {
                 className="px-10 py-3 bg-slate-200/85 backdrop-blur-md text-slate-900 font-bold rounded-2xl hover:bg-slate-300 transition-all flex items-center gap-3 border border-slate-300/30 cursor-pointer"
               >
                 <Calculator className="w-5 h-5" />
-                Subukan ang Loan Calculator
+                Try the Loan Calculator
               </a>
             </div>
           </div>
@@ -381,11 +380,11 @@ export function LandingClient({ branches }: { branches: Branch[] }) {
           >
             <div className="text-center mb-24">
               <h2 className="text-4xl md:text-6xl font-black text-slate-950 mb-6 italic tracking-tight">
-                Bakit mas bagay ang Agapay sa cooperative lending?
+                Why is Agapay better for cooperative lending?
               </h2>
               <p className="text-slate-500 max-w-3xl mx-auto font-medium text-lg text-balance">
-                Ang Agapay ay ginawa para sa branch operations, Trust Score,
-                Guarantor-backed loans, at mas makataong lending support.
+                Agapay is built for branch operations, Trust Scores,
+                Guarantor-backed loans, and more human lending support.
               </p>
             </div>
 
@@ -452,12 +451,12 @@ export function LandingClient({ branches }: { branches: Branch[] }) {
           >
             <div className="text-center mb-16">
               <h2 className="text-4xl md:text-6xl font-black text-slate-950 mb-6 italic tracking-tight">
-                Loan Calculator na mas totoo sa Agapay
+                The Real Agapay Loan Calculator
               </h2>
               <p className="text-slate-500 max-w-3xl mx-auto font-medium text-lg">
-                Piliin ang Loan Product, amount, term, at payment cadence.
-                Ipapakita namin ang estimated repayment gamit ang parehong
-                transparent logic na ginagamit sa prototype flow.
+                Select a Loan Product, amount, term, and payment cadence.
+                We&apos;ll show you an estimated repayment using the same
+                transparent logic used in the prototype flow.
               </p>
             </div>
             <HomeLoanCalculator />
@@ -474,12 +473,11 @@ export function LandingClient({ branches }: { branches: Branch[] }) {
                 Network Ng Agapay
               </span>
               <h2 className="text-4xl md:text-6xl font-black text-slate-950 mb-6 italic tracking-tight">
-                Live Map ng ating mga Branch
+                Live Branch Map
               </h2>
               <p className="text-slate-500 max-w-3xl mx-auto font-medium text-lg">
-                Mula sa Metro Manila hanggang sa Davao, narito kami para
-                sumuporta. Bawat branch ay independent pero kaisa sa vision ng
-                Agapay.
+                From Metro Manila to Davao, we are here to support. Each branch
+                is independent but united in Agapay&apos;s mission.
               </p>
             </div>
             <BranchNetworkMap branches={branches} />
@@ -489,14 +487,14 @@ export function LandingClient({ branches }: { branches: Branch[] }) {
             <div className="text-center mb-16">
               <span className="inline-flex items-center gap-2 text-emerald-700 font-bold tracking-widest text-xs uppercase mb-6 px-4 py-1.5 bg-emerald-100/90 rounded-full border border-emerald-200/50">
                 <Building className="w-4 h-4" />
-                Para Sa Mga Kooperatiba
+                For Cooperatives
               </span>
               <h2 className="text-4xl md:text-6xl font-black text-slate-950 mb-6 italic tracking-tight">
                 Simple SaaS Pricing
               </h2>
               <p className="text-slate-500 max-w-3xl mx-auto font-medium text-lg">
-                Walang hidden fees. Pumili ng subscription plan na akma sa laki
-                ng inyong operasyon.
+                No hidden fees. Choose a subscription plan that fits the size of
+                your operation.
               </p>
             </div>
 
@@ -505,12 +503,12 @@ export function LandingClient({ branches }: { branches: Branch[] }) {
                 {
                   name: "Agapay Core",
                   price: "₱2,500/mo",
-                  limit: "Hanggang 500 members",
+                  limit: "Up to 500 members",
                 },
                 {
                   name: "Agapay Pro",
                   price: "₱4,500/mo",
-                  limit: "Hanggang 2,500 members",
+                  limit: "Up to 2,500 members",
                   highlight: true,
                 },
                 {
@@ -540,8 +538,7 @@ export function LandingClient({ branches }: { branches: Branch[] }) {
                 href="/pricing"
                 className="inline-flex items-center gap-2 font-bold text-emerald-600 hover:text-emerald-700 transition-colors"
               >
-                Tingnan ang buong Pricing Details{" "}
-                <ArrowRight className="w-4 h-4" />
+                View full Pricing Details <ArrowRight className="w-4 h-4" />
               </Link>
             </div>
           </section>
@@ -552,11 +549,11 @@ export function LandingClient({ branches }: { branches: Branch[] }) {
           >
             <div className="text-center mb-20 px-6 z-10 relative">
               <h2 className="text-4xl md:text-5xl font-black mb-6 italic tracking-tight">
-                Mula sa komunidad ng Agapay
+                From the Agapay community
               </h2>
               <p className="text-emerald-200/80 max-w-2xl mx-auto font-medium text-lg">
-                Pakinggan ang mga kuwento ng mga negosyanteng mas gusto ang
-                malinaw, guided, at community-aware na lending experience.
+                Hear from entrepreneurs who prefer a clear, guided, and
+                community-aware lending experience.
               </p>
             </div>
 
@@ -578,7 +575,7 @@ export function LandingClient({ branches }: { branches: Branch[] }) {
             className="reveal w-full py-36 px-6 max-w-4xl"
           >
             <h2 className="text-4xl md:text-6xl font-black text-slate-950 mb-20 text-center italic tracking-tight">
-              Mga madalas itanong
+              Frequently Asked Questions
             </h2>
             <div className="space-y-6">
               {faqs.map((faq) => (
@@ -600,12 +597,12 @@ export function LandingClient({ branches }: { branches: Branch[] }) {
               <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-white/10 rounded-full blur-[100px] -translate-y-1/2 translate-x-1/2 group-hover:scale-125 transition-transform duration-1000" />
               <div className="relative z-10 flex flex-col items-center">
                 <h2 className="text-5xl md:text-7xl font-black italic mb-8 leading-none tracking-tight">
-                  Simulan ang mas malinaw na lending flow
+                  Start a clearer lending flow
                 </h2>
                 <p className="text-xl md:text-2xl font-medium text-emerald-50 mb-14 max-w-3xl opacity-90 leading-relaxed text-balance">
-                  Para sa school-project prototype na ito, malinaw ang layunin:
-                  hindi lang mabilis, kundi mas maaasahan, mas explainable, at
-                  mas makatao kaysa sa static na wallet experience.
+                  For this school-project prototype, the goal is clear: not just
+                  fast, but more reliable, more explainable, and more human than
+                  a static wallet experience.
                 </p>
                 <div className="flex flex-wrap gap-6 justify-center">
                   <AuthModal />
@@ -613,7 +610,7 @@ export function LandingClient({ branches }: { branches: Branch[] }) {
                     href="/contact"
                     className="px-12 py-5 bg-transparent border-2 border-white/40 text-white font-bold rounded-2xl hover:bg-white hover:text-emerald-700 transition-all text-lg shadow-xl shadow-black/5"
                   >
-                    Makipag-ugnayan sa Amin
+                    Get in Touch
                   </Link>
                 </div>
               </div>

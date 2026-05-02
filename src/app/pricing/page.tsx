@@ -1,7 +1,5 @@
 "use client";
 
-export const dynamic = "force-dynamic";
-
 import { Footer } from "@/components/layout/footer";
 import { Navbar } from "@/components/layout/navbar";
 import { BadgeCheck, CheckCircle2, Building, Zap, Shield } from "lucide-react";
@@ -11,52 +9,51 @@ const SUBSCRIPTION_PLANS = [
   {
     name: "Agapay Core",
     price: "₱2,500",
-    interval: "kada buwan",
+    interval: "per month",
     description:
-      "Para sa mga nagsisimulang kooperatiba at maliliit na lending team.",
+      "For cooperatives just getting started and small lending teams.",
     icon: Building,
     features: [
-      "Hanggang 500 members",
+      "Up to 500 members",
       "Basic admin dashboard (Tanaw)",
       "Standard microfinance policy access",
       "Email & In-app notifications",
       "Standard 5% default penalty rate",
     ],
-    buttonText: "Simulan ang Core",
+    buttonText: "Start with Core",
     highlight: false,
   },
   {
     name: "Agapay Pro",
     price: "₱4,500",
-    interval: "kada buwan",
-    description:
-      "Para sa mga lumalagong kooperatiba na kailangan ang advanced analytics.",
+    interval: "per month",
+    description: "For growing cooperatives that need advanced analytics.",
     icon: Zap,
     features: [
-      "Hanggang 2,500 members",
+      "Up to 2,500 members",
       "Advanced Analytics module",
       "Custom branch branding",
       "Mentorship & Community Tools setup",
       "Premium chat and email support",
       "Automated Compassion workflow",
     ],
-    buttonText: "I-upgrade sa Pro",
+    buttonText: "Upgrade to Pro",
     highlight: true,
   },
   {
     name: "Agapay Enterprise",
     price: "Custom",
-    interval: "kada taon",
-    description: "Para sa malalaking institusyon. Limitless capacity.",
+    interval: "per year",
+    description: "For larger institutions. Limitless capacity.",
     icon: Shield,
     features: [
-      "Walang limit na members",
+      "Unlimited members",
       "Dedicated account manager",
-      "Full API access at custom export",
+      "Full API access and custom export",
       "Priority feature requests",
       "White-label options",
     ],
-    buttonText: "Makipag-ugnayan",
+    buttonText: "Get in Touch",
     highlight: false,
   },
 ];
@@ -65,21 +62,21 @@ const RATE_GUIDE = [
   {
     label: "Starter Tier",
     rate: "5%",
-    description:
-      "Para sa bagong miyembro. Mataas na rate pang cover ng first-time risk.",
+    description: "For new members. Higher rate to cover first-time risk.",
     features: ["₱5,000 max bracket", "Strict weekly payments"],
   },
   {
     label: "Growing Tier",
     rate: "4%",
     description:
-      "May track record na. Puwede nang monthly at mas malaki ang terms.",
+      "Has a track record. Can have monthly terms and larger amounts.",
     features: ["Build trust network", "Bi-weekly allowance"],
   },
   {
     label: "Elite Tier",
     rate: "3%",
-    description: "Ang lowest rate platform-wide. Suki na, zero defaults.",
+    description:
+      "The lowest rate platform-wide. Long-time member, zero defaults.",
     features: ["Declining balance mode", "₱100k+ credit line limit"],
   },
 ];
@@ -95,14 +92,14 @@ export default function PricingPage() {
           <div className="max-w-4xl mx-auto text-center mb-16">
             <span className="inline-flex items-center gap-2 text-emerald-700 font-bold tracking-widest text-xs uppercase mb-6 px-4 py-1.5 bg-emerald-100/90 rounded-full border border-emerald-200/50">
               <BadgeCheck className="w-4 h-4" />
-              SaaS Para sa Kooperatiba
+              SaaS for Cooperatives
             </span>
             <h1 className="text-5xl md:text-7xl font-black tracking-tight italic mb-6 leading-[0.95] text-slate-900">
               Subscribing to <span className="text-emerald-600">Agapay.</span>
             </h1>
             <p className="text-xl md:text-2xl font-medium text-slate-600 leading-relaxed max-w-3xl mx-auto">
-              Simple at patas na pricing para magpatakbo ng inyong kooperatiba
-              gamit ang teknolohiya. Walang hidden fees.
+              Simple and fair pricing to run your cooperative with technology.
+              No hidden fees.
             </p>
           </div>
 
@@ -176,11 +173,11 @@ export default function PricingPage() {
           <div className="bg-slate-100 rounded-[4rem] p-12 md:p-16 border border-slate-200">
             <div className="mb-12">
               <h2 className="text-4xl font-black italic text-slate-900 mb-4">
-                Pang-miyembrong Rate Guide
+                Member Loan Rate Guide
               </h2>
               <p className="text-slate-600 font-medium text-lg max-w-2xl">
-                Kapag kayo ay nakasali na sa isang kooperatiba, narito ang gabay
-                para sa kalimitang interes na ipinapataw kada buwan.
+                Once you join a cooperative, here is a guide to the typical
+                monthly interest rates applied.
               </p>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">

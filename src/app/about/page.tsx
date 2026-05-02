@@ -1,7 +1,3 @@
-"use client";
-
-export const dynamic = "force-dynamic";
-
 import { Footer } from "@/components/layout/footer";
 import { Navbar } from "@/components/layout/navbar";
 import {
@@ -15,33 +11,33 @@ import {
 const PRINCIPLES = [
   {
     icon: <HandHelping className="w-8 h-8 text-emerald-600" />,
-    title: "Makataong lending flow",
-    body: "Hindi lang approval at collection ang tinitingnan. Mahalaga sa Agapay ang paliwanag, mentoring, at malinaw na support sa miyembro habang lumalago ang negosyo.",
+    title: "Human-centered lending flow",
+    body: "It's not just about approval and collection. Agapay values clarity, mentoring, and genuine support for members as their businesses grow.",
   },
   {
     icon: <Users className="w-8 h-8 text-emerald-600" />,
     title: "Community accountability",
-    body: "Nakasentro ang platform sa Guarantors, Trust Score, at branch-guided na proseso para mas may pananagutan ang bawat loan at repayment.",
+    body: "The platform is built around Guarantors, Trust Scores, and branch-guided processes so every loan and repayment has a layer of social accountability.",
   },
   {
     icon: <Shield className="w-8 h-8 text-emerald-600" />,
-    title: "Mas malinaw na operations",
-    body: "Digital records, Statement of Account, repayment verification, at feedback tracking ang tumutulong para hindi malito ang staff at miyembro sa estado ng account.",
+    title: "Clearer operations",
+    body: "Digital records, Statements of Account, repayment verification, and feedback tracking help staff and members stay clear on account status at all times.",
   },
 ];
 
 const TIMELINE = [
   {
-    title: "Mula sa tunay na problema",
-    body: "Binuo ang Agapay bilang school project na nakaugat sa karaniwang problema ng micro-entrepreneurs: kulang sa malinaw na records, hirap sa follow-up, at magulong coordination sa branch at borrower.",
+    title: "Rooted in a real problem",
+    body: "Agapay was built as a school project addressing a common pain point for micro-entrepreneurs: lack of clear records, difficulty following up, and confusing coordination between branches and borrowers.",
   },
   {
-    title: "Hindi wallet app, kundi cooperative platform",
-    body: "Ang Agapay ay hindi direktang payment rail sa prototype na ito. Sa halip, ito ang source of truth para sa approvals, mock disbursement, repayments, reports, at guided member support.",
+    title: "Not a wallet app, but a cooperative platform",
+    body: "Agapay is not a direct payment rail in this prototype. Instead, it is the source of truth for approvals, mock disbursements, repayments, reports, and guided member support.",
   },
   {
-    title: "Filipino-first na karanasan",
-    body: "Layunin ng content at interface na mas madali para sa lokal na users: Filipino-first na wika, malinaw na technical terms, at flows na mas bagay sa branch-based lending at small-business cash cycles.",
+    title: "Filipino-first experience",
+    body: "The content and interface aim to be accessible to local users: clear technical terms and flows designed for branch-based lending and small-business cash cycles.",
   },
 ];
 
@@ -55,24 +51,23 @@ export default function AboutPage() {
           <div className="max-w-4xl">
             <span className="inline-flex items-center gap-2 text-emerald-700 font-bold tracking-widest text-xs uppercase mb-6 px-4 py-1.5 bg-emerald-100/90 rounded-full border border-emerald-200/50">
               <BadgeCheck className="w-4 h-4" />
-              Tungkol sa Agapay
+              About Agapay
             </span>
             <h1 className="text-5xl md:text-8xl font-black tracking-tight italic mb-8 leading-[0.95] text-slate-900">
-              Ang layunin ng <span className="text-emerald-600">Agapay</span> ay
-              hindi lang pondo.
+              Agapay&apos;s mission is{" "}
+              <span className="text-emerald-600">more than capital.</span>
             </h1>
             <p className="text-xl md:text-2xl font-medium text-slate-600 mb-10 leading-relaxed max-w-3xl">
-              Ang Agapay ay isang Filipino-first cooperative microfinance SaaS
-              na ginawa para sa mas malinaw na branch operations, mas
-              explainable na loan flow, at mas suportadong pag-asenso ng mga
-              miyembro.
+              Agapay is a Filipino-first cooperative microfinance SaaS built for
+              clearer branch operations, a more explainable loan flow, and
+              better-supported member growth.
             </p>
             <p className="text-base md:text-lg text-slate-500 leading-relaxed max-w-3xl">
-              Bilang school-project prototype, nakatuon ito sa tamang records,
-              guided approvals, mock money flow, feedback handling, at
-              community-based lending features tulad ng{" "}
+              As a school-project prototype, it focuses on proper records,
+              guided approvals, mock money flow, feedback handling, and
+              community-based lending features like{" "}
               <strong className="text-slate-900">Guarantors</strong>,{" "}
-              <strong className="text-slate-900">Trust Score</strong>, at{" "}
+              <strong className="text-slate-900">Trust Score</strong>, and{" "}
               <strong className="text-slate-900">Mentorship</strong>.
             </p>
           </div>
@@ -83,7 +78,7 @@ export default function AboutPage() {
             <div className="flex items-center gap-3 mb-8">
               <BookOpenText className="w-8 h-8 text-emerald-600" />
               <h2 className="text-3xl font-black italic text-slate-900">
-                Bakit ito ginawa
+                Why it was built
               </h2>
             </div>
             <div className="space-y-8">
@@ -100,24 +95,23 @@ export default function AboutPage() {
 
           <div className="rounded-[3rem] bg-emerald-950 text-white p-10 md:p-14 shadow-xl shadow-emerald-950/10">
             <h2 className="text-3xl font-black italic mb-8">
-              Ano ang ipinapangako ng prototype
+              What the prototype delivers
             </h2>
             <div className="space-y-5 text-emerald-50/90 leading-relaxed">
               <p>
-                Malinaw na status para sa application, approval, release, at
-                repayment.
+                Clear status for application, approval, release, and repayment.
               </p>
               <p>
-                Role-based views para sa `superadmin`, `admin`, `lender`, at
+                Role-based views for `superadmin`, `admin`, `lender`, and
                 `member`.
               </p>
               <p>
-                Feedback at content workflows para manatiling relevant ang
-                homepage at support experience.
+                Feedback and content workflows to keep the homepage and support
+                experience relevant.
               </p>
               <p>
-                Isang mas grounded na cooperative product story na hindi umaasa
-                sa generic wallet behavior lang.
+                A more grounded cooperative product story that doesn&apos;t rely
+                solely on generic wallet behavior.
               </p>
             </div>
           </div>

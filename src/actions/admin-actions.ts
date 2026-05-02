@@ -401,7 +401,7 @@ export async function createStaffAccount(values: {
     if (existingUsername)
       return { success: false, error: "Username taken in this branch." };
 
-    const result = await prisma.$transaction(async (tx) => {
+    const result = await prisma.$transaction(async (tx: any) => {
       // 1. Generate Member Code for Staff (AGP-YYYY-[ROLE]-SERIAL)
       const year = new Date().getFullYear();
       const count = await tx.user.count({
@@ -473,8 +473,8 @@ export async function createStaffAccount(values: {
 export async function manuallyDeclareDefault(loanId: number) {
   const session = await requireTanawSession();
 
-  try {
-    await prisma.$transaction(async (tx) => {
+    try {
+      await prisma.$transaction(async (tx: any) => {
       return await enforceLoanDefault(tx, loanId, session.user.user_id);
     });
 

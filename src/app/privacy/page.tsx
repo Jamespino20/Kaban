@@ -1,34 +1,32 @@
 "use client";
 
-export const dynamic = "force-dynamic";
-
 import { Footer } from "@/components/layout/footer";
 import { Navbar } from "@/components/layout/navbar";
 
 const SECTIONS = [
   {
-    title: "1. Anong datos ang kinokolekta",
-    body: "Maaaring kolektahin ng Agapay ang pangalan, email, username, branch o tenant association, business profile details, loan application data, repayment references, uploaded documents, at feedback submissions na kailangan para sa prototype flows.",
+    title: "1. What data is collected",
+    body: "Agapay may collect your name, email, username, branch or tenant association, business profile details, loan application data, repayment references, uploaded documents, and feedback submissions required for prototype flows.",
   },
   {
-    title: "2. Paano ginagamit ang datos",
-    body: "Ginagamit ang datos para sa account access, verification, branch-level lending operations, reports, feedback handling, at homepage content moderation. Hindi ito para sa unrelated marketing campaigns sa loob ng scope ng prototype na ito.",
+    title: "2. How data is used",
+    body: "Data is used for account access, verification, branch-level lending operations, reports, feedback handling, and homepage content moderation. It is not used for unrelated marketing campaigns within the scope of this prototype.",
   },
   {
-    title: "3. Mock money flow at records",
-    body: "Sa prototype, hindi direktang pinoproseso ng Agapay ang totoong pera. Ang nire-record nito ay approvals, release method, repayment submissions, at verification history para sa malinaw na operational audit trail.",
+    title: "3. Mock money flow and records",
+    body: "In this prototype, Agapay does not directly process real money. It records approvals, release methods, repayment submissions, and verification history to provide a clear operational audit trail.",
   },
   {
-    title: "4. Access control at visibility",
-    body: "May role-based access ang platform para sa `superadmin`, `admin`, `lender`, at `member`. Nilalayon ng system na limitahan ang reports at records batay sa tamang role at tenant scope.",
+    title: "4. Access control and visibility",
+    body: "The platform has role-based access for `superadmin`, `admin`, `lender`, and `member`. The system aims to limit reports and records to the appropriate role and tenant scope.",
   },
   {
-    title: "5. Feedback at support submissions",
-    body: "Kapag nagsumite ka ng feedback sa public pages o sa app, maaaring mai-store ito sa feedback inbox at maipadala rin bilang notification email sa support mailbox para sa review at follow-up.",
+    title: "5. Feedback and support submissions",
+    body: "When you submit feedback on public pages or in the app, it may be stored in the feedback inbox and forwarded as a notification email to the support mailbox for review and follow-up.",
   },
   {
-    title: "6. Contact para sa privacy concerns",
-    body: "Para sa tanong tungkol sa privacy, account handling, o support requests, maaari kang makipag-ugnayan sa agapay.saas@gmail.com.",
+    title: "6. Contact for privacy concerns",
+    body: "For questions about privacy, account handling, or support requests, you can reach us at agapay.saas@gmail.com.",
   },
 ];
 
@@ -42,9 +40,9 @@ export default function PrivacyPage() {
             Privacy Policy
           </h1>
           <p className="text-lg text-slate-600 leading-relaxed mb-12 max-w-3xl">
-            Ang page na ito ay naglalarawan kung paano ginagamit ang datos sa
-            Agapay school-project prototype. Layunin nitong maging malinaw,
-            simple, at relevant sa aktwal na flows ng app ngayon.
+            This privacy note applies to the current Agapay prototype. It
+            describes how member, branch, and admin data is handled within the
+            system.
           </p>
 
           <div className="space-y-8">

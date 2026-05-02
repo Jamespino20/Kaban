@@ -12,157 +12,173 @@ class TwoFactorRequiredError extends CredentialsSignin {
   code = "2fa_required";
 }
 
-export const { handlers, auth, signIn, signOut } = NextAuth({
-  ...authConfig,
-  providers: [
-    Credentials({
-      async authorize(credentials) {
-        const parsedCredentials = z
-          .object({
-            username: z.string(),
-            password: z.string().min(6),
-            tenantId: z.string().optional().default("global"),
-            code: z.string().optional(),
-          })
-          .safeParse(credentials);
+let nextAuthInstance: any;
 
-        if (parsedCredentials.success) {
-          const { username, password, code, tenantId } = parsedCredentials.data;
+const getNextAuth = () => {
+  if (nextAuthInstance) return nextAuthInstance;
 
-          const connectionString = getDbUrl();
-          console.log(
-            "SURGERY: Auth Connection String Status:",
-            connectionString ? "PRESENT" : "MISSING!",
-          );
+  nextAuthInstance = NextAuth({
+    ...authConfig,
+    providers: [
+      Credentials({
+        async authorize(credentials) {
+          const parsedCredentials = z
+            .object({
+              username: z.string(),
+              password: z.string().min(6),
+              tenantId: z.string().optional().default("global"),
+              code: z.string().optional(),
+            })
+            .safeParse(credentials);
 
-          if (!connectionString) return null;
+          if (parsedCredentials.success) {
+            const { username, password, code, tenantId } =
+              parsedCredentials.data;
 
-          // Safe parsing of tenantId - essential for multi-tenant isolation
-          let parsedTenantId = null;
-          if (tenantId && tenantId !== "global" && tenantId !== "undefined") {
-            const integerId = parseInt(tenantId);
-            if (!isNaN(integerId)) parsedTenantId = integerId;
-          }
+            const connectionString = getDbUrl();
+            if (!connectionString) return null;
 
-          const sql = neon(connectionString);
-
-          // Fetch user with strict tenant scoping
-          const users = await sql`
-            SELECT user_id, tenant_id, username, email, password_hash, 
-                   role, status, member_code
-            FROM users
-            WHERE (tenant_id = ${parsedTenantId} OR (tenant_id IS NULL AND ${parsedTenantId === null}))
-            AND (email = ${username} OR username = ${username})
-            LIMIT 1
-          `;
-
-          const user = users[0];
-          if (!user) return null;
-
-          const passwordsMatch = await bcrypt.compare(
-            password,
-            user.password_hash,
-          );
-
-          if (passwordsMatch) {
-            if (user.status === "suspended") return null;
-
-            const switchableAccounts = await sql`
-              SELECT tenant_id, password_hash
-              FROM users
-              WHERE email = ${user.email}
-            `;
-
-            const accessibleTenantIds: number[] = [];
-            for (const account of switchableAccounts) {
-              if (!account.tenant_id) continue;
-              const sameSecret = await bcrypt.compare(
-                password,
-                account.password_hash,
-              );
-              if (sameSecret) {
-                accessibleTenantIds.push(account.tenant_id);
-              }
+            // Safe parsing of tenantId - essential for multi-tenant isolation
+            let parsedTenantId = null;
+            if (tenantId && tenantId !== "global" && tenantId !== "undefined") {
+              const integerId = parseInt(tenantId);
+              if (!isNaN(integerId)) parsedTenantId = integerId;
             }
 
-            if (user.role !== "superadmin") {
-              const branchMembershipError = validateBranchMembershipLimit(
-                accessibleTenantIds.length,
-              );
+            const sql = neon(connectionString);
 
-              if (branchMembershipError) {
-                console.warn(
-                  "Rejected login due to excessive branch memberships",
-                  user.email,
+            // Fetch user with strict tenant scoping
+            const users = await sql`
+              SELECT user_id, tenant_id, username, email, password_hash, 
+                     role, status, member_code
+              FROM users
+              WHERE (tenant_id = ${parsedTenantId} OR (tenant_id IS NULL AND ${parsedTenantId === null}))
+              AND (email = ${username} OR username = ${username})
+              LIMIT 1
+            `;
+
+            const user = users[0];
+            if (!user) return null;
+
+            const passwordsMatch = await bcrypt.compare(
+              password,
+              user.password_hash,
+            );
+
+            if (passwordsMatch) {
+              if (user.status === "suspended") return null;
+
+              const switchableAccounts = await sql`
+                SELECT tenant_id, password_hash
+                FROM users
+                WHERE email = ${user.email}
+              `;
+
+              const accessibleTenantIds: number[] = [];
+              for (const account of switchableAccounts) {
+                if (!account.tenant_id) continue;
+                const sameSecret = await bcrypt.compare(
+                  password,
+                  account.password_hash,
+                );
+                if (sameSecret) {
+                  accessibleTenantIds.push(account.tenant_id);
+                }
+              }
+
+              if (user.role !== "superadmin") {
+                const branchMembershipError = validateBranchMembershipLimit(
                   accessibleTenantIds.length,
                 );
-                return null;
-              }
-            }
 
-            // Check 2FA
-            const twoFaRows = await sql`
-              SELECT is_enabled, totp_secret 
-              FROM two_factor_auth 
-              WHERE user_id = ${user.user_id}
-            `;
-            const twoFa = twoFaRows[0];
-
-            if (twoFa?.is_enabled) {
-              if (!code) {
-                throw new TwoFactorRequiredError();
-              }
-
-              const { TOTP, NobleCryptoPlugin, ScureBase32Plugin } =
-                await import("otplib");
-              const totp = new TOTP({
-                crypto: new NobleCryptoPlugin(),
-                base32: new ScureBase32Plugin(),
-              });
-
-              const isTotpValid = await totp.verify(code, {
-                secret: twoFa.totp_secret,
-              });
-
-              if (!isTotpValid) {
-                const { getTwoFactorTokenByEmail } =
-                  await import("@/actions/two-factor-token");
-                const twoFactorToken = await getTwoFactorTokenByEmail(
-                  user.email,
-                  user.tenant_id,
-                );
-
-                if (!twoFactorToken || twoFactorToken.token !== code) {
+                if (branchMembershipError) {
                   return null;
                 }
-
-                const hasExpired =
-                  new Date(twoFactorToken.expires) < new Date();
-                if (hasExpired) return null;
-
-                // Delete used token via neon
-                await sql`
-                  DELETE FROM two_factor_tokens 
-                  WHERE id = ${twoFactorToken.id}
-                `;
               }
+
+              // Check 2FA
+              const twoFaRows = await sql`
+                SELECT is_enabled, totp_secret 
+                FROM two_factor_auth 
+                WHERE user_id = ${user.user_id}
+              `;
+              const twoFa = twoFaRows[0];
+
+              if (twoFa?.is_enabled) {
+                if (!code) {
+                  throw new TwoFactorRequiredError();
+                }
+
+                const { TOTP, NobleCryptoPlugin, ScureBase32Plugin } =
+                  await import("otplib");
+                const totp = new TOTP({
+                  crypto: new NobleCryptoPlugin(),
+                  base32: new ScureBase32Plugin(),
+                });
+
+                const isTotpValid = await totp.verify(code, {
+                  secret: twoFa.totp_secret,
+                });
+
+                if (!isTotpValid) {
+                  const { getTwoFactorTokenByEmail } =
+                    await import("@/actions/two-factor-token");
+                  const twoFactorToken = await getTwoFactorTokenByEmail(
+                    user.email,
+                    user.tenant_id,
+                  );
+
+                  if (!twoFactorToken || twoFactorToken.token !== code) {
+                    return null;
+                  }
+
+                  const hasExpired =
+                    new Date(twoFactorToken.expires) < new Date();
+                  if (hasExpired) return null;
+
+                  // Delete used token via neon
+                  await sql`
+                    DELETE FROM two_factor_tokens 
+                    WHERE id = ${twoFactorToken.id}
+                  `;
+                }
+              }
+
+              return {
+                id: user.user_id.toString(),
+                user_id: user.user_id,
+                username: user.username,
+                name: user.username,
+                email: user.email,
+                role: user.role,
+                tenantId: user.tenant_id,
+                accessibleTenantIds,
+              };
             }
-
-            return {
-              id: user.user_id.toString(),
-              user_id: user.user_id,
-              username: user.username,
-              name: user.username,
-              email: user.email,
-              role: user.role,
-              tenantId: user.tenant_id,
-              accessibleTenantIds,
-            };
           }
-        }
 
-        return null;
-      },
-    }),
-  ],
-});
+          return null;
+        },
+      }),
+    ],
+  });
+
+  return nextAuthInstance;
+};
+
+// Lazy exports to prevent build-time dynamic bailouts
+export const auth = (...args: any[]) => {
+  // Never run auth() during static generation
+  if (process.env.NEXT_PHASE === "phase-production-build") {
+    return Promise.resolve(null);
+  }
+  return getNextAuth().auth(...args);
+};
+
+export const handlers = {
+  GET: (...args: any[]) => getNextAuth().handlers.GET(...args),
+  POST: (...args: any[]) => getNextAuth().handlers.POST(...args),
+};
+
+export const signIn = (...args: any[]) => getNextAuth().signIn(...args);
+export const signOut = (...args: any[]) => getNextAuth().signOut(...args);

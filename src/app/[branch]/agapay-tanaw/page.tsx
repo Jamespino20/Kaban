@@ -53,7 +53,6 @@ function SystemFileManagementSkeleton() {
 }
 
 import { requireTanawSession } from "@/lib/authorization";
-import { getTranslations } from "next-intl/server";
 
 export default async function AgapayTanawPage({
   params,
@@ -61,7 +60,6 @@ export default async function AgapayTanawPage({
   params: { branch: string };
 }) {
   const { branch } = params;
-  const t = await getTranslations("dashboard");
   const session = await requireTanawSession();
 
   if (session.user.role === "member") {
@@ -141,21 +139,21 @@ export default async function AgapayTanawPage({
   };
 
   const navItems: ShellNavItem[] = [
-    { value: "overview", label: "Pangkalahatan", icon: "overview" },
+    { value: "overview", label: "Overview", icon: "overview" },
     {
       value: "approvals",
-      label: "Mga Pag-apruba",
+      label: "Approvals",
       icon: "approvals",
       badge: pendingData.loans.length + pendingData.verifications.length,
     },
-    { value: "members", label: "Mga Miyembro", icon: "members" },
-    { value: "files", label: "Mga Dokumento", icon: "audit" },
+    { value: "members", label: "Members", icon: "members" },
+    { value: "files", label: "Documents", icon: "audit" },
   ];
 
   if (canViewProducts && isFeatureEnabled("advanced_products")) {
     navItems.push({
       value: "products",
-      label: t("loan_products"),
+      label: "Loan Products",
       icon: "products",
     });
   }
@@ -163,7 +161,7 @@ export default async function AgapayTanawPage({
   if (canViewBranchOps && isFeatureEnabled("multi_tenant_mgmt")) {
     navItems.push({
       value: "branches",
-      label: isSuperAdmin ? t("global_mgmt") : t("branch_ops"),
+      label: isSuperAdmin ? "Global Management" : "Branch Operations",
       icon: "branches",
     });
   }
@@ -171,7 +169,7 @@ export default async function AgapayTanawPage({
   if (canManageHomepageContent && isFeatureEnabled("content_mgmt")) {
     navItems.push({
       value: "content",
-      label: t("homepage_content"),
+      label: "Homepage Content",
       icon: "content",
     });
   }
@@ -179,14 +177,14 @@ export default async function AgapayTanawPage({
   if (canViewFeedback) {
     navItems.push({
       value: "feedback",
-      label: t("feedback"),
+      label: "Feedback",
       icon: "feedback",
     });
   }
 
   navItems.push({
     value: "community",
-    label: t("community"),
+    label: "Community",
     icon: "community",
   });
 
@@ -201,7 +199,7 @@ export default async function AgapayTanawPage({
   if (isAdmin || isSuperAdmin) {
     navItems.push({
       value: "compassion",
-      label: t("compassion"),
+      label: "Compassion Actions",
       icon: "compassion",
     });
   }
@@ -209,7 +207,7 @@ export default async function AgapayTanawPage({
   if (canViewAnalytics && isFeatureEnabled("advanced_analytics")) {
     navItems.push({
       value: "analytics",
-      label: t("analytics"),
+      label: "Analytics",
       icon: "analytics",
     });
   }
@@ -217,7 +215,7 @@ export default async function AgapayTanawPage({
   if (canViewAuditLogs && isFeatureEnabled("audit_logs")) {
     navItems.push({
       value: "audit",
-      label: t("audit_logs"),
+      label: "Audit Logs",
       icon: "audit",
     });
   }
@@ -231,15 +229,15 @@ export default async function AgapayTanawPage({
   return (
     <DashboardTabsShell
       defaultValue="overview"
-      title={t("title")}
+      title="Agapay Tanaw"
       subtitle={
         isLender
-          ? t("subtitle_lender")
+          ? "Lender dashboard — manage your assigned member accounts."
           : isAdmin
-            ? t("subtitle_admin")
+            ? "Admin dashboard — full oversight of your cooperative."
             : isGlobalSuperadminView
-              ? t("subtitle_superadmin")
-              : t("subtitle_branch")
+              ? "Global Superadmin view — system-wide oversight."
+              : "Branch Superadmin view — manage this cooperative branch."
       }
       portalLabel={`${userRole} portal`}
       accountName={userName}
@@ -263,12 +261,12 @@ export default async function AgapayTanawPage({
                 Imbalance Alert: Treasury Pulse Check Failed
               </h3>
               <p className="text-red-700 font-medium">
-                Mayroong imbalance na{" "}
+                There is an imbalance of{" "}
                 <span className="font-black">
                   ₱{reconciliation.holdings.imbalance.toLocaleString()}
                 </span>{" "}
-                sa pagitan ng Co-op Treasury at Member Wallets. Pakisuri ang EOD
-                Reconciliation tab.
+                between the Co-op Treasury and Member Wallets. Please review the
+                EOD Reconciliation tab.
               </p>
             </div>
           </div>
@@ -276,26 +274,26 @@ export default async function AgapayTanawPage({
         <TabsContent value="overview" className="space-y-6 outline-none">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <KPIMetricCard
-              label="Kabuuang Pondo"
+              label="Total Funds"
               value={`₱${(metrics.totalLiquidity / 1000000).toFixed(1)}M`}
-              description={`Kabuuan: ₱${metrics.totalLiquidity.toLocaleString()}`}
+              description={`Total: ₱${metrics.totalLiquidity.toLocaleString()}`}
               iconName="wallet"
               trend={{ value: 12.5, isPositive: true }}
             />
             <KPIMetricCard
-              label="Aktibong Loan"
+              label="Active Loans"
               value={metrics.activeLoans}
               iconName="activity"
               trend={{ value: 8.2, isPositive: true }}
             />
             <KPIMetricCard
-              label="Antas ng Pagbabayad"
+              label="Repayment Rate"
               value={`${metrics.repaymentRate.toFixed(1)}%`}
               iconName="check"
               trend={{ value: 1.4, isPositive: true }}
             />
             <KPIMetricCard
-              label="Panganib sa Pondo"
+              label="Risk Exposure"
               value={`₱${(metrics.riskExposure / 1000).toFixed(0)}K`}
               description={`Delinquent: ₱${metrics.riskExposure.toLocaleString()}`}
               iconName="alert"
@@ -308,10 +306,10 @@ export default async function AgapayTanawPage({
             <div className="lg:col-span-2 bg-white/70 backdrop-blur-xl p-6 rounded-[1.75rem] border border-slate-200/60 shadow-sm flex flex-col md:flex-row items-center gap-8">
               <div className="flex-1 text-center md:text-left">
                 <h3 className="text-xl font-display font-bold text-slate-900">
-                  Trust Index ng Kooperatiba
+                  Cooperative Trust Index
                 </h3>
                 <p className="text-slate-500 text-sm mt-1 mb-6">
-                  Kasalukuyang katayuan ng trust network
+                  Current status of the trust network
                 </p>
                 {canViewBranchOps ? (
                   <TrustDistributionChart
@@ -320,13 +318,13 @@ export default async function AgapayTanawPage({
                 ) : (
                   <div className="space-y-4">
                     <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100 italic text-slate-500 text-xs">
-                      "Ang iyong branch ay lumalago. Patuloy na i-verify ang
-                      trust status ng mga miyembro."
+                      &ldquo;Your branch is growing. Keep verifying the trust
+                      status of your members.&rdquo;
                     </div>
                     <div className="grid grid-cols-2 gap-4">
                       <div className="p-4 bg-emerald-50 rounded-2xl border border-emerald-100">
                         <p className="text-[10px] font-bold text-emerald-600 uppercase">
-                          Singilin
+                          Collected
                         </p>
                         <p className="text-lg font-bold text-slate-900">
                           ₱42.5K
@@ -334,10 +332,10 @@ export default async function AgapayTanawPage({
                       </div>
                       <div className="p-4 bg-indigo-50 rounded-2xl border border-indigo-100">
                         <p className="text-[10px] font-bold text-indigo-600 uppercase">
-                          Paglago
+                          Growth
                         </p>
                         <p className="text-lg font-bold text-slate-900">
-                          +8 Miyembro
+                          +8 Members
                         </p>
                       </div>
                     </div>
@@ -355,19 +353,19 @@ export default async function AgapayTanawPage({
                   <TrendingUp className="w-6 h-6 text-white" />
                 </div>
                 <h3 className="text-2xl font-display font-medium leading-tight">
-                  Katayuan ng <br />
-                  Portfolio
+                  Portfolio <br />
+                  Status
                 </h3>
                 <p className="text-slate-400 text-xs leading-relaxed font-sans">
-                  Ang koleksyon ngayong buwan ay tumaas ng 12% dahil sa
-                  implementasyon ng Trust-Based Incentives. Ang elite tier ay
-                  lumaki ng 5%.
+                  This month&apos;s collection increased 12% due to the
+                  implementation of Trust-Based Incentives. The elite tier grew
+                  by 5%.
                 </p>
               </div>
 
               <div className="relative z-10 pt-8 border-t border-white/10 mt-8">
                 <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2">
-                  Kalusugan ng Platform
+                  Platform Health
                 </p>
                 <div className="h-1.5 w-full bg-white/10 rounded-full overflow-hidden">
                   <div className="h-full w-[88%] bg-emerald-500 rounded-full shadow-[0_0_10px_rgba(16,185,129,0.5)]" />
@@ -413,14 +411,13 @@ export default async function AgapayTanawPage({
                     Tenant Context Needed
                   </p>
                   <h2 className="text-2xl font-display font-bold italic text-slate-900">
-                    Pumili muna ng branch bago mag-manage ng Loan Products
+                    Select a branch before managing Loan Products
                   </h2>
                   <p className="text-sm leading-relaxed text-slate-600">
-                    Bilang `superadmin`, makakakita ka ng tenant-wide product
-                    setup sa oras na may aktibo kang branch context. Gamitin ang
-                    branch switcher sa sidebar account area para pumili ng
-                    cooperative branch, tapos bumalik dito para mag-review o
-                    gumawa ng produkto.
+                    As a `superadmin`, you can see the tenant-wide product setup
+                    once you have an active branch context. Use the branch
+                    switcher in the sidebar account area to select a cooperative
+                    branch, then return here to review or create products.
                   </p>
                 </div>
               </div>
@@ -451,14 +448,14 @@ export default async function AgapayTanawPage({
                   title="Tenant Name"
                   description={
                     session.user.role === "superadmin"
-                      ? "Maaari mong i-update ang company o branch name ng kasalukuyang tenant context."
-                      : "Maaari mong i-update ang company o branch name ng iyong tenant."
+                      ? "You can update the company or branch name for the current tenant context."
+                      : "You can update your tenant's company or branch name."
                   }
                 />
               ) : session.user.role === "superadmin" ? (
                 <div className="w-full max-w-2xl rounded-[1.75rem] border border-amber-200 bg-amber-50 p-6 text-sm text-amber-800 shadow-sm">
-                  Pumili muna ng branch sa sidebar kung gusto mong palitan ang
-                  tenant name mula sa `Global View`.
+                  Select a branch from the sidebar if you want to change the
+                  tenant name from `Global View`.
                 </div>
               ) : null}
 
@@ -494,7 +491,7 @@ export default async function AgapayTanawPage({
                   Account Security
                 </h2>
                 <p className="text-slate-500">
-                  I-secure ang iyong administrative access gamit ang 2FA.
+                  Secure your administrative access with 2FA.
                 </p>
               </div>
               <div className="flex justify-center">
@@ -541,13 +538,12 @@ export default async function AgapayTanawPage({
                     <ShieldAlert className="h-5 w-5" />
                   </div>
                   <h2 className="text-2xl font-display font-bold text-slate-900 italic">
-                    Repository ng mga Dokumento
+                    Document Repository
                   </h2>
                 </div>
                 <p className="text-sm text-slate-500 max-w-2xl">
-                  Dito makikita ang lahat ng system-generated reports, SOA, at
-                  mga dokumentong ini-upload ng mga miyembro na direktang
-                  nakatago sa ating secure database storage.
+                  All system-generated reports, SOAs, and documents uploaded by
+                  members are stored directly in our secure database storage.
                 </p>
               </div>
 

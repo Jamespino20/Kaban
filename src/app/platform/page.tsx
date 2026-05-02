@@ -1,7 +1,5 @@
 "use client";
 
-export const dynamic = "force-dynamic";
-
 import { Footer } from "@/components/layout/footer";
 import { Navbar } from "@/components/layout/navbar";
 import {
@@ -19,44 +17,44 @@ const CAPABILITIES = [
     icon: <LayoutDashboard className="w-10 h-10 text-emerald-600" />,
     title: "Role-based dashboards",
     description:
-      "May malinaw na view para sa `superadmin`, `admin`, `lender`, at `member`, kaya mas madaling maintindihan kung sino ang gumagawa ng review, release, repayment verification, at reports.",
+      "A clear view for `superadmin`, `admin`, `lender`, and `member`, making it easier to understand who performs reviews, releases, repayment verifications, and reporting.",
     points: [
-      "Tanaw para sa staff at oversight",
-      "Pintig para sa member self-service",
-      "2FA at secured account access",
+      "Tanaw for staff and oversight",
+      "Pintig for member self-service",
+      "2FA and secured account access",
     ],
   },
   {
     icon: <Wallet className="w-10 h-10 text-emerald-600" />,
     title: "Mock money flow management",
     description:
-      "Sa prototype, hindi direktang nagpo-process ng pera ang Agapay. Sa halip, nire-record nito ang approval, release method, repayment submission, at verification para malinaw ang operational history.",
+      "Agapay does not directly process funds in this prototype. Instead, it records approvals, release methods, repayment submissions, and verifications to maintain a clear operational history.",
     points: [
-      "Cash release, GCash, bank transfer, at field collection tracking",
-      "Repayment submission na may reference at proof",
-      "Digital records para sa branch verification",
+      "Cash release, GCash, bank transfer, and field collection tracking",
+      "Repayment submissions with reference and proof",
+      "Digital records for branch verification",
     ],
   },
   {
     icon: <Users className="w-10 h-10 text-emerald-600" />,
     title: "Community-driven lending",
     description:
-      "Mas bagay ang platform sa cooperative setup dahil may Guarantors, Trust Score, at mentoring cues para hindi lang presyo ang basehan ng desisyon.",
+      "The platform fits cooperative setups through Guarantors, Trust Score limits, and mentoring cues so decisions aren't solely based on interest rates.",
     points: [
       "Guarantor validation",
-      "Trust-based visibility at metrics",
-      "Mas suportadong member journey",
+      "Trust-based visibility and metrics",
+      "A better supported member journey",
     ],
   },
   {
     icon: <FileCheck2 className="w-10 h-10 text-emerald-600" />,
-    title: "Content at feedback operations",
+    title: "Content and feedback operations",
     description:
-      "May feedback inbox at homepage content workflow na puwedeng i-manage ng admins at superadmin para manatiling relevant ang FAQs, testimonials, at support messaging.",
+      "A feedback inbox and homepage content workflow managed by admins and superadmins to keep FAQs, testimonials, and support messaging relevant.",
     points: [
-      "Feedback capture mula public at in-app pages",
-      "Homepage FAQ at testimonial moderation",
-      "Mas malinaw na support escalation",
+      "Feedback capture from public and in-app pages",
+      "Homepage FAQ and testimonial moderation",
+      "Clearer support escalation",
     ],
   },
 ];
@@ -71,17 +69,16 @@ export default function PlatformPage() {
           <div className="max-w-4xl">
             <span className="inline-flex items-center gap-2 text-emerald-700 font-bold tracking-widest text-xs uppercase mb-6 px-4 py-1.5 bg-emerald-100/90 rounded-full border border-emerald-200/50">
               <BadgeCheck className="w-4 h-4" />
-              Paano Gumagana ang Platform
+              How the Platform Works
             </span>
             <h1 className="text-5xl md:text-8xl font-black tracking-tight italic mb-8 leading-[0.95] text-slate-900">
-              Isang platform para sa{" "}
+              A platform for your{" "}
               <span className="text-emerald-600">cooperative operations</span>.
             </h1>
             <p className="text-xl md:text-2xl font-medium text-slate-600 mb-10 leading-relaxed max-w-3xl">
-              Ang Agapay ay nakatuon sa lending operations, hindi lang sa
-              simpleng transaction feed. Nakikita rito ang approvals, mock
-              releases, repayments, feedback, at reports sa isang malinaw na
-              sistema.
+              Agapay focuses on cooperative lending operations, not just another
+              transaction feed. Track approvals, mock releases, repayments,
+              feedback, and reports through a unified system.
             </p>
           </div>
         </section>
@@ -91,19 +88,19 @@ export default function PlatformPage() {
             <div className="grid grid-cols-1 lg:grid-cols-[1fr_0.9fr] gap-10">
               <div>
                 <h2 className="text-3xl font-black italic mb-6">
-                  Ano ang sakop ng prototype na ito
+                  What this prototype covers
                 </h2>
                 <p className="text-emerald-50/85 leading-relaxed text-lg">
-                  Kasama rito ang member onboarding, branch-scoped lending
-                  operations, 2FA-secured login, Statement of Account, feedback
-                  handling, at seasonal homepage content moderation.
+                  This covers member onboarding, branch-scoped lending
+                  operations, 2FA-secured logins, Statements of Account,
+                  feedback handling, and seasonal homepage content moderation.
                 </p>
               </div>
               <div className="space-y-4">
                 {[
-                  "Hindi direktang wallet o payment processor",
-                  "Records-first at verification-first na sistema",
-                  "Mas akma sa cooperative at branch workflows",
+                  "Not a direct wallet or payment processor",
+                  "Records-first and verification-first system",
+                  "Built for cooperative and branch workflows",
                 ].map((item) => (
                   <div
                     key={item}
@@ -154,13 +151,13 @@ export default function PlatformPage() {
               <div className="flex items-center gap-3">
                 <Shield className="w-6 h-6 text-emerald-600" />
                 <h3 className="text-2xl font-black italic text-slate-900">
-                  Security at isolation
+                  Security and isolation
                 </h3>
               </div>
               <p className="text-slate-600 leading-relaxed max-w-3xl">
-                Multi-tenant ang design ng Agapay, may role-based authorization,
-                2FA support, at mas maingat na access control para sa reports at
-                admin actions.
+                Agapay features a multi-tenant design, complete with role-based
+                authorization, 2FA support, and careful access controls for
+                branch reports and admin actions.
               </p>
             </div>
           </div>

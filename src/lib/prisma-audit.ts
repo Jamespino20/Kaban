@@ -30,12 +30,16 @@ export const prismaAuditExtension = Prisma.defineExtension((client) => {
 
           try {
             // Fetch Request-level metadata
-            const headerList = await headers();
-            ipAddress =
-              headerList.get("x-forwarded-for")?.split(",")[0] || null;
-            userAgent = headerList.get("user-agent") || null;
+            // headers() and auth() throw during static generation if not handled.
+            // We use a try-catch to ensure we don't bail out and just skip auditing metadata.
+            const headerList = await headers().catch(() => null);
+            if (headerList) {
+              ipAddress =
+                headerList.get("x-forwarded-for")?.split(",")[0] || null;
+              userAgent = headerList.get("user-agent") || null;
+            }
 
-            const session = await auth();
+            const session = await auth().catch(() => null);
             if (session?.user) {
               userId = parseInt(session.user.id);
             }

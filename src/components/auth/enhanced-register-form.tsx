@@ -90,6 +90,7 @@ const EnhancedRegisterSchema = z
   });
 
 export function EnhancedRegisterForm() {
+  const [isMounted, setIsMounted] = useState(false);
   const [step, setStep] = useState(1);
   const [isPending, startTransition] = useTransition();
   const [showPassword, setShowPassword] = useState(false);
@@ -156,6 +157,7 @@ export function EnhancedRegisterForm() {
 
   // Fetch Regions + PSGC Regions on Mount
   useEffect(() => {
+    setIsMounted(true);
     const fetchData = async () => {
       const [regionData, psgcData] = await Promise.all([
         getRegions(),
@@ -169,6 +171,8 @@ export function EnhancedRegisterForm() {
     };
     fetchData();
   }, []);
+
+  if (!isMounted) return null;
 
   // Handler: When Agapay Region (TenantGroup/Branch) Changes
   const onRegionChange = async (regionId: string) => {

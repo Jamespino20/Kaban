@@ -20,9 +20,9 @@ export function Footer() {
             </span>
           </div>
           <p className="text-slate-500 font-medium leading-relaxed">
-            Cooperative lending platform para sa mga Pilipinong negosyante,
-            branch teams, at lending communities na naghahanap ng mas malinaw,
-            mas human, at mas explainable na workflows.
+            A cooperative lending platform for Filipino entrepreneurs, branch
+            teams, and lending communities who want clearer, more human, and
+            more explainable financial workflows.
           </p>
         </div>
 
@@ -30,8 +30,8 @@ export function Footer() {
           <FooterGroup
             title="Platform"
             links={[
-              { label: "Mga Tampok", href: "/platform" },
-              { label: "Presyo", href: "/pricing" },
+              { label: "Features", href: "/platform" },
+              { label: "Pricing", href: "/pricing" },
               { label: "Loan Calculator", href: "/#calculator" },
               { label: "Security", href: "/platform#security" },
             ]}
@@ -39,8 +39,8 @@ export function Footer() {
           <FooterGroup
             title="Company"
             links={[
-              { label: "Tungkol sa Amin", href: "/about" },
-              { label: "Pamamahala", href: "/about#management" },
+              { label: "About Us", href: "/about" },
+              { label: "Management", href: "/about#management" },
               { label: "Partners", href: "/about#partners" },
               { label: "Contact", href: "/contact" },
             ]}

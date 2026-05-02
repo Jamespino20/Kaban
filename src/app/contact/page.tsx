@@ -1,7 +1,5 @@
 "use client";
 
-export const dynamic = "force-dynamic";
-
 import { useState } from "react";
 import { Footer } from "@/components/layout/footer";
 import { Navbar } from "@/components/layout/navbar";
@@ -21,28 +19,28 @@ const CONTACT_METHODS = [
     title: "Email Support",
     detail: "agapay.saas@gmail.com",
     href: "mailto:agapay.saas@gmail.com",
-    actionLabel: "Mag-email sa Amin",
+    actionLabel: "Email Us",
     icon: Mail,
   },
   {
     title: "Feedback Inbox",
-    detail: "Para sa concerns, cancellations, at suggestions",
+    detail: "For concerns, cancellations, and suggestions",
     href: "#contact-form",
-    actionLabel: "Magbahagi ng Feedback",
+    actionLabel: "Share Feedback",
     icon: MessageCircle,
   },
   {
     title: "Prototype Hotline",
     detail: "+63 (02) 8888-2427",
     href: "tel:+630288882427",
-    actionLabel: "Tumawag Ngayon",
+    actionLabel: "Call Now",
     icon: Phone,
   },
   {
     title: "Head Office",
     detail: "Taguig City, Philippines",
     href: "https://maps.google.com/?q=Taguig%20City%20Philippines",
-    actionLabel: "Buksan ang Mapa",
+    actionLabel: "Open Map",
     icon: MapPin,
   },
 ];
@@ -61,15 +59,15 @@ export default function ContactPage() {
           <div className="max-w-4xl mx-auto">
             <span className="inline-flex items-center gap-2 text-emerald-700 font-bold tracking-widest text-xs uppercase mb-6 px-4 py-1.5 bg-emerald-100/90 rounded-full border border-emerald-200/50">
               <BadgeCheck className="w-4 h-4" />
-              Makipag-ugnayan sa Agapay
+              Get in Touch with Agapay
             </span>
             <h1 className="text-5xl md:text-8xl font-black tracking-tight italic mb-8 leading-[0.95] text-slate-900 text-balance">
-              Usap Tayo Para sa{" "}
-              <span className="text-emerald-600">Mas Maayos na Agapay.</span>
+              Let&apos;s Talk About{" "}
+              <span className="text-emerald-600">a Better Agapay.</span>
             </h1>
             <p className="text-xl md:text-2xl font-medium text-slate-600 mb-12 leading-relaxed max-w-3xl mx-auto">
-              Para sa tanong, concern, cancellation, testimonial, o suggestion,
-              may malinaw na paraan para makarating ito sa tamang team.
+              For questions, concerns, cancellations, testimonials, or
+              suggestions — there is a clear path to reach the right team.
             </p>
           </div>
         </section>
@@ -139,32 +137,31 @@ export default function ContactPage() {
             <div className="rounded-[3rem] bg-slate-50 border border-slate-100 p-10 md:p-14 shadow-xl space-y-6">
               <h2 className="text-4xl font-black italic text-slate-900">
                 {activeTab === "feedback"
-                  ? "Ano ang puwedeng ipasa rito?"
-                  : "Bakit sumali sa Agapay?"}
+                  ? "What can be submitted here?"
+                  : "Why join Agapay?"}
               </h2>
               <div className="space-y-4 text-slate-600 leading-relaxed text-lg">
                 {activeTab === "feedback" ? (
                   <>
                     <p>
-                      Dito dumadaan ang general concerns, cancellation requests,
-                      bug reports, feature requests, at testimonial leads.
+                      General concerns, cancellation requests, bug reports,
+                      feature requests, and testimonial leads all go through
+                      here.
                     </p>
                     <p>
-                      Ang admins ay makakakita ng tenant feedback sa Tanaw, at
-                      ang superadmin ang may final visibility sa cross-tenant
-                      trends.
+                      Admins can see tenant feedback in Tanaw, and the
+                      superadmin has final visibility into cross-tenant trends.
                     </p>
                   </>
                 ) : (
                   <>
                     <p>
-                      Dalahin ang inyong cooperative sa digital age. Sa Agapay,
-                      magkakaroon kayo ng sariling dashboard (Tanaw) para sa
-                      management.
+                      Bring your cooperative into the digital age. With Agapay,
+                      you&apos;ll have your own management dashboard (Tanaw).
                     </p>
                     <p>
-                      Mabilis na loan processing, transparent ledger, at
-                      automated trust scoring para sa inyong mga miyembro.
+                      Fast loan processing, a transparent ledger, and automated
+                      trust scoring for your members.
                     </p>
                   </>
                 )}
@@ -176,8 +173,8 @@ export default function ContactPage() {
                 <FeedbackForm
                   defaultCategory="general"
                   pagePath="/contact"
-                  title="Magpadala ng Feedback"
-                  description="Ilagay ang concern, cancellation request, tanong, o testimonial lead mo rito."
+                  title="Send Feedback"
+                  description="Submit a concern, cancellation request, question, or testimonial lead here."
                 />
               ) : (
                 <CoopApplicationForm />

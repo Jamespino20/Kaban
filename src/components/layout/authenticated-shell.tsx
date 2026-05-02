@@ -5,7 +5,6 @@ import { NotificationBell } from "@/components/layout/notification-bell";
 import { Button } from "@/components/ui/button";
 import { TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { signOut } from "next-auth/react";
-import { useTranslations } from "next-intl";
 import {
   AlertTriangle,
   ChevronLeft,
@@ -25,7 +24,6 @@ import {
   MessagesSquare,
   TrendingUp,
 } from "lucide-react";
-import { LanguageSwitcher } from "@/components/shared/language-switcher";
 import { useEffect, useRef, useState } from "react";
 
 function normalizeHexColor(color?: string | null) {
@@ -138,7 +136,6 @@ export function AuthenticatedShell({
   const [navReady, setNavReady] = useState(false);
   const navScrollRef = useRef<HTMLDivElement>(null);
 
-  const t = useTranslations();
   const normalizedTenantColor = normalizeHexColor(tenantBrandColor);
   const normalizedAccentColor = normalizeHexColor(tenantAccentColor);
 
@@ -388,7 +385,6 @@ export function AuthenticatedShell({
             <div className="flex-1">
               <BranchSwitcher />
             </div>
-            <LanguageSwitcher />
           </div>
 
           <div className="flex items-center gap-3">
@@ -415,9 +411,7 @@ export function AuthenticatedShell({
             style={logoutButtonStyle}
           >
             <LogOut className="mr-3 h-4 w-4" />
-            <span className={collapsed ? "xl:hidden" : ""}>
-              {t("nav.logout")}
-            </span>
+            <span className={collapsed ? "xl:hidden" : ""}>Sign Out</span>
           </Button>
         </div>
       </div>
@@ -466,7 +460,7 @@ export function AuthenticatedShell({
                   size="icon"
                   onClick={() => setMobileOpen(true)}
                   className="rounded-2xl border-slate-200 bg-white text-slate-700 shadow-sm hover:bg-slate-50"
-                  title={t("nav.portal")}
+                  title="Open navigation"
                 >
                   <Menu className="h-5 w-5" />
                 </Button>

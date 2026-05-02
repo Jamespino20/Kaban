@@ -60,7 +60,9 @@ export function getRequestMetadata(req?: {
  */
 export async function logTraffic(path: string, tenantId?: number | null) {
   try {
-    const head = await headers();
+    const head = await headers().catch(() => null);
+    if (!head) return; // Skip logging during static generation
+
     const meta = getRequestMetadata({ headers: head });
 
     await prisma.trafficLog.create({
@@ -88,7 +90,9 @@ export async function logInteraction(params: {
   metadata?: Record<string, unknown>;
 }) {
   try {
-    const head = await headers();
+    const head = await headers().catch(() => null);
+    if (!head) return; // Skip logging during static generation
+
     const meta = getRequestMetadata({ headers: head });
 
     await prisma.interactionLog.create({

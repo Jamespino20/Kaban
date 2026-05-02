@@ -1,34 +1,32 @@
 "use client";
 
-export const dynamic = "force-dynamic";
-
 import { Footer } from "@/components/layout/footer";
 import { Navbar } from "@/components/layout/navbar";
 
 const TERMS = [
   {
-    title: "1. Nature ng serbisyo",
-    body: "Ang Agapay ay isang school-project prototype para sa cooperative microfinance operations. Hindi ito dapat ituring bilang fully deployed banking, e-wallet, o regulated payment-transmission platform sa kasalukuyang anyo nito.",
+    title: "1. Nature of the Service",
+    body: "Agapay is a school-project prototype for cooperative microfinance operations. It should not be treated as a fully deployed banking, e-wallet, or regulated payment-transmission platform in its current form.",
   },
   {
-    title: "2. Account responsibility",
-    body: "Responsibilidad ng user ang tamang paggamit ng username, password, at 2FA setup. Ang maling paggamit ng account o pagbabahagi ng credentials ay maaaring magdulot ng account risk at operational confusion.",
+    title: "2. Account Responsibility",
+    body: "Users are responsible for proper use of their username, password, and 2FA setup. Misuse of an account or sharing credentials may result in account risk and operational confusion.",
   },
   {
-    title: "3. Loan at repayment information",
-    body: "Ang loan approvals, mock releases, at repayment submissions na nakikita sa prototype ay bahagi ng record-keeping at workflow simulation. Ang aktwal na branch policy at human review pa rin ang basehan ng final operational decisions.",
+    title: "3. Loan and Repayment Information",
+    body: "Loan approvals, mock releases, and repayment submissions visible in the prototype are part of record-keeping and workflow simulation. Actual branch policy and human review remain the basis for final operational decisions.",
   },
   {
-    title: "4. Feedback at content moderation",
-    body: "Ang mga feedback, testimonial leads, at homepage content proposals ay maaaring suriin ng admins at superadmin bago ma-publish o ma-markahang resolved. Hindi lahat ng ipinasa ay awtomatikong mapapakita sa public pages.",
+    title: "4. Feedback and Content Moderation",
+    body: "Feedback submissions, testimonial leads, and homepage content proposals may be reviewed by admins and the superadmin before being published or marked as resolved. Not all submissions will automatically appear on public pages.",
   },
   {
-    title: "5. Availability at changes",
-    body: "Dahil prototype ang system, maaaring may changes sa interface, calculations, flows, at content habang ina-improve ang project. Maaari ring alisin o baguhin ang ilang features bilang bahagi ng refinement.",
+    title: "5. Availability and Changes",
+    body: "Because this is a prototype, there may be changes to the interface, calculations, flows, and content as the project improves. Some features may also be removed or modified as part of ongoing refinement.",
   },
   {
     title: "6. Contact",
-    body: "Para sa concerns, clarification, cancellation requests, o support questions, gamitin ang contact page o mag-email sa agapay.saas@gmail.com.",
+    body: "For concerns, clarification, cancellation requests, or support questions, use the contact page or email agapay.saas@gmail.com.",
   },
 ];
 
@@ -42,9 +40,9 @@ export default function TermsPage() {
             Terms of Service
           </h1>
           <p className="text-lg text-slate-600 leading-relaxed mb-12 max-w-3xl">
-            Ang mga tuntuning ito ay para sa kasalukuyang Agapay prototype at
-            dapat basahin kasabay ng platform purpose, privacy notes, at
-            feedback flows na nasa public pages.
+            These terms apply to the current Agapay prototype and should be read
+            alongside the platform purpose, privacy notes, and feedback flows
+            described on the public pages.
           </p>
 
           <div className="space-y-8">

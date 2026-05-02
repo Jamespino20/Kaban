@@ -23,6 +23,14 @@ export const isTanawRole = (role?: string | null) =>
   isSuperadminRole(role) || isTenantStaffRole(role);
 
 export async function requireAuthenticatedSession(): Promise<AuthorizedSession> {
+  // Guard against auth() execution during build
+  if (process.env.NEXT_PHASE === "phase-production-build") {
+    // Return a mock or null if allowed, but here we probably just want to exit early
+    // though the build shouldn't even call this if the page is truly static.
+    // However, if some component calls this during "Collecting page data", it triggers bailout.
+    return { user: { role: "guest" } } as any;
+  }
+
   const session = await auth();
   if (!session?.user?.id) {
     redirect("/auth/login");
