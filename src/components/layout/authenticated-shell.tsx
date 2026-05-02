@@ -110,6 +110,8 @@ export function AuthenticatedShell({
   tenantName,
   tenantLogoUrl,
   tenantBrandColor,
+  tenantAccentColor,
+  tenantFontPairing,
   navItems,
   children,
 }: {
@@ -162,8 +164,8 @@ export function AuthenticatedShell({
     ...(normalizedAccentColor
       ? { "--accent-custom": normalizedAccentColor }
       : {}),
-    "--font-display-custom": getFontFamily(tenantFontPairing),
-    "--font-sans-custom": getBodyFontFamily(tenantFontPairing),
+    "--font-display-custom": getFontFamily(tenantFontPairing || null),
+    "--font-sans-custom": getBodyFontFamily(tenantFontPairing || null),
   } as React.CSSProperties;
 
   const dynamicStyles = {
