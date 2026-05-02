@@ -36,11 +36,11 @@ export async function getCurrentSubscription(tenantId: number) {
 export async function requestSubscriptionUpgrade(
   planId: number,
   billingCycle: "monthly" | "annually",
+  branchSlug: string,
 ) {
   try {
     const session = await requireTanawSession();
 
-    // Check if user is admin
     if (session.user.role !== "admin" && session.user.role !== "superadmin") {
       return {
         success: false,
@@ -61,7 +61,6 @@ export async function requestSubscriptionUpgrade(
       return { success: false, error: "Invalid or inactive plan selected." };
     }
 
-    // Upsert the tenant subscription to marking it pending
     const sub = await prisma.tenantSubscription.upsert({
       where: { tenant_id: tenantId },
       update: {
@@ -77,7 +76,7 @@ export async function requestSubscriptionUpgrade(
       },
     });
 
-    revalidatePath("/agapay-tanaw");
+    revalidatePath(`/${branchSlug}/agapay-tanaw`);
     return {
       success: true,
       subscription: sub,
@@ -90,5 +89,36 @@ export async function requestSubscriptionUpgrade(
       success: false,
       error: "Naantala ang inyong kahilingan. Pakisubukan muli.",
     };
+  }
+}
+
+export async function availLifetimeFranchise(
+  tenantId: number,
+  availedType: string,
+) {
+  try {
+    const session = await requireTanawSession();
+    if (session.user.role !== "superadmin") {
+      return { success: false, error: "Unauthorized. Superadmin only." };
+    }
+
+    const tenant = await prisma.tenant.update({
+      where: { tenant_id: tenantId },
+      data: {
+        entitlement_status: "availed",
+        availed_type: availedType,
+        lifetime_availed_at: new Date(),
+      } as any,
+      select: { slug: true },
+    });
+
+    revalidatePath(`/${tenant.slug}/agapay-tanaw`);
+    return {
+      success: true,
+      message: `Branch availed as ${availedType} lifetime franchise.`,
+    };
+  } catch (error) {
+    console.error("Failed to avail lifetime franchise:", error);
+    return { success: false, error: "Failed to process lifetime purchase." };
   }
 }

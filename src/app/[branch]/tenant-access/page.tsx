@@ -18,7 +18,12 @@ const COPY = {
   },
 } as const;
 
-export default async function TenantAccessPage() {
+export default async function TenantAccessPage({
+  params,
+}: {
+  params: { branch: string };
+}) {
+  const { branch } = params;
   const session = await auth();
 
   if (!session?.user?.id) {
@@ -26,7 +31,7 @@ export default async function TenantAccessPage() {
   }
 
   if (session.user.role === "superadmin") {
-    redirect("/agapay-tanaw");
+    redirect(`/${branch}/agapay-tanaw`);
   }
 
   if (!session.user.tenantId) {
@@ -45,7 +50,9 @@ export default async function TenantAccessPage() {
 
   if (tenant && tenant.is_active && tenant.entitlement_status === "active") {
     redirect(
-      session.user.role === "member" ? "/agapay-pintig" : "/agapay-tanaw",
+      session.user.role === "member"
+        ? `/${branch}/agapay-pintig`
+        : `/${branch}/agapay-tanaw`,
     );
   }
 
@@ -100,7 +107,7 @@ export default async function TenantAccessPage() {
           </Link>
           <Link
             href="/"
-            className="rounded-2xl border border-slate-200 bg-white px-5 py-3 text-sm font-bold text-slate-700 transition-colors hover:bg-slate-50"
+            className="rounded-2xl border border-slate-200 bg-white px-5 py-3 text-sm font-bold text-slate-700 transition-all hover:bg-slate-50"
           >
             Bumalik sa Homepage
           </Link>

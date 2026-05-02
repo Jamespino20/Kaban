@@ -1,5 +1,29 @@
 I made a PRD issue list along with the business flow audit, encompassing every aspect from general issues to role-based issues and discrepancies.
 
+SEVERE:
+- Subscription isn't a monthly basis, it should be a one-time lifetime purchase of the branch.
+- Branch owners (admins) are not able to buy the systems.
+- Multi-tenantness should be in a franchising manner. Photo is provided of the flow.
+- There should be a "one-database, multiple-schemas" mechanic happening in the DB, with each schema containing the same tables. tenant_id is still in effect:
+	agapay-neon_db
+ 		├── agapay_main
+ 		│     └── tenants table (only here)
+ 		├── agapay_branch1
+ 		├── agapay_branch2
+ 		├── and so on
+- Superadmin has the ability to make a new website directory with customizable colors, logos, font, and homepage content. Superadmin and tenant admins can change their tenant branch's homepage's hero section, testimonials, FAQs, and loan products. Main branch homepage can handpick and showcase all the branches' homepage content for relevance. Main homepage should also have a live map of branches. Here's an example:
+	   - agapay.saas.vercel.app/main/agapay-tanaw/
+	   - agapay.saas.vercel.app/main/agapay-pintig/
+	   - agapay.saas.vercel.app/branch1/agapay-tanaw/
+	   - agapay.saas.vercel.app/branch1/agapay-pintig/
+	   - agapay.saas.vercel.app/branch2/agapay-tanaw/
+	   - agapay.saas.vercel.app/branch2/agapay-pintig/
+	   - and so on
+- Malolos is the MAIN BRANCH where the superadmin will be, and where the other branches will buy Agapay for their own microfinancing cooperative services.
+- There should be a systemwide Tagalog/English translation toggle (since apparently one professor said to make the site in Tagalog language but another said it was discriminatory)
+- Cooperatives' logos are not showing properly. It should be uploadable media. The Agapay logo and the cooperative branch's logo should show in all receipts and SOAs.
+
+
 GENERAL:
 - The Pangkalahatan header bit remains stagnant with the exception of the [role] portal. Content should change according to the current selected module.
 - Logging in and registering as a member sometimes leads to agapay-tanaw by default, but does redirect to pintig upon reloading
@@ -9,13 +33,12 @@ GENERAL:
 - Updates do not dynamically happen (I have to reload it just for updates to come in)
 - The scroll location does not reset to the top whenever the user switch modules
 - All emails should use the @agapay_titled.png photo for its header.
-- Branches should have their cooperatives logo with a "Powered by @agapay_titled.png" caption [There are no logos, only letter placeholders]
+- Branches should have their cooperatives logo with a "Part of the @agapay_titled.png" Franchise" caption [There are no logos, only letter placeholders]
 - Contact Us page in homepage should also allow cooperatives application through the mailing system [should have specific criteria and documents, as well as payment plans before superadmin approves it]
 - There is no way right now to actually rate cooperatives and members/lenders' vouch scores and trust meters (We'll need to have a solid and realistic criteria and score for this one)
 - Custom colors should affect the entire color palette (meaning the color customization should be main, accents, fonts, and so on)
 - As of right now, I don't think there's a way Agapay's superadmin itself can obtain money. The only way I can see the superadmin gains money is through the paid subscription plans, added fees, and penalties.
 - Where does the available credit actually come from? Is this the money that a user can ask for a loan? If the available credit is lower than the desired loan, is there validation to lock loan products with higher required credit? Is there a feedback system?
-- How will the tenant admins pay for their subscriptions?
 - Subscription plans and loan plans are not displayed in the homepage. Each plan should have benefits listed.
 
 

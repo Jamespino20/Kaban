@@ -1,0 +1,48 @@
+{
+  "nav": {
+    "login": "Mag-login",
+    "register": "Mag-register",
+    "logout": "Mag-log out",
+    "settings": "Mga Setting",
+    "dashboard": "Dashboard",
+    "portal": "Portal"
+  },
+  "auth": {
+    "email": "Email Address",
+    "password": "Password",
+    "forgot_password": "Nakalimutan ang Password?",
+    "confirm_password": "I-confirm ang Password",
+    "submit": "I-submit"
+  },
+  "agapay": {
+    "tagline": "Iyong Agapay, Ating Tagumpay",
+    "member_portal": "Agapay Pintig",
+    "admin_portal": "Agapay Tanaw",
+    "feedback_inbox": "Agapay Feedback Inbox"
+  },
+  "common": {
+    "name": "Pangalan",
+    "category": "Category",
+    "subject": "Subject",
+    "open_in_agapay": "Buksan sa Agapay",
+    "overview": "Pangkalahatan"
+  },
+  "dashboard": {
+    "title": "Pangkalahatan",
+    "subtitle_lender": "Tenant-level operations, borrower oversight, at trust monitoring.",
+    "subtitle_admin": "Tenant-level administration para sa approvals, member safety, at portfolio health.",
+    "subtitle_superadmin": "Global oversight para sa tenant cooperatives, fraud monitoring, at system health.",
+    "subtitle_branch": "Branch-scoped oversight para sa napiling cooperative, kabilang ang approvals, members, at content operations.",
+    "global_mgmt": "Global Tenant View",
+    "homepage_content": "Homepage Content",
+    "feedback": "Feedback",
+    "community": "Community Operations",
+    "compassion": "Compassion Actions",
+    "analytics": "Analytics Insights",
+    "audit_logs": "Audit Logs",
+    "reconciliation": "EOD Reconciliation"
+  },
+  "labels": {
+    "portal": "Portal"
+  }
+}

@@ -233,7 +233,7 @@ const UpdateTenantBrandingSchema = z.object({
     .optional()
     .or(z.literal("")),
   fontPairing: z.string().max(50).optional(),
-  logoUrl: z.string().url().max(255).optional().or(z.literal("")),
+  logoUrl: z.string().max(2000000).optional().or(z.literal("")), // Allow large strings for Base64
 });
 
 export async function updateTenantBranding(

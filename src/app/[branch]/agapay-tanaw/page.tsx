@@ -42,8 +42,15 @@ import { ReconciliationTab } from "@/components/admin/reconciliation-tab";
 import { SubscriptionSettings } from "@/components/admin/subscription-settings";
 
 import { requireTanawSession } from "@/lib/authorization";
+import { getTranslations } from "next-intl/server";
 
-export default async function AgapayTanawPage() {
+export default async function AgapayTanawPage({
+  params,
+}: {
+  params: { branch: string };
+}) {
+  const { branch } = params;
+  const t = await getTranslations("dashboard");
   const session = await requireTanawSession();
 
   if (session.user.role === "member") {
@@ -136,7 +143,7 @@ export default async function AgapayTanawPage() {
   if (canViewProducts && isFeatureEnabled("advanced_products")) {
     navItems.push({
       value: "products",
-      label: "Produkto ng Loan",
+      label: t("loan_products"),
       icon: "products",
     });
   }
@@ -144,7 +151,7 @@ export default async function AgapayTanawPage() {
   if (canViewBranchOps && isFeatureEnabled("multi_tenant_mgmt")) {
     navItems.push({
       value: "branches",
-      label: isSuperAdmin ? "Global Tenant Mgmt" : "Branch Ops",
+      label: isSuperAdmin ? t("global_mgmt") : t("branch_ops"),
       icon: "branches",
     });
   }
@@ -152,7 +159,7 @@ export default async function AgapayTanawPage() {
   if (canManageHomepageContent && isFeatureEnabled("content_mgmt")) {
     navItems.push({
       value: "content",
-      label: "Homepage Content",
+      label: t("homepage_content"),
       icon: "content",
     });
   }
@@ -160,14 +167,14 @@ export default async function AgapayTanawPage() {
   if (canViewFeedback) {
     navItems.push({
       value: "feedback",
-      label: "Feedback Inbox",
+      label: t("feedback"),
       icon: "feedback",
     });
   }
 
   navItems.push({
     value: "community",
-    label: "Ka-Agapay Community",
+    label: t("community"),
     icon: "community",
   });
 
@@ -182,7 +189,7 @@ export default async function AgapayTanawPage() {
   if (isAdmin || isSuperAdmin) {
     navItems.push({
       value: "compassion",
-      label: "Compassion Actions",
+      label: t("compassion"),
       icon: "compassion",
     });
   }
@@ -190,7 +197,7 @@ export default async function AgapayTanawPage() {
   if (canViewAnalytics && isFeatureEnabled("advanced_analytics")) {
     navItems.push({
       value: "analytics",
-      label: "Analytics Insights",
+      label: t("analytics"),
       icon: "analytics",
     });
   }
@@ -198,7 +205,7 @@ export default async function AgapayTanawPage() {
   if (canViewAuditLogs && isFeatureEnabled("audit_logs")) {
     navItems.push({
       value: "audit",
-      label: "Audit Logs",
+      label: t("audit_logs"),
       icon: "audit",
     });
   }
@@ -212,15 +219,15 @@ export default async function AgapayTanawPage() {
   return (
     <DashboardTabsShell
       defaultValue="overview"
-      title="Pangkalahatan"
+      title={t("title")}
       subtitle={
         isLender
-          ? "Tenant-level operations, borrower oversight, at trust monitoring."
+          ? t("subtitle_lender")
           : isAdmin
-            ? "Tenant-level administration para sa approvals, member safety, at portfolio health."
+            ? t("subtitle_admin")
             : isGlobalSuperadminView
-              ? "Global oversight para sa tenant cooperatives, fraud monitoring, at system health."
-              : "Branch-scoped oversight para sa napiling cooperative, kabilang ang approvals, members, at content operations."
+              ? t("subtitle_superadmin")
+              : t("subtitle_branch")
       }
       portalLabel={`${userRole} portal`}
       accountName={userName}
@@ -231,6 +238,7 @@ export default async function AgapayTanawPage() {
       tenantAccentColor={currentTenantIdentity?.accent_color}
       tenantFontPairing={currentTenantIdentity?.font_pairing}
       navItems={navItems}
+      branchSlug={branch}
     >
       <div className="space-y-5">
         {reconciliation && !reconciliation.holdings.isTreasuryHealthy && (
@@ -463,6 +471,7 @@ export default async function AgapayTanawPage() {
                   <SubscriptionSettings
                     tenantId={tenantContextId}
                     isAdmin={isAdmin || isSuperAdmin}
+                    branchSlug={branch}
                   />
                 )}
               </div>

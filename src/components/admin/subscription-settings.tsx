@@ -8,9 +8,11 @@ import { auth } from "@/lib/auth";
 export async function SubscriptionSettings({
   tenantId,
   isAdmin,
+  branchSlug,
 }: {
   tenantId: number;
   isAdmin: boolean;
+  branchSlug: string;
 }) {
   const [plansRes, currentSubRes] = await Promise.all([
     getAvailablePlans(),
@@ -51,6 +53,7 @@ export async function SubscriptionSettings({
       isAdmin={isAdmin}
       availablePlans={serializedPlans}
       currentSubscription={currentSub}
+      branchSlug={branchSlug}
     />
   );
 }

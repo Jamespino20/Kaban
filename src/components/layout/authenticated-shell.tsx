@@ -5,6 +5,7 @@ import { NotificationBell } from "@/components/layout/notification-bell";
 import { Button } from "@/components/ui/button";
 import { TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { signOut } from "next-auth/react";
+import { useTranslations } from "next-intl";
 import {
   AlertTriangle,
   ChevronLeft,
@@ -24,6 +25,7 @@ import {
   MessagesSquare,
   TrendingUp,
 } from "lucide-react";
+import { LanguageSwitcher } from "@/components/shared/language-switcher";
 import { useEffect, useRef, useState } from "react";
 
 function normalizeHexColor(color?: string | null) {
@@ -113,6 +115,7 @@ export function AuthenticatedShell({
   tenantAccentColor,
   tenantFontPairing,
   navItems,
+  branchSlug,
   children,
 }: {
   title: string;
@@ -127,6 +130,7 @@ export function AuthenticatedShell({
   tenantAccentColor?: string | null;
   tenantFontPairing?: string | null;
   navItems: ShellNavItem[];
+  branchSlug: string;
   children: React.ReactNode;
 }) {
   const [collapsed, setCollapsed] = useState(false);
@@ -134,6 +138,7 @@ export function AuthenticatedShell({
   const [navReady, setNavReady] = useState(false);
   const navScrollRef = useRef<HTMLDivElement>(null);
 
+  const t = useTranslations();
   const normalizedTenantColor = normalizeHexColor(tenantBrandColor);
   const normalizedAccentColor = normalizeHexColor(tenantAccentColor);
 
@@ -329,7 +334,16 @@ export function AuthenticatedShell({
               <TabsTrigger
                 key={item.value}
                 value={item.value}
-                onClick={() => setMobileOpen(false)}
+                onClick={() => {
+                  setMobileOpen(false);
+                  window.history.pushState(
+                    null,
+                    "",
+                    `/${branchSlug}/${accountRole === "member" ? "agapay-pintig" : "agapay-tanaw"}?tab=${item.value}`,
+                  );
+                  const event = new PopStateEvent("popstate");
+                  window.dispatchEvent(event);
+                }}
                 className={`group h-auto w-full justify-start rounded-2xl border px-3 py-2 text-left text-slate-300 transition-all hover:border-white/12 hover:bg-white/6 hover:text-white ${dynamicStyles.active} ${
                   collapsed ? "xl:px-2.5" : ""
                 }`}
@@ -368,8 +382,13 @@ export function AuthenticatedShell({
           className="space-y-3 rounded-[1.75rem] border border-white/8 bg-white/5 p-3 shadow-[0_10px_30px_rgba(2,6,23,0.22)]"
           style={accountPanelStyle}
         >
-          <div className={collapsed ? "xl:hidden" : ""}>
-            <BranchSwitcher />
+          <div
+            className={`flex items-center gap-2 ${collapsed ? "xl:hidden" : ""}`}
+          >
+            <div className="flex-1">
+              <BranchSwitcher />
+            </div>
+            <LanguageSwitcher />
           </div>
 
           <div className="flex items-center gap-3">
@@ -396,7 +415,9 @@ export function AuthenticatedShell({
             style={logoutButtonStyle}
           >
             <LogOut className="mr-3 h-4 w-4" />
-            <span className={collapsed ? "xl:hidden" : ""}>Logout</span>
+            <span className={collapsed ? "xl:hidden" : ""}>
+              {t("nav.logout")}
+            </span>
           </Button>
         </div>
       </div>
@@ -445,7 +466,7 @@ export function AuthenticatedShell({
                   size="icon"
                   onClick={() => setMobileOpen(true)}
                   className="rounded-2xl border-slate-200 bg-white text-slate-700 shadow-sm hover:bg-slate-50"
-                  title="Open navigation"
+                  title={t("nav.portal")}
                 >
                   <Menu className="h-5 w-5" />
                 </Button>

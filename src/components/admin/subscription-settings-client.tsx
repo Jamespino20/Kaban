@@ -26,6 +26,7 @@ interface Props {
   availablePlans: Plan[];
   currentSubscription: CurrentSub;
   isAdmin: boolean;
+  branchSlug: string;
 }
 
 export function SubscriptionSettingsClient({
@@ -33,13 +34,18 @@ export function SubscriptionSettingsClient({
   availablePlans,
   currentSubscription,
   isAdmin,
+  branchSlug,
 }: Props) {
   const [isLoading, setIsLoading] = useState<number | null>(null);
 
   const handleRequestUpgrade = async (planId: number) => {
     setIsLoading(planId);
     try {
-      const res = await requestSubscriptionUpgrade(planId, "monthly");
+      const res = await requestSubscriptionUpgrade(
+        planId,
+        "monthly",
+        branchSlug,
+      );
       if (res.success) {
         alert(
           "Your subscription upgrade request has been sent to Superadmins.",

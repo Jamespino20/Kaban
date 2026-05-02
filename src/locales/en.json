@@ -1,0 +1,48 @@
+{
+  "nav": {
+    "login": "Login",
+    "register": "Register",
+    "logout": "Logout",
+    "settings": "Settings",
+    "dashboard": "Dashboard",
+    "portal": "Portal"
+  },
+  "auth": {
+    "email": "Email Address",
+    "password": "Password",
+    "forgot_password": "Forgot Password?",
+    "confirm_password": "Confirm Password",
+    "submit": "Submit"
+  },
+  "agapay": {
+    "tagline": "Iyong Agapay, Ating Tagumpay",
+    "member_portal": "Agapay Pintig",
+    "admin_portal": "Agapay Tanaw",
+    "feedback_inbox": "Agapay Feedback Inbox"
+  },
+  "common": {
+    "name": "Name",
+    "category": "Category",
+    "subject": "Subject",
+    "open_in_agapay": "Open in Agapay",
+    "overview": "Overview"
+  },
+  "dashboard": {
+    "title": "Main Overview",
+    "subtitle_lender": "Tenant-level operations, borrower oversight, and trust monitoring.",
+    "subtitle_admin": "Tenant-level administration for approvals, member safety, and portfolio health.",
+    "subtitle_superadmin": "Global oversight for tenant cooperatives, fraud monitoring, and system health.",
+    "subtitle_branch": "Branch-scoped oversight for selected cooperative, including approvals, members, and content operations.",
+    "global_mgmt": "Global Tenant View",
+    "homepage_content": "Homepage Content",
+    "feedback": "Feedback",
+    "community": "Community Operations",
+    "compassion": "Compassion Actions",
+    "analytics": "Analytics Insights",
+    "audit_logs": "Audit Logs",
+    "reconciliation": "EOD Reconciliation"
+  },
+  "labels": {
+    "portal": "Portal"
+  }
+}

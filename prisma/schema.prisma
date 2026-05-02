@@ -32,6 +32,9 @@ model Tenant {
   updated_at             DateTime                @updatedAt
   entitlement_status     TenantEntitlementStatus @default(prospect)
   lifetime_availed_at    DateTime?
+  availed_type           String?                 @db.VarChar(50) // "One-Time", "Core", "Pro"
+  region                 String?                 @db.VarChar(100)
+  metadata               Json?                   // For future flexible branch config
   entitlement_reference  String?                 @db.VarChar(120)
   entitlement_notes      String?
   entitled_by_user_id    Int?
@@ -54,6 +57,7 @@ model Tenant {
   tenant_group           TenantGroup?            @relation(fields: [tenant_group_id], references: [id])
   traffic_logs           TrafficLog[]
   users                  User[]
+  system_files           SystemFile[]
   tenantSubscription     TenantSubscription?
 
   @@map("tenants")
@@ -100,6 +104,7 @@ model User {
   social_vouches_sent       SocialVouch[]             @relation("Voucher")
   two_factor_auth           TwoFactorAuth?
   documents                 UserDocument[]
+  system_files              SystemFile[] @relation("FileUploader")
   profile                   UserProfile?
   tenant                    Tenant?                   @relation(fields: [tenant_id], references: [tenant_id])
 
@@ -795,6 +800,24 @@ enum CompassionStatus {
   rejected
 }
 
+model SystemFile {
+  id              String   @id @default(cuid())
+  tenant_id       Int?
+  uploader_id     Int
+  file_name       String   @db.VarChar(255)
+  content_base64  String   @db.Text
+  mime_type       String   @db.VarChar(100)
+  size            Int
+  created_at      DateTime @default(now())
+  
+  tenant          Tenant?  @relation(fields: [tenant_id], references: [tenant_id])
+  uploader        User     @relation("FileUploader", fields: [uploader_id], references: [user_id])
+
+  @@index([tenant_id])
+  @@index([uploader_id])
+  @@map("system_files")
+}
+
 enum ConversationType {
   direct
   branch_room
@@ -825,6 +848,7 @@ enum NotificationChannel {
 
 enum TenantEntitlementStatus {
   prospect
+  availed
   active
   suspended
 }

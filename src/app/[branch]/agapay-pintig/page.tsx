@@ -25,7 +25,12 @@ const PERSONAL_WALLET = "personal_wallet";
 
 import { requireAuthenticatedSession } from "@/lib/authorization";
 
-export default async function AgapayPintigPage() {
+export default async function AgapayPintigPage({
+  params,
+}: {
+  params: { branch: string };
+}) {
+  const { branch } = params;
   const session = await requireAuthenticatedSession();
 
   if (session.user.role !== "member" || !session.user.tenantId) {
@@ -190,6 +195,7 @@ export default async function AgapayPintigPage() {
       tenantLogoUrl={tenant?.logo_url || undefined}
       tenantBrandColor={tenant?.brand_color}
       navItems={navItems}
+      branchSlug={branch}
     >
       <div className="space-y-6">
         {!member?.consent_accepted_at && (
@@ -226,7 +232,7 @@ export default async function AgapayPintigPage() {
 
             <div className="flex justify-start lg:justify-end">
               <a
-                href={`/api/reports/soa?userId=${userId}&tenantId=${tenantId}`}
+                href={`/${branch}/api/reports/soa?userId=${userId}&tenantId=${tenantId}`}
                 target="_blank"
                 className="group relative flex items-center gap-3 rounded-[1.5rem] bg-emerald-600 px-6 py-3 font-black text-white shadow-xl shadow-emerald-900/20 transition-all hover:scale-[1.02] hover:bg-emerald-700 active:scale-95"
               >

@@ -136,25 +136,50 @@ export function TenantBrandingCard({
       </div>
 
       <div className="space-y-3">
-        <Label htmlFor="logo-url" className="text-slate-700 font-bold">
-          Co-op Logo URL
+        <Label htmlFor="logo-upload" className="text-slate-700 font-bold">
+          Co-op Logo (Base64)
         </Label>
-        <div className="relative">
-          <Input
-            id="logo-url"
-            type="url"
-            value={branding.logoUrl}
-            onChange={(e) =>
-              setBranding((prev) => ({ ...prev, logoUrl: e.target.value }))
-            }
-            placeholder="https://example.com/logo.png"
-            className="h-11 pl-10 rounded-xl"
-          />
-          <UploadCloud className="absolute left-3 top-3 h-5 w-5 text-slate-400" />
+        <div className="flex items-center gap-4">
+          <div className="h-20 w-20 rounded-2xl border-2 border-dashed border-slate-200 bg-slate-50 flex items-center justify-center overflow-hidden shrink-0">
+            {branding.logoUrl ? (
+              <img
+                src={branding.logoUrl}
+                alt="Logo Preview"
+                className="h-full w-full object-contain"
+              />
+            ) : (
+              <UploadCloud className="h-8 w-8 text-slate-300" />
+            )}
+          </div>
+          <div className="flex-1 space-y-2">
+            <Input
+              id="logo-upload"
+              type="file"
+              accept="image/png,image/jpeg,image/svg+xml"
+              onChange={(e) => {
+                const file = e.target.files?.[0];
+                if (file) {
+                  if (file.size > 1.5 * 1024 * 1024) {
+                    toast.error("Masyadong malaki ang file. Limit: 1.5MB");
+                    return;
+                  }
+                  const reader = new FileReader();
+                  reader.onloadend = () => {
+                    setBranding((prev) => ({
+                      ...prev,
+                      logoUrl: reader.result as string,
+                    }));
+                  };
+                  reader.readAsDataURL(file);
+                }
+              }}
+              className="h-11 rounded-xl cursor-pointer"
+            />
+            <p className="text-[11px] text-slate-400 italic">
+              Nilalaman: SVG o Transparent PNG ang inirerekomenda (Max 1.5MB).
+            </p>
+          </div>
         </div>
-        <p className="text-[11px] text-slate-400 italic">
-          Nilalaman: SVG o Transparent PNG ang inirerekomenda.
-        </p>
       </div>
 
       <div className="space-y-4">

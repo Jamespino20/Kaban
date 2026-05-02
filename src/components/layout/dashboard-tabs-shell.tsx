@@ -20,6 +20,7 @@ type DashboardTabsShellProps = {
   tenantAccentColor?: string | null;
   tenantFontPairing?: string | null;
   navItems: ShellNavItem[];
+  branchSlug: string;
   children: React.ReactNode;
 };
 
@@ -30,6 +31,7 @@ export function DashboardTabsShell({
   title,
   tenantAccentColor,
   tenantFontPairing,
+  branchSlug,
   ...shellProps
 }: DashboardTabsShellProps) {
   const [activeTab, setActiveTab] = useState(defaultValue);
@@ -58,6 +60,7 @@ export function DashboardTabsShell({
         tenantAccentColor={tenantAccentColor}
         tenantFontPairing={tenantFontPairing}
         navItems={navItems}
+        branchSlug={branchSlug}
         title={activeLabel}
       >
         {children}
