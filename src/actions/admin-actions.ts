@@ -364,6 +364,112 @@ export async function getTenantTrustMetrics() {
   };
 }
 
+export async function createStaffAccount(values: {
+  username: string;
+  email: string;
+  passwordHash: string; // pre-hashed client/intermediate, actually we should hash it server side. Let's accept plain password here.
+  plainPassword?: string;
+  firstName: string;
+  lastName: string;
+  role: "admin" | "lender";
+  tenantId: number;
+}) {
+  const session = await requireTanawSession();
+  if (session.user.role !== "superadmin") {
+    return {
+      success: false,
+      error: "Only global superadmins can create branch staff accounts.",
+    };
+  }
+
+  try {
+    const bcrypt = await import("bcryptjs");
+    const hashedPassword = await bcrypt.hash(
+      values.plainPassword || values.passwordHash,
+      10,
+    );
+
+    const existingUser = await prisma.user.findFirst({
+      where: { email: values.email.toLowerCase() },
+    });
+    if (existingUser)
+      return { success: false, error: "Email already exists in the system." };
+
+    const existingUsername = await prisma.user.findFirst({
+      where: { username: values.username, tenant_id: values.tenantId },
+    });
+    if (existingUsername)
+      return { success: false, error: "Username taken in this branch." };
+
+    const result = await prisma.$transaction(async (tx) => {
+      // 1. Generate Member Code for Staff (AGP-YYYY-[ROLE]-SERIAL)
+      const year = new Date().getFullYear();
+      const count = await tx.user.count({
+        where: { tenant_id: values.tenantId, role: values.role },
+      });
+      const serial = (count + 1).toString().padStart(3, "0");
+      const roleSub = values.role === "admin" ? "ADM" : "LND";
+      const member_code = `AGP-${year}-${roleSub}-${serial}`;
+
+      const user = await tx.user.create({
+        data: {
+          email: values.email.toLowerCase(),
+          username: values.username,
+          phone: "0000000000",
+          member_code,
+          password_hash: hashedPassword,
+          tenant_id: values.tenantId,
+          role: values.role,
+          interest_tier: "T1_5_PERCENT", // N/A for staff but required by schema
+          status: "active",
+        },
+      });
+
+      await tx.userProfile.create({
+        data: {
+          user_id: user.user_id,
+          first_name: values.firstName,
+          last_name: values.lastName,
+          gender: "Prefer not to say",
+          marital_status: "single",
+          region: "N/A",
+          province: "N/A",
+          city: "N/A",
+          barangay: "N/A",
+          address: "N/A",
+        },
+      });
+
+      // Audit log it
+      await tx.auditLog.create({
+        data: {
+          tenant_id: values.tenantId,
+          user_id: session.user.user_id,
+          action: "CREATE_STAFF_ACCOUNT",
+          entity_type: "User",
+          entity_id: user.user_id,
+          new_values: { username: user.username, role: user.role } as any,
+        },
+      });
+
+      return user;
+    });
+
+    revalidatePath("/agapay-tanaw");
+    return {
+      success: true,
+      user: result,
+      message: "Staff account created successfully!",
+    };
+  } catch (err: any) {
+    console.error("Staff creation error:", err);
+    return {
+      success: false,
+      error: err.message || "Failed to create staff account",
+    };
+  }
+}
+
 export async function manuallyDeclareDefault(loanId: number) {
   const session = await requireTanawSession();
 

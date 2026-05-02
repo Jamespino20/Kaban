@@ -10,7 +10,13 @@ import {
 } from "@/actions/site-content";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { BadgeCheck, Clock3, FileStack, ShieldCheck, Trash2 } from "lucide-react";
+import {
+  BadgeCheck,
+  Clock3,
+  FileStack,
+  ShieldCheck,
+  Trash2,
+} from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useMemo, useState, useTransition } from "react";
 import { toast } from "sonner";
@@ -80,7 +86,9 @@ export function HomepageContentTab({
         <WorkflowSummaryCard
           icon={<BadgeCheck className="w-5 h-5 text-emerald-600" />}
           label="Published Entries"
-          value={faqGroups.published.length + testimonialGroups.published.length}
+          value={
+            faqGroups.published.length + testimonialGroups.published.length
+          }
           tone="emerald"
         />
       </div>
@@ -136,7 +144,9 @@ function groupByStatus<T extends { workflow_status: string }>(records: T[]) {
       (record) => record.workflow_status === "pending_superadmin_review",
     ),
     rejected: records.filter((record) => record.workflow_status === "rejected"),
-    published: records.filter((record) => record.workflow_status === "published"),
+    published: records.filter(
+      (record) => record.workflow_status === "published",
+    ),
   };
 }
 
@@ -228,14 +238,16 @@ function ContentList({
               Wala pang entries dito.
             </div>
           ) : (
-            section.items.map((item) => (
-              <ContentRecordCard
-                key={item.id}
-                role={role}
-                type={type}
-                item={item}
-              />
-            ))
+            <div className="max-h-96 overflow-y-auto space-y-2 pr-1">
+              {section.items.map((item) => (
+                <ContentRecordCard
+                  key={item.id}
+                  role={role}
+                  type={type}
+                  item={item}
+                />
+              ))}
+            </div>
           )}
         </div>
       ))}
@@ -321,6 +333,11 @@ function ContentRecordCard({
             {item.season_tag}
           </span>
         ) : null}
+        {typeof item.sort_order === "number" && (
+          <span className="rounded-full bg-slate-100 px-2.5 py-1 text-[11px] font-mono font-bold text-slate-500">
+            #{item.sort_order}
+          </span>
+        )}
       </div>
 
       {type === "faq" ? (
@@ -533,4 +550,3 @@ function TestimonialEditor({ role }: { role: string }) {
     </div>
   );
 }
-

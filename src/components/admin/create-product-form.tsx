@@ -18,6 +18,12 @@ import { Button } from "@/components/ui/button";
 import { createLoanProduct } from "@/actions/loan-product";
 import { MICROFINANCE_POLICY } from "@/lib/microfinance-policy";
 
+const FREQUENCY_OPTIONS = [
+  { value: "weekly", label: "Lingguhán (Weekly)" },
+  { value: "biweekly", label: "Dalawang Linggo (Bi-weekly)" },
+  { value: "monthly", label: "Buwanán (Monthly)" },
+];
+
 const LoanProductSchema = z.object({
   name: z.string().min(1, "Name is required"),
   description: z.string().optional(),
@@ -28,6 +34,9 @@ const LoanProductSchema = z.object({
     .number()
     .min(0, "Liability rate must be positive")
     .max(100, "Liability rate cannot exceed 100%"),
+  allowed_frequencies: z
+    .array(z.string())
+    .min(1, "Select at least one frequency"),
   max_term_months: z.number().min(1, "Term must be at least 1 month"),
 });
 
@@ -46,15 +55,34 @@ export const CreateProductForm = ({ onSuccess }: CreateProductFormProps) => {
       min_amount: MICROFINANCE_POLICY.minAmount,
       max_amount: 20_000,
       interest_rate_percent: 5,
-      guarantor_liability_rate: MICROFINANCE_POLICY.defaultGuarantorLiabilityRate,
+      guarantor_liability_rate:
+        MICROFINANCE_POLICY.defaultGuarantorLiabilityRate,
+      allowed_frequencies: ["monthly"],
       max_term_months: 6,
     },
   });
 
+  const selectedFrequencies = form.watch("allowed_frequencies");
+
+  const toggleFrequency = (value: string) => {
+    const current = form.getValues("allowed_frequencies");
+    if (current.includes(value)) {
+      form.setValue(
+        "allowed_frequencies",
+        current.filter((v) => v !== value),
+        { shouldValidate: true },
+      );
+    } else {
+      form.setValue("allowed_frequencies", [...current, value], {
+        shouldValidate: true,
+      });
+    }
+  };
+
   const onSubmit = (values: z.infer<typeof LoanProductSchema>) => {
     startTransition(async () => {
       try {
-        const result = await createLoanProduct(values);
+        const result = await createLoanProduct(values as any);
         if (result?.error) {
           toast.error(result.error);
         } else {
@@ -72,10 +100,9 @@ export const CreateProductForm = ({ onSuccess }: CreateProductFormProps) => {
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
         <div className="rounded-2xl border border-emerald-100 bg-emerald-50/70 p-4 text-sm leading-7 text-slate-600">
-          Current Agapay policy band: PHP{" "}
-          {MICROFINANCE_POLICY.minAmount.toLocaleString()} to PHP{" "}
-          {MICROFINANCE_POLICY.maxAmount.toLocaleString()}, 3% to 5% monthly,
-          at {MICROFINANCE_POLICY.minTermMonths} to{" "}
+          Policy band: PHP {MICROFINANCE_POLICY.minAmount.toLocaleString()} –
+          PHP {MICROFINANCE_POLICY.maxAmount.toLocaleString()}, 3%–5% monthly,{" "}
+          {MICROFINANCE_POLICY.minTermMonths}–
           {MICROFINANCE_POLICY.maxTermMonths} months.
         </div>
 
@@ -108,7 +135,9 @@ export const CreateProductForm = ({ onSuccess }: CreateProductFormProps) => {
                   <Input
                     {...field}
                     value={field.value ?? ""}
-                    onChange={(event) => field.onChange(Number(event.target.value))}
+                    onChange={(event) =>
+                      field.onChange(Number(event.target.value))
+                    }
                     type="number"
                     disabled={isPending}
                   />
@@ -127,7 +156,9 @@ export const CreateProductForm = ({ onSuccess }: CreateProductFormProps) => {
                   <Input
                     {...field}
                     value={field.value ?? ""}
-                    onChange={(event) => field.onChange(Number(event.target.value))}
+                    onChange={(event) =>
+                      field.onChange(Number(event.target.value))
+                    }
                     type="number"
                     disabled={isPending}
                   />
@@ -149,7 +180,9 @@ export const CreateProductForm = ({ onSuccess }: CreateProductFormProps) => {
                   <Input
                     {...field}
                     value={field.value ?? ""}
-                    onChange={(event) => field.onChange(Number(event.target.value))}
+                    onChange={(event) =>
+                      field.onChange(Number(event.target.value))
+                    }
                     type="number"
                     step="0.5"
                     disabled={isPending}
@@ -169,7 +202,9 @@ export const CreateProductForm = ({ onSuccess }: CreateProductFormProps) => {
                   <Input
                     {...field}
                     value={field.value ?? ""}
-                    onChange={(event) => field.onChange(Number(event.target.value))}
+                    onChange={(event) =>
+                      field.onChange(Number(event.target.value))
+                    }
                     type="number"
                     step="1"
                     disabled={isPending}
@@ -181,27 +216,59 @@ export const CreateProductForm = ({ onSuccess }: CreateProductFormProps) => {
           />
         </div>
 
-        <div className="grid grid-cols-1 gap-4">
-          <FormField
-            control={form.control}
-            name="max_term_months"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Max Term (Months)</FormLabel>
-                <FormControl>
-                  <Input
-                    {...field}
-                    value={field.value ?? ""}
-                    onChange={(event) => field.onChange(Number(event.target.value))}
-                    type="number"
-                    disabled={isPending}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        </div>
+        {/* Payment Cadence */}
+        <FormField
+          control={form.control}
+          name="allowed_frequencies"
+          render={() => (
+            <FormItem>
+              <FormLabel>Payment Cadence (pumili ng isa o higit pa)</FormLabel>
+              <div className="flex flex-wrap gap-2 pt-1">
+                {FREQUENCY_OPTIONS.map((opt) => {
+                  const active = selectedFrequencies?.includes(opt.value);
+                  return (
+                    <button
+                      key={opt.value}
+                      type="button"
+                      disabled={isPending}
+                      onClick={() => toggleFrequency(opt.value)}
+                      className={`rounded-xl border px-4 py-2 text-xs font-bold transition-colors cursor-pointer ${
+                        active
+                          ? "border-indigo-300 bg-indigo-50 text-indigo-700"
+                          : "border-slate-200 bg-slate-50 text-slate-500 hover:border-indigo-200 hover:bg-indigo-50/50"
+                      }`}
+                    >
+                      {opt.label}
+                    </button>
+                  );
+                })}
+              </div>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="max_term_months"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Max Term (Months)</FormLabel>
+              <FormControl>
+                <Input
+                  {...field}
+                  value={field.value ?? ""}
+                  onChange={(event) =>
+                    field.onChange(Number(event.target.value))
+                  }
+                  type="number"
+                  disabled={isPending}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
 
         <Button
           disabled={isPending}

@@ -954,6 +954,8 @@ async function main() {
   await prisma.socialVouch.deleteMany();
   await prisma.businessLedger.deleteMany();
   await prisma.auditLog.deleteMany();
+  await prisma.tenantSubscription.deleteMany();
+  await prisma.subscriptionPlan.deleteMany();
   await prisma.verificationToken.deleteMany();
   await prisma.twoFactorToken.deleteMany();
   await prisma.loanGuarantee.deleteMany();
@@ -975,6 +977,39 @@ async function main() {
   await prisma.tenantGroup.deleteMany();
   await prisma.ledgerAccount.deleteMany();
 
+  // ── SUBSCRIPTION PLANS ──
+  console.log("📦 Creating Subscription Plans...");
+  const planCore = await prisma.subscriptionPlan.create({
+    data: {
+      tier_name: "Core",
+      price_monthly: 1999,
+      price_annually: 1499,
+      max_members: 100,
+      max_storage_mb: 2000,
+      features: ["Basic Ledger", "Member App"],
+    },
+  });
+  const planPro = await prisma.subscriptionPlan.create({
+    data: {
+      tier_name: "Pro",
+      price_monthly: 4999,
+      price_annually: 3999,
+      max_members: 500,
+      max_storage_mb: 10000,
+      features: ["All Core", "Analytics", "Custom Branding"],
+    },
+  });
+  const planEnterprise = await prisma.subscriptionPlan.create({
+    data: {
+      tier_name: "Enterprise",
+      price_monthly: 12999,
+      price_annually: 9999,
+      max_members: 5000,
+      max_storage_mb: 50000,
+      features: ["All Pro", "Dedicated Account Manager"],
+    },
+  });
+
   // ── REGIONS ──
   console.log("🌏 Creating Cooperative Sectors...");
   const groups = [];
@@ -986,20 +1021,39 @@ async function main() {
     );
   }
 
-  // ── BRANCHES ──
+  // ── BRANCHES & SUBSCRIPTIONS ──
   console.log("🏢 Creating Cooperative Branches...");
   const tenants = [];
-  for (const b of BRANCHES) {
-    tenants.push(
-      await prisma.tenant.create({
-        data: {
-          name: b.name,
-          slug: b.slug,
-          tenant_group_id: groups[b.groupIdx].id,
-          brand_color: b.color,
-        },
-      }),
-    );
+  for (let i = 0; i < BRANCHES.length; i++) {
+    const b = BRANCHES[i];
+    const tenant = await prisma.tenant.create({
+      data: {
+        name: b.name,
+        slug: b.slug,
+        tenant_group_id: groups[b.groupIdx].id,
+        brand_color: b.color,
+      },
+    });
+
+    const isExpiring = i === 2; // e.g. Tarlac City is about to expire
+    const endDate = new Date();
+    if (isExpiring) {
+      endDate.setDate(endDate.getDate() + 1); // Expires tomorrow
+    } else {
+      endDate.setFullYear(endDate.getFullYear() + 1);
+    }
+
+    await prisma.tenantSubscription.create({
+      data: {
+        tenant_id: tenant.tenant_id,
+        plan_id: i === 0 ? planPro.id : planCore.id,
+        billing_cycle: "monthly",
+        status: isExpiring ? "trial" : "active",
+        end_date: endDate,
+      },
+    });
+
+    tenants.push(tenant);
   }
 
   // ── SUPERADMINS (global, no tenant) ──

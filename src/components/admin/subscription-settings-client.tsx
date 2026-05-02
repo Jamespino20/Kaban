@@ -1,0 +1,195 @@
+"use client";
+
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { requestSubscriptionUpgrade } from "@/actions/subscription-actions";
+import { Badge } from "@/components/ui/badge";
+import { ShieldCheck, Loader2 } from "lucide-react";
+
+type Plan = {
+  id: number;
+  tier_name: string;
+  price_monthly: any;
+  max_members: number;
+  max_storage_mb: number;
+  features: string[];
+};
+
+type CurrentSub = {
+  status: string;
+  billing_cycle: string;
+  plan: Plan | null;
+} | null;
+
+interface Props {
+  tenantId: number;
+  availablePlans: Plan[];
+  currentSubscription: CurrentSub;
+  isAdmin: boolean;
+}
+
+export function SubscriptionSettingsClient({
+  tenantId,
+  availablePlans,
+  currentSubscription,
+  isAdmin,
+}: Props) {
+  const [isLoading, setIsLoading] = useState<number | null>(null);
+
+  const handleRequestUpgrade = async (planId: number) => {
+    setIsLoading(planId);
+    try {
+      const res = await requestSubscriptionUpgrade(planId, "monthly");
+      if (res.success) {
+        alert(
+          "Your subscription upgrade request has been sent to Superadmins.",
+        );
+      } else {
+        alert("Error: " + (res.error || "Failed to submit request."));
+      }
+    } catch (err) {
+      alert("System Error: May problema sa pag-proseso ng iyong kahilingan.");
+    } finally {
+      setIsLoading(null);
+    }
+  };
+
+  return (
+    <div className="w-full max-w-5xl rounded-[1.75rem] border border-emerald-100 bg-white p-6 md:p-8 shadow-sm">
+      <div className="mb-6 space-y-2">
+        <h2 className="text-2xl font-display font-bold text-slate-900 flex items-center gap-2">
+          <ShieldCheck className="h-6 w-6 text-emerald-600" />
+          SaaS Subscription Plan
+        </h2>
+        <p className="text-sm text-slate-500">
+          Umanib sa Agapay o palawakin ang iyong cooperative limit sa aming
+          Netflix-style SaaS tier.
+        </p>
+      </div>
+
+      <div className="mb-8 p-5 bg-slate-50 rounded-2xl border border-slate-100">
+        <h3 className="text-sm font-bold text-slate-500 uppercase tracking-widest mb-2">
+          Kasalukuyang Plan
+        </h3>
+        {currentSubscription?.plan ? (
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div>
+              <div className="flex items-center gap-2 mb-1">
+                <span className="text-xl font-bold text-slate-900">
+                  {currentSubscription.plan.tier_name}
+                </span>
+                <Badge
+                  variant={
+                    currentSubscription.status === "pending"
+                      ? "outline"
+                      : "default"
+                  }
+                  className={
+                    currentSubscription.status === "pending"
+                      ? "text-amber-600 border-amber-300"
+                      : "bg-emerald-100 text-emerald-800"
+                  }
+                >
+                  {currentSubscription.status.toUpperCase()}
+                </Badge>
+              </div>
+              <p className="text-xs text-slate-500">
+                {currentSubscription.plan.max_members} Maximum members •{" "}
+                {currentSubscription.billing_cycle} billing
+              </p>
+            </div>
+            {currentSubscription.status === "pending" && (
+              <div className="text-sm italic text-amber-600 bg-amber-50 px-3 py-1 rounded-full border border-amber-200">
+                Awaiting Superadmin Approval
+              </div>
+            )}
+          </div>
+        ) : (
+          <div>
+            <p className="text-slate-700 font-medium font-sans">
+              No Active Plan
+            </p>
+            <p className="text-xs text-slate-500 mt-1">
+              Nasa Seed / Prospect level pa lamang ang iyong cooperative.
+            </p>
+          </div>
+        )}
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        {availablePlans.map((plan) => {
+          const isCurrentPlan = currentSubscription?.plan?.id === plan.id;
+          const isPendingThisPlan =
+            currentSubscription?.status === "pending" &&
+            currentSubscription?.plan?.id === plan.id;
+          return (
+            <div
+              key={plan.id}
+              className={`flex flex-col justify-between rounded-2xl border p-6 transition-all ${
+                isCurrentPlan
+                  ? "border-emerald-500 bg-emerald-50 ring-2 ring-emerald-500/20"
+                  : "border-slate-200 bg-white hover:border-emerald-300 hover:shadow-md"
+              }`}
+            >
+              <div>
+                <h4 className="text-lg font-bold text-slate-900">
+                  {plan.tier_name}
+                </h4>
+                <div className="my-4">
+                  <span className="text-3xl font-black text-emerald-600">
+                    ₱{Number(plan.price_monthly).toLocaleString()}
+                  </span>
+                  <span className="text-sm text-slate-500">/mo</span>
+                </div>
+                <ul className="mb-6 space-y-3">
+                  <li className="text-sm text-slate-600 flex items-start gap-2">
+                    <div className="mt-1 h-3 w-3 rounded-full bg-emerald-500" />
+                    Hanggang {plan.max_members} Miymebro
+                  </li>
+                  <li className="text-sm text-slate-600 flex items-start gap-2">
+                    <div className="mt-1 h-3 w-3 rounded-full bg-emerald-500" />
+                    {plan.max_storage_mb / 1000}GB Storage
+                  </li>
+                  {plan.features.map((f, i) => (
+                    <li
+                      key={i}
+                      className="text-sm text-slate-600 flex items-start gap-2"
+                    >
+                      <div className="mt-1 h-3 w-3 rounded-full bg-emerald-500" />
+                      {f}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+
+              {isAdmin && (
+                <Button
+                  className="w-full"
+                  variant={isCurrentPlan ? "outline" : "default"}
+                  disabled={
+                    isCurrentPlan ||
+                    isLoading !== null ||
+                    currentSubscription?.status === "pending"
+                  }
+                  onClick={() => handleRequestUpgrade(plan.id)}
+                >
+                  {isLoading === plan.id ? (
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  ) : isCurrentPlan ? (
+                    currentSubscription?.status === "pending" ? (
+                      "Pending Approval"
+                    ) : (
+                      "Current Plan"
+                    )
+                  ) : (
+                    "Request Upgrade"
+                  )}
+                </Button>
+              )}
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}

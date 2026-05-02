@@ -52,6 +52,7 @@ model Tenant {
   tenant_group           TenantGroup?            @relation(fields: [tenant_group_id], references: [id])
   traffic_logs           TrafficLog[]
   users                  User[]
+  tenantSubscription     TenantSubscription?
 
   @@map("tenants")
 }
@@ -824,4 +825,43 @@ enum TenantEntitlementStatus {
   prospect
   active
   suspended
+}
+
+enum BillingCycle {
+  monthly
+  annually
+}
+
+model SubscriptionPlan {
+  id             Int                  @id @default(autoincrement())
+  tier_name      String               @unique @db.VarChar(50) // "Basic", "Pro", "Enterprise"
+  price_monthly  Decimal              @db.Decimal(10, 2)
+  price_annually Decimal              @db.Decimal(10, 2)
+  max_members    Int
+  max_storage_mb Int
+  features       String[]
+  is_active      Boolean              @default(true)
+  created_at     DateTime             @default(now())
+  updated_at     DateTime             @updatedAt
+  subscriptions  TenantSubscription[]
+
+  @@map("subscription_plans")
+}
+
+model TenantSubscription {
+  id            Int          @id @default(autoincrement())
+  tenant_id     Int          @unique
+  plan_id       Int
+  billing_cycle BillingCycle @default(monthly)
+  status        String       @default("active") // active, canceled, past_due
+  start_date    DateTime     @default(now())
+  end_date      DateTime?
+  created_at    DateTime     @default(now())
+  updated_at    DateTime     @updatedAt
+
+  tenant Tenant           @relation(fields: [tenant_id], references: [tenant_id], onDelete: Cascade)
+  plan   SubscriptionPlan @relation(fields: [plan_id], references: [id], onDelete: Restrict)
+
+  @@index([tenant_id])
+  @@map("tenant_subscriptions")
 }

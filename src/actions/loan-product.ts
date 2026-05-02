@@ -2,7 +2,7 @@
 
 import * as z from "zod";
 import prisma from "@/lib/prisma";
-import { Prisma } from "@prisma/client";
+import { Prisma, RepaymentFrequency } from "@prisma/client";
 import {
   requireAdminSession,
   requireAuthenticatedSession,
@@ -25,6 +25,10 @@ const LoanProductSchema = z.object({
     .number()
     .min(0, "Liability rate must be positive")
     .max(100, "Liability rate cannot exceed 100%"),
+  allowed_frequencies: z
+    .array(z.nativeEnum(RepaymentFrequency))
+    .min(1, "At least one payment frequency is required")
+    .default([RepaymentFrequency.monthly]),
   max_term_months: z.coerce.number().min(1, "Term must be at least 1 month"),
 });
 
@@ -54,6 +58,7 @@ export const createLoanProduct = async (
     max_amount,
     interest_rate_percent,
     guarantor_liability_rate,
+    allowed_frequencies,
     max_term_months,
   } = validatedFields.data;
 
@@ -77,6 +82,7 @@ export const createLoanProduct = async (
         max_amount,
         interest_rate_percent,
         guarantor_liability_rate,
+        allowed_frequencies,
         max_term_months,
         is_active: true,
         tenant_id: session.user.tenantId,
@@ -121,6 +127,7 @@ export const getLoanProducts = async () => {
       guarantor_liability_rate: Number(
         (product as any).guarantor_liability_rate ?? 25,
       ),
+      allowed_frequencies: product.allowed_frequencies as string[],
       max_term_months: product.max_term_months,
       is_active: product.is_active,
       tenant_id: product.tenant_id,

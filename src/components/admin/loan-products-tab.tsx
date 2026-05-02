@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Plus, Settings2, ShieldCheck, MoreVertical } from "lucide-react";
+import { Plus, Settings2, ShieldCheck, Calendar, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -14,6 +14,12 @@ import { CreateProductForm } from "./create-product-form";
 import { getLoanProducts } from "@/actions/loan-product";
 import { toast } from "sonner";
 
+const FREQ_LABELS: Record<string, string> = {
+  weekly: "Lingguhán",
+  biweekly: "Dalawang Linggo",
+  monthly: "Buwanán",
+};
+
 export const LoanProductsTab = () => {
   const [products, setProducts] = useState<any[]>([]);
   const [isOpen, setIsOpen] = useState(false);
@@ -22,7 +28,7 @@ export const LoanProductsTab = () => {
     try {
       const data = await getLoanProducts();
       setProducts(data);
-    } catch (error) {
+    } catch {
       toast.error("Failed to load products.");
     }
   };
@@ -36,11 +42,11 @@ export const LoanProductsTab = () => {
       <div className="flex flex-col justify-between gap-4 md:flex-row md:items-center">
         <div className="space-y-1">
           <h2 className="text-2xl font-display font-bold text-slate-900">
-            Available Products
+            Loan Products
           </h2>
           <p className="text-sm text-slate-500">
-            Define loan products within the Agapay policy band for amount, rate,
-            and term.
+            Define loan products with payment cadence, guarantor liability, and
+            policy-compliant rates.
           </p>
         </div>
 
@@ -51,7 +57,7 @@ export const LoanProductsTab = () => {
               <span>New Loan Product</span>
             </Button>
           </DialogTrigger>
-          <DialogContent className="sm:max-w-[500px] rounded-3xl border-none shadow-2xl">
+          <DialogContent className="sm:max-w-[520px] rounded-3xl border-none shadow-2xl">
             <DialogHeader>
               <DialogTitle className="flex items-center gap-2 text-2xl font-display font-bold">
                 <Settings2 className="h-5 w-5 text-emerald-500" />
@@ -80,16 +86,25 @@ export const LoanProductsTab = () => {
                   Amount Range
                 </th>
                 <th className="p-5 text-xs font-bold uppercase tracking-widest text-slate-400">
-                  Interest Rate
+                  Interest / Mo.
                 </th>
                 <th className="p-5 text-xs font-bold uppercase tracking-widest text-slate-400">
-                  Max Term
+                  <div className="flex items-center gap-1.5">
+                    <Calendar className="h-3.5 w-3.5" />
+                    Payment Cadence
+                  </div>
+                </th>
+                <th className="p-5 text-xs font-bold uppercase tracking-widest text-slate-400">
+                  <div className="flex items-center gap-1.5">
+                    <Users className="h-3.5 w-3.5" />
+                    Guarantor %
+                  </div>
+                </th>
+                <th className="p-5 text-xs font-bold uppercase tracking-widest text-slate-400">
+                  Term
                 </th>
                 <th className="p-5 text-xs font-bold uppercase tracking-widest text-slate-400">
                   Status
-                </th>
-                <th className="p-5 text-right text-xs font-bold uppercase tracking-widest text-slate-400">
-                  Actions
                 </th>
               </tr>
             </thead>
@@ -97,7 +112,7 @@ export const LoanProductsTab = () => {
               {products.length === 0 ? (
                 <tr>
                   <td
-                    colSpan={6}
+                    colSpan={7}
                     className="p-20 text-center italic text-slate-400"
                   >
                     No loan products defined yet. Create your first one to start
@@ -115,40 +130,67 @@ export const LoanProductsTab = () => {
                         <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-100">
                           <ShieldCheck className="h-5 w-5 text-emerald-600" />
                         </div>
-                        <span className="font-bold text-slate-900">
-                          {product.name}
-                        </span>
+                        <div>
+                          <span className="font-bold text-slate-900">
+                            {product.name}
+                          </span>
+                          {product.description && (
+                            <p className="text-xs text-slate-400 truncate max-w-[160px]">
+                              {product.description}
+                            </p>
+                          )}
+                        </div>
                       </div>
                     </td>
                     <td className="p-5 font-medium text-slate-600">
-                      PHP {Number(product.min_amount).toLocaleString()} - PHP{" "}
-                      {Number(product.max_amount).toLocaleString()}
+                      <span className="text-xs">
+                        ₱{Number(product.min_amount).toLocaleString()} – ₱
+                        {Number(product.max_amount).toLocaleString()}
+                      </span>
                     </td>
                     <td className="p-5">
                       <span className="rounded-full bg-blue-50 px-3 py-1 text-xs font-bold text-blue-600">
-                        {product.interest_rate_percent}% / month
+                        {product.interest_rate_percent}%
+                      </span>
+                    </td>
+                    <td className="p-5">
+                      <div className="flex flex-wrap gap-1">
+                        {(
+                          (product.allowed_frequencies as string[]) ?? [
+                            "monthly",
+                          ]
+                        ).map((freq: string) => (
+                          <span
+                            key={freq}
+                            className="rounded-full bg-indigo-50 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-indigo-600"
+                          >
+                            {FREQ_LABELS[freq] ?? freq}
+                          </span>
+                        ))}
+                      </div>
+                    </td>
+                    <td className="p-5">
+                      <span className="rounded-full bg-amber-50 px-3 py-1 text-xs font-bold text-amber-700">
+                        {product.guarantor_liability_rate}%
                       </span>
                     </td>
                     <td className="p-5 font-medium text-slate-600">
-                      {product.max_term_months} Months
+                      <span className="text-xs">
+                        {product.max_term_months} Buwan
+                      </span>
                     </td>
                     <td className="p-5">
                       {product.is_active ? (
                         <span className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-tighter text-emerald-600">
                           <div className="h-1.5 w-1.5 rounded-full bg-emerald-600" />
-                          Active
+                          Aktibo
                         </span>
                       ) : (
                         <span className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-tighter text-slate-400">
                           <div className="h-1.5 w-1.5 rounded-full bg-slate-400" />
-                          Disabled
+                          Hindi Aktibo
                         </span>
                       )}
-                    </td>
-                    <td className="p-5 text-right">
-                      <button className="rounded-lg p-2 text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-600">
-                        <MoreVertical className="h-5 w-5" />
-                      </button>
                     </td>
                   </tr>
                 ))

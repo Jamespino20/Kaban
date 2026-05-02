@@ -51,6 +51,21 @@ export function WalletTab({ savings, transactions }: WalletTabProps) {
       currency: "PHP",
     }).format(val);
 
+  const formatDate = (raw: string | Date | null | undefined) => {
+    if (!raw) return "Walang petsa";
+    const d = new Date(raw);
+    if (isNaN(d.getTime())) return "Invalid na petsa";
+    return (
+      d.toLocaleDateString("en-PH", {
+        month: "short",
+        day: "numeric",
+        year: "numeric",
+      }) +
+      " • " +
+      d.toLocaleTimeString("en-PH", { hour: "2-digit", minute: "2-digit" })
+    );
+  };
+
   const walletAccount = useMemo(
     () => savings.find((acc) => acc.account_type === "personal_wallet"),
     [savings],
@@ -165,9 +180,7 @@ export function WalletTab({ savings, transactions }: WalletTabProps) {
       <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
           <div className="space-y-1">
-            <h2 className="text-xl font-bold text-slate-900">
-              Wallet at Ipon
-            </h2>
+            <h2 className="text-xl font-bold text-slate-900">Wallet at Ipon</h2>
             <p className="text-sm text-slate-500">
               Mas malinaw na tingin sa iyong pansariling wallet, ipon, at branch
               records.
@@ -214,7 +227,9 @@ export function WalletTab({ savings, transactions }: WalletTabProps) {
               </p>
             </div>
             <ul className="space-y-1 text-sm text-slate-600">
-              <li>1. Magdagdag ng pondo sa wallet kapag may aktwal na cash-in.</li>
+              <li>
+                1. Magdagdag ng pondo sa wallet kapag may aktwal na cash-in.
+              </li>
               <li>2. Gamitin ang wallet para sa mabilis na loan repayment.</li>
               <li>3. Suriin ang history para sa malinaw na branch record.</li>
             </ul>
@@ -350,22 +365,7 @@ export function WalletTab({ savings, transactions }: WalletTabProps) {
                             {tx.reference || "Walang reference na naitala"}
                           </p>
                           <p className="text-xs text-slate-500">
-                            {new Date(tx.processed_at).toLocaleDateString(
-                              "en-PH",
-                              {
-                                month: "short",
-                                day: "numeric",
-                                year: "numeric",
-                              },
-                            )}{" "}
-                            •{" "}
-                            {new Date(tx.processed_at).toLocaleTimeString(
-                              "en-PH",
-                              {
-                                hour: "2-digit",
-                                minute: "2-digit",
-                              },
-                            )}
+                            {formatDate(tx.processed_at)}
                           </p>
                         </div>
                       </div>

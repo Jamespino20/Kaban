@@ -24,6 +24,7 @@ import {
 import { submitMockRepayment } from "@/actions/loan-servicing";
 import { payLoanWithWallet } from "@/actions/wallet-actions";
 import { requestCompassionAction } from "@/actions/compassion-actions";
+import { submitContextualFeedback } from "@/actions/transactional-feedback";
 import {
   CreditCard,
   ReceiptText,
@@ -33,6 +34,7 @@ import {
   Loader2,
   HeartPulse,
   ShieldAlert,
+  Star,
 } from "lucide-react";
 import {
   getCompassionPolicyCopy,
@@ -212,6 +214,9 @@ function LoanServicingCard({
     "grace_period" | "term_extension" | "penalty_freeze"
   >("grace_period");
   const [compassionReason, setCompassionReason] = useState("");
+  const [feedbackOpen, setFeedbackOpen] = useState(false);
+  const [feedbackRating, setFeedbackRating] = useState(5);
+  const [feedbackMessage, setFeedbackMessage] = useState("");
   const [isPending, startTransition] = useTransition();
 
   const nextSchedule = useMemo(
@@ -258,6 +263,10 @@ function LoanServicingCard({
       setReceiptUrl("");
       setNotes("");
       router.refresh();
+
+      setTimeout(() => {
+        setFeedbackOpen(true);
+      }, 500);
     });
   };
 
@@ -269,6 +278,9 @@ function LoanServicingCard({
       } else {
         toast.success(res.success);
         router.refresh();
+        setTimeout(() => {
+          setFeedbackOpen(true);
+        }, 500);
       }
     });
   };
@@ -460,7 +472,8 @@ function LoanServicingCard({
             <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
               <div>
                 <p className="text-sm font-bold text-slate-900">
-                  Latest request: {getCompassionLabel(latestCompassion.action_type)}
+                  Latest request:{" "}
+                  {getCompassionLabel(latestCompassion.action_type)}
                 </p>
                 <p className="text-xs text-slate-500">
                   {new Date(latestCompassion.requested_at).toLocaleDateString()}
@@ -614,6 +627,71 @@ function LoanServicingCard({
                 className="w-full rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white"
               >
                 Isumite para sa Verification
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
+
+        <Dialog open={feedbackOpen} onOpenChange={setFeedbackOpen}>
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle>Kumusta ang iyong pagbabayad?</DialogTitle>
+              <DialogDescription>
+                Bilang bahagi ng Ka-Agapay system, ang iyong feedback ay
+                mahalaga sa pagbuti ng ating community lending.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4 py-2">
+              <div className="space-y-2 text-center flex flex-col items-center">
+                <label className="text-sm font-bold text-slate-700">
+                  Experience Rating
+                </label>
+                <div className="flex gap-2">
+                  {[1, 2, 3, 4, 5].map((star) => (
+                    <button
+                      key={star}
+                      type="button"
+                      onClick={() => setFeedbackRating(star)}
+                      className={`transition-colors ${
+                        star <= feedbackRating
+                          ? "text-amber-500"
+                          : "text-slate-200 hover:text-amber-300"
+                      }`}
+                    >
+                      <Star className="w-8 h-8 fill-current" />
+                    </button>
+                  ))}
+                </div>
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-bold text-slate-700">
+                  Karagdagang Komento (Optional)
+                </label>
+                <textarea
+                  value={feedbackMessage}
+                  onChange={(e) => setFeedbackMessage(e.target.value)}
+                  placeholder="Hal. Madali ang proseso, ngunit..."
+                  className="min-h-20 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm"
+                />
+              </div>
+              <Button
+                disabled={isPending}
+                onClick={() => {
+                  startTransition(async () => {
+                    await submitContextualFeedback({
+                      category: "Loan Repayment",
+                      message: `Rating: ${feedbackRating}/5\nNotes: ${feedbackMessage}`,
+                      subject: "Repayment Experience Survey",
+                    });
+                    setFeedbackOpen(false);
+                    toast.success(
+                      "Maraming salamat! Naipadala na ang iyong feedback.",
+                    );
+                  });
+                }}
+                className="w-full rounded-xl bg-slate-900 text-white hover:bg-slate-800"
+              >
+                Isumite ang Feedback
               </Button>
             </div>
           </DialogContent>

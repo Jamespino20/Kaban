@@ -5,6 +5,7 @@ import {
   type ShellNavItem,
   AuthenticatedShell,
 } from "@/components/layout/authenticated-shell";
+import { useState } from "react";
 
 type DashboardTabsShellProps = {
   defaultValue: string;
@@ -24,15 +25,22 @@ type DashboardTabsShellProps = {
 export function DashboardTabsShell({
   defaultValue,
   children,
+  navItems,
+  title,
   ...shellProps
 }: DashboardTabsShellProps) {
-  const handleTabChange = () => {
-    if (typeof document === "undefined") return;
+  const [activeTab, setActiveTab] = useState(defaultValue);
 
+  const activeLabel =
+    navItems.find((item) => item.value === activeTab)?.label ?? title;
+
+  const handleTabChange = (value: string) => {
+    setActiveTab(value);
+
+    if (typeof document === "undefined") return;
     const scrollContainer = document.querySelector<HTMLElement>(
       "[data-dashboard-scroll]",
     );
-
     scrollContainer?.scrollTo({ top: 0, behavior: "auto" });
   };
 
@@ -42,7 +50,13 @@ export function DashboardTabsShell({
       className="min-h-screen"
       onValueChange={handleTabChange}
     >
-      <AuthenticatedShell {...shellProps}>{children}</AuthenticatedShell>
+      <AuthenticatedShell
+        {...shellProps}
+        navItems={navItems}
+        title={activeLabel}
+      >
+        {children}
+      </AuthenticatedShell>
     </Tabs>
   );
 }

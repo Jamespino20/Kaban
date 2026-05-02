@@ -98,6 +98,16 @@ const authProxy = auth(async (req) => {
     return;
   }
 
+  const isTanawRoute = nextUrl.pathname.startsWith("/agapay-tanaw");
+  if (isLoggedIn && role === "member" && isTanawRoute) {
+    return NextResponse.redirect(new URL("/agapay-pintig", nextUrl));
+  }
+
+  const isPintigRoute = nextUrl.pathname.startsWith("/agapay-pintig");
+  if (isLoggedIn && role !== "member" && isPintigRoute) {
+    return NextResponse.redirect(new URL("/agapay-tanaw", nextUrl));
+  }
+
   if (isLoggedIn && isLandingPage) {
     return NextResponse.redirect(
       new URL(role === "member" ? "/agapay-pintig" : "/agapay-tanaw", nextUrl),

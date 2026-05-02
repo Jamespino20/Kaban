@@ -29,6 +29,7 @@ import {
   ChevronUp,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
+import EmojiPicker from "emoji-picker-react";
 
 const mockUploadFile = async (file: File) => {
   return new Promise<{ url: string }>((resolve) => {
@@ -65,6 +66,7 @@ export function CommunityTab({
   );
   const [thread, setThread] = useState<any | null>(null);
   const [messageDraft, setMessageDraft] = useState("");
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [hasOlderMessages, setHasOlderMessages] = useState(false);
 
   const [replyToMessage, setReplyToMessage] = useState<{
@@ -96,8 +98,9 @@ export function CommunityTab({
     (initialData.groupChats?.length || 0);
   const unreadCount =
     initialData.branchRooms.filter((room) => room.hasUnread).length +
-    initialData.directConversations.filter((conversation) => conversation.hasUnread)
-      .length +
+    initialData.directConversations.filter(
+      (conversation) => conversation.hasUnread,
+    ).length +
     (initialData.groupChats?.filter((group) => group.hasUnread).length || 0);
 
   const discoverableDirectory = useMemo(
@@ -147,8 +150,9 @@ export function CommunityTab({
       (participant: any) => participant.role !== "member",
     );
     return (
-      otherParticipants.map((participant: any) => participant.name).join(", ") ||
-      "Conversation"
+      otherParticipants
+        .map((participant: any) => participant.name)
+        .join(", ") || "Conversation"
     );
   }, [thread]);
 
@@ -358,7 +362,8 @@ export function CommunityTab({
                 Community Pulse
               </h2>
               <p className="text-xs text-slate-500">
-                Isang mas compact na view ng usapan, mentorship, at branch support.
+                Isang mas compact na view ng usapan, mentorship, at branch
+                support.
               </p>
             </div>
             <div className="grid grid-cols-2 gap-2 md:min-w-[220px]">
@@ -445,7 +450,8 @@ export function CommunityTab({
                 Group Chats
               </h2>
               <p className="text-xs text-slate-500">
-                Maliit na working groups para sa support, coaching, at reminders.
+                Maliit na working groups para sa support, coaching, at
+                reminders.
               </p>
             </div>
           </div>
@@ -453,7 +459,8 @@ export function CommunityTab({
           <div className="space-y-2">
             {(initialData.groupChats || []).length === 0 ? (
               <p className="rounded-2xl border border-dashed border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-500">
-                Wala ka pang group chat. Gumawa ng maliit na support group sa ibaba.
+                Wala ka pang group chat. Gumawa ng maliit na support group sa
+                ibaba.
               </p>
             ) : (
               (initialData.groupChats || []).map((group) => (
@@ -496,7 +503,9 @@ export function CommunityTab({
                     <span className="font-semibold text-slate-900">
                       {user.name}
                     </span>{" "}
-                    <span className="text-xs text-slate-500">({user.role})</span>
+                    <span className="text-xs text-slate-500">
+                      ({user.role})
+                    </span>
                   </span>
                 </label>
               ))}
@@ -638,7 +647,8 @@ export function CommunityTab({
 
           {!selectedConversationId || !thread ? (
             <div className="flex flex-1 items-center justify-center rounded-2xl border border-dashed border-slate-200 bg-slate-50 px-4 py-6 text-sm text-slate-500">
-              Pumili ng room, direct message, o group chat para makita ang thread.
+              Pumili ng room, direct message, o group chat para makita ang
+              thread.
             </div>
           ) : (
             <>
@@ -650,7 +660,9 @@ export function CommunityTab({
                   disabled={isPending || !hasOlderMessages}
                 >
                   <ChevronUp className="mr-2 h-4 w-4" />
-                  {hasOlderMessages ? "Load older messages" : "No older messages"}
+                  {hasOlderMessages
+                    ? "Load older messages"
+                    : "No older messages"}
                 </Button>
               </div>
 
@@ -754,7 +766,9 @@ export function CommunityTab({
                                 className="flex max-w-[200px] items-center gap-2 rounded-xl border border-slate-200 bg-slate-100 px-3 py-2 text-xs text-slate-700 transition-colors hover:border-emerald-200 hover:bg-emerald-50"
                               >
                                 <FileText className="h-4 w-4 shrink-0 text-emerald-600" />
-                                <span className="truncate">{file.fileName}</span>
+                                <span className="truncate">
+                                  {file.fileName}
+                                </span>
                               </a>
                             ))}
                           </div>
@@ -846,7 +860,7 @@ export function CommunityTab({
                   />
                   <Button
                     variant="outline"
-                    className="h-10 w-10 shrink-0 rounded-xl border-slate-200 bg-slate-50 text-slate-400 hover:bg-white hover:text-emerald-600"
+                    className="h-10 w-10 shrink-0 rounded-xl border-slate-200 bg-slate-50 text-slate-400 hover:bg-white hover:text-emerald-600 focus:outline-none"
                     onClick={() => fileInputRef.current?.click()}
                     disabled={isPending || isUploading}
                     title="Attach file"
@@ -857,6 +871,28 @@ export function CommunityTab({
                       <Paperclip className="h-4 w-4" />
                     )}
                   </Button>
+                  <div className="relative">
+                    <Button
+                      variant="outline"
+                      className="h-10 w-10 shrink-0 rounded-xl border-slate-200 bg-slate-50 text-slate-400 hover:bg-white hover:text-emerald-600 focus:outline-none"
+                      onClick={() => setShowEmojiPicker((prev) => !prev)}
+                      disabled={isPending}
+                      title="Add Emoji"
+                      type="button"
+                    >
+                      <SmilePlus className="h-4 w-4" />
+                    </Button>
+                    {showEmojiPicker && (
+                      <div className="absolute bottom-12 left-0 z-50 shadow-xl rounded-2xl overflow-hidden border border-slate-200">
+                        <EmojiPicker
+                          onEmojiClick={(emojiData) => {
+                            setMessageDraft((prev) => prev + emojiData.emoji);
+                            setShowEmojiPicker(false);
+                          }}
+                        />
+                      </div>
+                    )}
+                  </div>
                   <textarea
                     value={messageDraft}
                     onChange={(event) => setMessageDraft(event.target.value)}
@@ -992,7 +1028,9 @@ function PulseStat({
 
   return (
     <div className={`rounded-xl border px-3 py-2 ${accentClasses}`}>
-      <p className="text-[11px] font-semibold uppercase tracking-wide">{label}</p>
+      <p className="text-[11px] font-semibold uppercase tracking-wide">
+        {label}
+      </p>
       <p className="mt-1 text-lg font-bold text-slate-900">{value}</p>
     </div>
   );

@@ -4,15 +4,23 @@ import { AuthModal } from "@/components/auth/auth-modal";
 import { Footer } from "@/components/layout/footer";
 import { Navbar } from "@/components/layout/navbar";
 import {
+  ArrowRight,
   BadgeCheck,
+  Building,
   Calculator,
   CheckCircle2,
+  ChevronRight,
   CreditCard,
+  Gem,
+  HandCoins,
   HandHelping,
+  LineChart,
   Shield,
+  ShieldCheck,
   Star,
   TrendingUp,
   Users,
+  UsersRound,
 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
@@ -180,7 +188,7 @@ const LOAN_OFFERS = [
   },
 ];
 
-type PaymentCadence = "daily" | "weekly" | "monthly";
+type PaymentCadence = "biweekly" | "weekly" | "monthly";
 const INTEREST_RATE_OPTIONS = [3, 3.5, 4, 4.5, 5];
 
 export default function Home() {
@@ -436,6 +444,67 @@ export default function Home() {
             <HomeLoanCalculator />
           </section>
 
+          <section className="w-full py-36 px-6 max-w-7xl">
+            <div className="text-center mb-16">
+              <span className="inline-flex items-center gap-2 text-emerald-700 font-bold tracking-widest text-xs uppercase mb-6 px-4 py-1.5 bg-emerald-100/90 rounded-full border border-emerald-200/50">
+                <Building className="w-4 h-4" />
+                Para Sa Mga Kooperatiba
+              </span>
+              <h2 className="text-4xl md:text-6xl font-black text-slate-950 mb-6 italic tracking-tight">
+                Simple SaaS Pricing
+              </h2>
+              <p className="text-slate-500 max-w-3xl mx-auto font-medium text-lg">
+                Walang hidden fees. Pumili ng subscription plan na akma sa laki
+                ng inyong operasyon.
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-5xl mx-auto mb-12">
+              {[
+                {
+                  name: "Agapay Core",
+                  price: "₱2,500/mo",
+                  limit: "Hanggang 500 members",
+                },
+                {
+                  name: "Agapay Pro",
+                  price: "₱4,500/mo",
+                  limit: "Hanggang 2,500 members",
+                  highlight: true,
+                },
+                {
+                  name: "Enterprise",
+                  price: "Custom",
+                  limit: "Unlimited members",
+                },
+              ].map((plan) => (
+                <div
+                  key={plan.name}
+                  className={`p-8 rounded-[2rem] border text-center transition-all ${plan.highlight ? "bg-slate-900 border-slate-800 text-white shadow-xl scale-105" : "bg-white border-slate-200 shadow-sm"}`}
+                >
+                  <h3 className="text-xl font-black italic mb-2">
+                    {plan.name}
+                  </h3>
+                  <div className="text-3xl font-black mb-4">{plan.price}</div>
+                  <p
+                    className={`font-medium mb-8 ${plan.highlight ? "text-slate-300" : "text-slate-500"}`}
+                  >
+                    {plan.limit}
+                  </p>
+                </div>
+              ))}
+            </div>
+            <div className="text-center">
+              <a
+                href="/pricing"
+                className="inline-flex items-center gap-2 font-bold text-emerald-600 hover:text-emerald-700 transition-colors"
+              >
+                Tingnan ang buong Pricing Details{" "}
+                <ArrowRight className="w-4 h-4" />
+              </a>
+            </div>
+          </section>
+
           <section
             id="testimonials"
             className="w-full py-36 overflow-hidden bg-emerald-950 text-white relative flex flex-col items-center"
@@ -628,10 +697,10 @@ function HomeLoanCalculator() {
   const totalInterest = amount * selectedRateDecimal * term;
   const totalPayable = amount + totalInterest + processingFee;
   const paymentCount =
-    cadence === "daily" ? term * 26 : cadence === "weekly" ? term * 4 : term;
+    cadence === "biweekly" ? term * 2 : cadence === "weekly" ? term * 4 : term;
   const cadenceLabel =
-    cadence === "daily"
-      ? "kada araw ng negosyo"
+    cadence === "biweekly"
+      ? "tuwing 15-sekinse"
       : cadence === "weekly"
         ? "kada linggo"
         : "kada buwan";
@@ -752,7 +821,7 @@ function HomeLoanCalculator() {
               Payment cadence
             </label>
             <div className="grid grid-cols-3 gap-3">
-              {(["daily", "weekly", "monthly"] as PaymentCadence[]).map(
+              {(["biweekly", "weekly", "monthly"] as PaymentCadence[]).map(
                 (option) => (
                   <button
                     key={option}
@@ -764,8 +833,8 @@ function HomeLoanCalculator() {
                         : "border-slate-200 text-slate-600 hover:border-emerald-200"
                     }`}
                   >
-                    {option === "daily"
-                      ? "Daily"
+                    {option === "biweekly"
+                      ? "Bi-weekly"
                       : option === "weekly"
                         ? "Weekly"
                         : "Monthly"}

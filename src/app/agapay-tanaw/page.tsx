@@ -37,6 +37,7 @@ import { getCommunityStaffSummary } from "@/actions/community-actions";
 import { CommunityOperationsTab } from "@/components/admin/community-operations-tab";
 import { AnalyticsDashboardTab } from "@/components/admin/analytics-dashboard-tab";
 import { ReconciliationTab } from "@/components/admin/reconciliation-tab";
+import { SubscriptionSettings } from "@/components/admin/subscription-settings";
 
 import { requireTanawSession } from "@/lib/authorization";
 
@@ -61,6 +62,7 @@ export default async function AgapayTanawPage() {
   const canViewAuditLogs = isAdmin || isSuperAdmin;
   const canManageHomepageContent = isAdmin || isSuperAdmin;
   const canViewFeedback = isAdmin || isSuperAdmin;
+  const canViewAnalytics = isAdmin || isSuperAdmin;
 
   const reconciliation =
     tenantContextId !== null
@@ -166,11 +168,13 @@ export default async function AgapayTanawPage() {
     });
   }
 
-  navItems.push({
-    value: "analytics",
-    label: "Analytics Insights",
-    icon: "analytics",
-  });
+  if (canViewAnalytics) {
+    navItems.push({
+      value: "analytics",
+      label: "Analytics Insights",
+      icon: "analytics",
+    });
+  }
 
   if (canViewAuditLogs) {
     navItems.push({
@@ -343,6 +347,7 @@ export default async function AgapayTanawPage() {
           <MemberDirectoryTab
             members={members}
             userRole={session?.user?.role}
+            branches={tenants.map((t) => ({ id: t.tenant_id, name: t.name }))}
           />
         </TabsContent>
 
@@ -416,7 +421,16 @@ export default async function AgapayTanawPage() {
                 </div>
               ) : null}
 
-              <div className="text-center space-y-2">
+              <div className="flex justify-center -mx-4 md:mx-0">
+                {tenantContextId && (
+                  <SubscriptionSettings
+                    tenantId={tenantContextId}
+                    isAdmin={isAdmin || isSuperAdmin}
+                  />
+                )}
+              </div>
+
+              <div className="px-4 text-center space-y-2">
                 <h2 className="text-3xl font-display font-bold text-slate-900 italic">
                   Account Security
                 </h2>
@@ -459,9 +473,11 @@ export default async function AgapayTanawPage() {
           </TabsContent>
         )}
 
-        <TabsContent value="analytics" className="outline-none">
-          <AnalyticsDashboardTab />
-        </TabsContent>
+        {canViewAnalytics && (
+          <TabsContent value="analytics" className="outline-none">
+            <AnalyticsDashboardTab />
+          </TabsContent>
+        )}
 
         <TabsContent value="reconciliation" className="outline-none">
           <ReconciliationTab />

@@ -10,14 +10,18 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
+import { CreateStaffModal } from "./create-staff-modal";
+
 interface MemberDirectoryTabProps {
   members: any[];
   userRole?: string;
+  branches?: { id: number; name: string }[];
 }
 
 export function MemberDirectoryTab({
   members,
   userRole,
+  branches = [],
 }: MemberDirectoryTabProps) {
   const [query, setQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
@@ -29,7 +33,7 @@ export function MemberDirectoryTab({
 
   const isSuperadmin = userRole === "superadmin";
 
-  const branches = useMemo(() => {
+  const branchNames = useMemo(() => {
     const b = new Set(members.map((m) => m.tenant?.name).filter(Boolean));
     return Array.from(b).sort();
   }, [members]);
@@ -98,14 +102,14 @@ export function MemberDirectoryTab({
           />
         </div>
         <div className="flex flex-wrap items-center gap-2">
-          {isSuperadmin && branches.length > 0 && (
+          {isSuperadmin && branchNames.length > 0 && (
             <Select value={branchFilter} onValueChange={setBranchFilter}>
               <SelectTrigger className="w-[160px] rounded-xl bg-white shadow-sm h-11 border-slate-200">
                 <SelectValue placeholder="Branch" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Sanga: Lahat</SelectItem>
-                {branches.map((b: any) => (
+                {branchNames.map((b: any) => (
                   <SelectItem key={b} value={b}>
                     {b}
                   </SelectItem>
@@ -152,6 +156,9 @@ export function MemberDirectoryTab({
           <span className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em] whitespace-nowrap bg-white border border-slate-200 px-3 py-2.5 rounded-xl">
             Count: {filteredMembers.length}
           </span>
+          {isSuperadmin && branches.length > 0 && (
+            <CreateStaffModal branches={branches} />
+          )}
         </div>
       </div>
 
