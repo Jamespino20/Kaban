@@ -3,10 +3,12 @@
 import { AuthModal } from "@/components/auth/auth-modal";
 import { Footer } from "@/components/layout/footer";
 import { Navbar } from "@/components/layout/navbar";
+import { BranchNetworkMap } from "@/components/shared/branch-network-map";
 import {
   ArrowRight,
   BadgeCheck,
   Building,
+  Building2,
   Calculator,
   CheckCircle2,
   ChevronRight,
@@ -15,6 +17,7 @@ import {
   HandCoins,
   HandHelping,
   LineChart,
+  MapPin,
   Shield,
   ShieldCheck,
   Star,
@@ -442,6 +445,28 @@ export default function Home() {
               </p>
             </div>
             <HomeLoanCalculator />
+          </section>
+
+          <section
+            id="network"
+            ref={addToRefs}
+            className="reveal w-full py-36 px-6 max-w-7xl"
+          >
+            <div className="text-center mb-16 px-6">
+              <span className="inline-flex items-center gap-2 text-emerald-700 font-bold tracking-widest text-xs uppercase mb-6 px-4 py-1.5 bg-emerald-100/90 rounded-full border border-emerald-200/50">
+                <MapPin className="w-4 h-4" />
+                Network Ng Agapay
+              </span>
+              <h2 className="text-4xl md:text-6xl font-black text-slate-950 mb-6 italic tracking-tight">
+                Live Map ng ating mga Branch
+              </h2>
+              <p className="text-slate-500 max-w-3xl mx-auto font-medium text-lg">
+                Mula sa Metro Manila hanggang sa Davao, narito kami para
+                sumuporta. Bawat branch ay independent pero kaisa sa vision ng
+                Agapay.
+              </p>
+            </div>
+            <BranchNetworkMap />
           </section>
 
           <section className="w-full py-36 px-6 max-w-7xl">

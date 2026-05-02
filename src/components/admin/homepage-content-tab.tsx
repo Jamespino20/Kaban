@@ -69,74 +69,100 @@ export function HomepageContentTab({
   );
 
   return (
-    <div className="space-y-8">
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <WorkflowSummaryCard
-          icon={<Clock3 className="w-5 h-5 text-amber-600" />}
-          label="Pending FAQs"
-          value={faqGroups.pending.length}
-          tone="amber"
-        />
-        <WorkflowSummaryCard
-          icon={<FileStack className="w-5 h-5 text-blue-600" />}
-          label="Pending Testimonials"
-          value={testimonialGroups.pending.length}
-          tone="blue"
-        />
-        <WorkflowSummaryCard
-          icon={<BadgeCheck className="w-5 h-5 text-emerald-600" />}
-          label="Published Entries"
-          value={
-            faqGroups.published.length + testimonialGroups.published.length
-          }
-          tone="emerald"
-        />
+    <div className="grid grid-cols-1 2xl:grid-cols-5 gap-8">
+      <div className="2xl:col-span-3 space-y-8">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <WorkflowSummaryCard
+            icon={<Clock3 className="w-5 h-5 text-amber-600" />}
+            label="Pending FAQs"
+            value={faqGroups.pending.length}
+            tone="amber"
+          />
+          <WorkflowSummaryCard
+            icon={<FileStack className="w-5 h-5 text-blue-600" />}
+            label="Pending Testimonials"
+            value={testimonialGroups.pending.length}
+            tone="blue"
+          />
+          <WorkflowSummaryCard
+            icon={<BadgeCheck className="w-5 h-5 text-emerald-600" />}
+            label="Published Entries"
+            value={
+              faqGroups.published.length + testimonialGroups.published.length
+            }
+            tone="emerald"
+          />
+        </div>
+
+        <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
+          <ContentSectionCard
+            title={role === "superadmin" ? "FAQ Moderation" : "FAQ Proposals"}
+            description={
+              role === "superadmin"
+                ? "I-review at i-publish ang mga FAQ na isinumite ng admins."
+                : "Magpasa ng seasonal at relevant na FAQs para sa homepage."
+            }
+          >
+            <FaqEditor role={role} />
+            <ContentList
+              role={role}
+              type="faq"
+              pending={faqGroups.pending}
+              rejected={faqGroups.rejected}
+              published={faqGroups.published}
+            />
+          </ContentSectionCard>
+
+          <ContentSectionCard
+            title={
+              role === "superadmin"
+                ? "Testimonial Moderation"
+                : "Testimonial Proposals"
+            }
+            description={
+              role === "superadmin"
+                ? "I-finalize at i-publish ang piniling testimonials."
+                : "I-curate ang testimonials mula sa feedback at tenant stories."
+            }
+          >
+            <TestimonialEditor role={role} />
+            <ContentList
+              role={role}
+              type="testimonial"
+              pending={testimonialGroups.pending}
+              rejected={testimonialGroups.rejected}
+              published={testimonialGroups.published}
+            />
+          </ContentSectionCard>
+        </div>
       </div>
 
-      <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
-        <ContentSectionCard
-          title={role === "superadmin" ? "FAQ Moderation" : "FAQ Proposals"}
-          description={
-            role === "superadmin"
-              ? "I-review at i-publish ang mga FAQ na isinumite ng admins."
-              : "Magpasa ng seasonal at relevant na FAQs para sa homepage."
-          }
-        >
-          <FaqEditor role={role} />
-          <ContentList
-            role={role}
-            type="faq"
-            pending={faqGroups.pending}
-            rejected={faqGroups.rejected}
-            published={faqGroups.published}
-          />
-        </ContentSectionCard>
-
-        <ContentSectionCard
-          title={
-            role === "superadmin"
-              ? "Testimonial Moderation"
-              : "Testimonial Proposals"
-          }
-          description={
-            role === "superadmin"
-              ? "I-finalize at i-publish ang piniling testimonials."
-              : "I-curate ang testimonials mula sa feedback at tenant stories."
-          }
-        >
-          <TestimonialEditor role={role} />
-          <ContentList
-            role={role}
-            type="testimonial"
-            pending={testimonialGroups.pending}
-            rejected={testimonialGroups.rejected}
-            published={testimonialGroups.published}
-          />
-        </ContentSectionCard>
+      <div className="2xl:col-span-2">
+        <div className="sticky top-24 space-y-4">
+          <div className="flex items-center justify-between px-2">
+            <h4 className="text-sm font-bold uppercase tracking-widest text-slate-400">
+              Content Preview
+            </h4>
+            <span className="text-[10px] text-blue-600 font-bold bg-blue-50 px-2 py-0.5 rounded-full border border-blue-100">
+              Live View
+            </span>
+          </div>
+          <div className="h-[700px] w-full">
+            <MockHomepagePreview />
+          </div>
+          <div className="p-4 rounded-2xl bg-slate-100 border border-slate-200">
+            <p className="text-xs text-slate-500 font-medium leading-relaxed">
+              Ang anumang pagbabago sa FAQs at Testimonials ay makikita rito
+              matapos i-publish ng Superadmin.
+            </p>
+          </div>
+        </div>
       </div>
     </div>
   );
 }
+
+import { MockHomepagePreview } from "./mock-homepage-preview";
 
 function groupByStatus<T extends { workflow_status: string }>(records: T[]) {
   return {

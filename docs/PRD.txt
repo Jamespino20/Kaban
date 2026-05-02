@@ -11,7 +11,7 @@ SEVERE:
  		├── agapay_branch1
  		├── agapay_branch2
  		├── and so on
-- Superadmin has the ability to make a new website directory with customizable colors, logos, font, and homepage content. Superadmin and tenant admins can change their tenant branch's homepage's hero section, testimonials, FAQs, and loan products. Main branch homepage can handpick and showcase all the branches' homepage content for relevance. Main homepage should also have a live map of branches. Here's an example:
+- Superadmin has the ability to make a new website directory with customizable colors, logos, font, and homepage content (ensure that there is a preview panel of the changes). Superadmin and tenant admins can change their tenant branch's homepage's hero section, testimonials, FAQs, and loan products. Main branch homepage can handpick and showcase all the branches' homepage content for relevance. Main homepage should also have a live map of branches. Here's an example:
 	   - agapay.saas.vercel.app/main/agapay-tanaw/
 	   - agapay.saas.vercel.app/main/agapay-pintig/
 	   - agapay.saas.vercel.app/branch1/agapay-tanaw/

@@ -233,3 +233,57 @@ export function TenantBrandingCard({
     </div>
   );
 }
+
+// ---------------------------------------------------------------------------
+// Updated layout with Preview Panel
+// ---------------------------------------------------------------------------
+import { MockHomepagePreview } from "./mock-homepage-preview";
+
+export function BrandingTabWrapper({
+  tenantId,
+  initialBranding,
+  displayName,
+}: {
+  tenantId?: number;
+  initialBranding: any;
+  displayName: string;
+}) {
+  return (
+    <div className="grid grid-cols-1 xl:grid-cols-5 gap-8">
+      <div className="xl:col-span-3">
+        <TenantBrandingCard
+          tenantId={tenantId}
+          initialBranding={initialBranding}
+        />
+      </div>
+      <div className="xl:col-span-2 space-y-4">
+        <div className="sticky top-24">
+          <div className="flex items-center justify-between mb-4 px-2">
+            <h4 className="text-sm font-bold uppercase tracking-widest text-slate-400">
+              Live Preview
+            </h4>
+            <span className="text-[10px] text-emerald-600 font-bold bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-100">
+              Synchronized
+            </span>
+          </div>
+          <div className="h-[500px] w-full">
+            <MockHomepagePreview
+              branding={{
+                logoUrl: initialBranding.logo_url,
+                primaryColor: initialBranding.brand_color,
+                displayName: displayName,
+              }}
+            />
+          </div>
+          <div className="mt-4 p-4 rounded-2xl bg-amber-50 border border-amber-100">
+            <p className="text-xs text-amber-800 font-medium leading-relaxed">
+              <strong>Tip:</strong> Ang preview na ito ay nagpapakita kung paano
+              lalabas ang iyong branch branding sa main dashboard at mobile
+              view.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}

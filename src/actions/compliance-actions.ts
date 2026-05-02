@@ -31,24 +31,29 @@ export const submitCoopApplication = async (values: {
   region: string;
   membersCount: string;
   message?: string;
+  docs?: {
+    validId: string | null;
+    barangayCert: string | null;
+    businessPermit: string | null;
+  };
 }) => {
   try {
     // We use the Tenant model with 'prospect' status for applications
-    // or just log it to FeedbackEntry for now if we don't want to create
-    // a full tenant yet.
-    // However, creating a 'prospect' tenant is more in line with the multi-tenant architecture.
-
     const slug = values.name
       .toLowerCase()
       .replace(/\s+/g, "-")
       .substring(0, 50);
+
+    const docNotes = values.docs
+      ? `\nDocuments: ${values.docs.validId ? "ID (v)" : "(x)"}, ${values.docs.barangayCert ? "Cert (v)" : "(x)"}, ${values.docs.businessPermit ? "Permit (v)" : "(x)"}`
+      : "";
 
     await prisma.tenant.create({
       data: {
         name: values.name,
         slug: `${slug}-${Math.floor(Math.random() * 1000)}`,
         entitlement_status: "prospect",
-        entitlement_notes: `Application from ${values.email}. Phone: ${values.phone}. Region: ${values.region}. Estimated Members: ${values.membersCount}. Message: ${values.message}`,
+        entitlement_notes: `Application from ${values.email}. Phone: ${values.phone}. Region: ${values.region}. Estimated Members: ${values.membersCount}. Message: ${values.message}${docNotes}`,
       },
     });
 

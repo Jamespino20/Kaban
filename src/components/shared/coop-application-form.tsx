@@ -13,6 +13,8 @@ import {
   Mail,
   Send,
   Loader2,
+  FileUp,
+  ShieldCheck,
 } from "lucide-react";
 
 export function CoopApplicationForm() {
@@ -24,6 +26,11 @@ export function CoopApplicationForm() {
     region: "",
     membersCount: "",
     message: "",
+    docs: {
+      validId: null as string | null,
+      barangayCert: null as string | null,
+      businessPermit: null as string | null,
+    },
   });
 
   const handleChange = (
@@ -50,6 +57,11 @@ export function CoopApplicationForm() {
         region: "",
         membersCount: "",
         message: "",
+        docs: {
+          validId: null,
+          barangayCert: null,
+          businessPermit: null,
+        },
       });
     });
   };
@@ -145,38 +157,52 @@ export function CoopApplicationForm() {
           </div>
         </div>
 
-        <div className="space-y-2">
-          <label className="text-sm font-bold text-slate-700 ml-1">
-            Bilang ng Aktibong Miyembro
+        <div className="space-y-4 pt-4 border-t border-slate-100">
+          <label className="text-sm font-black text-slate-900 uppercase tracking-widest flex items-center gap-2">
+            <ShieldCheck className="w-4 h-4 text-emerald-500" />
+            Mandatory Documents
           </label>
-          <div className="relative">
-            <Users className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-            <Input
-              name="membersCount"
-              value={formData.membersCount}
-              onChange={handleChange}
-              placeholder="Hal. 50-100 members"
-              className="rounded-2xl h-14 pl-11 bg-slate-50 border-slate-200 focus:bg-white focus:border-emerald-500 transition-all font-medium"
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <DocumentUploadField
+              label="Valid ID"
+              onUpload={(base64) =>
+                setFormData((prev) => ({
+                  ...prev,
+                  docs: { ...prev.docs, validId: base64 },
+                }))
+              }
+              isUploaded={!!formData.docs.validId}
+            />
+            <DocumentUploadField
+              label="Barangay Cert"
+              onUpload={(base64) =>
+                setFormData((prev) => ({
+                  ...prev,
+                  docs: { ...prev.docs, barangayCert: base64 },
+                }))
+              }
+              isUploaded={!!formData.docs.barangayCert}
+            />
+            <DocumentUploadField
+              label="Business Permit"
+              onUpload={(base64) =>
+                setFormData((prev) => ({
+                  ...prev,
+                  docs: { ...prev.docs, businessPermit: base64 },
+                }))
+              }
+              isUploaded={!!formData.docs.businessPermit}
             />
           </div>
-        </div>
-
-        <div className="space-y-2">
-          <label className="text-sm font-bold text-slate-700 ml-1">
-            Mensahe o Karagdagang Detalye
-          </label>
-          <textarea
-            name="message"
-            value={formData.message}
-            onChange={handleChange}
-            placeholder="I-kwento sa amin ang inyong mithiin para sa inyong mga miyembro..."
-            className="w-full min-h-[120px] rounded-[1.5rem] p-5 bg-slate-50 border border-slate-200 focus:bg-white focus:border-emerald-500 focus:outline-none transition-all font-medium text-sm leading-relaxed"
-          />
+          <p className="text-[11px] text-slate-400 italic">
+            Ang mga dokumentong ito ay gagamitin para sa verification ng inyong
+            branch application (Max 1MB per file).
+          </p>
         </div>
 
         <Button
           type="submit"
-          disabled={isPending || !isFormValid}
+          disabled={isPending || !isFormValid || !formData.docs.validId}
           className="w-full h-16 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-black italic text-lg shadow-xl shadow-emerald-500/20 group transition-all"
         >
           {isPending ? (
@@ -189,6 +215,48 @@ export function CoopApplicationForm() {
           )}
         </Button>
       </form>
+    </div>
+  );
+}
+
+function DocumentUploadField({
+  label,
+  onUpload,
+  isUploaded,
+}: {
+  label: string;
+  onUpload: (base64: string) => void;
+  isUploaded: boolean;
+}) {
+  return (
+    <div
+      className={`relative p-4 rounded-2xl border-2 border-dashed transition-all ${isUploaded ? "border-emerald-500 bg-emerald-50" : "border-slate-200 hover:border-emerald-300"}`}
+    >
+      <input
+        type="file"
+        accept="image/*,.pdf"
+        className="absolute inset-0 opacity-0 cursor-pointer z-10"
+        onChange={(e) => {
+          const file = e.target.files?.[0];
+          if (file) {
+            const reader = new FileReader();
+            reader.onloadend = () => onUpload(reader.result as string);
+            reader.readAsDataURL(file);
+          }
+        }}
+      />
+      <div className="flex flex-col items-center gap-2 text-center">
+        {isUploaded ? (
+          <ShieldCheck className="w-6 h-6 text-emerald-600" />
+        ) : (
+          <FileUp className="w-6 h-6 text-slate-300" />
+        )}
+        <span
+          className={`text-[10px] font-bold uppercase tracking-tight ${isUploaded ? "text-emerald-700" : "text-slate-500"}`}
+        >
+          {label}
+        </span>
+      </div>
     </div>
   );
 }

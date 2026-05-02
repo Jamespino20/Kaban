@@ -1,7 +1,7 @@
 import { TabsContent } from "@/components/ui/tabs";
 import { TrendingUp, AlertCircle, ShieldAlert } from "lucide-react";
 import { TenantNameSettingsCard } from "@/components/admin/tenant-name-settings-card";
-import { TenantBrandingCard } from "@/components/admin/tenant-branding-card";
+import { BrandingTabWrapper } from "@/components/admin/tenant-branding-card";
 import { getEndOfDayReconciliation } from "@/actions/reconciliation";
 
 import { LoanProductsTab } from "@/components/admin/loan-products-tab";
@@ -451,7 +451,7 @@ export default async function AgapayTanawPage({
               ) : null}
 
               {currentTenantIdentity && (
-                <TenantBrandingCard
+                <BrandingTabWrapper
                   tenantId={
                     session.user.role === "superadmin"
                       ? currentTenantIdentity.tenant_id
@@ -463,6 +463,7 @@ export default async function AgapayTanawPage({
                     font_pairing: currentTenantIdentity.font_pairing,
                     logo_url: currentTenantIdentity.logo_url,
                   }}
+                  displayName={currentTenantIdentity.name}
                 />
               )}
 
