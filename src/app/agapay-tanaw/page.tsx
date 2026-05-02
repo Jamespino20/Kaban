@@ -102,6 +102,7 @@ export default async function AgapayTanawPage() {
             brand_color: true,
             accent_color: true,
             font_pairing: true,
+            logo_url: true,
             entitlement_status: true,
           },
         })
