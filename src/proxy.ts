@@ -2,145 +2,141 @@ import NextAuth from "next-auth";
 import { logTraffic } from "@/lib/analytics-logger";
 import { authConfig } from "@/lib/auth.config";
 import { NextResponse } from "next/server";
+import type { NextRequest } from "next/server";
 import { neon } from "@neondatabase/serverless";
 import { getDbUrl } from "@/lib/db-url";
 
 const { auth } = NextAuth(authConfig);
 
-const authProxy = auth(async (req) => {
+const PUBLIC_ROUTES = [
+  "/",
+  "/about",
+  "/platform",
+  "/pricing",
+  "/contact",
+  "/privacy",
+  "/terms",
+  "/auth/login",
+  "/auth/register",
+];
+
+export default async function middleware(req: NextRequest) {
   const { nextUrl } = req;
-  const isLoggedIn = !!req.auth;
-  const role = req.auth?.user?.role;
-  const userTenantId =
-    (req.auth?.user as any)?.tenantId ??
-    (req.auth?.user as any)?.tenant_id ??
-    null;
-
-  // Extract branch from path: /branch-slug/...
-  const pathSegments = nextUrl.pathname.split("/").filter(Boolean);
-  const urlBranchSlug = pathSegments[0]; // e.g., 'main', 'malolos', 'branch1'
-
-  // Note: We'll need a way to map slug to ID. For now, we rely on the authenticated session's tenant.
-  // In the franchise model, we need to verify if user can access the specific urlBranchSlug.
-
-  // Asynchronously log traffic
-  logTraffic(nextUrl.pathname, userTenantId).catch((err) =>
-    console.error("Traffic log failed:", err),
-  );
-
-  console.log(
-    `[PROXY] ${req.method} ${nextUrl.pathname} | Branch: ${urlBranchSlug} | Role: ${role} | Tenant: ${userTenantId}`,
-  );
-
+  const isPublicRoute = PUBLIC_ROUTES.includes(nextUrl.pathname);
   const isApiAuthRoute = nextUrl.pathname.startsWith("/api/auth");
   const isPublicAsset =
     nextUrl.pathname.startsWith("/images") ||
     nextUrl.pathname.startsWith("/videos") ||
     nextUrl.pathname.startsWith("/favicon.ico");
 
-  if (isApiAuthRoute || isPublicAsset) return;
+  // Immediate exit for public/auth routes to avoid NextAuth session overhead during build/prerender
+  if (isPublicRoute || isApiAuthRoute || isPublicAsset) {
+    return NextResponse.next();
+  }
 
-  const publicRoutes = [
-    "/",
-    "/about",
-    "/platform",
-    "/pricing",
-    "/contact",
-    "/privacy",
-    "/terms",
-    "/auth/login",
-    "/auth/register",
-  ];
+  // Use NextAuth auth wrapper for protected routes
+  return auth(async (req) => {
+    const isLoggedIn = !!req.auth;
+    const role = req.auth?.user?.role;
+    const userTenantId =
+      (req.auth?.user as any)?.tenantId ??
+      (req.auth?.user as any)?.tenant_id ??
+      null;
 
-  const isPublicRoute = publicRoutes.includes(nextUrl.pathname);
-  const isAuthRoute = nextUrl.pathname.startsWith("/auth");
-  const isLandingPage = nextUrl.pathname === "/";
+    // Extract branch from path: /branch-slug/...
+    const pathSegments = nextUrl.pathname.split("/").filter(Boolean);
+    const urlBranchSlug = pathSegments[0];
 
-  // If logged in and on a public/auth route, redirect to the appropriate branch dashboard
-  if (isLoggedIn && (isAuthRoute || isLandingPage)) {
-    // Default to 'main' for superadmin if not specified, or the user's specific branch
-    const targetBranch =
-      role === "superadmin"
-        ? "main"
-        : (req.auth?.user as any)?.tenantSlug || "branch";
-    const targetPath = role === "member" ? "agapay-pintig" : "agapay-tanaw";
-    return NextResponse.redirect(
-      new URL(`/${targetBranch}/${targetPath}`, nextUrl),
+    // Asynchronously log traffic
+    logTraffic(nextUrl.pathname, userTenantId).catch((err) =>
+      console.error("Traffic log failed:", err),
     );
-  }
 
-  // If not logged in and trying to access a private route
-  if (!isLoggedIn && !isPublicRoute) {
-    return NextResponse.redirect(new URL("/auth/login", nextUrl));
-  }
+    console.log(
+      `[PROXY] ${req.method} ${nextUrl.pathname} | Branch: ${urlBranchSlug} | Role: ${role} | Tenant: ${userTenantId}`,
+    );
 
-  // Handle cross-role or cross-tenant route protection
-  if (isLoggedIn && urlBranchSlug) {
-    const isTanawRoute = nextUrl.pathname.includes("/agapay-tanaw");
-    const isPintigRoute = nextUrl.pathname.includes("/agapay-pintig");
-    const isTenantAccessRoute = nextUrl.pathname.includes("/tenant-access");
+    const isAuthRoute = nextUrl.pathname.startsWith("/auth");
+    const isLandingPage = nextUrl.pathname === "/";
 
-    // Superadmin has access to everything
-    if (role === "superadmin") {
-      // Allow internal rewrite
+    // If logged in and on a public/auth route, redirect to the appropriate branch dashboard
+    if (isLoggedIn && (isAuthRoute || isLandingPage)) {
+      const targetBranch =
+        role === "superadmin"
+          ? "main"
+          : (req.auth?.user as any)?.tenantSlug || "branch";
+      const targetPath = role === "member" ? "agapay-pintig" : "agapay-tanaw";
+      return NextResponse.redirect(
+        new URL(`/${targetBranch}/${targetPath}`, nextUrl),
+      );
+    }
+
+    // If not logged in and trying to access a private route
+    if (!isLoggedIn) {
+      return NextResponse.redirect(new URL("/auth/login", nextUrl));
+    }
+
+    // Handle cross-role or cross-tenant route protection
+    if (isLoggedIn && urlBranchSlug) {
+      const isTanawRoute = nextUrl.pathname.includes("/agapay-tanaw");
+      const isPintigRoute = nextUrl.pathname.includes("/agapay-pintig");
+      const isTenantAccessRoute = nextUrl.pathname.includes("/tenant-access");
+
+      if (role === "superadmin") {
+        return NextResponse.rewrite(new URL(nextUrl.pathname, nextUrl));
+      }
+
+      if (role === "member" && isTanawRoute) {
+        return NextResponse.redirect(
+          new URL(`/${urlBranchSlug}/agapay-pintig`, nextUrl),
+        );
+      }
+
+      if (role !== "member" && isPintigRoute) {
+        return NextResponse.redirect(
+          new URL(`/${urlBranchSlug}/agapay-tanaw`, nextUrl),
+        );
+      }
+
+      // Entitlement checks
+      try {
+        const connectionString = getDbUrl();
+        if (connectionString && userTenantId) {
+          const sql = neon(connectionString);
+          const tenants = await sql`
+            SELECT is_active, entitlement_status
+            FROM tenants
+            WHERE tenant_id = ${userTenantId}
+            LIMIT 1
+          `;
+
+          const tenant = tenants[0] as
+            | { is_active: boolean; entitlement_status: string }
+            | undefined;
+          const tenantIsOperational =
+            !!tenant &&
+            tenant.is_active === true &&
+            tenant.entitlement_status === "active";
+
+          if (!tenantIsOperational && !isTenantAccessRoute) {
+            return NextResponse.redirect(
+              new URL(`/${urlBranchSlug}/tenant-access`, nextUrl),
+            );
+          }
+        }
+      } catch (error) {
+        console.error("Tenant entitlement check failed in proxy:", error);
+      }
+    }
+
+    // Rewrite to the internal dynamic directory flow if it's a branch route
+    if (urlBranchSlug) {
       return NextResponse.rewrite(new URL(nextUrl.pathname, nextUrl));
     }
 
-    // TODO: Verify urlBranchSlug matches user's tenantSlug
-    // For now, check role-based access
-    if (role === "member" && isTanawRoute) {
-      return NextResponse.redirect(
-        new URL(`/${urlBranchSlug}/agapay-pintig`, nextUrl),
-      );
-    }
-
-    if (role !== "member" && isPintigRoute) {
-      return NextResponse.redirect(
-        new URL(`/${urlBranchSlug}/agapay-tanaw`, nextUrl),
-      );
-    }
-
-    // Entitlement checks
-    try {
-      const connectionString = getDbUrl();
-      if (connectionString && userTenantId) {
-        const sql = neon(connectionString);
-        const tenants = await sql`
-          SELECT is_active, entitlement_status
-          FROM tenants
-          WHERE tenant_id = ${userTenantId}
-          LIMIT 1
-        `;
-
-        const tenant = tenants[0] as
-          | { is_active: boolean; entitlement_status: string }
-          | undefined;
-
-        const tenantIsOperational =
-          !!tenant &&
-          tenant.is_active === true &&
-          tenant.entitlement_status === "active";
-
-        if (!tenantIsOperational && !isTenantAccessRoute) {
-          return NextResponse.redirect(
-            new URL(`/${urlBranchSlug}/tenant-access`, nextUrl),
-          );
-        }
-      }
-    } catch (error) {
-      console.error("Tenant entitlement check failed in proxy:", error);
-    }
-  }
-
-  // Rewrite to the internal dynamic directory flow if it's a branch route
-  // This helps prevent directory listing errors by explicitly mapping the URL
-  if (urlBranchSlug && !isPublicRoute) {
-    return NextResponse.rewrite(new URL(nextUrl.pathname, nextUrl));
-  }
-});
-
-export default authProxy;
-export const proxy = authProxy;
+    return NextResponse.next();
+  })(req, {} as any);
+}
 
 export const config = {
   matcher: ["/((?!api|_next/static|_next/image|images|videos|favicon.ico).*)"],

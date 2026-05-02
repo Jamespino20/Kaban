@@ -2,25 +2,23 @@
 
 import { useState, useEffect } from "react";
 import { Menu, X, LayoutDashboard } from "lucide-react";
-import { AuthModal } from "@/components/auth/auth-modal";
 import Link from "next/link";
 import { useSession } from "next-auth/react";
+import { LanguageToggle } from "@/components/shared/language-toggle";
+import { AuthModal } from "@/components/auth/auth-modal";
 
 interface NavbarProps {
   forceSolid?: boolean;
 }
 
-import { LanguageToggle } from "@/components/shared/language-toggle";
-
 export function Navbar({ forceSolid = false }: NavbarProps) {
-  const { data: session } = useSession();
+  // Use client-side only state to avoid hydration mismatch and prerender issues
+  const [isMounted, setIsMounted] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
-  const dashboardHref =
-    session?.user?.role === "member" ? "/agapay-pintig" : "/agapay-tanaw";
-
   useEffect(() => {
+    setIsMounted(true);
     if (forceSolid) {
       setIsScrolled(true);
       return;
@@ -85,16 +83,7 @@ export function Navbar({ forceSolid = false }: NavbarProps) {
         <div className="flex items-center gap-4">
           <div className="hidden md:flex items-center gap-4">
             <LanguageToggle />
-            {session ? (
-              <Link
-                href={dashboardHref}
-                className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold h-12 px-8 rounded-full shadow-lg shadow-emerald-900/20 transition-all flex items-center gap-2"
-              >
-                <LayoutDashboard className="w-4 h-4" /> Dashboard
-              </Link>
-            ) : (
-              <AuthModal />
-            )}
+            {isMounted && <AuthOrDashboard />}
           </div>
           <button
             onClick={() => setIsMenuOpen(!isMenuOpen)}
@@ -126,7 +115,7 @@ export function Navbar({ forceSolid = false }: NavbarProps) {
                 key={item.ph}
                 href={item.href}
                 onClick={() => setIsMenuOpen(false)}
-                className="flex flex-col items-start p-4 rozunded-2xl hover:bg-slate-50 transition-colors border border-transparent hover:border-slate-100"
+                className="flex flex-col items-start p-4 rounded-2xl hover:bg-slate-50 transition-colors border border-transparent hover:border-slate-100"
               >
                 <span className="text-lg font-black text-slate-900 italic">
                   {item.ph}
@@ -137,16 +126,11 @@ export function Navbar({ forceSolid = false }: NavbarProps) {
               </Link>
             ))}
             <div className="pt-4 border-t border-slate-100 w-full">
-              {session ? (
-                <Link
-                  href={dashboardHref}
-                  onClick={() => setIsMenuOpen(false)}
-                  className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold h-12 px-8 rounded-2xl flex items-center justify-center gap-2"
-                >
-                  <LayoutDashboard className="w-4 h-4" /> Go to Dashboard
-                </Link>
-              ) : (
-                <AuthModal />
+              {isMounted && (
+                <AuthOrDashboard
+                  isMobile
+                  closeMenu={() => setIsMenuOpen(false)}
+                />
               )}
             </div>
           </nav>
@@ -154,4 +138,35 @@ export function Navbar({ forceSolid = false }: NavbarProps) {
       )}
     </header>
   );
+}
+
+function AuthOrDashboard({
+  isMobile,
+  closeMenu,
+}: {
+  isMobile?: boolean;
+  closeMenu?: () => void;
+}) {
+  const { data: session } = useSession();
+
+  if (session) {
+    const dashboardHref =
+      session?.user?.role === "member" ? "/agapay-pintig" : "/agapay-tanaw";
+    return (
+      <Link
+        href={dashboardHref}
+        onClick={closeMenu}
+        className={
+          isMobile
+            ? "w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold h-12 px-8 rounded-2xl flex items-center justify-center gap-2"
+            : "bg-emerald-600 hover:bg-emerald-700 text-white font-bold h-12 px-8 rounded-full shadow-lg shadow-emerald-900/20 transition-all flex items-center gap-2"
+        }
+      >
+        <LayoutDashboard className="w-4 h-4" />{" "}
+        {isMobile ? "Go to Dashboard" : "Dashboard"}
+      </Link>
+    );
+  }
+
+  return <AuthModal />;
 }

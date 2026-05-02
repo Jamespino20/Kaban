@@ -1,12 +1,17 @@
 "use client";
 
-import { useEffect, useCallback } from "react";
+import { useEffect, useCallback, useState } from "react";
 import { signOut, useSession } from "next-auth/react";
 
 const IDLE_TIMEOUT = 15 * 60 * 1000; // 15 minutes
 
 export function IdleSessionTimer() {
+  const [isMounted, setIsMounted] = useState(false);
   const { data: session } = useSession();
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   const handleSignOut = useCallback(() => {
     if (session) {
@@ -15,7 +20,7 @@ export function IdleSessionTimer() {
   }, [session]);
 
   useEffect(() => {
-    if (!session) return;
+    if (!isMounted || !session) return;
 
     let timeoutId: NodeJS.Timeout;
 
@@ -44,7 +49,7 @@ export function IdleSessionTimer() {
       });
       clearTimeout(timeoutId);
     };
-  }, [session, handleSignOut]);
+  }, [isMounted, session, handleSignOut]);
 
   return null;
 }
