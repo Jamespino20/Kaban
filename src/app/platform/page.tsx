@@ -1,5 +1,7 @@
 "use client";
 
+export const dynamic = "force-dynamic";
+
 import { Footer } from "@/components/layout/footer";
 import { Navbar } from "@/components/layout/navbar";
 import {
@@ -93,8 +95,8 @@ export default function PlatformPage() {
                 </h2>
                 <p className="text-emerald-50/85 leading-relaxed text-lg">
                   Kasama rito ang member onboarding, branch-scoped lending
-                  operations, 2FA-secured login, Statement of Account,
-                  feedback handling, at seasonal homepage content moderation.
+                  operations, 2FA-secured login, Statement of Account, feedback
+                  handling, at seasonal homepage content moderation.
                 </p>
               </div>
               <div className="space-y-4">

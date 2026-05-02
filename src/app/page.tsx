@@ -1,6 +1,8 @@
 import { LandingClient } from "@/components/shared/landing-client";
 import { getActiveBranches } from "@/actions/tenant-management";
 
+export const dynamic = "force-dynamic";
+
 export const metadata = {
   title: "Agapay | Iyong Agapay, Ating Tagumpay",
   description:

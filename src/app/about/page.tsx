@@ -1,5 +1,7 @@
 "use client";
 
+export const dynamic = "force-dynamic";
+
 import { Footer } from "@/components/layout/footer";
 import { Navbar } from "@/components/layout/navbar";
 import {
@@ -56,9 +58,8 @@ export default function AboutPage() {
               Tungkol sa Agapay
             </span>
             <h1 className="text-5xl md:text-8xl font-black tracking-tight italic mb-8 leading-[0.95] text-slate-900">
-              Ang layunin ng{" "}
-              <span className="text-emerald-600">Agapay</span> ay hindi lang
-              pondo.
+              Ang layunin ng <span className="text-emerald-600">Agapay</span> ay
+              hindi lang pondo.
             </h1>
             <p className="text-xl md:text-2xl font-medium text-slate-600 mb-10 leading-relaxed max-w-3xl">
               Ang Agapay ay isang Filipino-first cooperative microfinance SaaS
@@ -115,8 +116,8 @@ export default function AboutPage() {
                 homepage at support experience.
               </p>
               <p>
-                Isang mas grounded na cooperative product story na hindi
-                umaasa sa generic wallet behavior lang.
+                Isang mas grounded na cooperative product story na hindi umaasa
+                sa generic wallet behavior lang.
               </p>
             </div>
           </div>
