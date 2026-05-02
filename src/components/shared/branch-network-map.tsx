@@ -37,24 +37,35 @@ export function BranchNetworkMap({ branches = [] }: { branches?: Branch[] }) {
         {/* Simplified SVG PH Map background */}
         <svg
           viewBox="0 0 100 100"
-          className="w-full h-full text-slate-100 fill-current transition-all duration-700 group-hover:scale-105"
+          className="w-full h-full text-slate-100 fill-current transition-all duration-700 group-hover:scale-[1.02]"
         >
-          {/* Main Luzon Block */}
+          {/* Luzon */}
           <path
-            d="M30 10 L60 10 L55 45 L25 45 Z"
-            className="opacity-20 text-emerald-200"
+            d="M40 10 C 55 8, 55 25, 48 35 C 55 45, 60 52, 52 58 C 45 62, 35 55, 40 45 C 32 38, 30 25, 35 15 Z"
+            className="opacity-25 text-emerald-300 drop-shadow-sm"
           />
-          {/* Visayas Block */}
-          <circle
-            cx="55"
-            cy="65"
-            r="15"
-            className="opacity-15 text-emerald-300"
-          />
-          {/* Mindanao Block */}
+          {/* Palawan */}
           <path
-            d="M40 75 L85 75 L90 95 L30 95 Z"
+            d="M32 50 C 37 55, 18 78, 12 72 C 8 68, 27 45, 32 50 Z"
+            className="opacity-20 text-emerald-400 drop-shadow-sm"
+          />
+          {/* Visayas Islands */}
+          <path
+            d="M50 60 C 58 55, 65 65, 55 70 C 48 72, 42 65, 50 60 Z"
             className="opacity-20 text-emerald-400"
+          />
+          <path
+            d="M68 55 C 75 52, 85 62, 75 68 C 65 72, 60 62, 68 55 Z"
+            className="opacity-25 text-emerald-400"
+          />
+          <path
+            d="M45 68 C 50 65, 55 70, 50 75 C 42 78, 38 72, 45 68 Z"
+            className="opacity-20 text-emerald-300"
+          />
+          {/* Mindanao */}
+          <path
+            d="M55 75 C 75 70, 85 80, 90 90 C 85 102, 60 98, 55 90 C 48 85, 45 80, 55 75 Z"
+            className="opacity-30 text-emerald-500 drop-shadow-sm"
           />
 
           {/* Grid lines for aesthetic */}
@@ -63,8 +74,8 @@ export function BranchNetworkMap({ branches = [] }: { branches?: Branch[] }) {
             y1="20"
             x2="100"
             y2="20"
-            stroke="currentColor"
-            strokeWidth="0.1"
+            stroke="rgba(16, 185, 129, 0.1)"
+            strokeWidth="0.2"
             strokeDasharray="1,2"
           />
           <line
@@ -72,8 +83,8 @@ export function BranchNetworkMap({ branches = [] }: { branches?: Branch[] }) {
             y1="50"
             x2="100"
             y2="50"
-            stroke="currentColor"
-            strokeWidth="0.1"
+            stroke="rgba(16, 185, 129, 0.1)"
+            strokeWidth="0.2"
             strokeDasharray="1,2"
           />
           <line
@@ -81,8 +92,26 @@ export function BranchNetworkMap({ branches = [] }: { branches?: Branch[] }) {
             y1="80"
             x2="100"
             y2="80"
-            stroke="currentColor"
-            strokeWidth="0.1"
+            stroke="rgba(16, 185, 129, 0.1)"
+            strokeWidth="0.2"
+            strokeDasharray="1,2"
+          />
+          <line
+            x1="30"
+            y1="0"
+            x2="30"
+            y2="100"
+            stroke="rgba(16, 185, 129, 0.1)"
+            strokeWidth="0.2"
+            strokeDasharray="1,2"
+          />
+          <line
+            x1="70"
+            y1="0"
+            x2="70"
+            y2="100"
+            stroke="rgba(16, 185, 129, 0.1)"
+            strokeWidth="0.2"
             strokeDasharray="1,2"
           />
 
@@ -125,16 +154,16 @@ export function BranchNetworkMap({ branches = [] }: { branches?: Branch[] }) {
 
         <div className="absolute top-8 left-8">
           <h3 className="text-2xl font-black italic text-slate-900 tracking-tight">
-            Kasama sa Bawat Sulok
+            Nationwide Presence
           </h3>
           <p className="text-slate-500 font-medium text-sm">
-            Ang ating lumalaking network ng kooperatiba.
+            Our growing cooperative network.
           </p>
         </div>
 
-        <div className="absolute bottom-8 right-8 flex items-center gap-2 text-xs font-bold text-emerald-600 bg-emerald-50 px-3 py-1.5 rounded-full border border-emerald-100 animate-bounce">
+        <div className="absolute bottom-8 right-8 flex items-center gap-2 text-xs font-bold text-emerald-600 bg-emerald-50 px-3 py-1.5 rounded-full border border-emerald-100 animate-bounce cursor-default">
           <MapPin className="w-3 h-3" />
-          I-click ang mga branch sa mapa
+          Click the branches on the map
         </div>
       </div>
 
@@ -153,14 +182,14 @@ export function BranchNetworkMap({ branches = [] }: { branches?: Branch[] }) {
               </p>
             </div>
             <p className="text-slate-600 leading-relaxed font-medium">
-              Aktibong serving members sa {activeBranch.region}. Click below
-              para bumisita sa kanilang digital branch dashboard.
+              Actively serving members in the {activeBranch.region} region.
+              Click below to visit their digital branch dashboard.
             </p>
             <Link
               href={`/${activeBranch.slug}`}
               className="flex items-center justify-center gap-2 w-full py-4 bg-slate-900 text-white font-bold rounded-2xl hover:bg-emerald-600 transition-all group"
             >
-              Bisitahin ang Branch
+              Visit Branch Homepage
               <ExternalLink className="w-4 h-4 transition-transform group-hover:translate-x-1" />
             </Link>
           </div>
@@ -170,7 +199,7 @@ export function BranchNetworkMap({ branches = [] }: { branches?: Branch[] }) {
               <MapPin className="w-full h-full" />
             </div>
             <p className="text-slate-400 font-bold italic">
-              Pumili ng branch sa mapa para makita ang detalye.
+              Select a branch on the map to see details.
             </p>
           </div>
         )}

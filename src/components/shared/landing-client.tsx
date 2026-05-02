@@ -738,10 +738,10 @@ function HomeLoanCalculator() {
     cadence === "biweekly" ? term * 2 : cadence === "weekly" ? term * 4 : term;
   const cadenceLabel =
     cadence === "biweekly"
-      ? "tuwing 15-sekinse"
+      ? "Bi-weekly"
       : cadence === "weekly"
-        ? "kada linggo"
-        : "kada buwan";
+        ? "Weekly"
+        : "Monthly";
   const installmentAmount = paymentCount > 0 ? totalPayable / paymentCount : 0;
 
   return (
@@ -780,7 +780,7 @@ function HomeLoanCalculator() {
 
           <div>
             <label className="text-sm font-bold text-slate-500 uppercase tracking-wider mb-3 block">
-              Halaga ng Loan
+              Loan Amount
             </label>
             <input
               type="range"
@@ -821,12 +821,36 @@ function HomeLoanCalculator() {
               {term} {term > 1 ? "Months" : "Month"}
             </span>
           </div>
+
+          <div>
+            <label className="text-sm font-bold text-slate-500 uppercase tracking-wider mb-3 block">
+              Payment Cadence
+            </label>
+            <div className="grid grid-cols-3 gap-3">
+              {(["weekly", "biweekly", "monthly"] as const).map((opt) => (
+                <button
+                  key={opt}
+                  type="button"
+                  onClick={() => setCadence(opt)}
+                  className={`rounded-2xl border p-3 text-center transition-all ${
+                    cadence === opt
+                      ? "border-emerald-500 bg-emerald-50 shadow-sm text-emerald-700"
+                      : "border-slate-200 hover:border-emerald-200 hover:bg-slate-50 text-slate-600"
+                  }`}
+                >
+                  <span className="text-sm font-black capitalize">
+                    {opt === "biweekly" ? "Bi-weekly" : opt}
+                  </span>
+                </button>
+              ))}
+            </div>
+          </div>
         </div>
 
         <div className="bg-slate-50 rounded-[2.5rem] p-10 border border-slate-200/50 flex flex-col justify-center">
           <div className="mb-8 p-6 bg-white rounded-3xl border border-emerald-100 shadow-sm">
             <p className="text-sm font-bold text-slate-500 uppercase tracking-wider mb-2">
-              Bayad {cadenceLabel}
+              {cadenceLabel} Payment
             </p>
             <p className="text-4xl md:text-5xl font-black text-emerald-600 italic">
               ₱
@@ -856,7 +880,7 @@ function HomeLoanCalculator() {
             </div>
             <div className="flex justify-between items-center pt-4 border-t border-slate-200">
               <span className="text-slate-900 font-black italic">
-                Kabuuang Babayaran
+                Total Payable
               </span>
               <span className="text-lg font-black text-slate-900">
                 ₱{totalPayable.toLocaleString()}
@@ -876,7 +900,7 @@ function HomeLoanCalculator() {
               Trust-Powered Rates
             </p>
             <p className="text-sm font-bold italic">
-              Bumababa ang interest habang tumataas ang Trust Score mo.
+              Interest rates decrease as your Trust Score improves.
             </p>
           </div>
         </div>
