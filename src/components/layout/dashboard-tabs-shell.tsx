@@ -28,6 +28,8 @@ export function DashboardTabsShell({
   children,
   navItems,
   title,
+  tenantAccentColor,
+  tenantFontPairing,
   ...shellProps
 }: DashboardTabsShellProps) {
   const [activeTab, setActiveTab] = useState(defaultValue);
@@ -53,6 +55,8 @@ export function DashboardTabsShell({
     >
       <AuthenticatedShell
         {...shellProps}
+        tenantAccentColor={tenantAccentColor}
+        tenantFontPairing={tenantFontPairing}
         navItems={navItems}
         title={activeLabel}
       >

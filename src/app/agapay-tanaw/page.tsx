@@ -12,6 +12,7 @@ import { auth } from "@/lib/auth";
 import { TwoFactorSetup } from "@/components/auth/two-factor-setup";
 import prisma from "@/lib/prisma";
 import { redirect } from "next/navigation";
+import { getCurrentSubscription } from "@/actions/subscription-actions";
 
 import { TrustDistributionChart } from "@/components/analytics/trust-distribution-chart";
 import { MemberDirectoryTab } from "@/components/admin/member-directory-tab";
