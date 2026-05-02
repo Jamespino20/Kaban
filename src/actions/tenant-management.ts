@@ -59,12 +59,6 @@ export async function getTenantsByRegion(regionId: number) {
 // 1. Get List of Tenants
 export async function getTenants() {
   try {
-    await requireSuperadminSession();
-  } catch {
-    return [];
-  }
-
-  try {
     const tenants = await prisma.tenant.findMany({
       include: {
         tenant_group: true,
@@ -81,7 +75,8 @@ export async function getTenants() {
       },
     });
     return tenants;
-  } catch {
+  } catch (error) {
+    console.error("Failed to fetch tenants:", error);
     // Fallback if adapter doesn't support includes
     const tenants = await prisma.tenant.findMany({
       orderBy: { name: "asc" },
@@ -91,7 +86,56 @@ export async function getTenants() {
       tenant_group: null,
       _count: { users: 0, loans: 0, savings: 0 },
       decommissioned_backups: [],
+    })) as any[];
+  }
+}
+
+// 1.5 Get Active Branches (Public for Navigation/Map)
+export async function getActiveBranches() {
+  try {
+    const branches = await prisma.tenant.findMany({
+      where: {
+        is_active: true,
+        entitlement_status: "active",
+      },
+      select: {
+        tenant_id: true,
+        name: true,
+        slug: true,
+        accent_color: true,
+      },
+      orderBy: {
+        name: "asc",
+      },
+    });
+
+    // Map to coordinates for the map (mock logic for now, or use real branch meta if added)
+    const coordinates: Record<
+      string,
+      { x: number; y: number; region: string; city: string }
+    > = {
+      manila: { x: 42, y: 35, region: "NCR", city: "Manila" },
+      cebu: { x: 62, y: 65, region: "Central Visayas", city: "Cebu City" },
+      davao: { x: 75, y: 85, region: "Davao Region", city: "Davao City" },
+      baguio: { x: 38, y: 22, region: "Cordillera", city: "Baguio City" },
+      iloilo: { x: 48, y: 68, region: "Western Visayas", city: "Iloilo City" },
+      malolos: { x: 41, y: 33, region: "Central Luzon", city: "Malolos City" },
+    };
+
+    return branches.map((b) => ({
+      id: b.tenant_id.toString(),
+      name: b.name,
+      slug: b.slug || "branch",
+      city: coordinates[b.slug || ""]?.city || "Philippines",
+      region: coordinates[b.slug || ""]?.region || "Region",
+      status: "active" as const,
+      x: coordinates[b.slug || ""]?.x || 50,
+      y: coordinates[b.slug || ""]?.y || 50,
+      color: b.accent_color || "#10b981",
     }));
+  } catch (error) {
+    console.error("Failed to fetch active branches:", error);
+    return [];
   }
 }
 

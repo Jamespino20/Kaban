@@ -10,6 +10,8 @@ interface NavbarProps {
   forceSolid?: boolean;
 }
 
+import { LanguageToggle } from "@/components/shared/language-toggle";
+
 export function Navbar({ forceSolid = false }: NavbarProps) {
   const { data: session } = useSession();
   const [isScrolled, setIsScrolled] = useState(false);
@@ -81,7 +83,8 @@ export function Navbar({ forceSolid = false }: NavbarProps) {
 
         {/* Auth & Mobile Toggle */}
         <div className="flex items-center gap-4">
-          <div className="hidden md:block">
+          <div className="hidden md:flex items-center gap-4">
+            <LanguageToggle />
             {session ? (
               <Link
                 href={dashboardHref}
@@ -112,6 +115,12 @@ export function Navbar({ forceSolid = false }: NavbarProps) {
       {isMenuOpen && (
         <div className="md:hidden absolute top-full left-0 right-0 bg-white border-t border-slate-100 shadow-xl p-6 animate-in slide-in-from-top duration-300">
           <nav className="flex flex-col gap-6">
+            <div className="flex items-center justify-between p-2">
+              <span className="text-sm font-bold text-slate-500 uppercase tracking-widest">
+                Wika / Language
+              </span>
+              <LanguageToggle />
+            </div>
             {navItems.map((item: any) => (
               <Link
                 key={item.ph}

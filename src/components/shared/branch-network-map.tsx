@@ -4,74 +4,23 @@ import { MapPin, Building2, ExternalLink } from "lucide-react";
 import { useState, useEffect } from "react";
 import Link from "next/link";
 
-interface Branch {
+export interface Branch {
   id: string;
   name: string;
   slug: string;
   city: string;
   region: string;
   status: "active" | "planned";
-  // Coordinates for SVG mapping (0-100 scale relative to PH map)
   x: number;
   y: number;
+  color?: string;
 }
 
-const PH_BRANCHES: Branch[] = [
-  {
-    id: "1",
-    name: "Agapay Main - Manila",
-    slug: "manila",
-    city: "Manila",
-    region: "NCR",
-    status: "active",
-    x: 42,
-    y: 35,
-  },
-  {
-    id: "2",
-    name: "Agapay Cebu Central",
-    slug: "cebu",
-    city: "Cebu City",
-    region: "Central Visayas",
-    status: "active",
-    x: 62,
-    y: 65,
-  },
-  {
-    id: "3",
-    name: "Agapay Davao South",
-    slug: "davao",
-    city: "Davao City",
-    region: "Davao Region",
-    status: "active",
-    x: 75,
-    y: 85,
-  },
-  {
-    id: "4",
-    name: "Agapay Baguio Peak",
-    slug: "baguio",
-    city: "Baguio City",
-    region: "Cordillera",
-    status: "active",
-    x: 38,
-    y: 22,
-  },
-  {
-    id: "5",
-    name: "Agapay Iloilo Heritage",
-    slug: "iloilo",
-    city: "Iloilo City",
-    region: "Western Visayas",
-    status: "active",
-    x: 48,
-    y: 68,
-  },
-];
-
-export function BranchNetworkMap() {
+export function BranchNetworkMap({ branches = [] }: { branches?: Branch[] }) {
   const [activeBranch, setActiveBranch] = useState<Branch | null>(null);
   const [mounted, setMounted] = useState(false);
+
+  const displayBranches = branches.length > 0 ? branches : [];
 
   useEffect(() => {
     setMounted(true);
@@ -138,7 +87,7 @@ export function BranchNetworkMap() {
           />
 
           {/* Branch Pins */}
-          {PH_BRANCHES.map((branch) => (
+          {displayBranches.map((branch) => (
             <g
               key={branch.id}
               className="cursor-pointer group/pin"
