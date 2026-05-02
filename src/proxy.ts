@@ -81,7 +81,10 @@ const authProxy = auth(async (req) => {
     const isTenantAccessRoute = nextUrl.pathname.includes("/tenant-access");
 
     // Superadmin has access to everything
-    if (role === "superadmin") return;
+    if (role === "superadmin") {
+      // Allow internal rewrite
+      return NextResponse.rewrite(new URL(nextUrl.pathname, nextUrl));
+    }
 
     // TODO: Verify urlBranchSlug matches user's tenantSlug
     // For now, check role-based access
@@ -127,6 +130,12 @@ const authProxy = auth(async (req) => {
     } catch (error) {
       console.error("Tenant entitlement check failed in proxy:", error);
     }
+  }
+
+  // Rewrite to the internal dynamic directory flow if it's a branch route
+  // This helps prevent directory listing errors by explicitly mapping the URL
+  if (urlBranchSlug && !isPublicRoute) {
+    return NextResponse.rewrite(new URL(nextUrl.pathname, nextUrl));
   }
 });
 
