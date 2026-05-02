@@ -1,9 +1,7 @@
 import { TabsContent } from "@/components/ui/tabs";
 import { Wallet, LayoutDashboard, ArrowUpRight } from "lucide-react";
-import { auth } from "@/lib/auth";
 import { LoanApplicationTab } from "@/components/member/loan-application-tab";
 import { LoanServicingTab } from "@/components/member/loan-servicing-tab";
-import { TwoFactorSetup } from "@/components/auth/two-factor-setup";
 import prisma from "@/lib/prisma";
 import { redirect } from "next/navigation";
 import { type ShellNavItem } from "@/components/layout/authenticated-shell";
@@ -21,6 +19,7 @@ import { runAutomatedDefaultEnforcement } from "@/lib/default-enforcement";
 import { CommunityTab } from "@/components/member/community-tab";
 import { ConsentDashboard } from "@/components/member/consent-dashboard";
 import { acceptConsent } from "@/actions/compliance-actions";
+import { MemberSettingsTab } from "@/components/member/member-settings-tab";
 
 const PERSONAL_WALLET = "personal_wallet";
 
@@ -50,14 +49,28 @@ export default async function AgapayPintigPage() {
     tfa,
     transactions,
     communityData,
+    unreadNotifications,
+    totalNotifications,
     tenantIdentity,
   ] = await Promise.all([
     prisma.user.findUnique({
       where: { user_id: userId },
       select: {
+        username: true,
+        email: true,
+        phone: true,
+        created_at: true,
         interest_tier: true,
         consent_accepted_at: true,
         consent_version: true,
+        profile: {
+          select: {
+            first_name: true,
+            last_name: true,
+            occupation: true,
+            business_name: true,
+          },
+        },
       },
     }),
     prisma.savingsAccount.findMany({
@@ -90,6 +103,12 @@ export default async function AgapayPintigPage() {
     }),
     getWalletTransactions(),
     getCommunityDashboardData(),
+    prisma.notification.count({
+      where: { user_id: userId, is_read: false },
+    }),
+    prisma.notification.count({
+      where: { user_id: userId },
+    }),
     prisma.tenant.findUnique({
       where: { tenant_id: tenantId },
       select: { name: true, brand_color: true, logo_url: true },
@@ -319,17 +338,50 @@ export default async function AgapayPintigPage() {
         </TabsContent>
 
         <TabsContent value="settings" className="outline-none">
-          <div className="flex flex-col items-center justify-center space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-            <div className="space-y-2 text-center">
-              <h2 className="text-3xl font-display font-bold italic text-slate-900">
-                Security Settings
-              </h2>
-              <p className="text-slate-500">
-                I-secure ang iyong Agapay Pintig access gamit ang 2FA.
-              </p>
-            </div>
-            <TwoFactorSetup isEnabledInitial={is2FAEnabled} />
-          </div>
+          <MemberSettingsTab
+            profile={{
+              username: member?.username || userName,
+              email: member?.email || session.user.email || "",
+              phone: member?.phone || null,
+              joinedAt: member?.created_at
+                ? new Date(member.created_at).toLocaleDateString("en-PH", {
+                    month: "short",
+                    day: "numeric",
+                    year: "numeric",
+                  })
+                : "May record",
+              fullName:
+                member?.profile?.first_name && member?.profile?.last_name
+                  ? `${member.profile.first_name} ${member.profile.last_name}`
+                  : userName,
+              occupation: member?.profile?.occupation || null,
+              businessName: member?.profile?.business_name || null,
+            }}
+            tenant={{
+              name: tenant?.name,
+            }}
+            security={{
+              is2FAEnabled,
+            }}
+            notifications={{
+              unreadCount: unreadNotifications,
+              totalCount: totalNotifications,
+            }}
+            consent={{
+              accepted: Boolean(member?.consent_accepted_at),
+              acceptedAt: member?.consent_accepted_at
+                ? new Date(member.consent_accepted_at).toLocaleDateString(
+                    "en-PH",
+                    {
+                      month: "short",
+                      day: "numeric",
+                      year: "numeric",
+                    },
+                  )
+                : null,
+              version: member?.consent_version || null,
+            }}
+          />
         </TabsContent>
       </div>
     </DashboardTabsShell>
