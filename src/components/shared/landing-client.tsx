@@ -470,7 +470,7 @@ export function LandingClient({ branches }: { branches: Branch[] }) {
             <div className="text-center mb-16 px-6">
               <span className="inline-flex items-center gap-2 text-emerald-700 font-bold tracking-widest text-xs uppercase mb-6 px-4 py-1.5 bg-emerald-100/90 rounded-full border border-emerald-200/50">
                 <MapPin className="w-4 h-4" />
-                Network Ng Agapay
+                Agapay Branch Network
               </span>
               <h2 className="text-4xl md:text-6xl font-black text-slate-950 mb-6 italic tracking-tight">
                 Live Branch Map
@@ -852,13 +852,18 @@ function HomeLoanCalculator() {
             <p className="text-sm font-bold text-slate-500 uppercase tracking-wider mb-2">
               {cadenceLabel} Payment
             </p>
-            <p className="text-4xl md:text-5xl font-black text-emerald-600 italic">
-              ₱
-              {installmentAmount.toLocaleString(undefined, {
-                minimumFractionDigits: 2,
-                maximumFractionDigits: 2,
-              })}
-            </p>
+            <div className="flex items-baseline gap-2">
+              <p className="text-4xl md:text-5xl font-black text-emerald-600 italic">
+                ₱
+                {installmentAmount.toLocaleString(undefined, {
+                  minimumFractionDigits: 2,
+                  maximumFractionDigits: 2,
+                })}
+              </p>
+              <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">
+                / {cadenceLabel.toLowerCase()}
+              </span>
+            </div>
           </div>
 
           <div className="space-y-4">

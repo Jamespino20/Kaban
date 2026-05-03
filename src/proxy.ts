@@ -38,10 +38,8 @@ export default async function middleware(req: NextRequest) {
   return auth(async (req) => {
     const isLoggedIn = !!req.auth;
     const role = req.auth?.user?.role;
-    const userTenantId =
-      (req.auth?.user as any)?.tenantId ??
-      (req.auth?.user as any)?.tenant_id ??
-      null;
+    const userTenantId = req.auth?.user?.tenantId ?? null;
+    const userTenantSlug = req.auth?.user?.tenantSlug ?? null;
 
     // Extract branch from path: /branch-slug/...
     const pathSegments = nextUrl.pathname.split("/").filter(Boolean);
@@ -53,7 +51,7 @@ export default async function middleware(req: NextRequest) {
     );
 
     console.log(
-      `[PROXY] ${req.method} ${nextUrl.pathname} | Branch: ${urlBranchSlug} | Role: ${role} | Tenant: ${userTenantId}`,
+      `[PROXY] ${req.method} ${nextUrl.pathname} | Branch: ${urlBranchSlug} | Role: ${role} | Tenant: ${userTenantId} | TenantSlug: ${userTenantSlug}`,
     );
 
     const isAuthRoute = nextUrl.pathname.startsWith("/auth");
@@ -62,9 +60,7 @@ export default async function middleware(req: NextRequest) {
     // If logged in and on a public/auth route, redirect to the appropriate branch dashboard
     if (isLoggedIn && (isAuthRoute || isLandingPage)) {
       const targetBranch =
-        role === "superadmin"
-          ? "main"
-          : (req.auth?.user as any)?.tenantSlug || "branch";
+        role === "superadmin" ? "main" : userTenantSlug || "branch";
       const targetPath = role === "member" ? "agapay-pintig" : "agapay-tanaw";
       return NextResponse.redirect(
         new URL(`/${targetBranch}/${targetPath}`, nextUrl),

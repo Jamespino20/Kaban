@@ -342,10 +342,10 @@ export function EnhancedRegisterForm() {
       <div className="bg-emerald-600 p-8 text-white relative overflow-hidden">
         <div className="relative z-10">
           <h2 className="text-3xl font-display font-bold italic">
-            Simulan ang Agapay
+            Get Started with Agapay
           </h2>
           <p className="text-emerald-50 text-sm mt-1">
-            Hakbang {step} ng 4: {getStepTitle(step)}
+            Step {step} of 4: {getStepTitle(step)}
           </p>
         </div>
         <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -mr-16 -mt-16 blur-3xl" />
@@ -359,10 +359,10 @@ export function EnhancedRegisterForm() {
             </div>
             <div className="space-y-2">
               <h3 className="text-3xl font-display font-bold text-slate-900 leading-tight">
-                Mabuhay! Bienvenido sa Agapay.
+                Welcome to Agapay!
               </h3>
               <p className="text-slate-500">
-                Ang iyong account ay matagumpay na nagawa.
+                Your account has been successfully created.
               </p>
             </div>
 
@@ -381,9 +381,9 @@ export function EnhancedRegisterForm() {
                   <Mail className="w-5 h-5" />
                 </div>
                 <p className="text-sm text-blue-700 leading-snug">
-                  <strong>I-check ang iyong email.</strong> Nagpadala kami ng
-                  verification link sa iyong Gmail inbox upang ma-activate ang
-                  iyong Agapay account.
+                  <strong>Please check your email.</strong> We have sent a
+                  verification link to your Gmail inbox to activate your Agapay
+                  account.
                 </p>
               </div>
 
@@ -391,7 +391,7 @@ export function EnhancedRegisterForm() {
                 onClick={() => window.location.reload()}
                 className="w-full h-14 rounded-2xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-lg transition-all"
               >
-                Tapusin ang Registration
+                Complete Registration
               </Button>
             </div>
           </div>
@@ -589,9 +589,9 @@ export function EnhancedRegisterForm() {
                               {...field}
                               className="w-full rounded-xl h-12 border border-slate-200 px-4 bg-white outline-none font-bold text-slate-700"
                             >
-                              <option value="male">Lalaki (Male)</option>
-                              <option value="female">Babae (Female)</option>
-                              <option value="other">Iba pa</option>
+                              <option value="male">Male</option>
+                              <option value="female">Female</option>
+                              <option value="other">Other</option>
                             </select>
                           </FormControl>
                           <FormMessage />
@@ -627,13 +627,11 @@ export function EnhancedRegisterForm() {
                       name="mothersMaidenName"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>
-                            Pangalan ng Ina (Mother's Maiden Name)
-                          </FormLabel>
+                          <FormLabel>Mother&apos;s Maiden Name</FormLabel>
                           <FormControl>
                             <Input
                               {...field}
-                              placeholder="Pangalan bago ikinasal"
+                              placeholder="Name before marriage"
                               className="rounded-xl h-12"
                             />
                           </FormControl>
@@ -646,13 +644,11 @@ export function EnhancedRegisterForm() {
                       name="placeOfBirth"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>
-                            Lugar ng Kapanganakan (Place of Birth)
-                          </FormLabel>
+                          <FormLabel>Place of Birth</FormLabel>
                           <FormControl>
                             <Input
                               {...field}
-                              placeholder="Lungsod o Probinsya"
+                              placeholder="City or Province"
                               className="rounded-xl h-12"
                             />
                           </FormControl>
@@ -688,7 +684,7 @@ export function EnhancedRegisterForm() {
                               <Building2 className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
                               <Input
                                 {...field}
-                                placeholder="Pangalan ng iyong Negosyo"
+                                placeholder="Your Business Name"
                                 className="pl-11 rounded-xl h-12 font-bold"
                               />
                             </div>
@@ -912,14 +908,14 @@ export function EnhancedRegisterForm() {
                               className="w-16 h-16 object-cover rounded-xl mx-auto shadow-md"
                             />
                             <p className="text-emerald-600 text-[10px] font-bold">
-                              Palitan
+                              Change
                             </p>
                           </div>
                         ) : (
                           <>
                             <IdCard className="w-8 h-8 text-slate-300" />
                             <p className="text-[10px] text-slate-500">
-                              I-click para sa ID
+                              Click to upload ID
                             </p>
                           </>
                         )}
@@ -949,14 +945,14 @@ export function EnhancedRegisterForm() {
                               className="w-16 h-16 object-cover rounded-xl mx-auto shadow-md"
                             />
                             <p className="text-emerald-600 text-[10px] font-bold">
-                              Palitan
+                              Change
                             </p>
                           </div>
                         ) : (
                           <>
                             <FileText className="w-8 h-8 text-slate-300" />
                             <p className="text-[10px] text-slate-500">
-                              I-click para sa Brgy Cert
+                              Click to upload Brgy Cert
                             </p>
                           </>
                         )}
@@ -988,14 +984,14 @@ export function EnhancedRegisterForm() {
                               className="w-16 h-16 object-cover rounded-xl mx-auto shadow-md"
                             />
                             <p className="text-emerald-600 text-[10px] font-bold">
-                              Palitan
+                              Change
                             </p>
                           </div>
                         ) : (
                           <>
                             <Building2 className="w-8 h-8 text-slate-300" />
                             <p className="text-[10px] text-slate-500">
-                              I-click para sa Business Permit
+                              Click to upload Business Permit
                             </p>
                           </>
                         )}
@@ -1016,7 +1012,7 @@ export function EnhancedRegisterForm() {
                             className="w-5 h-5 rounded border-slate-300 text-emerald-600 outline-none"
                           />
                           <span className="text-sm text-slate-600">
-                            Tinatanggap ko ang{" "}
+                            I accept the{" "}
                             <Link
                               href="/terms"
                               className="text-emerald-600 underline"
@@ -1039,7 +1035,7 @@ export function EnhancedRegisterForm() {
                             className="w-5 h-5 rounded border-slate-300 text-emerald-600 outline-none"
                           />
                           <span className="text-sm text-slate-600">
-                            Sumasang-ayon ako sa{" "}
+                            I agree to the{" "}
                             <Link
                               href="/privacy"
                               className="text-emerald-600 underline"
@@ -1063,7 +1059,7 @@ export function EnhancedRegisterForm() {
                     className="rounded-xl h-12 px-8 flex items-center gap-2"
                   >
                     <ChevronLeft className="w-4 h-4" />
-                    Mabalik
+                    Back
                   </Button>
                 )}
                 {step < 4 ? (
@@ -1072,7 +1068,7 @@ export function EnhancedRegisterForm() {
                     onClick={nextStep}
                     className="ml-auto rounded-xl h-12 px-8 bg-slate-900 hover:bg-slate-800 text-white flex items-center gap-2"
                   >
-                    Susunod
+                    Next
                     <ChevronRight className="w-4 h-4" />
                   </Button>
                 ) : (
@@ -1081,7 +1077,7 @@ export function EnhancedRegisterForm() {
                     type="submit"
                     className="ml-auto rounded-xl h-12 px-12 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-lg shadow-xl shadow-emerald-600/20"
                   >
-                    {isPending ? "Nagrerehistro..." : "Magsimula Na!"}
+                    {isPending ? "Registering..." : "Start Now!"}
                   </Button>
                 )}
               </div>
@@ -1096,13 +1092,13 @@ export function EnhancedRegisterForm() {
 function getStepTitle(step: number) {
   switch (step) {
     case 1:
-      return "Impormasyon ng Account";
+      return "Account Information";
     case 2:
-      return "Personal na Detalye";
+      return "Personal Details";
     case 3:
-      return "Lokasyon";
+      return "Location";
     case 4:
-      return "Beripikasyon";
+      return "Verification";
     default:
       return "";
   }

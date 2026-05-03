@@ -2,6 +2,8 @@
 
 import prisma from "@/lib/prisma";
 import * as z from "zod";
+import fs from "fs";
+import path from "path";
 
 import { neon } from "@neondatabase/serverless";
 import {
@@ -109,7 +111,7 @@ export async function getActiveBranches() {
       },
     });
 
-    // Map to coordinates for the map (mock logic for now, or use real branch meta if added)
+    // Map to coordinates for the map
     const coordinates: Record<
       string,
       { x: number; y: number; region: string; city: string }
@@ -120,6 +122,38 @@ export async function getActiveBranches() {
       baguio: { x: 38, y: 22, region: "Cordillera", city: "Baguio City" },
       iloilo: { x: 48, y: 68, region: "Western Visayas", city: "Iloilo City" },
       malolos: { x: 41, y: 33, region: "Central Luzon", city: "Malolos City" },
+      "agapay-qc-central": { x: 44, y: 34, region: "NCR", city: "Quezon City" },
+      "agapay-makati-cbd": { x: 43.5, y: 36, region: "NCR", city: "Makati" },
+      "agapay-tarlac": {
+        x: 39,
+        y: 27,
+        region: "Central Luzon",
+        city: "Tarlac City",
+      },
+      "agapay-bulacan-north": {
+        x: 40,
+        y: 31,
+        region: "Central Luzon",
+        city: "Bulacan",
+      },
+      "agapay-cavite-south": {
+        x: 41,
+        y: 39,
+        region: "CALABARZON",
+        city: "Cavite",
+      },
+      "agapay-pampanga": {
+        x: 39.5,
+        y: 29,
+        region: "Central Luzon",
+        city: "Pampanga",
+      },
+      "agapay-davao-hub": {
+        x: 76,
+        y: 86,
+        region: "Davao Region",
+        city: "Davao City",
+      },
     };
 
     return branches.map((b) => ({
@@ -248,19 +282,62 @@ export async function createBranch(
   await requireSuperadminSession();
 
   try {
-    const branch = await prisma.tenant.create({
-      data: {
-        name,
-        slug,
-        tenant_group_id: groupId,
-        entitlement_status: "prospect",
-      },
+    const branch = await prisma.$transaction(async (tx) => {
+      const b = await tx.tenant.create({
+        data: {
+          name,
+          slug,
+          tenant_group_id: groupId,
+          entitlement_status: "prospect",
+        },
+      });
+
+      // B: Provision Physical Schema (Side Effect)
+      // Note: In serverless, we must be careful with long-running DDL.
+      // We will create the schema but the full table injection might be done via a separate 'provision' action in a real system.
+      // For this SaaS model, we run it here.
+      await tx.$executeRawUnsafe(`CREATE SCHEMA IF NOT EXISTS "${slug}"`);
+
+      try {
+        const sqlPath = path.resolve(process.cwd(), "prisma/init.sql");
+        if (fs.existsSync(sqlPath)) {
+          const sqlRaw = fs.readFileSync(sqlPath, "utf8");
+          const sqlLines = sqlRaw
+            .replace(
+              /CREATE SCHEMA IF NOT EXISTS "public";/g,
+              "-- schema public already exists",
+            )
+            .split(";")
+            .filter((line) => line.trim().length > 0);
+
+          for (const sql of sqlLines) {
+            try {
+              // Prepend search path for safety
+              await tx.$executeRawUnsafe(
+                `SET search_path TO "${slug}"; ${sql}`,
+              );
+            } catch (err: any) {
+              // Ignore already exists errors during secondary provisioning
+              if (!err.message.includes("already exists")) {
+                console.warn(`DDL line failed for ${slug}:`, err.message);
+              }
+            }
+          }
+        }
+      } catch (ddlErr) {
+        console.error("DDL Provisioning failed:", ddlErr);
+      }
+
+      return b;
     });
 
     return { success: true, data: branch };
-  } catch (error) {
+  } catch (error: any) {
     console.error("Failed to create branch:", error);
-    return { success: false, error: "Failed to create branch." };
+    return {
+      success: false,
+      error: error.message || "Failed to create branch.",
+    };
   }
 }
 

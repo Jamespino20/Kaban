@@ -35,85 +35,81 @@ export function BranchNetworkMap({ branches = [] }: { branches?: Branch[] }) {
     <div className="relative w-full max-w-4xl mx-auto grid grid-cols-1 lg:grid-cols-5 gap-12 items-center py-12">
       <div className="lg:col-span-3 relative aspect-[3/4] bg-white rounded-[3rem] p-8 shadow-2xl shadow-emerald-500/10 border border-slate-100 overflow-hidden group">
         {/* Simplified SVG PH Map background */}
+        {/* Enhanced Stylized PH Map background */}
         <svg
           viewBox="0 0 100 100"
-          className="w-full h-full text-slate-100 fill-current transition-all duration-700 group-hover:scale-[1.02]"
+          className="w-full h-full text-slate-100 fill-current transition-all duration-700 group-hover:scale-[1.03]"
         >
-          {/* Luzon */}
+          <defs>
+            <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+              <feGaussianBlur stdDeviation="1.5" result="blur" />
+              <feComposite in="SourceGraphic" in2="blur" operator="over" />
+            </filter>
+            <linearGradient id="islandGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stopColor="currentColor" stopOpacity="0.4" />
+              <stop offset="100%" stopColor="currentColor" stopOpacity="0.1" />
+            </linearGradient>
+          </defs>
+
+          {/* Luzon - More Detailed */}
           <path
-            d="M40 10 C 55 8, 55 25, 48 35 C 55 45, 60 52, 52 58 C 45 62, 35 55, 40 45 C 32 38, 30 25, 35 15 Z"
-            className="opacity-25 text-emerald-300 drop-shadow-sm"
-          />
-          {/* Palawan */}
-          <path
-            d="M32 50 C 37 55, 18 78, 12 72 C 8 68, 27 45, 32 50 Z"
-            className="opacity-20 text-emerald-400 drop-shadow-sm"
-          />
-          {/* Visayas Islands */}
-          <path
-            d="M50 60 C 58 55, 65 65, 55 70 C 48 72, 42 65, 50 60 Z"
-            className="opacity-20 text-emerald-400"
-          />
-          <path
-            d="M68 55 C 75 52, 85 62, 75 68 C 65 72, 60 62, 68 55 Z"
-            className="opacity-25 text-emerald-400"
-          />
-          <path
-            d="M45 68 C 50 65, 55 70, 50 75 C 42 78, 38 72, 45 68 Z"
-            className="opacity-20 text-emerald-300"
-          />
-          {/* Mindanao */}
-          <path
-            d="M55 75 C 75 70, 85 80, 90 90 C 85 102, 60 98, 55 90 C 48 85, 45 80, 55 75 Z"
-            className="opacity-30 text-emerald-500 drop-shadow-sm"
+            d="M38 8 L45 5 L55 6 L58 12 L52 25 L58 35 L52 45 L55 52 L48 58 L40 55 L38 48 L35 35 L33 25 L34 15 Z"
+            className="text-emerald-300 drop-shadow-md transition-all duration-500"
+            fill="url(#islandGrad)"
+            style={{ filter: "url(#glow)" }}
           />
 
-          {/* Grid lines for aesthetic */}
-          <line
-            x1="0"
-            y1="20"
-            x2="100"
-            y2="20"
-            stroke="rgba(16, 185, 129, 0.1)"
-            strokeWidth="0.2"
-            strokeDasharray="1,2"
+          {/* Palawan */}
+          <path
+            d="M30 48 L35 52 L28 65 L22 75 L15 80 L12 75 L20 62 L25 55 Z"
+            className="text-emerald-400 opacity-60"
+            fill="url(#islandGrad)"
           />
-          <line
-            x1="0"
-            y1="50"
-            x2="100"
-            y2="50"
-            stroke="rgba(16, 185, 129, 0.1)"
-            strokeWidth="0.2"
-            strokeDasharray="1,2"
+
+          {/* Visayas Cluster */}
+          <path
+            d="M52 55 L58 52 L65 55 L68 62 L62 68 L55 65 Z"
+            className="text-emerald-400 opacity-70"
+            fill="url(#islandGrad)"
           />
-          <line
-            x1="0"
-            y1="80"
-            x2="100"
-            y2="80"
-            stroke="rgba(16, 185, 129, 0.1)"
-            strokeWidth="0.2"
-            strokeDasharray="1,2"
+          <path
+            d="M68 58 L75 56 L82 60 L80 68 L72 70 L68 65 Z"
+            className="text-emerald-300 opacity-60"
+            fill="url(#islandGrad)"
           />
-          <line
-            x1="30"
-            y1="0"
-            x2="30"
-            y2="100"
-            stroke="rgba(16, 185, 129, 0.1)"
-            strokeWidth="0.2"
-            strokeDasharray="1,2"
+          <path
+            d="M48 65 L55 68 L52 75 L45 78 L42 72 Z"
+            className="text-emerald-300 opacity-70"
+            fill="url(#islandGrad)"
           />
-          <line
-            x1="70"
-            y1="0"
-            x2="70"
-            y2="100"
-            stroke="rgba(16, 185, 129, 0.1)"
-            strokeWidth="0.2"
-            strokeDasharray="1,2"
+
+          {/* Mindanao */}
+          <path
+            d="M52 75 L65 72 L78 72 L85 78 L92 85 L88 95 L75 98 L60 95 L52 88 L48 82 Z"
+            className="text-emerald-500 drop-shadow-xl transition-all duration-500"
+            fill="url(#islandGrad)"
+            style={{ filter: "url(#glow)" }}
           />
+
+          {/* Connectors/Network Lines */}
+          {displayBranches.length > 1 && activeBranch && (
+            <g className="opacity-40">
+              {displayBranches
+                .filter((b) => b.id !== activeBranch.id)
+                .slice(0, 3)
+                .map((b) => (
+                  <path
+                    key={`line-${b.id}`}
+                    d={`M${activeBranch.x} ${activeBranch.y} Q${(activeBranch.x + b.x) / 2} ${Math.min(activeBranch.y, b.y) - 10} ${b.x} ${b.y}`}
+                    stroke="url(#islandGrad)"
+                    strokeWidth="0.5"
+                    fill="none"
+                    strokeDasharray="2,2"
+                    className="animate-pulse"
+                  />
+                ))}
+            </g>
+          )}
 
           {/* Branch Pins */}
           {displayBranches.map((branch) => (
@@ -123,47 +119,66 @@ export function BranchNetworkMap({ branches = [] }: { branches?: Branch[] }) {
               onClick={() => setActiveBranch(branch)}
               onMouseEnter={() => setActiveBranch(branch)}
             >
+              {/* Animation Layer */}
               <circle
                 cx={branch.x}
                 cy={branch.y}
-                r="3"
+                r="5"
+                className={`fill-emerald-400/20 transition-all duration-500 ${
+                  activeBranch?.id === branch.id
+                    ? "scale-150 opacity-100"
+                    : "scale-100 opacity-0 group-hover/pin:opacity-50"
+                }`}
+              />
+              {/* Outer Ring */}
+              <circle
+                cx={branch.x}
+                cy={branch.y}
+                r={activeBranch?.id === branch.id ? "3.5" : "2.5"}
                 className={`transition-all duration-300 ${
                   activeBranch?.id === branch.id
-                    ? "fill-emerald-600 r-[4]"
-                    : "fill-emerald-400/50"
+                    ? "fill-emerald-600"
+                    : "fill-emerald-400 group-hover/pin:fill-emerald-500"
                 }`}
               />
+              {/* Inner Core */}
               <circle
                 cx={branch.x}
                 cy={branch.y}
-                r="1.5"
-                className="fill-white"
+                r="1"
+                className="fill-white shadow-sm"
               />
-              {/* Pulse effect for active/hover */}
-              <circle
-                cx={branch.x}
-                cy={branch.y}
-                r="6"
-                className={`fill-emerald-500/20 animate-ping transition-all ${
-                  activeBranch?.id === branch.id ? "opacity-100" : "opacity-0"
-                }`}
-              />
+              {/* Ripple */}
+              {activeBranch?.id === branch.id && (
+                <circle
+                  cx={branch.x}
+                  cy={branch.y}
+                  r="8"
+                  className="fill-none stroke-emerald-500/30 stroke-1 animate-ping"
+                />
+              )}
             </g>
           ))}
         </svg>
 
-        <div className="absolute top-8 left-8">
-          <h3 className="text-2xl font-black italic text-slate-900 tracking-tight">
-            Nationwide Presence
+        <div className="absolute top-10 left-10">
+          <div className="flex items-center gap-3 mb-2">
+            <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+            <span className="text-[10px] font-bold text-emerald-600 uppercase tracking-[0.2em]">
+              Real-time Network
+            </span>
+          </div>
+          <h3 className="text-3xl font-black italic text-slate-900 tracking-tighter leading-none">
+            Agapay Map
           </h3>
-          <p className="text-slate-500 font-medium text-sm">
-            Our growing cooperative network.
+          <p className="text-slate-500 font-bold text-xs mt-2 italic">
+            Connecting communities nationwide.
           </p>
         </div>
 
-        <div className="absolute bottom-8 right-8 flex items-center gap-2 text-xs font-bold text-emerald-600 bg-emerald-50 px-3 py-1.5 rounded-full border border-emerald-100 animate-bounce cursor-default">
-          <MapPin className="w-3 h-3" />
-          Click the branches on the map
+        <div className="absolute bottom-10 right-10 flex items-center gap-3 text-[10px] font-black uppercase tracking-widest text-emerald-700 bg-white/80 backdrop-blur-md px-5 py-2.5 rounded-2xl border border-emerald-100 shadow-lg shadow-emerald-900/5 cursor-default group-hover:translate-x-[-10px] transition-transform">
+          <MapPin className="w-3.5 h-3.5" />
+          Select a Branch
         </div>
       </div>
 

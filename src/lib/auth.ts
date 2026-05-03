@@ -49,11 +49,12 @@ const getNextAuth = () => {
 
             // Fetch user with strict tenant scoping
             const users = await sql`
-              SELECT user_id, tenant_id, username, email, password_hash, 
-                     role, status, member_code
-              FROM users
-              WHERE (tenant_id = ${parsedTenantId} OR (tenant_id IS NULL AND ${parsedTenantId === null}))
-              AND (email = ${username} OR username = ${username})
+              SELECT u.user_id, u.tenant_id, u.username, u.email, u.password_hash, 
+                     u.role, u.status, u.member_code, t.slug as tenant_slug
+              FROM users u
+              LEFT JOIN tenants t ON u.tenant_id = t.tenant_id
+              WHERE (u.tenant_id = ${parsedTenantId} OR (u.tenant_id IS NULL AND ${parsedTenantId === null}))
+              AND (u.email = ${username} OR u.username = ${username})
               LIMIT 1
             `;
 
@@ -152,6 +153,7 @@ const getNextAuth = () => {
                 email: user.email,
                 role: user.role,
                 tenantId: user.tenant_id,
+                tenantSlug: user.tenant_slug,
                 accessibleTenantIds,
               };
             }

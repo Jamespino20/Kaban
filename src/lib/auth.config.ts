@@ -34,6 +34,7 @@ export const authConfig = {
       if (user) {
         token.role = user.role;
         token.tenantId = user.tenantId;
+        token.tenantSlug = user.tenantSlug;
         token.username = user.username;
         token.user_id = user.user_id;
         token.email = user.email;
@@ -78,11 +79,12 @@ export const authConfig = {
             if (isSuperadmin) {
               if (switchingToGlobal) {
                 token.tenantId = null;
+                token.tenantSlug = "main";
                 return token;
               }
 
               const tenants = await sql`
-                SELECT tenant_id
+                SELECT tenant_id, slug
                 FROM tenants
                 WHERE tenant_id = ${targetTenantId}
                 AND is_active = true
@@ -91,22 +93,25 @@ export const authConfig = {
 
               if (tenants && tenants.length > 0) {
                 token.tenantId = targetTenantId;
+                token.tenantSlug = tenants[0].slug;
               }
 
               return token;
             }
 
             const users = await sql`
-              SELECT user_id, tenant_id, username, email, role
-              FROM users
-              WHERE tenant_id = ${targetTenantId}
-              AND email = ${token.email}
+              SELECT u.user_id, u.tenant_id, u.username, u.email, u.role, t.slug as tenant_slug
+              FROM users u
+              LEFT JOIN tenants t ON u.tenant_id = t.tenant_id
+              WHERE u.tenant_id = ${targetTenantId}
+              AND u.email = ${token.email}
               LIMIT 1
             `;
 
             if (users && users.length > 0) {
               const u = users[0];
               token.tenantId = u.tenant_id;
+              token.tenantSlug = u.tenant_slug;
               token.role = u.role;
               token.username = u.username;
               token.user_id = u.user_id;
@@ -127,6 +132,10 @@ export const authConfig = {
       }
       session.user.tenantId =
         typeof token?.tenantId === "number" ? (token.tenantId as number) : null;
+      session.user.tenantSlug =
+        typeof token?.tenantSlug === "string"
+          ? (token.tenantSlug as string)
+          : null;
       if (token?.username) {
         session.user.username = token.username as string;
       }

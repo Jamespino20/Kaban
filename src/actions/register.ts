@@ -47,12 +47,7 @@ export const register = async (values: z.infer<typeof RegisterSchema>) => {
     return { error: "Invalid fields!" };
   }
 
-  const {
-    password,
-    maritalStatus,
-    birthdate,
-    tenantId,
-  } = validatedFields.data;
+  const { password, maritalStatus, birthdate, tenantId } = validatedFields.data;
   const email = validatedFields.data.email.trim().toLowerCase();
   const username = validatedFields.data.username.trim();
   const firstName = validatedFields.data.firstName.trim();
@@ -100,8 +95,7 @@ export const register = async (values: z.infer<typeof RegisterSchema>) => {
     targetTenant.entitlement_status !== "active"
   ) {
     return {
-      error:
-        "Hindi pa available ang branch na ito para sa bagong registrations.",
+      error: "This branch is not yet available for new registrations.",
     };
   }
 
@@ -225,7 +219,7 @@ export const register = async (values: z.infer<typeof RegisterSchema>) => {
     ) {
       return {
         error:
-          "May isang detalye o uploaded document na masyadong mahaba para ma-save. Pakisubukang bawasan ang address fields o gumamit ng mas maliit na uploaded image.",
+          "A detail or uploaded document is too large to save. Please try reducing address fields or using a smaller image.",
       };
     }
 

@@ -17,6 +17,8 @@ import { neonConfig } from "@neondatabase/serverless";
 import bcrypt from "bcryptjs";
 import { faker } from "@faker-js/faker";
 import ws from "ws";
+import fs from "fs";
+import path from "path";
 import { getDbUrl } from "../src/lib/db-url";
 
 const connectionString = getDbUrl();
@@ -55,6 +57,145 @@ const correlatedDate = (
   d.setDate(d.getDate() + daysOffset + rand(-jitterDays, jitterDays));
   return d;
 };
+
+// ── FRANCHISING PIVOT: MULTI-SCHEMA PROVISIONER ──
+// This function isolates tenant data by creating a dedicated schema for each tenant.
+// 1. Drops/Create schema (fresh start)
+// 2. Replays DDL from init.sql into the tenant schema
+// 3. Qualifies local refs (enums, tables) to use tenant schema
+// 4. Qualifies global refs (tenants) to use public schema
+// 5. Creates views for global tables to allow "SELECT * FROM tenants"
+async function provisionBranchSchema(client: any, tenant: any) {
+  const slug = tenant.slug;
+  console.log(`🏗️  Provisioning isolated schema: [${slug}]`);
+
+  // 1. Schema Setup: Ensure fresh slate
+  await client.$executeRawUnsafe(`DROP SCHEMA IF EXISTS "${slug}" CASCADE`);
+  await client.$executeRawUnsafe(`CREATE SCHEMA "${slug}"`);
+  // Set search_path so FKs in DDL (REFERENCES "users") resolve to the local schema
+  await client.$executeRawUnsafe(`SET search_path TO "${slug}", public`);
+
+  const initSqlPath = path.join(process.cwd(), "prisma/init.sql");
+  const initSqlRaw = fs.readFileSync(initSqlPath, "utf8");
+
+  // Global tables that MUST remain in public (not replicated in branch schema)
+  const GLOBAL_TABLES = [
+    "tenants",
+    "tenant_groups",
+    "subscription_plans",
+    "tenant_subscriptions",
+  ];
+
+  // Parse and Replay DDL
+  const statements = initSqlRaw.split(";").filter((s) => s.trim().length > 0);
+
+  console.log(`📜 Injecting isolated DDL into [${slug}]...`);
+  for (let sql of statements) {
+    const trimmed = sql.trim();
+    if (!trimmed) continue;
+
+    try {
+      // A. Skip public schema init
+      if (trimmed.includes('CREATE SCHEMA IF NOT EXISTS "public"')) continue;
+
+      // B. Skip global table definitions (they exist in public)
+      const isGlobalAction = GLOBAL_TABLES.some(
+        (t) =>
+          trimmed.includes(`TABLE "${t}"`) ||
+          trimmed.includes(`INDEX "${t}_`) ||
+          trimmed.includes(`ON "${t}"`),
+      );
+      if (isGlobalAction) continue;
+
+      // C. Handle Enums: Create as Type in Branch Schema
+      if (trimmed.includes("CREATE TYPE")) {
+        const qualifiedEnum = trimmed.replace(
+          /CREATE TYPE "([^"]+)"/g,
+          `CREATE TYPE "${slug}"."$1"`,
+        );
+        await client.$executeRawUnsafe(qualifiedEnum);
+        continue;
+      }
+
+      // D. Handle Tables/Indexes: Qualify with Branch Schema
+      if (
+        trimmed.includes("CREATE TABLE") ||
+        trimmed.includes("ALTER TABLE") ||
+        trimmed.includes("CREATE UNIQUE INDEX") ||
+        trimmed.includes("CREATE INDEX")
+      ) {
+        let qualified = trimmed;
+
+        // Target table/alter
+        qualified = qualified.replace(
+          /CREATE TABLE "([^"]+)"/g,
+          `CREATE TABLE "${slug}"."$1"`,
+        );
+        qualified = qualified.replace(
+          /ALTER TABLE "([^"]+)"/g,
+          `ALTER TABLE "${slug}"."$1"`,
+        );
+        qualified = qualified.replace(
+          /CREATE (UNIQUE )?INDEX "([^"]+)" ON "([^"]+)"/g,
+          `CREATE $1 INDEX "$2" ON "${slug}"."$3"`,
+        );
+
+        // E. Fix References: Local vs Global
+        // Global: Point FKs to public (e.g. REFERENCES "tenants" -> REFERENCES public."tenants")
+        for (const gt of GLOBAL_TABLES) {
+          const regex = new RegExp(`REFERENCES "${gt}"`, "g");
+          qualified = qualified.replace(regex, `REFERENCES public."${gt}"`);
+        }
+
+        // F. Fix Types: Use local branch enums
+        // Note: This assumes init.sql doesn't use schema-prefixed types yet.
+        const enumNames = [
+          "Role",
+          "MaritalStatus",
+          "InterestTier",
+          "UserStatus",
+          "DocumentType",
+          "VerificationStatus",
+          "LoanStatus",
+          "ScheduleStatus",
+          "PaymentStatus",
+          "GuaranteeStatus",
+          "LedgerAccountType",
+          "AccountType",
+          "TransactionType",
+          "RepaymentFrequency",
+          "CompassionActionType",
+          "CompassionStatus",
+          "ConversationType",
+          "MentorshipStatus",
+          "NotificationType",
+          "NotificationChannel",
+          "TenantEntitlementStatus",
+          "BillingCycle",
+        ];
+        for (const enm of enumNames) {
+          const regex = new RegExp(`"${enm}"`, "g");
+          qualified = qualified.replace(regex, `"${slug}"."${enm}"`);
+        }
+
+        await client.$executeRawUnsafe(qualified);
+      }
+    } catch (err: any) {
+      console.error(`      ❌ DDL Error in [${slug}]: ${err.message}`);
+      console.error(`      SQL: ${trimmed.substring(0, 200)}...`);
+      throw err;
+    }
+  }
+
+  // G. Create Views: Expose Global Tables in Branch Schema
+  // This allows "SELECT * FROM tenants" inside the branch to work via view
+  console.log(`🌐 Mapping global tables as views in [${slug}]...`);
+  for (const table of GLOBAL_TABLES) {
+    await client.$executeRawUnsafe(
+      `CREATE OR REPLACE VIEW "${slug}"."${table}" AS SELECT * FROM public."${table}"`,
+    );
+  }
+}
 
 const normalizeNamePart = (value: string) =>
   value.toLowerCase().replace(/[^a-z0-9]+/g, "");
@@ -102,6 +243,12 @@ const REGIONS = [
 ];
 
 const BRANCHES = [
+  {
+    name: "Malolos Main",
+    slug: "malolos",
+    groupIdx: 0,
+    color: "#2563eb",
+  },
   {
     name: "Quezon City Central",
     slug: "agapay-qc-central",
@@ -393,7 +540,10 @@ interface SeededUser {
   username: string;
 }
 
-async function seedAdmins(ctx: TenantContext): Promise<SeededUser[]> {
+async function seedAdmins(
+  client: any, // Supports PrismaClient or TransactionClient
+  ctx: TenantContext,
+): Promise<SeededUser[]> {
   const count = 2; // Fixed as requested
   const admins: SeededUser[] = [];
   for (let i = 0; i < count; i++) {
@@ -407,7 +557,7 @@ async function seedAdmins(ctx: TenantContext): Promise<SeededUser[]> {
       "admin",
       i,
     );
-    const user = await prisma.user.create({
+    const user = await client.user.create({
       data: {
         username: identity.username,
         email: identity.email,
@@ -439,7 +589,10 @@ async function seedAdmins(ctx: TenantContext): Promise<SeededUser[]> {
   return admins;
 }
 
-async function seedLenders(ctx: TenantContext): Promise<SeededUser[]> {
+async function seedLenders(
+  client: any,
+  ctx: TenantContext,
+): Promise<SeededUser[]> {
   const count = 4; // Fixed as requested (2 per admin)
   const lenders: SeededUser[] = [];
   const lenderOrgs = [
@@ -459,7 +612,7 @@ async function seedLenders(ctx: TenantContext): Promise<SeededUser[]> {
       "lender",
       i,
     );
-    const user = await prisma.user.create({
+    const user = await client.user.create({
       data: {
         username: identity.username,
         email: identity.email,
@@ -492,7 +645,10 @@ async function seedLenders(ctx: TenantContext): Promise<SeededUser[]> {
   return lenders;
 }
 
-async function seedMembers(ctx: TenantContext): Promise<SeededUser[]> {
+async function seedMembers(
+  client: any,
+  ctx: TenantContext,
+): Promise<SeededUser[]> {
   const count = 6; // Fixed as requested
   const members: SeededUser[] = [];
   for (let i = 0; i < count; i++) {
@@ -512,7 +668,7 @@ async function seedMembers(ctx: TenantContext): Promise<SeededUser[]> {
     );
     const status =
       i < count - 2 ? "active" : pick(["active", "pending"] as const);
-    const user = await prisma.user.create({
+    const user = await client.user.create({
       data: {
         username: identity.username,
         email: identity.email,
@@ -586,6 +742,7 @@ async function seedMembers(ctx: TenantContext): Promise<SeededUser[]> {
 }
 
 async function seedLoansWithSchedulesAndPayments(
+  client: any,
   ctx: TenantContext,
   members: SeededUser[],
   staff: SeededUser[],
@@ -648,7 +805,7 @@ async function seedLoansWithSchedulesAndPayments(
           ? pesos(totalPayable * 0.4, totalPayable * 0.9)
           : pesos(0, totalPayable);
 
-    const loan = await prisma.loan.create({
+    const loan = await client.loan.create({
       data: {
         tenant_id: ctx.tenantId,
         user_id: borrower.user_id,
@@ -732,9 +889,9 @@ async function seedLoansWithSchedulesAndPayments(
       }
 
       // BATCH insert schedules and payments
-      await prisma.loanSchedule.createMany({ data: schedBatch });
+      await client.loanSchedule.createMany({ data: schedBatch });
       if (payBatch.length > 0) {
-        await prisma.payment.createMany({ data: payBatch });
+        await client.payment.createMany({ data: payBatch });
       }
     }
 
@@ -761,7 +918,7 @@ async function seedLoansWithSchedulesAndPayments(
         });
       }
       try {
-        await prisma.loanGuarantee.createMany({ data: gBatch });
+        await client.loanGuarantee.createMany({ data: gBatch });
       } catch {
         /* skip dup */
       }
@@ -769,7 +926,7 @@ async function seedLoansWithSchedulesAndPayments(
   }
 }
 
-async function seedSocialGraph(members: SeededUser[]) {
+async function seedSocialGraph(client: any, members: SeededUser[]) {
   const vouchCount = rand(5, 10);
   const batch = [];
   for (let v = 0; v < vouchCount; v++) {
@@ -784,13 +941,16 @@ async function seedSocialGraph(members: SeededUser[]) {
     });
   }
   try {
-    await prisma.socialVouch.createMany({ data: batch, skipDuplicates: true });
+    await client.socialVouch.createMany({ data: batch, skipDuplicates: true });
   } catch {
     /* skip */
   }
 }
-
-async function seedAuditLogs(ctx: TenantContext, staff: SeededUser[]) {
+async function seedAuditLogs(
+  client: PrismaClient,
+  ctx: TenantContext,
+  staff: SeededUser[],
+) {
   const ACTIONS = [
     { action: "USER_REGISTERED", entity: "User" },
     { action: "LOAN_APPLIED", entity: "Loan" },
@@ -820,19 +980,23 @@ async function seedAuditLogs(ctx: TenantContext, staff: SeededUser[]) {
       }),
     });
   }
-  await prisma.auditLog.createMany({ data: batch });
+  await client.auditLog.createMany({ data: batch });
 }
 
 // ═══════════════════════════════════════════════
 // MAIN TENANT SEEDER (modular)
 // ═══════════════════════════════════════════════
 async function seedTenant(
-  tenant: { tenant_id: number; name: string; slug: string },
+  client: any,
+  tenant: any,
   branchIdx: number,
   regionIdx: number,
-  hashedPassword: string,
-  hashedAdmin: string,
+  hashedPassword: any,
+  hashedAdmin: any,
 ) {
+  // Ensure we operate in the isolated schema context
+  await client.$executeRawUnsafe(`SET search_path TO "${tenant.slug}"`);
+
   const ctx: TenantContext = {
     tenantId: tenant.tenant_id,
     tenantName: tenant.name,
@@ -846,9 +1010,9 @@ async function seedTenant(
   };
 
   console.log(`\n📍 Seeding: ${tenant.name}`);
-  const admins = await seedAdmins(ctx);
-  const lenders = await seedLenders(ctx);
-  const members = await seedMembers(ctx);
+  const admins = await seedAdmins(client, ctx);
+  const lenders = await seedLenders(client, ctx);
+  const members = await seedMembers(client, ctx);
   const staff = [...admins, ...lenders];
 
   console.log(
@@ -858,7 +1022,7 @@ async function seedTenant(
   // Products
   const products = [];
   for (const p of PRODUCTS) {
-    const prod = await prisma.loanProduct.create({
+    const prod = await client.loanProduct.create({
       data: {
         name: p.name,
         description: p.desc,
@@ -874,36 +1038,35 @@ async function seedTenant(
   }
 
   // Payment methods for mock money flow
-  const paymentMethods = await prisma.$transaction([
-    prisma.paymentMethod.create({
-      data: {
-        provider_name: `${tenant.name} Branch Cashier`,
-        account_number: `CASH-${ctx.tenantId}`,
-        tenant_id: ctx.tenantId,
-      },
-    }),
-    prisma.paymentMethod.create({
-      data: {
-        provider_name: "GCash Transfer",
-        account_number: `09${rand(10, 99)}-${rand(100, 999)}-${rand(1000, 9999)}`,
-        tenant_id: ctx.tenantId,
-      },
-    }),
-    prisma.paymentMethod.create({
-      data: {
-        provider_name: "Bank Transfer",
-        account_number: `ACCT-${ctx.tenantId}-${rand(1000, 9999)}`,
-        tenant_id: ctx.tenantId,
-      },
-    }),
-    prisma.paymentMethod.create({
-      data: {
-        provider_name: "Field Collection",
-        account_number: `FIELD-${ctx.tenantId}`,
-        tenant_id: ctx.tenantId,
-      },
-    }),
-  ]);
+  const p1 = await client.paymentMethod.create({
+    data: {
+      provider_name: `${tenant.name} Branch Cashier`,
+      account_number: `CASH-${ctx.tenantId}`,
+      tenant_id: ctx.tenantId,
+    },
+  });
+  const p2 = await client.paymentMethod.create({
+    data: {
+      provider_name: "GCash Transfer",
+      account_number: `09${rand(10, 99)}-${rand(100, 999)}-${rand(1000, 9999)}`,
+      tenant_id: ctx.tenantId,
+    },
+  });
+  const p3 = await client.paymentMethod.create({
+    data: {
+      provider_name: "Bank Transfer",
+      account_number: `ACCT-${ctx.tenantId}-${rand(1000, 9999)}`,
+      tenant_id: ctx.tenantId,
+    },
+  });
+  const p4 = await client.paymentMethod.create({
+    data: {
+      provider_name: "Field Collection",
+      account_number: `FIELD-${ctx.tenantId}`,
+      tenant_id: ctx.tenantId,
+    },
+  });
+  const paymentMethods = [p1, p2, p3, p4];
 
   // Savings (batch)
   const savingsBatch = members.map((m) => ({
@@ -918,12 +1081,13 @@ async function seedTenant(
     account_type: AccountType.personal_wallet,
     balance: pesos(100, 3000),
   }));
-  await prisma.savingsAccount.createMany({
+  await client.savingsAccount.createMany({
     data: [...savingsBatch, ...walletBatch],
   });
 
   // Loans + schedules + payments (with behavior engine)
   await seedLoansWithSchedulesAndPayments(
+    client,
     ctx,
     members,
     staff,
@@ -932,10 +1096,10 @@ async function seedTenant(
   );
 
   // Social graph
-  await seedSocialGraph(members);
+  await seedSocialGraph(client, members);
 
   // Audit logs
-  await seedAuditLogs(ctx, staff);
+  await seedAuditLogs(client, ctx, staff);
 }
 
 // ═══════════════════════════════════════════════
@@ -948,21 +1112,48 @@ async function main() {
   const hashedPassword = await bcrypt.hash("password123", 10);
   const hashedAdmin = await bcrypt.hash("admin2026!", 10);
 
+  // ── INIT PUBLIC SCHEMA ──
+  console.log("📚 Provisioning [public] schema structure...");
+  const initSqlPath = path.join(process.cwd(), "prisma/init.sql");
+  const initSqlRaw = fs.readFileSync(initSqlPath, "utf8");
+  const initSqlLines = initSqlRaw
+    .replace(
+      /CREATE SCHEMA IF NOT EXISTS "public";/g,
+      "-- skipping public init",
+    )
+    .split(";")
+    .filter((line) => line.trim().length > 0);
+
+  for (const sql of initSqlLines) {
+    try {
+      await prisma.$executeRawUnsafe(sql);
+    } catch (err: any) {
+      // Ignore "already exists" errors
+    }
+  }
+
   // ── CLEAN (transaction for safety) ──
   console.log("🧹 Cleaning database...");
+  
+  // Drop all branch schemas first to avoid FK lockups
+  const branches = [
+    "agapay-qc-central", "agapay-makati-cbd", "agapay-tarlac", "agapay-pampanga"
+  ];
+  for (const b of branches) {
+    try {
+      await prisma.$executeRawUnsafe(`DROP SCHEMA IF EXISTS "${b}" CASCADE`);
+    } catch {}
+  }
+  
   await prisma.interestAudit.deleteMany();
   await prisma.socialVouch.deleteMany();
   await prisma.businessLedger.deleteMany();
   await prisma.auditLog.deleteMany();
-  await prisma.tenantSubscription.deleteMany();
-  await prisma.subscriptionPlan.deleteMany();
-  await prisma.verificationToken.deleteMany();
-  await prisma.twoFactorToken.deleteMany();
   await prisma.loanGuarantee.deleteMany();
   await prisma.payment.deleteMany();
   await prisma.loanSchedule.deleteMany();
   await prisma.loan.deleteMany();
-  await prisma.loanProduct.deleteMany();
+  await prisma.loanProduct.deleteMany(); // Must delete BEFORE tenants
   await prisma.savingsTransaction.deleteMany();
   await prisma.savingsAccount.deleteMany();
   await prisma.paymentMethod.deleteMany();
@@ -973,6 +1164,9 @@ async function main() {
   await prisma.branchTransferRequest.deleteMany();
   await prisma.decommissionedBackup.deleteMany();
   await prisma.user.deleteMany();
+  await prisma.tenantSubscription.deleteMany();
+  await prisma.tenant.deleteMany(); // Also delete associated subscription first
+  await prisma.subscriptionPlan.deleteMany();
   await prisma.tenant.deleteMany();
   await prisma.tenantGroup.deleteMany();
   await prisma.ledgerAccount.deleteMany();
@@ -1095,13 +1289,54 @@ async function main() {
 
   // ── PER-TENANT SEEDING ──
   for (let i = 0; i < tenants.length; i++) {
-    await seedTenant(
-      tenants[i],
-      i,
-      BRANCHES[i].groupIdx,
-      hashedPassword,
-      hashedAdmin,
-    );
+    const t = tenants[i];
+    const isMain = t.slug === "malolos";
+
+    console.log(`\n🧵 Processing tenant [${t.slug}]...`);
+
+    // Specialized client for this branch schema
+    // isMain (malolos) stays in public, others use their slug-named physical schema
+    const branchAdapter = isMain
+      ? new PrismaNeon({ connectionString } as any)
+      : new PrismaNeon({ connectionString } as any, { schema: t.slug } as any);
+    const branchPrisma = new PrismaClient({ adapter: branchAdapter });
+
+    try {
+      console.log(
+        `\n🌱 Seeding branch [${t.name}] in schema [${isMain ? "public" : t.slug}]...`,
+      );
+
+      // Use a transaction to ensure search_path persists across all seeding commands
+      await branchPrisma.$transaction(
+        async (tx) => {
+          if (!isMain) {
+            await provisionBranchSchema(tx, t);
+          } else {
+            // Even for public, ensure we can see other schemas if needed (though not required here)
+            await tx.$executeRawUnsafe(`SET search_path TO public`);
+          }
+
+          // Perform seeding ON THE TRANSACTION CLIENT
+          await seedTenant(
+            tx,
+            t,
+            i,
+            BRANCHES[i].groupIdx,
+            hashedPassword,
+            hashedAdmin,
+          );
+        },
+        {
+          timeout: 60000, // Increase timeout for heavy seeding
+        },
+      );
+
+      console.log(`✅ Branch [${t.name}] completed.`);
+    } catch (err: any) {
+      console.error(`❌ Branch [${t.name}] FAILED:`, err.message);
+    } finally {
+      await branchPrisma.$disconnect();
+    }
   }
 
   // ── RANDOM MULTI-TENANCY SEEDING ──
@@ -1136,7 +1371,7 @@ async function main() {
           data: {
             username: user.username,
             email: user.email,
-            password_hash: hashedPassword,
+            password_hash: await bcrypt.hash("password123", 10),
             role: Role.member,
             tenant_id: tenantRef.tenant_id,
             status: "active",

@@ -31,8 +31,8 @@ import { Button } from "@/components/ui/button";
 
 const LoginSchema = z.object({
   tenantId: z.string().optional(), // Becomes required in step 2
-  username: z.string().min(1, "Kailangan ng username"),
-  password: z.string().min(1, "Kailangan ng password"),
+  username: z.string().min(1, "Username is required"),
+  password: z.string().min(1, "Password is required"),
   code: z.string().optional(),
 });
 
@@ -94,9 +94,9 @@ export const LoginForm = () => {
             result.code === "2fa_required"
           ) {
             setStep("2fa");
-            toast.info("I-enter ang code mula sa Google Authenticator.");
+            toast.info("Please enter the code from your Google Authenticator.");
           } else {
-            toast.error("Maling credentials or access denied.");
+            toast.error("Invalid credentials or access denied.");
             // If it failed at final login, maybe reset to step 1
             if (step === "tenant" || step === "2fa") {
               // Stay here, but clear code
@@ -104,7 +104,7 @@ export const LoginForm = () => {
             }
           }
         } else {
-          toast.success("Mabuhay! Login successful.");
+          toast.success("Welcome! Login successful.");
           // Instead of navigating to "/", we navigate to a server route that we know
           // requires authentication. This forces a server-side request where the
           // proxy middleware will intercept and route the user cleanly based on their role,
@@ -112,7 +112,7 @@ export const LoginForm = () => {
           window.location.href = "/agapay-tanaw"; // The proxy will correct this to pintig if they are a member.
         }
       } catch (error) {
-        toast.error("Nagkaroon ng error habang nag-login.");
+        toast.error("An error occurred during login.");
       }
     });
   };
@@ -122,7 +122,7 @@ export const LoginForm = () => {
       onIdentify(values);
     } else {
       if (!values.tenantId && step === "tenant") {
-        toast.error("Pumili ng branch.");
+        toast.error("Please select a branch.");
         return;
       }
       performLogin(values);
@@ -133,13 +133,13 @@ export const LoginForm = () => {
     <div className="w-full">
       <div className="flex flex-col space-y-2 text-center mb-8">
         <h1 className="text-3xl font-display font-bold italic tracking-tight text-emerald-900">
-          Mag-login na sa Agapay
+          Sign In to Agapay
         </h1>
         <p className="text-sm text-slate-500">
           {step === "credentials" &&
-            "Punan ang iyong credentials para sa account mo"}
-          {step === "tenant" && "Piliin ang branch na iyong i-aaccess"}
-          {step === "2fa" && "Kinakailangan ang second-factor authentication"}
+            "Enter your account credentials to continue"}
+          {step === "tenant" && "Select the branch you wish to access"}
+          {step === "2fa" && "Second-factor authentication is required"}
         </p>
       </div>
 
@@ -202,7 +202,7 @@ export const LoginForm = () => {
                         href="/auth/reset"
                         className="text-xs text-emerald-600 font-medium hover:underline"
                       >
-                        Nakalimutan ang Password?
+                        Forgot Password?
                       </Link>
                     </div>
                     <FormMessage />
@@ -255,7 +255,7 @@ export const LoginForm = () => {
                 className="w-full text-slate-500 hover:text-slate-700"
               >
                 <ChevronLeft className="w-4 h-4 mr-2" />
-                Teka, hindi and account na ito?
+                Wait, not this account?
               </Button>
             </div>
           )}
@@ -297,7 +297,7 @@ export const LoginForm = () => {
                   <ChevronRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
                 </>
               ) : (
-                "Iverify at Sign In"
+                "Verify and Sign In"
               )}
             </Button>
           )}

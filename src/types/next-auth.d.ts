@@ -8,6 +8,7 @@ declare module "next-auth" {
       user_id: number;
       role: string;
       tenantId: number | null;
+      tenantSlug: string | null;
       username: string;
       accessibleTenantIds: number[];
     } & DefaultSession["user"];
@@ -17,6 +18,7 @@ declare module "next-auth" {
     user_id: number;
     role: string;
     tenantId: number | null;
+    tenantSlug: string | null;
     username: string;
     accessibleTenantIds?: number[];
   }
@@ -28,6 +30,7 @@ declare module "next-auth/jwt" {
     user_id: number;
     role: string;
     tenantId: number | null;
+    tenantSlug: string | null;
     username: string;
     accessibleTenantIds?: number[];
   }

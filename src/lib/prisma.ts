@@ -79,6 +79,54 @@ const prisma = new Proxy({} as PrismaClient, {
   },
 });
 
+const branchClients: Record<string, PrismaClient> = {};
+
+/**
+ * Returns a PrismaClient scoped to a specific physical branch schema.
+ * If tenantSlug is 'main' or null, returns the global public-scoped client.
+ */
+export const getBranchPrisma = (tenantSlug: string | null) => {
+  const normalizedSlug = tenantSlug?.toLowerCase();
+
+  if (
+    !normalizedSlug ||
+    normalizedSlug === "main" ||
+    normalizedSlug === "malolos"
+  ) {
+    return prisma;
+  }
+
+  if (branchClients[normalizedSlug]) {
+    return branchClients[normalizedSlug];
+  }
+
+  // Handle production build phase safety
+  if (process.env.NEXT_PHASE === "phase-production-build") {
+    return prisma;
+  }
+
+  const rawUrl = getDbUrl();
+  if (!rawUrl) return prisma;
+
+  const baseUrl = rawUrl.replace(/["'\r\n\s]/g, "").trim();
+
+  console.log(
+    `AGAPAY_PRISMA: Initializing Branch client for [${normalizedSlug}]`,
+  );
+
+  const adapter = new PrismaNeon(
+    { connectionString: baseUrl } as any,
+    { schema: normalizedSlug } as any,
+  );
+  const client = new PrismaClient({
+    adapter,
+    log: ["error", "warn"],
+  } as any);
+
+  branchClients[normalizedSlug] = client;
+  return client;
+};
+
 if (process.env.NODE_ENV !== "production") {
   globalThis.agapay_apex_prisma = prisma;
 }

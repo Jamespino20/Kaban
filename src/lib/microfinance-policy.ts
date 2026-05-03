@@ -147,7 +147,7 @@ export function determineInterestTierFromScore(score: number): InterestTier {
 
 export function formatTierLabel(tier: InterestTier | null | undefined) {
   const policy = getTierPolicy(tier);
-  return `${policy.label} (${policy.monthlyRatePercent}% buwanan)`;
+  return `${policy.label} (${policy.monthlyRatePercent}% monthly)`;
 }
 
 export function getAvailableCreditForTier(
@@ -304,11 +304,11 @@ export function calculateMissedInstallmentPenalty(
 }
 
 export function getPenaltyPolicyCopy() {
-  return "Penalty applies only on the missed installment: 2% (1–3 araw), 5% (4–7 araw), 8% (8–14 araw), 12% (15+ araw), capped at 20% ng na-miss na hulog.";
+  return "Penalty applies only on the missed installment: 2% (1–3 days), 5% (4–7 days), 8% (8–14 days), 12% (15+ days), capped at 20% of the missed installment.";
 }
 
 export function getCompassionPolicyCopy() {
-  return "May compassion support para sa valid hardship cases: 1–2 linggong grace period, restructure, o temporary penalty freeze. Limitado ito sa isang compassion action kada loan cycle.";
+  return "Compassion support available for valid hardship cases: 1–2 weeks grace period, restructuring, or temporary penalty freeze. Limited to one compassion action per loan cycle.";
 }
 
 export function validateLoanProductPolicy({
@@ -408,7 +408,7 @@ export function evaluateOverindebtedness({
     return {
       blocked: true,
       reason:
-        "May defaulted loan record ka pa sa system. Kailangan muna itong ma-resolve bago makapag-apply muli.",
+        "You have a defaulted loan record in the system. Resolve this first before applying for a new loan.",
     };
   }
 
@@ -416,21 +416,21 @@ export function evaluateOverindebtedness({
     return {
       blocked: true,
       reason:
-        "May overdue repayment ka pa sa isa sa iyong branch accounts. Ayusin muna ito bago makapag-apply ng bagong loan.",
+        "You have an overdue repayment in one of your branch accounts. Please settle this before applying for a new loan.",
     };
   }
 
   if (activeLoanCount >= MICROFINANCE_POLICY.maxConcurrentLoansAcrossBranches) {
     return {
       blocked: true,
-      reason: `Maximum of ${MICROFINANCE_POLICY.maxConcurrentLoansAcrossBranches} concurrent loans only ang pinapayagan sa lahat ng branch accounts mo.`,
+      reason: `Maximum of ${MICROFINANCE_POLICY.maxConcurrentLoansAcrossBranches} concurrent loans allowed across all your branch accounts.`,
     };
   }
 
   if (totalOutstandingBalance >= exposureCap) {
     return {
       blocked: true,
-      reason: `Lumampas na ang kabuuang outstanding balance mo sa safe exposure threshold para sa ${tierPolicy.label} tier. Bayaran muna ang bahagi ng kasalukuyang utang bago mag-apply uli.`,
+      reason: `Your total outstanding balance exceeds the safe exposure threshold for the ${tierPolicy.label} tier. Repay part of your existing loans before applying again.`,
     };
   }
 
