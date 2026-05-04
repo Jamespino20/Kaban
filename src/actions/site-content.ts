@@ -150,7 +150,9 @@ export async function submitHomepageFaqProposal(
     const data = faqProposalSchema.parse(input);
 
     if (session.user.role === "admin" && !session.user.tenantId) {
-      return { error: "Admin branch context not found. Please log in as an admin." };
+      return {
+        error: "Admin branch context not found. Please log in as an admin.",
+      };
     }
 
     if (data.id) {
@@ -217,23 +219,9 @@ export async function submitHomepageFaqProposal(
     };
   } catch (error) {
     console.error("submitHomepageFaqProposal failed:", error);
-return { error: "Failed to submit FAQ proposal. Please try again." };
-
-    if (session.user.role === "admin" && !session.user.tenantId) {
-      return { error: "Admin branch context not found. Please log in as an admin." };
-    }
-
-    if (data.id) {
-      const existing = await prisma.homepageTestimonial.findUnique({
-        where: { id: data.id },
-      });
-      if (!existing) return { error: "Testimonial proposal not found." };
-      if (
-        session.user.role !== "superadmin" &&
-        existing.tenant_id !== session.user.tenantId
-      ) {
-        return { error: "You are not authorized to edit this proposal." };
-      }
+    return { error: "Failed to submit FAQ proposal. Please try again." };
+  }
+}
 
 export async function submitHomepageTestimonialProposal(
   input: z.infer<typeof testimonialProposalSchema>,
