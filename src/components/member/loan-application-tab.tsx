@@ -33,7 +33,7 @@ export const LoanApplicationTab = () => {
         const data = await getLoanProducts();
         setProducts(data.filter((product) => product.is_active) as LoanProductCard[]);
       } catch {
-        toast.error("Hindi ma-load ang mga produkto.");
+        toast.error("Failed to load loan products.");
       } finally {
         setLoading(false);
       }

@@ -34,7 +34,7 @@ export default async function AgapayPintigPage({
   const session = await requireAuthenticatedSession();
 
   if (session.user.role !== "member" || !session.user.tenantId) {
-    redirect("/agapay-tanaw");
+    redirect(`/${branch}/agapay-tanaw`);
   }
 
   const userName = session.user.username || "Miyembro";

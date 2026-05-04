@@ -150,19 +150,19 @@ export async function submitHomepageFaqProposal(
     const data = faqProposalSchema.parse(input);
 
     if (session.user.role === "admin" && !session.user.tenantId) {
-      return { error: "Walang tenant context ang admin account na ito." };
+      return { error: "Admin branch context not found. Please log in as an admin." };
     }
 
     if (data.id) {
       const existing = await prisma.homepageFaq.findUnique({
         where: { id: data.id },
       });
-      if (!existing) return { error: "Hindi makita ang FAQ proposal." };
+      if (!existing) return { error: "FAQ proposal not found." };
       if (
         session.user.role !== "superadmin" &&
         existing.tenant_id !== session.user.tenantId
       ) {
-        return { error: "Hindi ka puwedeng mag-edit ng proposal na ito." };
+        return { error: "You are not authorized to edit this proposal." };
       }
       if (
         session.user.role !== "superadmin" &&
@@ -217,9 +217,23 @@ export async function submitHomepageFaqProposal(
     };
   } catch (error) {
     console.error("submitHomepageFaqProposal failed:", error);
-    return { error: "Hindi maipasa ang FAQ proposal." };
-  }
-}
+return { error: "Failed to submit FAQ proposal. Please try again." };
+
+    if (session.user.role === "admin" && !session.user.tenantId) {
+      return { error: "Admin branch context not found. Please log in as an admin." };
+    }
+
+    if (data.id) {
+      const existing = await prisma.homepageTestimonial.findUnique({
+        where: { id: data.id },
+      });
+      if (!existing) return { error: "Testimonial proposal not found." };
+      if (
+        session.user.role !== "superadmin" &&
+        existing.tenant_id !== session.user.tenantId
+      ) {
+        return { error: "You are not authorized to edit this proposal." };
+      }
 
 export async function submitHomepageTestimonialProposal(
   input: z.infer<typeof testimonialProposalSchema>,

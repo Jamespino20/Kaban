@@ -142,3 +142,117 @@ export async function getEndOfDayReconciliation(
     },
   };
 }
+
+export async function resolveAndSignEndOfDay(reason?: string) {
+  const session = await requireTanawSession();
+  const tenantId = session.user.tenantId;
+
+  if (!tenantId) {
+    throw new Error("EOD sign-off requires a branch context.");
+  }
+
+  const eodData = await getEndOfDayReconciliation(undefined, tenantId);
+
+  // If healthy and balanced, we just sign off.
+  if (eodData.holdings.isTreasuryHealthy && eodData.ledger.isBalanced) {
+    await prisma.auditLog.create({
+      data: {
+        tenant_id: tenantId,
+        user_id: Number(session.user.id),
+        action: "EOD_SIGN_OFF",
+        entity_type: "RECONCILIATION",
+        new_values: { status: "BALANCED" } as any,
+      },
+    });
+    return { success: true, adjusted: false };
+  }
+
+  // Imbalance scenario
+  if (!reason || reason.trim() === "") {
+    throw new Error(
+      "An imbalance was detected. You must provide a reason for the discrepancy to generate an adjusting entry.",
+    );
+  }
+
+  if (!eodData.holdings.isTreasuryHealthy) {
+    const treasuryAccount = await prisma.ledgerAccount.findFirst({
+      where: { code: "CASH_EQUIVALENTS", tenant_id: tenantId },
+    });
+
+    if (!treasuryAccount) throw new Error("Missing treasury account.");
+
+    let discrepancyAccount = await prisma.ledgerAccount.findFirst({
+      where: { code: "RECONC_DISCREPANCY", tenant_id: tenantId },
+    });
+
+    if (!discrepancyAccount) {
+      discrepancyAccount = await prisma.ledgerAccount.create({
+        data: {
+          name: "Reconciliation Discrepancy",
+          code: "RECONC_DISCREPANCY",
+          type: "EXPENSE",
+          tenant_id: tenantId,
+        },
+      });
+    }
+
+    const diff =
+      Number(eodData.holdings.totalBranchSavings) -
+      Number(eodData.holdings.totalTreasuryBalance);
+    const transactionId = crypto.randomUUID();
+
+    const entries = [];
+    if (diff > 0) {
+      entries.push({
+        transaction_id: transactionId,
+        account_id: treasuryAccount.id,
+        debit: diff,
+        credit: 0,
+        description: `EOD Adjustment: ${reason}`,
+        created_by: Number(session.user.id),
+      });
+      entries.push({
+        transaction_id: transactionId,
+        account_id: discrepancyAccount.id,
+        debit: 0,
+        credit: diff,
+        description: `EOD Adjustment: ${reason}`,
+        created_by: Number(session.user.id),
+      });
+    } else if (diff < 0) {
+      const absDiff = Math.abs(diff);
+      entries.push({
+        transaction_id: transactionId,
+        account_id: treasuryAccount.id,
+        debit: 0,
+        credit: absDiff,
+        description: `EOD Adjustment: ${reason}`,
+        created_by: Number(session.user.id),
+      });
+      entries.push({
+        transaction_id: transactionId,
+        account_id: discrepancyAccount.id,
+        debit: absDiff,
+        credit: 0,
+        description: `EOD Adjustment: ${reason}`,
+        created_by: Number(session.user.id),
+      });
+    }
+
+    if (entries.length > 0) {
+      await prisma.businessLedger.createMany({ data: entries });
+    }
+  }
+
+  await prisma.auditLog.create({
+    data: {
+      tenant_id: tenantId,
+      user_id: Number(session.user.id),
+      action: "EOD_SIGN_OFF_WITH_ADJUSTMENT",
+      entity_type: "RECONCILIATION",
+      new_values: { status: "ADJUSTED", reason: reason } as any,
+    },
+  });
+
+  return { success: true, adjusted: true };
+}

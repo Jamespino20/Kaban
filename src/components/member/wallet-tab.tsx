@@ -13,7 +13,7 @@ import {
   Info,
   ShieldCheck,
 } from "lucide-react";
-import { depositToWallet } from "@/actions/wallet-actions";
+import { requestWalletTopUp } from "@/actions/wallet-actions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -83,12 +83,12 @@ export function WalletTab({ savings, transactions }: WalletTabProps) {
   const handleDeposit = async () => {
     const amount = parseFloat(depositAmount);
     if (isNaN(amount) || amount <= 0) {
-      toast.error("Valid na halaga ang kailangan.");
+      toast.error("Please enter a valid amount.");
       return;
     }
 
     setIsDepositing(true);
-    const result = await depositToWallet(amount);
+    const result = await requestWalletTopUp(amount);
     setIsDepositing(false);
 
     if (result.success) {
@@ -97,7 +97,7 @@ export function WalletTab({ savings, transactions }: WalletTabProps) {
       setIsDialogOpen(false);
       router.refresh();
     } else {
-      toast.error(result.error || "May error sa pagdeposito.");
+      toast.error(result.error || "Error during deposit.");
     }
   };
 
@@ -256,8 +256,9 @@ export function WalletTab({ savings, transactions }: WalletTabProps) {
               </DialogHeader>
               <div className="space-y-5 pt-4">
                 <div className="rounded-2xl border border-slate-100 bg-slate-50 px-4 py-3 text-sm text-slate-600">
-                  Ang action na ito ay para sa branch-recorded wallet top-up.
-                  Hindi ito live payment processing.
+                  Ang action na ito ay gagawa ng top-up request sa mga Admin.
+                  Hintayin ang kanilang approval bago pumasok ang pondo sa iyong
+                  wallet.
                 </div>
                 <div className="space-y-2">
                   <label className="text-xs font-black uppercase tracking-widest text-slate-400">

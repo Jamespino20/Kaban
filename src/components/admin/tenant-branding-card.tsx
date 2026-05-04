@@ -65,7 +65,7 @@ export function TenantBrandingCard({
           "Na-update ang branding settings. I-refresh para makita ang pagbabago.",
         );
       } else {
-        toast.error(result.error || "Hindi na-update ang branding.");
+        toast.error(result.error || "Failed to update branding.");
       }
     });
   };

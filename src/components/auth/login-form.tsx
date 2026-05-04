@@ -38,7 +38,13 @@ const LoginSchema = z.object({
 
 type LoginStep = "credentials" | "tenant" | "2fa";
 
-export const LoginForm = () => {
+export const LoginForm = ({
+  preselectedTenantId,
+  branchName,
+}: {
+  preselectedTenantId?: string;
+  branchName?: string;
+}) => {
   const [step, setStep] = useState<LoginStep>("credentials");
   const [showPassword, setShowPassword] = useState(false);
   const [isPending, startTransition] = useTransition();
@@ -64,6 +70,23 @@ export const LoginForm = () => {
       }
 
       if (res.tenants && res.tenants.length > 0) {
+        // If they are on a branch-specific login page, force them to use that branch if it exists in their accounts
+        if (preselectedTenantId) {
+          const hasAccess =
+            res.tenants.some(
+              (t) => t.tenant_id?.toString() === preselectedTenantId,
+            ) || res.tenants.some((t) => !t.tenant_id);
+          if (!hasAccess) {
+            toast.error(
+              `You don't have access to ${branchName || "this branch"}`,
+            );
+            return;
+          }
+          form.setValue("tenantId", preselectedTenantId);
+          performLogin({ ...values, tenantId: preselectedTenantId });
+          return;
+        }
+
         if (res.tenants.length === 1) {
           // Auto-select if only one tenant
           const tId = res.tenants[0].tenant_id?.toString() || "global";
@@ -133,7 +156,7 @@ export const LoginForm = () => {
     <div className="w-full">
       <div className="flex flex-col space-y-2 text-center mb-8">
         <h1 className="text-3xl font-display font-bold italic tracking-tight text-emerald-900">
-          Sign In to Agapay
+          Sign In to {branchName || "Agapay"}
         </h1>
         <p className="text-sm text-slate-500">
           {step === "credentials" &&

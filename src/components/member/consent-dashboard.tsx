@@ -36,10 +36,10 @@ export const ConsentDashboard = ({
     try {
       const res = await onAccept("v2026.04.29");
       if (res.success) {
-        toast.success("Tinanggap na ang Terms and Data Privacy Consent.");
+        toast.success("Terms and Data Privacy Consent accepted.");
         router.refresh();
       } else {
-        toast.error(res.error || "May nangyaring mali.");
+        toast.error(res.error || "An error occurred.");
       }
     } catch (error) {
       toast.error("An unexpected error occurred.");

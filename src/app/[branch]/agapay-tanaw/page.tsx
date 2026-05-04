@@ -41,6 +41,8 @@ import { AnalyticsDashboardTab } from "@/components/admin/analytics-dashboard-ta
 import { ReconciliationTab } from "@/components/admin/reconciliation-tab";
 import { SubscriptionSettings } from "@/components/admin/subscription-settings";
 import { SystemFileManagement } from "@/components/admin/system-file-management";
+import { TopUpQueueTab } from "@/components/admin/topup-queue-tab";
+import { getPendingTopUps } from "@/actions/wallet-actions";
 function SystemFileManagementSkeleton() {
   return (
     <div className="rounded-[1.75rem] border border-slate-100 bg-white p-6 shadow-sm space-y-6">
@@ -63,7 +65,7 @@ export default async function AgapayTanawPage({
   const session = await requireTanawSession();
 
   if (session.user.role === "member") {
-    redirect("/agapay-pintig");
+    redirect(`/${branch}/agapay-pintig`);
   }
 
   const userName = session?.user?.username || "Admin";
@@ -102,6 +104,7 @@ export default async function AgapayTanawPage({
   const pendingData = await getPendingApprovals();
   const metrics = await getDashboardMetrics();
   const trustData = await getTenantTrustMetrics();
+  const pendingTopUps = isAdmin || isSuperAdmin ? await getPendingTopUps() : [];
 
   const homepageContent = canManageHomepageContent
     ? await getHomepageContentAdmin()
@@ -148,6 +151,16 @@ export default async function AgapayTanawPage({
     },
     { value: "members", label: "Members", icon: "members" },
     { value: "files", label: "Documents", icon: "audit" },
+    ...(isAdmin || isSuperAdmin
+      ? [
+          {
+            value: "topup",
+            label: "Top-Up Queue",
+            icon: "wallet",
+            badge: pendingTopUps.length || undefined,
+          },
+        ]
+      : []),
   ];
 
   if (canViewProducts && isFeatureEnabled("advanced_products")) {
@@ -381,6 +394,12 @@ export default async function AgapayTanawPage({
         <TabsContent value="approvals" className="outline-none">
           <VerificationQueueTab data={pendingData} />
         </TabsContent>
+
+        {(isAdmin || isSuperAdmin) && (
+          <TabsContent value="topup" className="outline-none">
+            <TopUpQueueTab requests={pendingTopUps as any} />
+          </TabsContent>
+        )}
 
         <TabsContent value="members" className="outline-none">
           <MemberDirectoryTab

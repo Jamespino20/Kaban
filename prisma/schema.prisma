@@ -59,6 +59,7 @@ model Tenant {
   users                  User[]
   system_files           SystemFile[]
   tenantSubscription     TenantSubscription?
+  topup_requests         TopUpRequest[]
 
   @@map("tenants")
 }
@@ -105,6 +106,8 @@ model User {
   two_factor_auth           TwoFactorAuth?
   documents                 UserDocument[]
   system_files              SystemFile[] @relation("FileUploader")
+  topup_requests            TopUpRequest[]
+  processed_topups          TopUpRequest[] @relation("TopUpProcessor")
   profile                   UserProfile?
   tenant                    Tenant?                   @relation(fields: [tenant_id], references: [tenant_id])
 
@@ -683,6 +686,24 @@ model InterestAudit {
   loan             Loan     @relation(fields: [loan_id], references: [loan_id], onDelete: Cascade)
 
   @@map("interest_audit")
+}
+
+model TopUpRequest {
+  id           Int           @id @default(autoincrement())
+  tenant_id    Int
+  user_id      Int
+  amount       Decimal       @db.Decimal(15, 2)
+  status       PaymentStatus @default(pending)
+  receipt_url  String?       @db.VarChar(255)
+  created_at   DateTime      @default(now())
+  processed_at DateTime?
+  processed_by Int?
+
+  user         User          @relation(fields: [user_id], references: [user_id])
+  processor    User?         @relation("TopUpProcessor", fields: [processed_by], references: [user_id])
+  tenant       Tenant        @relation(fields: [tenant_id], references: [tenant_id])
+
+  @@map("topup_requests")
 }
 
 enum Role {

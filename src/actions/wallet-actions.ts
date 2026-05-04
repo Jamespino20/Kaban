@@ -14,6 +14,136 @@ import { logInteraction } from "@/lib/analytics-logger";
 
 const PERSONAL_WALLET = "personal_wallet";
 
+export async function approveWalletTopUp(requestId: number) {
+  const session = await requireAuthenticatedSession();
+  const adminId = session.user.user_id;
+  const tenantId = session.user.tenantId;
+
+  try {
+    const result = await prisma.$transaction(async (tx) => {
+      // 1. Get request
+      const request = await tx.topUpRequest.findUnique({
+        where: { id: requestId, tenant_id: tenantId || undefined },
+      });
+
+      if (!request) return { error: "Request not found." };
+      if (request.status !== "pending")
+        return { error: "Request is not pending." };
+
+      // 2. Mark approved
+      await tx.topUpRequest.update({
+        where: { id: requestId },
+        data: {
+          status: "verified",
+          processed_at: new Date(),
+          processed_by: adminId,
+        },
+      });
+
+      // 3. Update or create wallet
+      let wallet = await tx.savingsAccount.findFirst({
+        where: {
+          user_id: request.user_id,
+          tenant_id: tenantId || undefined,
+          account_type: AccountType.personal_wallet,
+        },
+      });
+
+      if (!wallet) {
+        wallet = await tx.savingsAccount.create({
+          data: {
+            user_id: request.user_id,
+            tenant_id: tenantId!,
+            account_type: AccountType.personal_wallet,
+            balance: request.amount,
+          },
+        });
+      } else {
+        wallet = await tx.savingsAccount.update({
+          where: { account_id: wallet.account_id },
+          data: { balance: { increment: request.amount } },
+        });
+      }
+
+      // 4. Log savings transaction
+      const trans = await tx.savingsTransaction.create({
+        data: {
+          account_id: wallet.account_id,
+          transaction_type: TransactionType.deposit,
+          amount: request.amount,
+          reference: `TOPUP-${requestId}`,
+          processed_by: adminId,
+        },
+      });
+
+      // 5. Post Ledger Entry: DR Cash, CR Savings
+      await postLedgerEntry(tx, {
+        description: `Wallet Top-up Verified: Req #${requestId}`,
+        createdBy: adminId,
+        metadata: { source: "topup", transactionId: trans.transaction_id },
+        entries: [
+          {
+            accountCode: "CASH_EQUIVALENTS",
+            debit: Number(request.amount),
+            credit: 0,
+          },
+          {
+            accountCode: "MEMBER_SAVINGS",
+            debit: 0,
+            credit: Number(request.amount),
+          },
+        ],
+      });
+
+      return { success: true };
+    });
+
+    if (result.error) return result;
+
+    revalidatePath("/agapay-tanaw");
+    return { success: "Top-up request successfully approved." };
+  } catch (error) {
+    console.error("approveWalletTopUp failed:", error);
+    return { error: "Failed to approve top up." };
+  }
+}
+
+export async function rejectWalletTopUp(requestId: number) {
+  const session = await requireAuthenticatedSession();
+  const adminId = session.user.user_id;
+
+  try {
+    await prisma.topUpRequest.update({
+      where: { id: requestId },
+      data: {
+        status: "rejected",
+        processed_at: new Date(),
+        processed_by: adminId,
+      },
+    });
+    revalidatePath("/agapay-tanaw");
+    return { success: "Top-up request successfully rejected." };
+  } catch (error) {
+    console.error("rejectWalletTopUp failed:", error);
+    return { error: "Failed to reject top up." };
+  }
+}
+
+export async function getPendingTopUps() {
+  const session = await requireAuthenticatedSession();
+  const tenantId = session.user.tenantId;
+
+  if (!tenantId) return [];
+
+  const requests = await prisma.topUpRequest.findMany({
+    where: { tenant_id: tenantId, status: "pending" },
+    include: { user: { include: { profile: true } } },
+    orderBy: { created_at: "asc" },
+  });
+
+  return requests;
+}
+
 export async function getMemberWallets() {
   const session = await requireAuthenticatedSession();
   const userId = session.user.user_id;
@@ -31,91 +161,33 @@ export async function getMemberWallets() {
   return accounts;
 }
 
-export async function depositToWallet(amount: number) {
+export async function requestWalletTopUp(amount: number, receiptUrl?: string) {
   const session = await requireAuthenticatedSession();
   const userId = session.user.user_id;
   const tenantId = session.user.tenantId;
 
-  if (amount <= 0) return { error: "Amount must be positive." };
+  if (amount <= 0)
+    return { error: "Deposit amount must be greater than zero." };
 
   try {
-    await prisma.$transaction(async (tx) => {
-      // 1. Ensure wallet exists
-      let wallet = await tx.savingsAccount.findFirst({
-        where: {
-          user_id: userId,
-          tenant_id: tenantId || undefined,
-          account_type: AccountType.personal_wallet,
-        },
-      });
-
-      if (!wallet) {
-        wallet = await tx.savingsAccount.create({
-          data: {
-            user_id: userId,
-            tenant_id: tenantId!,
-            account_type: AccountType.personal_wallet,
-            balance: 0,
-          },
-        });
-      }
-
-      // 2. Update balance
-      await tx.savingsAccount.update({
-        where: { account_id: wallet.account_id },
-        data: {
-          balance: { increment: new Prisma.Decimal(amount) },
-        },
-      });
-
-      // 3. Create transaction record
-      await tx.savingsTransaction.create({
-        data: {
-          account_id: wallet.account_id,
-          transaction_type: TransactionType.deposit,
-          amount: new Prisma.Decimal(amount),
-          reference: `DEP-W-${Date.now()}`,
-          processed_by: userId,
-        },
-      });
-    });
-
-    await logInteraction({
-      eventType: "WALLET_DEPOSIT",
-      tenantId,
-      userId,
-      metadata: { amount },
-    });
-
-    revalidatePath("/agapay-pintig");
-    return { success: "Naideposito na ang pondo sa iyong wallet." };
-  } catch (error) {
-    console.error("depositToWallet failed:", error);
-    return { error: "Hindi maideposito ang pondo." };
-  }
-}
-
-export async function getWalletTransactions() {
-  const session = await requireAuthenticatedSession();
-  const userId = session.user.user_id;
-
-  const transactions = await prisma.savingsTransaction.findMany({
-    where: {
-      account: {
+    await prisma.topUpRequest.create({
+      data: {
+        tenant_id: tenantId!,
         user_id: userId,
-        tenant_id: session.user.tenantId || undefined,
+        amount: new Prisma.Decimal(amount),
+        receipt_url: receiptUrl || null,
+        status: "pending",
       },
-    },
-    include: {
-      account: true,
-    },
-    orderBy: {
-      processed_at: "desc",
-    },
-    take: 10,
-  });
+    });
 
-  return transactions;
+    return {
+      success:
+        "Your top-up request has been successfully submitted. Please wait for admin approval.",
+    };
+  } catch (error) {
+    console.error("requestWalletTopUp failed:", error);
+    return { error: "Failed to process deposit request." };
+  }
 }
 
 export async function payLoanWithWallet(loanId: number, amount: number) {
@@ -123,7 +195,8 @@ export async function payLoanWithWallet(loanId: number, amount: number) {
   const userId = session.user.user_id;
   const tenantId = session.user.tenantId;
 
-  if (amount <= 0) return { error: "Halaga ay dapat positibo." };
+  if (amount <= 0)
+    return { error: "Payment amount must be greater than zero." };
 
   try {
     await prisma.$transaction(
@@ -227,13 +300,13 @@ export async function payLoanWithWallet(loanId: number, amount: number) {
     });
 
     revalidatePath("/agapay-pintig");
-    return { success: "Matagumpay na nakapagbayad gamit ang iyong wallet." };
+    return { success: "Payment successful via e-wallet." };
   } catch (error) {
     console.error("payLoanWithWallet failed:", error);
     const message =
       error instanceof Error
         ? error.message
-        : "Hindi maiproseso ang bayad gamit ang wallet.";
+        : "Unable to process payment via e-wallet.";
     return {
       error: message,
     };

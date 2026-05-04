@@ -16,8 +16,6 @@ const PUBLIC_ROUTES = [
   "/contact",
   "/privacy",
   "/terms",
-  "/auth/login",
-  "/auth/register",
 ];
 
 export default async function middleware(req: NextRequest) {
@@ -54,7 +52,7 @@ export default async function middleware(req: NextRequest) {
       `[PROXY] ${req.method} ${nextUrl.pathname} | Branch: ${urlBranchSlug} | Role: ${role} | Tenant: ${userTenantId} | TenantSlug: ${userTenantSlug}`,
     );
 
-    const isAuthRoute = nextUrl.pathname.startsWith("/auth");
+    const isAuthRoute = nextUrl.pathname.includes("/auth");
     const isLandingPage = nextUrl.pathname === "/";
 
     // If logged in and on a public/auth route, redirect to the appropriate branch dashboard
@@ -68,8 +66,30 @@ export default async function middleware(req: NextRequest) {
     }
 
     // If not logged in and trying to access a private route
-    if (!isLoggedIn) {
-      return NextResponse.redirect(new URL("/auth/login", nextUrl));
+    if (!isLoggedIn && !isAuthRoute && !isLandingPage) {
+      if (urlBranchSlug) {
+        return NextResponse.redirect(
+          new URL(`/${urlBranchSlug}/auth/login`, nextUrl),
+        );
+      }
+      // If we don't know the branch, bounce them to the global entry
+      return NextResponse.redirect(new URL("/", nextUrl));
+    }
+
+    // Tenant Isolation Guard: ensure users cannot access a different branch
+    if (
+      isLoggedIn &&
+      urlBranchSlug &&
+      !isAuthRoute &&
+      !isLandingPage &&
+      role !== "superadmin"
+    ) {
+      if (userTenantSlug && userTenantSlug !== urlBranchSlug) {
+        // Enforce physical boundary redirection
+        return NextResponse.redirect(
+          new URL(`/${userTenantSlug}/agapay-tanaw`, nextUrl),
+        );
+      }
     }
 
     // Handle cross-role or cross-tenant route protection

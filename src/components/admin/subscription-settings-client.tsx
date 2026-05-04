@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { requestSubscriptionUpgrade } from "@/actions/subscription-actions";
 import { Badge } from "@/components/ui/badge";
 import { ShieldCheck, Loader2 } from "lucide-react";
+import { toast } from "sonner";
 
 type Plan = {
   id: number;
@@ -47,14 +48,14 @@ export function SubscriptionSettingsClient({
         branchSlug,
       );
       if (res.success) {
-        alert(
+        toast.success(
           "Your subscription upgrade request has been sent to Superadmins.",
         );
       } else {
-        alert("Error: " + (res.error || "Failed to submit request."));
+        toast.error("Error: " + (res.error || "Failed to submit request."));
       }
     } catch (err) {
-      alert("System Error: May problema sa pag-proseso ng iyong kahilingan.");
+      toast.error("System Error: Unable to process your request. Please try again.");
     } finally {
       setIsLoading(null);
     }

@@ -127,7 +127,7 @@ export function CommunityTab({
         await markConversationRead(selectedConversationId);
       } catch {
         if (!cancelled) {
-          toast.error("Hindi ma-load ang conversation na ito.");
+          toast.error("Failed to load this conversation.");
         }
       }
     });
@@ -278,7 +278,7 @@ export function CommunityTab({
 
   const handleRequestMentorship = () => {
     if (!selectedMentorId) {
-      toast.error("Pumili muna ng Ka-Agapay na gusto mong lapitan.");
+      toast.error("Please select a Ka-Agapay member to chat with.");
       return;
     }
 
@@ -304,7 +304,7 @@ export function CommunityTab({
 
   const handleCreateGroup = () => {
     if (!newGroupTitle.trim()) {
-      toast.error("Maglagay muna ng malinaw na group title.");
+      toast.error("Please enter a clear group title.");
       return;
     }
 
@@ -319,7 +319,7 @@ export function CommunityTab({
         return;
       }
 
-      toast.success("Nagawa na ang group chat.");
+      toast.success("Group chat created successfully.");
       setNewGroupTitle("");
       setGroupParticipantIds([]);
       setSelectedConversationId(result.conversationId ?? null);

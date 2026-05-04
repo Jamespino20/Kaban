@@ -78,6 +78,7 @@ export default function RootLayout({
             <div className="pointer-events-none fixed right-0 top-0 z-0 h-[500px] w-[500px] translate-x-1/2 -translate-y-1/2 rounded-full bg-emerald-100/30 blur-[120px]" />
 
             <main className="relative z-10">{children}</main>
+            <Toaster position="top-right" richColors expand visibleToasts={1} />
           </div>
         </AuthProvider>
       </body>

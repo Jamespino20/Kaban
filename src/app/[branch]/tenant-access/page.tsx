@@ -26,8 +26,8 @@ export default async function TenantAccessPage({
   const { branch } = params;
   const session = await auth();
 
-  if (!session?.user?.id) {
-    redirect("/auth/login");
+  if (!session?.user) {
+    redirect(`/${branch}/auth/login`);
   }
 
   if (session.user.role === "superadmin") {
@@ -35,7 +35,7 @@ export default async function TenantAccessPage({
   }
 
   if (!session.user.tenantId) {
-    redirect("/auth/login");
+    redirect(`/${branch}/auth/login`);
   }
 
   const tenant = await prisma.tenant.findUnique({
@@ -50,9 +50,7 @@ export default async function TenantAccessPage({
 
   if (tenant && tenant.is_active && tenant.entitlement_status === "active") {
     redirect(
-      session.user.role === "member"
-        ? `/${branch}/agapay-pintig`
-        : `/${branch}/agapay-tanaw`,
+      `/${branch}/${session.user.role === "member" ? "agapay-pintig" : "agapay-tanaw"}`,
     );
   }
 

@@ -2,29 +2,34 @@ I made a PRD issue list along with the business flow audit, encompassing every a
 
 SEVERE:
 - Subscription isn't a monthly basis, it should be a one-time lifetime purchase of the branch.
-- Branch owners (admins) are not able to buy the systems.
+- Branch owners (admins) are not able to buy the systems as of right now when they should.
 - Multi-tenantness should be in a franchising manner. Photo is provided of the flow.
-- There should be a "one-database, multiple-schemas" mechanic happening in the DB, with each schema containing the same tables. tenant_id is still in effect:
+- There should be a subfolder mechanic happening in the DB, with each subfolder containing the same tables. tenant_id is still in effect:
 	agapay-neon_db
- 		├── agapay_main
- 		│     └── tenants table (only here)
- 		├── agapay_branch1
- 		├── agapay_branch2
- 		├── and so on
-- Superadmin has the ability to make a new website directory with customizable colors, logos, font, and homepage content (ensure that there is a preview panel of the changes). Superadmin and tenant admins can change their tenant branch's homepage's hero section, testimonials, FAQs, and loan products. Main branch homepage can handpick and showcase all the branches' homepage content for relevance. Main homepage should also have a live map of branches. Here's an example:
+	   - agapay_main
+	   - agapay_branch1
+	   - agapay_branch2
+	   - and so on
+- Superadmin has the ability to make a new website directory with customizable colors, logos, font, and homepage content. Superadmin and tenant admins can change their tenant branch's homepage's hero section, testimonials, FAQs, and loan products. Main branch homepage can handpick and showcase all the branches' homepage content for relevance. Main homepage should also have a live map of branches. Here's an example:
+           - agapay.saas.vercel.app [main homepage]
+           - agapay.saas.vercel.app/main/ [main branch's homepage]
 	   - agapay.saas.vercel.app/main/agapay-tanaw/
 	   - agapay.saas.vercel.app/main/agapay-pintig/
+           - agapay.saas.vercel.app/branch1/ [branch1's homepage]
 	   - agapay.saas.vercel.app/branch1/agapay-tanaw/
 	   - agapay.saas.vercel.app/branch1/agapay-pintig/
+           - agapay.saas.vercel.app/branch2/ [branch2's homepage]
 	   - agapay.saas.vercel.app/branch2/agapay-tanaw/
 	   - agapay.saas.vercel.app/branch2/agapay-pintig/
 	   - and so on
+
+Kind of like this: https://onlineapp.national-u.edu.ph/portal/services.php
 - Malolos is the MAIN BRANCH where the superadmin will be, and where the other branches will buy Agapay for their own microfinancing cooperative services.
-- There should be a systemwide Tagalog/English translation toggle (since apparently one professor said to make the site in Tagalog language but another said it was discriminatory)
 - Cooperatives' logos are not showing properly. It should be uploadable media. The Agapay logo and the cooperative branch's logo should show in all receipts and SOAs.
 
 
 GENERAL:
+- Main homepage should have content improvements with regards to the new content put in there. For the 
 - The Pangkalahatan header bit remains stagnant with the exception of the [role] portal. Content should change according to the current selected module.
 - Logging in and registering as a member sometimes leads to agapay-tanaw by default, but does redirect to pintig upon reloading
 - Homepage's Calculator should have Weekly, Bi-weekly, and Monthly for Payment Cadences
@@ -122,9 +127,3 @@ The social engine of Agapay.
 [/] Intra-Tenant Boundaries: Confirm that Direct Messages and Branch Rooms strictly forbid cross-tenant querying.
 [/] Hybrid Mentorship Protocol: Verify a member can request mentorship, but it remains "pending" structurally until an Admin/Lender endorses it.
 [ ] Compact Composer UX: Ensure the chat interface is visually integrated and not floating arbitrarily.
-
-7. UI/UX, Localization, and Roles
-[/] Tagalog-first ecosystem with compact SaaS density. [SaaS density is the issue]
-[/] 100% Tagalog Coverage (Non-Technical): Verify all operational strings (Loan, Repayment, Dashboard) are localized properly, leaving "API", "SSL" in English.
-[/] Compact Layout Architecture: Ensure the newer Tailwind v4 CSS variables layout works cleanly without excessive "empty state" padding for low-literacy users.
-[/] Role Authorization: Attempt to access agapay-tanaw with a Member session.user.role to ensure strict middleware rebounds.

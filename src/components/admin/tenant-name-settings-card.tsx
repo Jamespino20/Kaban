@@ -28,9 +28,9 @@ export function TenantNameSettingsCard({
       });
 
       if (result.success) {
-        toast.success("Na-update ang tenant name.");
+        toast.success("Tenant name updated successfully.");
       } else {
-        toast.error(result.error || "Hindi na-update ang tenant name.");
+        toast.error(result.error || "Failed to update tenant name.");
       }
     });
   };

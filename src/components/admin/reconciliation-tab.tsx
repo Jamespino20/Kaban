@@ -9,8 +9,13 @@ import {
   Loader2,
   Save,
 } from "lucide-react";
-import { getEndOfDayReconciliation } from "@/actions/reconciliation";
+import {
+  getEndOfDayReconciliation,
+  resolveAndSignEndOfDay,
+} from "@/actions/reconciliation";
 import { toast } from "sonner";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 
 type ReconciliationData = Awaited<ReturnType<typeof getEndOfDayReconciliation>>;
 
@@ -29,8 +34,40 @@ export function ReconciliationTab() {
     });
   }, []);
 
-  const handleApproveReconciliation = () => {
-    toast.success("End of Day Reconciliation Approved and Signed.");
+  const [discrepancyReason, setDiscrepancyReason] = useState("");
+  const [isSignPending, setIsSignPending] = useState(false);
+
+  const handleApproveReconciliation = async () => {
+    if (!data) return;
+
+    const hasImbalance =
+      !data.ledger.isBalanced || !data.holdings.isTreasuryHealthy;
+    if (hasImbalance && !discrepancyReason.trim()) {
+      toast.error(
+        "An imbalance was detected. You must provide a reason to adjust the ledger and sign off.",
+      );
+      return;
+    }
+
+    setIsSignPending(true);
+    try {
+      const result = await resolveAndSignEndOfDay(discrepancyReason);
+      if (result?.success) {
+        toast.success(
+          result.adjusted
+            ? "Discrepancy adjusted and EOD Signed Off."
+            : "End of Day Reconciliation Approved and Signed.",
+        );
+        // Reload data
+        const updated = await getEndOfDayReconciliation();
+        setData(updated);
+        setDiscrepancyReason("");
+      }
+    } catch (err: any) {
+      toast.error(err.message || "Failed to sign off EOD");
+    } finally {
+      setIsSignPending(false);
+    }
   };
 
   const handleExport = () => {
@@ -71,10 +108,15 @@ export function ReconciliationTab() {
             Generate CSV Report
           </Button>
           <Button
-            className="rounded-xl bg-emerald-600 text-white hover:bg-emerald-700"
+            className="rounded-xl bg-emerald-600 text-white hover:bg-emerald-700 disabled:opacity-50"
             onClick={handleApproveReconciliation}
+            disabled={isSignPending}
           >
-            <Save className="w-4 h-4 mr-2" />
+            {isSignPending ? (
+              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+            ) : (
+              <Save className="w-4 h-4 mr-2" />
+            )}
             Sign & Lock EOD
           </Button>
         </div>
@@ -180,6 +222,45 @@ export function ReconciliationTab() {
             across {data.targetDate.toLocaleDateString("en-PH")}.
           </p>
         </section>
+        {/* Discrepancy Resolution Form - Only show if imbalanced */}
+        {data &&
+          (!data.ledger.isBalanced || !data.holdings.isTreasuryHealthy) && (
+            <section className="col-span-1 md:col-span-2 rounded-[1.75rem] border border-rose-200 bg-rose-50/50 p-6 shadow-sm">
+              <h3 className="text-sm font-black uppercase tracking-[0.18em] text-rose-700 mb-4 flex items-center gap-2">
+                <AlertTriangle className="w-4 h-4" />
+                Action Required: Resolve Imbalance
+              </h3>
+              <p className="text-sm text-rose-800 mb-4">
+                The system has detected a discrepancy in the double-entry tally
+                or a mismatch between your liquid holdings and treasury cash
+                equivalents. To proceed with the EOD sign-off, you must provide
+                a valid reason or note to generate an automatic adjusting ledger
+                entry.
+              </p>
+              <div className="space-y-3">
+                <Label
+                  htmlFor="discrepancyReason"
+                  className="text-rose-900 font-bold"
+                >
+                  Reason for Discrepancy / Adjustment
+                </Label>
+                <Textarea
+                  id="discrepancyReason"
+                  value={discrepancyReason}
+                  onChange={(e) => setDiscrepancyReason(e.target.value)}
+                  placeholder="e.g. Cashier shortage recognized and acknowledged. Adjustment forced for EOD."
+                  className="w-full rounded-xl border-rose-200 focus:border-rose-400 focus:ring-rose-400 min-h-[100px]"
+                />
+              </div>
+              {data.holdings.imbalance > 0 && (
+                <p className="text-xs text-rose-700 mt-3 font-semibold">
+                  An adjusting entry of ₱
+                  {data.holdings.imbalance.toLocaleString()} will be posted upon
+                  sign-off.
+                </p>
+              )}
+            </section>
+          )}
       </div>
     </div>
   );

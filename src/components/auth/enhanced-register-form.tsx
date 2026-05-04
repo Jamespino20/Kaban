@@ -89,7 +89,13 @@ const EnhancedRegisterSchema = z
     path: ["confirmPassword"],
   });
 
-export function EnhancedRegisterForm() {
+export function EnhancedRegisterForm({
+  preselectedTenantId,
+  preselectedRegionId,
+}: {
+  preselectedTenantId?: string;
+  preselectedRegionId?: string;
+}) {
   const [isMounted, setIsMounted] = useState(false);
   const [step, setStep] = useState(1);
   const [isPending, startTransition] = useTransition();
@@ -154,6 +160,16 @@ export function EnhancedRegisterForm() {
       privacyAccepted: false,
     },
   });
+
+  // Pre-select logic
+  useEffect(() => {
+    if (preselectedTenantId) {
+      form.setValue("tenantId", preselectedTenantId);
+    }
+    if (preselectedRegionId) {
+      form.setValue("regionId", preselectedRegionId);
+    }
+  }, [preselectedTenantId, preselectedRegionId, form]);
 
   // Fetch Regions + PSGC Regions on Mount
   useEffect(() => {
@@ -736,8 +752,12 @@ export function EnhancedRegisterForm() {
                           <FormControl>
                             <select
                               {...field}
-                              disabled={!form.getValues("regionId")}
-                              className="w-full rounded-xl h-12 border border-slate-200 px-4 bg-white outline-none font-bold text-emerald-700"
+                              disabled={
+                                (!form.getValues("regionId") &&
+                                  !preselectedRegionId) ||
+                                !!preselectedTenantId
+                              }
+                              className="w-full rounded-xl h-12 border border-slate-200 px-4 bg-white outline-none font-bold text-emerald-700 disabled:opacity-50"
                             >
                               <option value="">Select Branch</option>
                               {tenants.map((t: any) => (
@@ -748,6 +768,11 @@ export function EnhancedRegisterForm() {
                                   {t.name}
                                 </option>
                               ))}
+                              {preselectedTenantId && tenants.length === 0 && (
+                                <option value={preselectedTenantId}>
+                                  Preselected Branch
+                                </option>
+                              )}
                             </select>
                           </FormControl>
                           <FormMessage />

@@ -40,7 +40,7 @@ export function GlobalFileView({ tenantId }: { tenantId?: number }) {
     if (result.success) {
       setFiles(result.data || []);
     } else {
-      toast.error("Hindi makuha ang listahan ng mga files.");
+      toast.error("Failed to retrieve the list of files.");
     }
     setLoading(false);
   };

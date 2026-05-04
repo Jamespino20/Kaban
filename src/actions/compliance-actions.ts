@@ -73,6 +73,6 @@ export const submitCoopApplication = async (values: {
     };
   } catch (error) {
     console.error("Coop application error:", error);
-    return { error: "Nagkaroon ng problema sa pag-submit. Subukan muli." };
+    return { error: "Failed to record your consent. Please try again." };
   }
 };

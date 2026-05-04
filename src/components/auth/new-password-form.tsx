@@ -52,7 +52,7 @@ function NewPasswordFormInner() {
             window.location.href = "/auth/login";
           }
         })
-        .catch(() => toast.error("May nangyaring mali."));
+        .catch(() => toast.error("An error occurred."));
     });
   };
 

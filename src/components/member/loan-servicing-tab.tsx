@@ -298,7 +298,7 @@ function LoanServicingCard({
         return;
       }
 
-      toast.success("Naipasa na ang compassion request mo para ma-review.");
+      toast.success("Your compassion request has been submitted for review.");
       setCompassionOpen(false);
       setCompassionType("grace_period");
       setCompassionReason("");

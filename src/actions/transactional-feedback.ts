@@ -39,6 +39,6 @@ export async function submitContextualFeedback(
     return { success: "Salamat sa iyong feedback!" };
   } catch (error: any) {
     console.error("Feedback error:", error);
-    return { error: "Hindi maipadala ang feedback sa ngayon." };
+    return { error: "Unable to submit feedback at this time. Please try again later." };
   }
 }

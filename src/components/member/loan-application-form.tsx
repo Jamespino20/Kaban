@@ -147,7 +147,7 @@ export const LoanApplicationForm = ({
           onSuccess();
         }
       } catch (error) {
-        toast.error("May nangyaring mali!");
+        toast.error("An error occurred!");
       }
     });
   };

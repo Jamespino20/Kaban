@@ -48,7 +48,7 @@ export const ResetForm = () => {
             form.reset();
           }
         })
-        .catch(() => toast.error("May nangyaring mali."));
+        .catch(() => toast.error("An error occurred."));
     });
   };
 

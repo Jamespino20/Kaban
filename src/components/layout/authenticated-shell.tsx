@@ -1,6 +1,5 @@
 "use client";
 
-import { BranchSwitcher } from "@/components/layout/branch-switcher";
 import { NotificationBell } from "@/components/layout/notification-bell";
 import { Button } from "@/components/ui/button";
 import { TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -381,11 +380,7 @@ export function AuthenticatedShell({
         >
           <div
             className={`flex items-center gap-2 ${collapsed ? "xl:hidden" : ""}`}
-          >
-            <div className="flex-1">
-              <BranchSwitcher />
-            </div>
-          </div>
+          ></div>
 
           <div className="flex items-center gap-3">
             <div
