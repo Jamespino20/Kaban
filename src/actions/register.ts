@@ -8,43 +8,49 @@ import { generateVerificationToken } from "@/lib/tokens";
 import { sendVerificationEmail, verifyEmailExists } from "@/lib/mail";
 
 const RegisterSchema = z.object({
-  email: z.string().email().max(100),
-  username: z.string().min(3).max(50),
-  password: z.string().min(6).max(100),
-  firstName: z.string().min(1).max(100),
+  email: z
+    .string()
+    .email("Invalid email format.")
+    .max(100, "Email is too long."),
+  username: z
+    .string()
+    .min(3, "Username must be at least 3 characters.")
+    .max(50, "Username is too long."),
+  password: z
+    .string()
+    .min(6, "Password must be at least 6 characters.")
+    .max(100, "Password is too long."),
+  firstName: z.string().min(1, "First name is required.").max(100),
   middleName: z.string().max(100).optional(),
-  lastName: z.string().min(1).max(100),
-  phone: z.string().min(10).max(20),
+  lastName: z.string().min(1, "Last name is required.").max(100),
+  phone: z
+    .string()
+    .min(10, "Phone number must be at least 10 digits.")
+    .max(20, "Phone number is too long."),
   businessName: z.string().max(150).optional(),
-  maritalStatus: z.enum([
-    "single",
-    "married",
-    "widowed",
-    "separated",
-    "annulled",
-  ]),
-  birthdate: z.string(),
-  gender: z.string().max(20),
-  region: z.string().max(255),
-  province: z.string().max(255),
-  city: z.string().max(255),
-  barangay: z.string().max(255),
-  streetAddress: z.string().max(500),
-  idPicture: z.string(),
+  maritalStatus: z.string().min(1, "Please select your marital status.") as any,
+  birthdate: z.string().min(1, "Birthdate is required."),
+  gender: z.string().min(1, "Gender is required.").max(20),
+  region: z.string().min(1, "Region is required.").max(255),
+  province: z.string().min(1, "Province is required.").max(255),
+  city: z.string().min(1, "City is required.").max(255),
+  barangay: z.string().min(1, "Barangay is required.").max(255),
+  streetAddress: z.string().min(1, "Residential address is required.").max(500),
+  idPicture: z.string().min(1, "ID picture is required."),
   brgyCertUrl: z.string().optional(),
   businessPermitUrl: z.string().optional(),
   mothersMaidenName: z.string().max(150).optional(),
   placeOfBirth: z.string().max(150).optional(),
   tin: z.string().max(20).optional(),
-  tenantId: z.number().int().positive("Please select a branch"),
+  tenantId: z.number().int().positive("Please select a branch (Cooperative)."),
 });
 
 export const register = async (values: z.infer<typeof RegisterSchema>) => {
   const validatedFields = RegisterSchema.safeParse(values);
 
   if (!validatedFields.success) {
-    console.error("Validation error:", validatedFields.error);
-    return { error: "Invalid fields!" };
+    const error = validatedFields.error.issues[0]?.message || "Invalid fields.";
+    return { error };
   }
 
   const {

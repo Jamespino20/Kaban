@@ -87,7 +87,7 @@ export const GuaranteeRequestPanel = ({
               Guarantor Support
             </h3>
             <p className="mt-1 text-xs text-emerald-700">
-              Kumuha ng 1 hanggang 2 kapwa miyembro mula sa parehong branch.
+              Select 1 to 2 fellow members from the same branch.
             </p>
           </div>
         </div>
@@ -96,27 +96,29 @@ export const GuaranteeRequestPanel = ({
           <div className="flex items-start gap-3 rounded-xl border border-amber-100 bg-amber-50 p-3 text-amber-600">
             <ShieldAlert className="h-5 w-5 shrink-0" />
             <p className="text-xs font-medium">
-              Kailangan mo pa ng <strong>{remainingNeeded} guarantor</strong> bago
-              magsumite. Maaari kang magdagdag ng hanggang {remainingSlots} pang
-              guarantor para mas matibay ang social backing mo.
+              You still need <strong>{remainingNeeded} guarantor</strong> before
+              submitting. You can add up to {remainingSlots} more guarantors for
+              stronger social backing.
             </p>
           </div>
         ) : (
           <div className="flex items-center gap-3 rounded-xl border border-emerald-200 bg-emerald-100/50 p-3 text-emerald-600">
             <CheckCircle2 className="h-5 w-5 shrink-0" />
             <p className="text-xs font-medium">
-              Kumpleto na ang minimum guarantor requirement mo. Maaari ka pang
-              magdagdag ng isa kung gusto mo ng mas matibay na support signal.
+              Your minimum guarantor requirement is met. You can still add one
+              more if you want a stronger support signal.
             </p>
           </div>
         )}
 
         <div className="space-y-3 rounded-2xl border border-white/70 bg-white/80 p-4">
           <p className="text-xs leading-6 text-slate-600">
-            Ang guarantors ay kapwa miyembro na sasalo ng humigit-kumulang{" "}
-            <strong>{MICROFINANCE_POLICY.defaultGuarantorLiabilityRate}%</strong>{" "}
-            ng obligasyon bawat isa kapag nag-default ang loan. Kaya branch-active
-            members lang ang pinapayagan sa pagpili.
+            Guarantors are fellow members who share approximately{" "}
+            <strong>
+              {MICROFINANCE_POLICY.defaultGuarantorLiabilityRate}%
+            </strong>{" "}
+            of the obligation each if the loan defaults. Therefore, only
+            branch-active members are eligible for selection.
           </p>
         </div>
 
@@ -124,7 +126,7 @@ export const GuaranteeRequestPanel = ({
           <div className="relative">
             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-emerald-400" />
             <Input
-              placeholder="Hanapin ang pangalan o username ng miyembro..."
+              placeholder="Search for member name or username..."
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               className="h-12 rounded-xl border-emerald-200 bg-white pl-9 focus:border-emerald-500 focus:ring-emerald-500/20"
@@ -133,7 +135,7 @@ export const GuaranteeRequestPanel = ({
 
           {loading && (
             <div className="absolute left-0 right-0 top-full z-10 mt-2 rounded-xl border border-emerald-100 bg-white p-4 text-center text-xs text-slate-500 shadow-xl">
-              Naghahanap...
+              Searching...
             </div>
           )}
 
@@ -153,7 +155,7 @@ export const GuaranteeRequestPanel = ({
                     <p className="text-xs text-slate-500">@{g.username}</p>
                   </div>
                   <span className="rounded-md bg-emerald-50 px-2 py-1 text-xs font-bold text-emerald-600">
-                    I-add
+                    Add
                   </span>
                 </button>
               ))}

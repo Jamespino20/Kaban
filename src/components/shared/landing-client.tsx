@@ -67,7 +67,7 @@ const SPLIT_SECTIONS = [
   },
   {
     title: "Better suited for cooperative lending than generic wallet apps",
-    body: "GCash is great for payments and transfers, but it was not built for Guarantor-backed lending, Trust Scores, and Mentorship workflows. Agapay is for financial relationships, not just a transaction feed.",
+    body: "Other apps like GCash is great for payments and transfers, but it was not built for Guarantor-backed lending, Trust Scores, and Mentorship workflows. Agapay is for financial relationships, not just a transaction feed.",
     bullets: [
       "Mock money flow that can be verified by branch staff",
       "Clearer support for branch release and repayment tracking",
@@ -85,7 +85,7 @@ const FALLBACK_FAQS = [
       "Agapay is a cooperative microfinance platform that helps branches, lenders, and members manage applications, releases, repayments, Trust Scores, and reports in a digital, transparent system.",
   },
   {
-    question: "How is it different from GCash?",
+    question: "How is it different from apps like GCash?",
     answer:
       "Agapay is not a wallet app. Its focus is cooperative lending: with Guarantors, Trust Scores, Mentorship, a branch approval flow, and clearer operational records for staff and members.",
   },
@@ -502,12 +502,12 @@ export function LandingClient({ branches }: { branches: Branch[] }) {
               {[
                 {
                   name: "Agapay Core",
-                  price: "₱2,500/mo",
+                  price: "₱2,500",
                   limit: "Up to 500 members",
                 },
                 {
                   name: "Agapay Pro",
-                  price: "₱4,500/mo",
+                  price: "₱4,500",
                   limit: "Up to 2,500 members",
                   highlight: true,
                 },
@@ -745,9 +745,9 @@ function HomeLoanCalculator() {
   const installmentAmount = paymentCount > 0 ? totalPayable / paymentCount : 0;
 
   return (
-    <div className="bg-white p-10 md:p-16 rounded-[3rem] border border-slate-200/60 shadow-xl">
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
-        <div className="space-y-8">
+    <div className="bg-white p-6 md:p-16 rounded-[3rem] border border-slate-200/60 shadow-xl overflow-hidden">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 md:gap-12">
+        <div className="space-y-6 md:space-y-8">
           <div className="space-y-3">
             <label className="text-sm font-bold text-slate-500 uppercase tracking-wider block">
               Loan Product
@@ -760,17 +760,17 @@ function HomeLoanCalculator() {
                   onClick={() => setSelectedOfferId(offer.id)}
                   className={`rounded-2xl border p-4 text-left transition-all ${
                     offer.id === selectedOffer.id
-                      ? "border-emerald-500 bg-emerald-50 shadow-sm"
+                      ? "border-emerald-500 bg-emerald-50/50 shadow-sm ring-1 ring-emerald-500/20"
                       : "border-slate-200 hover:border-emerald-200 hover:bg-slate-50"
                   }`}
                 >
-                  <div className="mb-2 inline-flex rounded-full bg-white px-2.5 py-1 text-[10px] font-bold uppercase tracking-widest text-emerald-700">
+                  <div className="mb-2 inline-flex rounded-full bg-white px-2.5 py-1 text-[10px] font-bold uppercase tracking-widest text-emerald-700 border border-emerald-100">
                     {offer.badge}
                   </div>
                   <p className="text-sm font-black text-slate-900">
                     {offer.name}
                   </p>
-                  <p className="mt-1 text-xs text-slate-500">
+                  <p className="mt-1 text-xs text-slate-500 line-clamp-2">
                     {offer.description}
                   </p>
                 </button>
@@ -789,13 +789,13 @@ function HomeLoanCalculator() {
               step={1000}
               value={amount}
               onChange={(e) => setAmount(Number(e.target.value))}
-              className="w-full accent-emerald-600"
+              className="w-full h-2 bg-slate-100 rounded-lg appearance-none cursor-pointer accent-emerald-600"
             />
-            <div className="mt-2 flex items-center justify-between text-xs text-slate-400 font-bold">
+            <div className="mt-2 flex items-center justify-between text-[10px] text-slate-400 font-bold uppercase">
               <span>₱{selectedOffer.minAmount.toLocaleString()}</span>
               <span>₱{selectedOffer.maxAmount.toLocaleString()}</span>
             </div>
-            <span className="text-3xl font-black text-slate-900 block mt-2">
+            <span className="text-3xl md:text-4xl font-black text-slate-900 block mt-2">
               ₱{amount.toLocaleString()}
             </span>
           </div>
@@ -811,13 +811,13 @@ function HomeLoanCalculator() {
               step={1}
               value={term}
               onChange={(e) => setTerm(Number(e.target.value))}
-              className="w-full accent-emerald-600"
+              className="w-full h-2 bg-slate-100 rounded-lg appearance-none cursor-pointer accent-emerald-600"
             />
-            <div className="mt-2 flex items-center justify-between text-xs text-slate-400 font-bold">
+            <div className="mt-2 flex items-center justify-between text-[10px] text-slate-400 font-bold uppercase">
               <span>1 Month</span>
               <span>{selectedOffer.maxTerm} Months</span>
             </div>
-            <span className="text-3xl font-black text-slate-900 block mt-2">
+            <span className="text-3xl md:text-4xl font-black text-slate-900 block mt-2">
               {term} {term > 1 ? "Months" : "Month"}
             </span>
           </div>
@@ -826,19 +826,19 @@ function HomeLoanCalculator() {
             <label className="text-sm font-bold text-slate-500 uppercase tracking-wider mb-3 block">
               Payment Cadence
             </label>
-            <div className="grid grid-cols-3 gap-3">
+            <div className="grid grid-cols-3 gap-2 md:gap-3">
               {(["weekly", "biweekly", "monthly"] as const).map((opt) => (
                 <button
                   key={opt}
                   type="button"
                   onClick={() => setCadence(opt)}
-                  className={`rounded-2xl border p-3 text-center transition-all ${
+                  className={`rounded-xl md:rounded-2xl border py-2.5 md:py-3 text-center transition-all ${
                     cadence === opt
-                      ? "border-emerald-500 bg-emerald-50 shadow-sm text-emerald-700"
+                      ? "border-emerald-500 bg-emerald-600 shadow-md text-white"
                       : "border-slate-200 hover:border-emerald-200 hover:bg-slate-50 text-slate-600"
                   }`}
                 >
-                  <span className="text-sm font-black capitalize">
+                  <span className="text-xs md:text-sm font-black capitalize">
                     {opt === "biweekly" ? "Bi-weekly" : opt}
                   </span>
                 </button>
@@ -847,13 +847,14 @@ function HomeLoanCalculator() {
           </div>
         </div>
 
-        <div className="bg-slate-50 rounded-[2.5rem] p-10 border border-slate-200/50 flex flex-col justify-center">
-          <div className="mb-8 p-6 bg-white rounded-3xl border border-emerald-100 shadow-sm">
-            <p className="text-sm font-bold text-slate-500 uppercase tracking-wider mb-2">
-              {cadenceLabel} Payment
+        <div className="bg-slate-50/50 rounded-[2.5rem] p-6 md:p-10 border border-slate-200/50 flex flex-col justify-center">
+          <div className="mb-8 p-6 md:p-8 bg-white rounded-[2rem] border border-emerald-100 shadow-sm relative overflow-hidden group">
+            <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-50 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 opacity-50" />
+            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 relative z-10">
+              Estimated {cadenceLabel} Payment
             </p>
-            <div className="flex items-baseline gap-2">
-              <p className="text-4xl md:text-5xl font-black text-emerald-600 italic">
+            <div className="flex items-baseline gap-2 relative z-10">
+              <p className="text-4xl md:text-6xl font-black text-emerald-600 italic">
                 ₱
                 {installmentAmount.toLocaleString(undefined, {
                   minimumFractionDigits: 2,
@@ -866,28 +867,28 @@ function HomeLoanCalculator() {
             </div>
           </div>
 
-          <div className="space-y-4">
+          <div className="space-y-4 px-2">
             <div className="flex justify-between items-center text-sm font-bold">
-              <span className="text-slate-500 uppercase tracking-widest text-[10px]">
+              <span className="text-slate-400 uppercase tracking-widest text-[10px]">
                 Processing Fee
               </span>
-              <span className="text-slate-900">
+              <span className="text-slate-900 font-mono">
                 ₱{processingFee.toLocaleString()}
               </span>
             </div>
             <div className="flex justify-between items-center text-sm font-bold">
-              <span className="text-slate-500 uppercase tracking-widest text-[10px]">
+              <span className="text-slate-400 uppercase tracking-widest text-[10px]">
                 Interest Rate ({selectedRatePercent}%)
               </span>
-              <span className="text-slate-900">
-                ₱{totalInterest.toLocaleString()}
+              <span className="text-slate-900 font-mono text-emerald-600">
+                +₱{totalInterest.toLocaleString()}
               </span>
             </div>
-            <div className="flex justify-between items-center pt-4 border-t border-slate-200">
-              <span className="text-slate-900 font-black italic">
-                Total Payable
+            <div className="flex justify-between items-center pt-6 mt-2 border-t border-slate-200">
+              <span className="text-slate-900 font-black italic uppercase tracking-tighter text-sm">
+                Total Amount Payable
               </span>
-              <span className="text-lg font-black text-slate-900">
+              <span className="text-xl md:text-2xl font-black text-slate-900">
                 ₱{totalPayable.toLocaleString()}
               </span>
             </div>
@@ -895,28 +896,33 @@ function HomeLoanCalculator() {
         </div>
       </div>
 
-      <div className="mt-12 flex flex-col sm:flex-row items-center gap-6 justify-between p-6 bg-slate-900 rounded-[2rem] text-white">
-        <div className="flex items-center gap-4">
-          <div className="w-12 h-12 rounded-2xl bg-emerald-500 flex items-center justify-center">
-            <LineChart className="w-6 h-6 text-white" />
+      <div className="mt-12 flex flex-col md:flex-row items-center gap-6 justify-between p-6 md:p-8 bg-emerald-950 rounded-[2.5rem] text-white shadow-2xl relative overflow-hidden">
+        <div className="absolute top-0 left-0 w-64 h-64 bg-emerald-400/10 rounded-full blur-[80px] -translate-x-1/2 -translate-y-1/2" />
+        <div className="flex items-center gap-5 relative z-10">
+          <div className="w-14 h-14 rounded-2xl bg-emerald-500/20 backdrop-blur-xl border border-emerald-400/30 flex items-center justify-center shadow-lg">
+            <LineChart className="w-7 h-7 text-emerald-400" />
           </div>
           <div>
-            <p className="text-[10px] font-bold text-emerald-400 uppercase tracking-widest">
-              Trust-Powered Rates
+            <p className="text-[10px] font-bold text-emerald-400 uppercase tracking-widest mb-1">
+              Trust-Powered Dynamic Rates
             </p>
-            <p className="text-sm font-bold italic">
+            <p className="text-base font-bold italic text-emerald-50">
               Interest rates decrease as your Trust Score improves.
             </p>
           </div>
         </div>
-        <div className="flex items-center gap-4">
+        <div className="flex flex-wrap items-center justify-center gap-3 relative z-10">
           {INTEREST_RATE_OPTIONS.map((rate) => (
             <button
               key={rate}
               onClick={() => setSelectedRatePercent(rate)}
-              className={`w-10 h-10 rounded-full border flex items-center justify-center text-[10px] font-black transition-all ${selectedRatePercent === rate ? "bg-emerald-500 border-emerald-500 text-white" : "border-slate-700 hover:border-emerald-500 text-slate-400"}`}
+              className={`w-12 h-12 rounded-2xl border-2 flex flex-col items-center justify-center transition-all duration-300 ${
+                selectedRatePercent === rate
+                  ? "bg-white border-white text-emerald-950 scale-110 shadow-xl"
+                  : "border-emerald-800/50 bg-emerald-900/30 text-emerald-400 hover:border-emerald-500 hover:bg-emerald-900/50"
+              }`}
             >
-              {rate}%
+              <span className="text-xs font-black">{rate}%</span>
             </button>
           ))}
         </div>

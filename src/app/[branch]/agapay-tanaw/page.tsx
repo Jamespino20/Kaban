@@ -82,7 +82,7 @@ export default async function AgapayTanawPage({
   const canViewAuditLogs = isAdmin || isSuperAdmin;
   const canManageHomepageContent = isAdmin || isSuperAdmin;
   const canViewFeedback = isAdmin || isSuperAdmin;
-  const canViewAnalytics = isAdmin || isSuperAdmin;
+  const canViewAnalytics = (isAdmin || isSuperAdmin) && !isLender;
 
   const reconciliation =
     tenantContextId !== null

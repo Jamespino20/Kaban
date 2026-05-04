@@ -55,11 +55,11 @@ const LoanApplicationSchema = z.object({
     .array(z.number())
     .min(
       MICROFINANCE_POLICY.minGuarantors,
-      "Kailangan ng hindi bababa sa isang guarantor.",
+      "At least one guarantor is required.",
     )
     .max(
       MICROFINANCE_POLICY.maxGuarantors,
-      "Hanggang dalawang guarantor lang ang pinapayagan sa kasalukuyang policy.",
+      "A maximum of two guarantors are allowed under current policy.",
     ),
   repayment_frequency: z.enum(["weekly", "bi_weekly", "monthly"]),
 });
@@ -142,7 +142,7 @@ export const LoanApplicationForm = ({
           toast.error(result.error);
         } else {
           toast.success(
-            "Naisumite na ang iyong application. Susuriin ito ng branch team kasama ang guarantor backing mo.",
+            "Your application has been submitted. The branch team will review it alongside your guarantor backing.",
           );
           onSuccess();
         }
@@ -157,243 +157,242 @@ export const LoanApplicationForm = ({
       <div className="flex items-center gap-3 border-b border-slate-50 pb-4">
         <Calculator className="h-5 w-5 text-emerald-600" />
         <h3 className="font-display text-sm font-bold uppercase tracking-wider text-slate-900">
-          Tagatuos ng Loan
+          Loan Calculator
         </h3>
       </div>
 
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-          <FormField
-            control={form.control}
-            name="amount"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel className="text-[10px] font-bold uppercase tracking-widest text-slate-400">
-                  Halaga ng Hiramin (PHP)
-                </FormLabel>
-                <FormControl>
-                  <Input
-                    {...field}
-                    value={field.value ?? ""}
-                    onChange={(event) =>
-                      field.onChange(Number(event.target.value))
-                    }
-                    type="number"
-                    step="500"
-                    min={product.min_amount}
-                    max={product.max_amount}
-                    disabled={isPending}
-                    className="h-14 rounded-2xl border-slate-100 text-xl font-bold font-display focus:border-emerald-500 focus:ring-emerald-500/20"
-                  />
-                </FormControl>
-                <p className="text-xs text-slate-500">
-                  Available for this product: PHP{" "}
-                  {Number(product.min_amount).toLocaleString()} to PHP{" "}
-                  {Number(product.max_amount).toLocaleString()}
-                </p>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name="term_months"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel className="text-[10px] font-bold uppercase tracking-widest text-slate-400">
-                  Tagal ng Pagbabayad (Buwan)
-                </FormLabel>
-                <FormControl>
-                  <Input
-                    {...field}
-                    value={field.value ?? ""}
-                    onChange={(event) =>
-                      field.onChange(Number(event.target.value))
-                    }
-                    type="number"
-                    min={MICROFINANCE_POLICY.minTermMonths}
-                    max={Math.min(
-                      product.max_term_months,
-                      MICROFINANCE_POLICY.maxTermMonths,
-                    )}
-                    disabled={isPending}
-                    className="h-14 rounded-2xl border-slate-100 text-xl font-bold font-display focus:border-emerald-500 focus:ring-emerald-500/20"
-                  />
-                </FormControl>
-                <p className="text-xs text-slate-500">
-                  Current Agapay policy supports{" "}
-                  {MICROFINANCE_POLICY.minTermMonths} to{" "}
-                  {Math.min(
-                    product.max_term_months,
-                    MICROFINANCE_POLICY.maxTermMonths,
-                  )}{" "}
-                  months for this product.
-                </p>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name="repayment_frequency"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel className="text-[10px] font-bold uppercase tracking-widest text-slate-400">
-                  Dalas ng Pagbabayad
-                </FormLabel>
-                <Select
-                  disabled={isPending}
-                  onValueChange={field.onChange}
-                  defaultValue={field.value}
-                >
+        <form
+          onSubmit={form.handleSubmit(onSubmit)}
+          className="grid grid-cols-1 lg:grid-cols-2 gap-10"
+        >
+          <div className="space-y-6">
+            <FormField
+              control={form.control}
+              name="amount"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="text-[10px] font-bold uppercase tracking-widest text-slate-400">
+                    Loan Amount (PHP)
+                  </FormLabel>
                   <FormControl>
-                    <SelectTrigger className="h-14 rounded-2xl border-slate-100 text-xl font-bold font-display focus:border-emerald-500 focus:ring-emerald-500/20">
-                      <SelectValue placeholder="Pumili ng dalas ng pagbabayad" />
-                    </SelectTrigger>
+                    <Input
+                      {...field}
+                      value={field.value ?? ""}
+                      onChange={(event) =>
+                        field.onChange(Number(event.target.value))
+                      }
+                      type="number"
+                      step="500"
+                      min={product.min_amount}
+                      max={product.max_amount}
+                      disabled={isPending}
+                      className="h-14 rounded-2xl border-slate-100 text-xl font-bold font-display focus:border-emerald-500 focus:ring-emerald-500/20"
+                    />
                   </FormControl>
-                  <SelectContent>
-                    {(
-                      product.allowed_frequencies || [
-                        RepaymentFrequency.monthly,
-                      ]
-                    ).map((freq: RepaymentFrequency) => {
-                      const labels: Record<RepaymentFrequency, string> = {
-                        [RepaymentFrequency.weekly]: "Lingguhan",
-                        [RepaymentFrequency.bi_weekly]: "Kada Dalawang Linggo",
-                        [RepaymentFrequency.monthly]: "Buwanan",
-                      };
-                      return (
-                        <SelectItem key={freq} value={freq}>
-                          {labels[freq]}
-                        </SelectItem>
-                      );
-                    })}
-                  </SelectContent>
-                </Select>
-                <p className="text-xs text-slate-500">
-                  Ang options na ito ay nakadepende sa piniling produkto.
-                </p>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name="guarantor_ids"
-            render={({ field }) => (
-              <FormItem>
-                <FormControl>
-                  <GuaranteeRequestPanel
-                    selectedGuarantors={field.value ?? []}
-                    onChange={(guarantors) => field.onChange(guarantors)}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <div className="relative space-y-6 overflow-hidden rounded-[2.5rem] bg-slate-900 p-8 text-white shadow-2xl">
-            <div className="absolute right-0 top-0 p-4">
-              <div className="rounded-full bg-emerald-500 px-3 py-1 text-[10px] font-bold uppercase tracking-tighter">
-                Tier-Aligned Quote
-              </div>
-            </div>
-
-            <div className="space-y-1">
-              <span className="text-xs font-bold uppercase tracking-widest text-slate-400">
-                Tantyang Hulog (
-                {watchFrequency === RepaymentFrequency.weekly
-                  ? "Lingguhan"
-                  : watchFrequency === RepaymentFrequency.bi_weekly
-                    ? "Kada Dalawang Linggo"
-                    : "Buwanan"}
-                )
-              </span>
-              <div className="flex items-baseline gap-2">
-                <span className="text-4xl font-display font-bold text-emerald-400">
-                  PHP{" "}
-                  {calculation.monthly.toLocaleString(undefined, {
-                    minimumFractionDigits: 2,
-                    maximumFractionDigits: 2,
-                  })}
-                </span>
-                <span className="text-sm text-slate-500">
-                  /{" "}
-                  {watchFrequency === RepaymentFrequency.weekly
-                    ? "linggo"
-                    : watchFrequency === RepaymentFrequency.bi_weekly
-                      ? "2 linggo"
-                      : "buwan"}
-                </span>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-4 border-y border-white/10 py-6">
-              <div className="space-y-1">
-                <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500">
-                  Punong Halaga
-                </p>
-                <p className="text-sm font-bold">
-                  PHP {Number(watchAmount || 0).toLocaleString()}
-                </p>
-              </div>
-              <div className="space-y-1 text-right">
-                <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500">
-                  Interes ({product.interest_rate_percent}%)
-                </p>
-                <p className="text-sm font-bold text-emerald-400">
-                  +PHP {calculation.interest.toLocaleString()}
-                </p>
-              </div>
-              <div className="space-y-1">
-                <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500">
-                  Service Fee
-                </p>
-                <p className="text-sm font-bold text-amber-400">
-                  +PHP {calculation.fees.toLocaleString()}
-                </p>
-              </div>
-              <div className="space-y-1 text-right">
-                <p className="text-[10px] font-bold uppercase tracking-widest text-emerald-500">
-                  Kabuuang Bayad
-                </p>
-                <p className="text-sm font-black text-white">
-                  PHP {calculation.total.toLocaleString()}
-                </p>
-              </div>
-            </div>
-
-            <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
-              <div className="flex items-start gap-3">
-                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-emerald-500/20 text-emerald-400">
-                  <CheckCircle2 className="h-4 w-4" />
-                </div>
-                <div className="space-y-2 text-[11px] leading-relaxed text-slate-300">
-                  <p>
-                    <strong className="text-white">Penalty policy:</strong>{" "}
-                    {getPenaltyPolicyCopy()}
+                  <p className="text-xs text-slate-500">
+                    Available: ₱{Number(product.min_amount).toLocaleString()} -
+                    ₱{Number(product.max_amount).toLocaleString()}
                   </p>
-                  <p>
-                    <strong className="text-white">Compassion support:</strong>{" "}
-                    {getCompassionPolicyCopy()}
-                  </p>
-                </div>
-              </div>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+              <FormField
+                control={form.control}
+                name="term_months"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-[10px] font-bold uppercase tracking-widest text-slate-400">
+                      Term (Months)
+                    </FormLabel>
+                    <FormControl>
+                      <Input
+                        {...field}
+                        value={field.value ?? ""}
+                        onChange={(event) =>
+                          field.onChange(Number(event.target.value))
+                        }
+                        type="number"
+                        min={MICROFINANCE_POLICY.minTermMonths}
+                        max={Math.min(
+                          product.max_term_months,
+                          MICROFINANCE_POLICY.maxTermMonths,
+                        )}
+                        disabled={isPending}
+                        className="h-14 rounded-2xl border-slate-100 text-xl font-bold font-display focus:border-emerald-500 focus:ring-emerald-500/20"
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="repayment_frequency"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-[10px] font-bold uppercase tracking-widest text-slate-400">
+                      Frequency
+                    </FormLabel>
+                    <Select
+                      disabled={isPending}
+                      onValueChange={field.onChange}
+                      defaultValue={field.value}
+                    >
+                      <FormControl>
+                        <SelectTrigger className="h-14 rounded-2xl border-slate-100 text-xl font-bold font-display focus:border-emerald-500 focus:ring-emerald-500/20">
+                          <SelectValue placeholder="Select" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {(
+                          product.allowed_frequencies || [
+                            RepaymentFrequency.monthly,
+                          ]
+                        ).map((freq: RepaymentFrequency) => {
+                          const labels: Record<RepaymentFrequency, string> = {
+                            [RepaymentFrequency.weekly]: "Weekly",
+                            [RepaymentFrequency.bi_weekly]: "Bi-weekly",
+                            [RepaymentFrequency.monthly]: "Monthly",
+                          };
+                          return (
+                            <SelectItem key={freq} value={freq}>
+                              {labels[freq]}
+                            </SelectItem>
+                          );
+                        })}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
             </div>
+
+            <FormField
+              control={form.control}
+              name="guarantor_ids"
+              render={({ field }) => (
+                <FormItem>
+                  <FormControl>
+                    <GuaranteeRequestPanel
+                      selectedGuarantors={field.value ?? []}
+                      onChange={(guarantors) => field.onChange(guarantors)}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
           </div>
 
-          <Button
-            disabled={isPending}
-            type="submit"
-            className="flex h-16 w-full items-center justify-center gap-3 rounded-2xl bg-emerald-600 text-lg font-bold text-white shadow-xl shadow-emerald-500/20 transition-all hover:bg-emerald-700"
-          >
-            <span>Isumite ang Application</span>
-            <ArrowRightCircle className="h-6 w-6" />
-          </Button>
+          <div className="space-y-6">
+            <div className="relative space-y-6 overflow-hidden rounded-[2.5rem] bg-slate-900 p-8 text-white shadow-2xl">
+              <div className="absolute right-0 top-0 p-4">
+                <div className="rounded-full bg-emerald-500 px-3 py-1 text-[10px] font-bold uppercase tracking-tighter">
+                  Tier-Aligned Quote
+                </div>
+              </div>
+
+              <div className="space-y-1">
+                <span className="text-[10px] font-bold uppercase tracking-widest text-slate-500">
+                  Estimated{" "}
+                  {watchFrequency === RepaymentFrequency.weekly
+                    ? "Weekly"
+                    : watchFrequency === RepaymentFrequency.bi_weekly
+                      ? "Bi-weekly"
+                      : "Monthly"}{" "}
+                  Payment
+                </span>
+                <div className="flex items-baseline gap-2">
+                  <span className="text-4xl font-display font-bold text-emerald-400">
+                    PHP{" "}
+                    {calculation.monthly.toLocaleString(undefined, {
+                      minimumFractionDigits: 2,
+                      maximumFractionDigits: 2,
+                    })}
+                  </span>
+                  <span className="text-sm text-slate-500 italic">
+                    /{" "}
+                    {watchFrequency === RepaymentFrequency.weekly
+                      ? "week"
+                      : watchFrequency === RepaymentFrequency.bi_weekly
+                        ? "2 weeks"
+                        : "month"}
+                  </span>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4 border-y border-white/10 py-6">
+                <div className="space-y-1">
+                  <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500">
+                    Principal
+                  </p>
+                  <p className="text-sm font-bold">
+                    ₱{Number(watchAmount || 0).toLocaleString()}
+                  </p>
+                </div>
+                <div className="space-y-1 text-right">
+                  <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500">
+                    Interest ({product.interest_rate_percent}%)
+                  </p>
+                  <p className="text-sm font-bold text-emerald-400">
+                    +₱{calculation.interest.toLocaleString()}
+                  </p>
+                </div>
+                <div className="space-y-1">
+                  <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500">
+                    Service Fee
+                  </p>
+                  <p className="text-sm font-bold text-amber-400">
+                    +₱{calculation.fees.toLocaleString()}
+                  </p>
+                </div>
+                <div className="space-y-1 text-right">
+                  <p className="text-[10px] font-bold uppercase tracking-widest text-emerald-500">
+                    Total Payable
+                  </p>
+                  <p className="text-lg font-black text-white">
+                    ₱{calculation.total.toLocaleString()}
+                  </p>
+                </div>
+              </div>
+
+              <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
+                <div className="flex items-start gap-3">
+                  <div className="flex h-8 w-8 items-center justify-center rounded-full bg-emerald-500/20 text-emerald-400">
+                    <CheckCircle2 className="h-4 w-4" />
+                  </div>
+                  <div className="space-y-2 text-[11px] leading-relaxed text-slate-300">
+                    <p>
+                      <strong className="text-white">Policy:</strong>{" "}
+                      {getPenaltyPolicyCopy()}
+                    </p>
+                    <p>
+                      <strong className="text-white">Compassion:</strong>{" "}
+                      {getCompassionPolicyCopy()}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <Button
+              disabled={isPending}
+              type="submit"
+              className="group relative flex h-20 w-full items-center justify-center gap-3 overflow-hidden rounded-[2rem] bg-emerald-600 text-xl font-black italic tracking-tight text-white transition-all hover:bg-emerald-700 active:scale-95"
+            >
+              <div className="absolute inset-0 bg-gradient-to-r from-emerald-400/0 via-white/10 to-emerald-400/0 -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
+              <span className="relative z-10 uppercase">
+                Submit Application
+              </span>
+              <ArrowRightCircle className="relative z-10 h-6 w-6 group-hover:translate-x-1 transition-transform" />
+            </Button>
+          </div>
         </form>
       </Form>
     </div>
