@@ -165,7 +165,7 @@ const LOAN_OFFERS = [
     id: "growth",
     name: "Negosyo Growth",
     description:
-      "For more established businesses like online selling, food operations, and service-based microbusinesses.",
+      "For more established businesses like online selling, food operations, and more.",
     minAmount: 10000,
     maxAmount: 50000,
     maxTerm: 6,
@@ -447,7 +447,7 @@ export function LandingClient({ branches }: { branches: Branch[] }) {
           <section
             id="calculator"
             ref={addToRefs}
-            className="reveal w-full py-36 px-6 max-w-5xl"
+            className="reveal w-full py-36 px-6 max-w-7xl"
           >
             <div className="text-center mb-16">
               <h2 className="text-4xl md:text-6xl font-black text-slate-950 mb-6 italic tracking-tight">
@@ -758,7 +758,7 @@ function HomeLoanCalculator() {
                   key={offer.id}
                   type="button"
                   onClick={() => setSelectedOfferId(offer.id)}
-                  className={`rounded-2xl border p-4 text-left transition-all ${
+                  className={`rounded-2xl border py-5 px-4 text-left transition-all ${
                     offer.id === selectedOffer.id
                       ? "border-emerald-500 bg-emerald-50/50 shadow-sm ring-1 ring-emerald-500/20"
                       : "border-slate-200 hover:border-emerald-200 hover:bg-slate-50"
@@ -770,7 +770,7 @@ function HomeLoanCalculator() {
                   <p className="text-sm font-black text-slate-900">
                     {offer.name}
                   </p>
-                  <p className="mt-1 text-xs text-slate-500 line-clamp-2">
+                  <p className="mt-1 text-xs text-slate-500 line-clamp-4">
                     {offer.description}
                   </p>
                 </button>
@@ -854,7 +854,7 @@ function HomeLoanCalculator() {
               Estimated {cadenceLabel} Payment
             </p>
             <div className="flex items-baseline gap-2 relative z-10">
-              <p className="text-4xl md:text-6xl font-black text-emerald-600 italic">
+              <p className="text-4xl md:text-4xl font-black text-emerald-600 italic">
                 ₱
                 {installmentAmount.toLocaleString(undefined, {
                   minimumFractionDigits: 2,
