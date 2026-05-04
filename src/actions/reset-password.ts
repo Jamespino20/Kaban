@@ -4,7 +4,10 @@ import * as z from "zod";
 import bcrypt from "bcryptjs";
 import prisma from "@/lib/prisma";
 import { generatePasswordResetToken } from "@/lib/tokens";
-import { sendPasswordResetEmail } from "@/lib/mail";
+import {
+  sendPasswordResetEmail,
+  sendTenantScopedPasswordResetEmail,
+} from "@/lib/mail";
 
 const ResetSchema = z.object({
   email: z.string().email({
@@ -25,10 +28,92 @@ export const requestPasswordReset = async (
   const validatedFields = ResetSchema.safeParse(values);
 
   if (!validatedFields.success) {
-return { error: "Invalid email address format." };
+    return { error: "Invalid email address format." };
+  }
+
+  const { email, tenantId } = validatedFields.data;
+  const tenantIdInt = tenantId ? parseInt(tenantId) : null;
+
+  const existingUser = await prisma.user.findFirst({
+    where: {
+      email: email.trim().toLowerCase(),
+      tenant_id: tenantIdInt,
+    },
+  });
+
+  if (!existingUser) {
+    // Standard security: don't reveal if email exists, just say it's sent
+    return {
+      success: "Kung may account ka sa amin, naipadala na ang reset link.",
+    };
+  }
+
+  const passwordResetToken = await generatePasswordResetToken(
+    existingUser.email,
+    existingUser.tenant_id,
+  );
+
+  if (existingUser.tenant_id) {
+    const tenant = await prisma.tenant.findUnique({
+      where: { tenant_id: existingUser.tenant_id },
+      select: { name: true },
+    });
+
+    await sendTenantScopedPasswordResetEmail({
+      email: passwordResetToken.email,
+      token: passwordResetToken.token,
+      tenantName: tenant?.name || "iyong cooperative",
+    });
+  } else {
+    await sendPasswordResetEmail(
+      passwordResetToken.email,
+      passwordResetToken.token,
+    );
+  }
+
+  return { success: "Naipadala na ang reset link sa iyong email!" };
+};
+
+export const resetPassword = async (
+  values: z.infer<typeof NewPasswordSchema>,
+  token?: string | null,
+) => {
+  if (!token) {
     return { error: "Missing or invalid password reset token." };
+  }
+
+  const validatedFields = NewPasswordSchema.safeParse(values);
+
+  if (!validatedFields.success) {
+    return { error: "Invalid or missing password." };
+  }
+
+  const { password } = validatedFields.data;
+
+  const existingToken = await prisma.passwordResetToken.findUnique({
+    where: { token },
+  });
+
+  if (!existingToken) {
     return { error: "Invalid or missing token." };
-    return { error: "The password reset token has expired. Please request a new one." };
+  }
+
+  const hasExpired = new Date(existingToken.expires) < new Date();
+
+  if (hasExpired) {
+    return {
+      error: "The password reset token has expired. Please request a new one.",
+    };
+  }
+
+  const existingUser = await prisma.user.findFirst({
+    where: {
+      email: existingToken.email,
+      tenant_id: existingToken.tenant_id,
+    },
+  });
+
+  if (!existingUser) {
     return { error: "User not found for the given email." };
   }
 

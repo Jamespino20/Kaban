@@ -45,11 +45,11 @@ export function TopUpQueueTab({ requests }: TopUpQueueTabProps) {
   const handleApprove = (id: number) => {
     setProcessingId(id);
     startTransition(async () => {
-      const res = await approveWalletTopUp(id);
+      const res = (await approveWalletTopUp(id)) as any;
       if (res.error) {
         toast.error(res.error);
       } else {
-        toast.success(res.success as string);
+        toast.success(res.success);
         router.refresh();
       }
       setProcessingId(null);
@@ -59,11 +59,11 @@ export function TopUpQueueTab({ requests }: TopUpQueueTabProps) {
   const handleReject = (id: number) => {
     setProcessingId(id);
     startTransition(async () => {
-      const res = await rejectWalletTopUp(id);
+      const res = (await rejectWalletTopUp(id)) as any;
       if (res.error) {
         toast.error(res.error);
       } else {
-        toast.success(res.success as string);
+        toast.success(res.success);
         router.refresh();
       }
       setProcessingId(null);

@@ -132,25 +132,174 @@ export async function approveLoanApplication(
     });
 
     revalidatePath("/agapay-tanaw");
-    return { success: "Naaprubahan na ang loan application." };
+    return { success: "Loan application approved successfully." };
   } catch (error) {
     console.error("approveLoanApplication failed:", error);
-return { error: "Unable to approve this loan application. It may have already been processed." };
-    return { error: "Unable to reject this loan application. It may have already been processed." };
-    return { error: "Unable to release this loan. The loan must first be approved." };
-    return { error: "Invalid release method for this branch. Please contact your administrator." };
+    return {
+      error:
+        "Unable to approve this loan application. It may have already been processed.",
+    };
+  }
+}
+
+export async function rejectLoanApplication(
+  input: z.infer<typeof RejectLoanSchema>,
+) {
+  try {
+    const { loanId } = RejectLoanSchema.parse(input);
+    const { session, loan } = await requireLoanAdminAccess(loanId);
+
+    if (loan.status !== "pending") {
+      return {
+        error:
+          "Unable to reject this loan application. It may have already been processed.",
+      };
+    }
+
+    await prisma.loan.update({
+      where: { loan_id: loanId },
+      data: {
+        status: "rejected",
+        approved_at: new Date(),
+        approved_by: session.user.user_id,
+      },
+    });
+
+    revalidatePath("/agapay-tanaw");
+    return { success: "Loan application rejected successfully." };
+  } catch (error) {
+    console.error("rejectLoanApplication failed:", error);
+    return {
+      error:
+        "Unable to reject this loan application. It may have already been processed.",
+    };
+  }
+}
+
+export async function releaseLoanFunds(
+  input: z.infer<typeof ReleaseLoanSchema>,
+) {
+  try {
+    const { loanId } = ReleaseLoanSchema.parse(input);
+    const { session, loan } = await requireLoanAdminAccess(loanId);
+
+    if (loan.status !== "approved") {
+      return {
+        error: "Unable to release this loan. The loan must first be approved.",
+      };
+    }
+
+    await prisma.loan.update({
+      where: { loan_id: loanId },
+      data: {
+        status: "active",
+      },
+    });
+
+    revalidatePath("/agapay-tanaw");
+    return { success: "Loan funds released successfully." };
+  } catch (error) {
+    console.error("releaseLoanFunds failed:", error);
     return { error: "Failed to release the loan. Please try again." };
-    return { error: "This action is only available for members." };
-    return { error: "No active loan found for this transaction." };
-    return { error: "Invalid payment method selected." };
-    return { error: "Payment amount exceeds the remaining loan balance." };
+  }
+}
+
+export async function submitMockRepayment(
+  input: z.infer<typeof SubmitPaymentSchema>,
+) {
+  try {
+    const { loanId, amount, methodId } = SubmitPaymentSchema.parse(input);
+    const session = await requireAuthenticatedSession();
+
+    const loan = await prisma.loan.findUnique({
+      where: { loan_id: loanId },
+    });
+
+    if (!loan || loan.user_id !== session.user.user_id) {
+      return { error: "This action is only available for members." };
+    }
+
+    if (loan.status !== "active") {
+      return { error: "No active loan found for this transaction." };
+    }
+
+    const payment = await prisma.payment.create({
+      data: {
+        loan_id: loanId,
+        method_id: methodId,
+        amount_paid: amount,
+        payment_reference: `MOCK-${Date.now()}`,
+        status: "pending",
+        submitted_at: new Date(),
+      },
+    });
+
+    return { success: "Repayment submitted successfully.", payment };
+  } catch (error) {
+    console.error("submitMockRepayment failed:", error);
     return { error: "Failed to process repayment. Please try again." };
-    return { error: "Payment record not found." };
-    return { error: "You are not authorized to view this payment." };
-    return { error: "This payment cannot be modified as it has already been processed." };
+  }
+}
+
+export async function verifySubmittedPayment(
+  input: z.infer<typeof ReviewPaymentSchema>,
+) {
+  try {
+    const { paymentId, notes: note } = ReviewPaymentSchema.parse(input);
+    const session = await requireAuthenticatedSession();
+
+    const payment = await prisma.payment.findUnique({
+      where: { payment_id: paymentId },
+    });
+
+    if (!payment) {
+      return { error: "Payment record not found." };
+    }
+
+    await prisma.payment.update({
+      where: { payment_id: paymentId },
+      data: {
+        status: "verified",
+        verified_at: new Date(),
+        verified_by: session.user.user_id,
+      },
+    });
+
+    return { success: "Payment verified successfully." };
+  } catch (error) {
+    console.error("verifySubmittedPayment failed:", error);
     return { error: "Failed to verify this repayment. Please try again." };
-    return { error: "Payment record not found." };
-    return { error: "You are not authorized to verify this payment." };
+  }
+}
+
+export async function rejectSubmittedPayment(
+  input: z.infer<typeof ReviewPaymentSchema>,
+) {
+  try {
+    const { paymentId, notes: note } = ReviewPaymentSchema.parse(input);
+    const session = await requireAuthenticatedSession();
+
+    const payment = await prisma.payment.findUnique({
+      where: { payment_id: paymentId },
+    });
+
+    if (!payment) {
+      return { error: "Payment record not found." };
+    }
+
+    await prisma.payment.update({
+      where: { payment_id: paymentId },
+      data: {
+        status: "rejected",
+        verified_at: new Date(),
+        verified_by: session.user.user_id,
+        notes: note,
+      },
+    });
+
+    return { success: "Payment rejected successfully." };
+  } catch (error) {
+    console.error("rejectSubmittedPayment failed:", error);
     return { error: "Failed to reject this repayment. Please try again." };
   }
 }

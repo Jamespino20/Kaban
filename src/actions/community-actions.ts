@@ -622,10 +622,16 @@ export async function openDirectConversation(targetUserId: number) {
   return { success: true, conversationId: conversation.id };
 }
 
-export async function sendMessage(input: {
+export async function sendConversationMessage(input: {
   conversationId: string;
   content: string;
   replyToMessageId?: string;
+  attachments?: Array<{
+    fileName: string;
+    fileUrl: string;
+    mimeType: string;
+    sizeBytes: number;
+  }>;
 }) {
   const { session, tenantId } = await requireCommunityTenantContext();
 
@@ -633,8 +639,8 @@ export async function sendMessage(input: {
     return { error: "Please select a branch before sending a message." };
   }
 
-  if (!input.content?.trim()) {
-    return { error: "Please enter a message with at least 1 character." };
+  if (!input.content?.trim() && !input.attachments?.length) {
+    return { error: "Please enter a message or attach a file." };
   }
 
   await assertConversationAccess(session, input.conversationId);
@@ -646,6 +652,16 @@ export async function sendMessage(input: {
       sender_id: session.user.user_id,
       content: input.content.trim(),
       reply_to_id: input.replyToMessageId ?? null,
+      attachments: input.attachments
+        ? {
+            create: input.attachments.map((a) => ({
+              file_name: a.fileName,
+              file_url: a.fileUrl,
+              mime_type: a.mimeType,
+              size_bytes: a.sizeBytes,
+            })),
+          }
+        : undefined,
     },
   });
 
@@ -658,7 +674,7 @@ export async function sendMessage(input: {
   return { success: true, messageId: message.id };
 }
 
-export async function createGroupChat(input: {
+export async function createGroupConversation(input: {
   title: string;
   participantUserIds: number[];
 }) {
@@ -833,4 +849,56 @@ export async function reviewMentorshipConnection(input: {
         ? "Na-endorse na ang mentorship pairing."
         : "Na-reject ang mentorship request.",
   };
+}
+
+export async function markConversationRead(conversationId: string) {
+  const { session } = await requireCommunityTenantContext();
+
+  await prisma.conversationParticipant.update({
+    where: {
+      conversation_id_user_id: {
+        conversation_id: conversationId,
+        user_id: session.user.user_id,
+      },
+    },
+    data: { last_read_at: new Date() },
+  });
+
+  return { success: true };
+}
+
+export async function toggleMessageReaction(input: {
+  messageId: string;
+  emoji: string;
+}) {
+  try {
+    const { session } = await requireCommunityTenantContext();
+
+    const existing = await prisma.messageReaction.findFirst({
+      where: {
+        message_id: input.messageId,
+        user_id: session.user.user_id,
+        emoji: input.emoji,
+      },
+    });
+
+    if (existing) {
+      await prisma.messageReaction.delete({
+        where: { id: existing.id },
+      });
+    } else {
+      await prisma.messageReaction.create({
+        data: {
+          message_id: input.messageId,
+          user_id: session.user.user_id,
+          emoji: input.emoji,
+        },
+      });
+    }
+
+    return { success: true };
+  } catch (error) {
+    console.error("toggleMessageReaction failed:", error);
+    return { error: "Failed to toggle reaction." };
+  }
 }

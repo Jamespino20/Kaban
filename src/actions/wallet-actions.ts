@@ -95,10 +95,8 @@ export async function approveWalletTopUp(requestId: number) {
         ],
       });
 
-      return { success: true };
+      return { success: "Top-up request successfully approved." };
     });
-
-    if (result.error) return result;
 
     revalidatePath("/agapay-tanaw");
     return { success: "Top-up request successfully approved." };
@@ -311,4 +309,34 @@ export async function payLoanWithWallet(loanId: number, amount: number) {
       error: message,
     };
   }
+}
+
+export async function getWalletTransactions() {
+  const session = await requireAuthenticatedSession();
+  const userId = session.user.user_id;
+
+  const savingsAccount = await prisma.savingsAccount.findFirst({
+    where: {
+      user_id: userId,
+      account_type: AccountType.personal_wallet,
+    },
+    include: {
+      transactions: {
+        orderBy: { processed_at: "desc" },
+        take: 50,
+      },
+    },
+  });
+
+  if (!savingsAccount) {
+    return [];
+  }
+
+  return savingsAccount.transactions.map((tx) => ({
+    id: tx.transaction_id,
+    type: tx.transaction_type,
+    amount: tx.amount.toNumber(),
+    reference: tx.reference,
+    date: tx.processed_at,
+  }));
 }

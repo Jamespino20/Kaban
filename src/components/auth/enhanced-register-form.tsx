@@ -327,7 +327,7 @@ export function EnhancedRegisterForm({
     );
 
     startTransition(async () => {
-      const res = await register({
+      const res = (await register({
         ...values,
         region: selectedRegion?.name || "Unknown",
         province: selectedProv?.name || values.province,
@@ -341,7 +341,8 @@ export function EnhancedRegisterForm({
         mothersMaidenName: values.mothersMaidenName,
         placeOfBirth: values.placeOfBirth,
         tin: values.tin,
-      });
+      })) as any;
+
       if (res.error) toast.error(res.error);
       if (res.success) {
         toast.success(res.success);

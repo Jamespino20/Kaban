@@ -33,7 +33,7 @@ import {
   getFeedbackEntries,
   getHomepageContentAdmin,
 } from "@/actions/site-content";
-import { type ShellNavItem } from "@/components/layout/authenticated-shell";
+import { type ShellNavItem, type ShellIconName } from "@/components/layout/authenticated-shell";
 import { DashboardTabsShell } from "@/components/layout/dashboard-tabs-shell";
 import { getCommunityStaffSummary } from "@/actions/community-actions";
 import { CommunityOperationsTab } from "@/components/admin/community-operations-tab";
@@ -149,14 +149,14 @@ export default async function AgapayTanawPage({
       icon: "approvals",
       badge: pendingData.loans.length + pendingData.verifications.length,
     },
-    { value: "members", label: "Members", icon: "members" },
-    { value: "files", label: "Documents", icon: "audit" },
+    { value: "members", label: "Members", icon: "members" as ShellIconName },
+    { value: "files", label: "Documents", icon: "audit" as ShellIconName },
     ...(isAdmin || isSuperAdmin
       ? [
           {
             value: "topup",
             label: "Top-Up Queue",
-            icon: "wallet",
+            icon: "wallet" as ShellIconName,
             badge: pendingTopUps.length || undefined,
           },
         ]
