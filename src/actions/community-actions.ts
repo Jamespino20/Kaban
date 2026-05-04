@@ -105,7 +105,10 @@ async function assertConversationAccess(
   return conversation;
 }
 
-function buildUnreadFlag(lastReadAt: Date | null | undefined, lastMessageAt?: Date) {
+function buildUnreadFlag(
+  lastReadAt: Date | null | undefined,
+  lastMessageAt?: Date,
+) {
   if (!lastMessageAt) return false;
   if (!lastReadAt) return true;
   return lastMessageAt.getTime() > lastReadAt.getTime();
@@ -127,132 +130,137 @@ export async function getCommunityDashboardData() {
 
   await ensureBranchRooms(tenantId, session.user.user_id);
 
-  const [branchRooms, directConversations, groupChats, discoverableUsers, mentorships] =
-    await Promise.all([
-      prisma.conversation.findMany({
-        where: {
-          tenant_id: tenantId,
-          type: ConversationType.branch_room,
-        },
-        include: {
-          messages: {
-            orderBy: { created_at: "desc" },
-            take: 1,
-            include: {
-              sender: {
-                include: { profile: true },
-              },
-            },
-          },
-          participants: {
-            where: { user_id: session.user.user_id },
-            take: 1,
-          },
-        },
-        orderBy: { title: "asc" },
-      }),
-      prisma.conversation.findMany({
-        where: {
-          tenant_id: tenantId,
-          type: ConversationType.direct,
-          participants: {
-            some: {
-              user_id: session.user.user_id,
+  const [
+    branchRooms,
+    directConversations,
+    groupChats,
+    discoverableUsers,
+    mentorships,
+  ] = await Promise.all([
+    prisma.conversation.findMany({
+      where: {
+        tenant_id: tenantId,
+        type: ConversationType.branch_room,
+      },
+      include: {
+        messages: {
+          orderBy: { created_at: "desc" },
+          take: 1,
+          include: {
+            sender: {
+              include: { profile: true },
             },
           },
         },
-        include: {
-          messages: {
-            orderBy: { created_at: "desc" },
-            take: 1,
-            include: {
-              sender: {
-                include: { profile: true },
-              },
-            },
-          },
-          participants: {
-            include: {
-              user: {
-                include: { profile: true },
-              },
-            },
+        participants: {
+          where: { user_id: session.user.user_id },
+          take: 1,
+        },
+      },
+      orderBy: { title: "asc" },
+    }),
+    prisma.conversation.findMany({
+      where: {
+        tenant_id: tenantId,
+        type: ConversationType.direct,
+        participants: {
+          some: {
+            user_id: session.user.user_id,
           },
         },
-        orderBy: { updated_at: "desc" },
-      }),
-      prisma.conversation.findMany({
-        where: {
-          tenant_id: tenantId,
-          type: ConversationType.group_chat,
-          participants: {
-            some: {
-              user_id: session.user.user_id,
+      },
+      include: {
+        messages: {
+          orderBy: { created_at: "desc" },
+          take: 1,
+          include: {
+            sender: {
+              include: { profile: true },
             },
           },
         },
-        include: {
-          messages: {
-            orderBy: { created_at: "desc" },
-            take: 1,
-            include: {
-              sender: {
-                include: { profile: true },
-              },
-            },
-          },
-          participants: {
-            include: {
-              user: {
-                include: { profile: true },
-              },
+        participants: {
+          include: {
+            user: {
+              include: { profile: true },
             },
           },
         },
-        orderBy: { updated_at: "desc" },
-      }),
-      prisma.user.findMany({
-        where: {
-          tenant_id: tenantId,
-          user_id: { not: session.user.user_id },
-          status: UserStatus.active,
-          role: {
-            in: [Role.member, Role.admin, Role.lender],
+      },
+      orderBy: { updated_at: "desc" },
+    }),
+    prisma.conversation.findMany({
+      where: {
+        tenant_id: tenantId,
+        type: ConversationType.group_chat,
+        participants: {
+          some: {
+            user_id: session.user.user_id,
           },
         },
-        include: {
-          profile: true,
-          social_vouches_received: {
-            select: {
-              score: true,
+      },
+      include: {
+        messages: {
+          orderBy: { created_at: "desc" },
+          take: 1,
+          include: {
+            sender: {
+              include: { profile: true },
             },
           },
         },
-        orderBy: [{ role: "asc" }, { created_at: "desc" }],
-        take: 16,
-      }),
-      prisma.mentorshipConnection.findMany({
-        where: {
-          tenant_id: tenantId,
-          OR: [
-            { requester_id: session.user.user_id },
-            { mentor_id: session.user.user_id },
-          ],
-        },
-        include: {
-          requester: {
-            include: { profile: true },
-          },
-          mentor: {
-            include: { profile: true },
-          },
-          endorser: {
-            include: { profile: true },
+        participants: {
+          include: {
+            user: {
+              include: { profile: true },
+            },
           },
         },
-        orderBy: { created_at: "desc" },
-      }),
-    ]);
+      },
+      orderBy: { updated_at: "desc" },
+    }),
+    prisma.user.findMany({
+      where: {
+        tenant_id: tenantId,
+        user_id: { not: session.user.user_id },
+        status: UserStatus.active,
+        role: {
+          in: [Role.member, Role.admin, Role.lender],
+        },
+      },
+      include: {
+        profile: true,
+        social_vouches_received: {
+          select: {
+            score: true,
+          },
+        },
+      },
+      orderBy: [{ role: "asc" }, { created_at: "desc" }],
+      take: 16,
+    }),
+    prisma.mentorshipConnection.findMany({
+      where: {
+        tenant_id: tenantId,
+        OR: [
+          { requester_id: session.user.user_id },
+          { mentor_id: session.user.user_id },
+        ],
+      },
+      include: {
+        requester: {
+          include: { profile: true },
+        },
+        mentor: {
+          include: { profile: true },
+        },
+        endorser: {
+          include: { profile: true },
+        },
+      },
+      orderBy: { created_at: "desc" },
+    }),
+  ]);
 
   return {
     requiresTenantContext: false,
@@ -289,7 +297,8 @@ export async function getCommunityDashboardData() {
               userId: counterparty.user_id,
               role: counterparty.role,
               name:
-                counterparty.profile?.first_name && counterparty.profile?.last_name
+                counterparty.profile?.first_name &&
+                counterparty.profile?.last_name
                   ? `${counterparty.profile.first_name} ${counterparty.profile.last_name}`
                   : counterparty.username,
               subtitle:
@@ -337,9 +346,7 @@ export async function getCommunityDashboardData() {
           ? `${user.profile.first_name} ${user.profile.last_name}`
           : user.username,
       subtitle:
-        user.profile?.business_name ||
-        user.profile?.occupation ||
-        "Ka-Agapay",
+        user.profile?.business_name || user.profile?.occupation || "Ka-Agapay",
       averageVouchScore:
         user.social_vouches_received.length > 0
           ? user.social_vouches_received.reduce(
@@ -367,8 +374,7 @@ export async function getCommunityDashboardData() {
         connection.endorser?.profile?.first_name &&
         connection.endorser?.profile?.last_name
           ? `${connection.endorser.profile.first_name} ${connection.endorser.profile.last_name}`
-          : connection.endorser?.username ||
-            null,
+          : connection.endorser?.username || null,
       createdAt: connection.created_at,
     })),
   };
@@ -378,41 +384,47 @@ export async function getCommunityStaffSummary() {
   const session = await requireTanawSession();
   const tenantId = session.user.tenantId ?? undefined;
   const tenantFilter =
-    session.user.role === "superadmin" && !tenantId ? {} : { tenant_id: tenantId };
+    session.user.role === "superadmin" && !tenantId
+      ? {}
+      : { tenant_id: tenantId };
 
-  const [pendingMentorships, activeMentorships, conversationCount, recentMessages] =
-    await Promise.all([
-      prisma.mentorshipConnection.findMany({
-        where: {
-          ...tenantFilter,
-          status: MentorshipStatus.pending_endorsement,
-        },
-        include: {
-          requester: { include: { profile: true } },
-          mentor: { include: { profile: true } },
-        },
-        orderBy: { created_at: "desc" },
-        take: 10,
-      }),
-      prisma.mentorshipConnection.count({
-        where: {
-          ...tenantFilter,
-          status: MentorshipStatus.endorsed,
-        },
-      }),
-      prisma.conversation.count({
-        where: tenantFilter,
-      }),
-      prisma.message.findMany({
-        where: tenantFilter,
-        include: {
-          sender: { include: { profile: true } },
-          conversation: true,
-        },
-        orderBy: { created_at: "desc" },
-        take: 8,
-      }),
-    ]);
+  const [
+    pendingMentorships,
+    activeMentorships,
+    conversationCount,
+    recentMessages,
+  ] = await Promise.all([
+    prisma.mentorshipConnection.findMany({
+      where: {
+        ...tenantFilter,
+        status: MentorshipStatus.pending_endorsement,
+      },
+      include: {
+        requester: { include: { profile: true } },
+        mentor: { include: { profile: true } },
+      },
+      orderBy: { created_at: "desc" },
+      take: 10,
+    }),
+    prisma.mentorshipConnection.count({
+      where: {
+        ...tenantFilter,
+        status: MentorshipStatus.endorsed,
+      },
+    }),
+    prisma.conversation.count({
+      where: tenantFilter,
+    }),
+    prisma.message.findMany({
+      where: tenantFilter,
+      include: {
+        sender: { include: { profile: true } },
+        conversation: true,
+      },
+      orderBy: { created_at: "desc" },
+      take: 8,
+    }),
+  ]);
 
   return {
     pendingMentorships: pendingMentorships.map((connection) => ({
@@ -456,7 +468,10 @@ export async function getConversationThread(
   const { session } = await requireCommunityTenantContext();
   const conversation = await assertConversationAccess(session, conversationId);
 
-  if (conversation.type === ConversationType.branch_room && session.user.tenantId) {
+  if (
+    conversation.type === ConversationType.branch_room &&
+    session.user.tenantId
+  ) {
     await prisma.conversationParticipant.upsert({
       where: {
         conversation_id_user_id: {
@@ -520,7 +535,8 @@ export async function getConversationThread(
     participants: thread.participants.map((participant) => ({
       userId: participant.user_id,
       name:
-        participant.user.profile?.first_name && participant.user.profile?.last_name
+        participant.user.profile?.first_name &&
+        participant.user.profile?.last_name
           ? `${participant.user.profile.first_name} ${participant.user.profile.last_name}`
           : participant.user.username,
       role: participant.user.role,
@@ -561,16 +577,153 @@ export async function openDirectConversation(targetUserId: number) {
   const { session, tenantId } = await requireCommunityTenantContext();
 
   if (!tenantId) {
-return { error: "Please select a branch before using community tools." };
+    return { error: "Please select a branch before using community tools." };
+  }
+
+  if (targetUserId === session.user.user_id) {
     return { error: "You cannot send a message to yourself." };
+  }
+
+  const target = await prisma.user.findFirst({
+    where: { user_id: targetUserId, tenant_id: tenantId },
+  });
+
+  if (!target) {
     return { error: "The selected member was not found in this branch." };
+  }
+
+  const existing = await prisma.conversation.findFirst({
+    where: {
+      tenant_id: tenantId,
+      type: ConversationType.direct,
+      AND: [
+        { participants: { some: { user_id: session.user.user_id } } },
+        { participants: { some: { user_id: targetUserId } } },
+      ],
+    },
+  });
+
+  if (existing) {
+    return { success: true, conversationId: existing.id };
+  }
+
+  const conversation = await prisma.conversation.create({
+    data: {
+      tenant_id: tenantId,
+      type: ConversationType.direct,
+      created_by: session.user.user_id,
+      participants: {
+        create: [{ user_id: session.user.user_id }, { user_id: targetUserId }],
+      },
+    },
+  });
+
+  revalidatePath("/agapay-pintig");
+  return { success: true, conversationId: conversation.id };
+}
+
+export async function sendMessage(input: {
+  conversationId: string;
+  content: string;
+  replyToMessageId?: string;
+}) {
+  const { session, tenantId } = await requireCommunityTenantContext();
+
+  if (!tenantId) {
     return { error: "Please select a branch before sending a message." };
+  }
+
+  if (!input.content?.trim()) {
     return { error: "Please enter a message with at least 1 character." };
+  }
+
+  await assertConversationAccess(session, input.conversationId);
+
+  const message = await prisma.message.create({
+    data: {
+      tenant_id: tenantId,
+      conversation_id: input.conversationId,
+      sender_id: session.user.user_id,
+      content: input.content.trim(),
+      reply_to_id: input.replyToMessageId ?? null,
+    },
+  });
+
+  await prisma.conversation.update({
+    where: { id: input.conversationId },
+    data: { updated_at: new Date() },
+  });
+
+  revalidatePath("/agapay-pintig");
+  return { success: true, messageId: message.id };
+}
+
+export async function createGroupChat(input: {
+  title: string;
+  participantUserIds: number[];
+}) {
+  const { session, tenantId } = await requireCommunityTenantContext();
+
+  if (!tenantId) {
     return { error: "Please select a branch before creating a group chat." };
+  }
+
+  const allParticipantIds = Array.from(
+    new Set([session.user.user_id, ...input.participantUserIds]),
+  );
+
+  if (allParticipantIds.length < 3) {
     return { error: "A group chat requires at least 3 participants." };
-    return { error: "One or more selected participants are not valid members of this branch." };
+  }
+
+  const validMembers = await prisma.user.findMany({
+    where: { user_id: { in: allParticipantIds }, tenant_id: tenantId },
+    select: { user_id: true },
+  });
+
+  if (validMembers.length !== allParticipantIds.length) {
+    return {
+      error:
+        "One or more selected participants are not valid members of this branch.",
+    };
+  }
+
+  const conversation = await prisma.conversation.create({
+    data: {
+      tenant_id: tenantId,
+      type: ConversationType.group_chat,
+      title: input.title?.trim() || "Group Chat",
+      created_by: session.user.user_id,
+      participants: {
+        create: allParticipantIds.map((uid) => ({ user_id: uid })),
+      },
+    },
+  });
+
+  revalidatePath("/agapay-pintig");
+  return { success: true, conversationId: conversation.id };
+}
+
+export async function requestMentorship(input: {
+  mentorUserId: number;
+  focusArea?: string;
+  notes?: string;
+}) {
+  const { session, tenantId } = await requireCommunityTenantContext();
+
+  if (!tenantId) {
     return { error: "Please select a branch before requesting mentorship." };
+  }
+
+  if (input.mentorUserId === session.user.user_id) {
     return { error: "You cannot select yourself as a mentor." };
+  }
+
+  const mentor = await prisma.user.findFirst({
+    where: { user_id: input.mentorUserId, tenant_id: tenantId },
+  });
+
+  if (!mentor) {
     return { error: "The selected mentor is not available in this branch." };
   }
 
