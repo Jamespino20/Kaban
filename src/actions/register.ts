@@ -95,59 +95,81 @@ export const register = async (values: z.infer<typeof RegisterSchema>) => {
   }
 
   try {
-    const user = await prisma.user.create({
-      data: {
-        email,
-        username,
-        password_hash: hashedPassword,
-        tenant_id: tenantId,
-        role: "member",
-        profile: {
-          create: {
-            first_name: firstName,
-            last_name: lastName,
-            middle_name: middleName,
-            birthdate: new Date(birthdate),
-            gender,
-            marital_status: maritalStatus as any,
-            business_name: businessName,
-            address: streetAddress,
-            region,
-            province,
-            city,
-            barangay,
-            mothers_maiden_name: mothersMaidenName,
-            place_of_birth: placeOfBirth,
-            tin,
-            photo_url: idPicture,
+    const result = await prisma.$transaction(async (tx) => {
+      // 1. Resolve Tenant Slug
+      const tenant = await tx.tenant.findUnique({
+        where: { tenant_id: tenantId },
+        select: { slug: true },
+      });
+
+      if (!tenant) throw new Error("Branch not found.");
+
+      // 2. Set Schema Scope (Malolos is public)
+      if (tenant.slug && tenant.slug !== "malolos") {
+        await tx.$executeRawUnsafe(
+          `SET search_path TO "${tenant.slug}", public`,
+        );
+      }
+
+      // 3. Create User in the scoped schema
+      const user = await tx.user.create({
+        data: {
+          email,
+          username,
+          password_hash: hashedPassword,
+          tenant_id: tenantId,
+          role: "member",
+          profile: {
+            create: {
+              first_name: firstName,
+              last_name: lastName,
+              middle_name: middleName,
+              birthdate: new Date(birthdate),
+              gender,
+              marital_status: maritalStatus as any,
+              business_name: businessName,
+              address: streetAddress,
+              region,
+              province,
+              city,
+              barangay,
+              mothers_maiden_name: mothersMaidenName,
+              place_of_birth: placeOfBirth,
+              tin,
+              photo_url: idPicture,
+            },
+          },
+          documents: {
+            create: [
+              {
+                document_type: "valid_id",
+                file_url: idPicture,
+              },
+              ...(brgyCertUrl
+                ? [
+                    {
+                      document_type: "brgy_cert" as any,
+                      file_url: brgyCertUrl,
+                    },
+                  ]
+                : []),
+              ...(businessPermitUrl
+                ? [
+                    {
+                      document_type: "business_permit" as any,
+                      file_url: businessPermitUrl,
+                    },
+                  ]
+                : []),
+            ],
           },
         },
-        documents: {
-          create: [
-            {
-              document_type: "valid_id",
-              file_url: idPicture,
-            },
-            ...(brgyCertUrl
-              ? [
-                  {
-                    document_type: "brgy_cert" as any,
-                    file_url: brgyCertUrl,
-                  },
-                ]
-              : []),
-            ...(businessPermitUrl
-              ? [
-                  {
-                    document_type: "business_permit" as any,
-                    file_url: businessPermitUrl,
-                  },
-                ]
-              : []),
-          ],
-        },
-      },
+      });
+
+      return user;
     });
+
+    const user = result;
 
     const memberCode = `ASN-${user.user_id.toString().padStart(4, "0")}`;
 

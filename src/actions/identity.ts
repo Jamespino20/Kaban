@@ -95,61 +95,63 @@ export async function getAvailableTenants(
       normalizedBranch === "main" ||
       normalizedBranch === "global";
 
-    if (isGlobal) {
-      // Standard global lookup
-      const results = await sql`
-        SELECT 
-          user_id as id, tenant_id, role, password_hash, status, email, username
-        FROM users
-        WHERE (username = ${username} OR email = ${username})
-        AND status != 'suspended'
-      `;
-      return processUsers(results as unknown as User[], sql, password);
-    } else {
-      // Schema-aware lookup: We must be careful with schema names (no parameterization for identifiers)
-      // We validate the branch exists first to prevent SQL injection.
-      const branchCheck =
-        await sql`SELECT slug FROM tenants WHERE slug = ${normalizedBranch} AND is_active = true`;
-      if (branchCheck.length === 0) {
-        // Fallback to global if branch doesn't exist? Or just stick to global logic.
-        const results = await sql`
-          SELECT user_id as id, tenant_id, role, password_hash, status, email, username
-          FROM public.users
-          WHERE (username = ${username} OR email = ${username})
-          AND status != 'suspended'
-        `;
-        return processUsers(results as unknown as User[], sql, password);
+    // 1. Fetch all active tenants to know which schemas to search
+    const allTenants = await sql`
+      SELECT tenant_id, name, slug 
+      FROM tenants 
+      WHERE is_active = true
+    `;
+
+    // 2. Identify target schemas to search
+    const schemasToSearch: string[] = ["public"];
+
+    if (!isGlobal && normalizedBranch !== "malolos") {
+      // If a specific branch is requested (and it's not malolos which is public)
+      const target = allTenants.find((t) => t.slug === normalizedBranch);
+      if (target) {
+        schemasToSearch.push(target.slug);
       }
-
-      // Valid branch schema detected. Perform union lookup.
-      // NOTE: We don't use string interpolation for SQL queries except for validated schema names.
-      const validatedSchema = branchCheck[0].slug;
-
-      // We use a multi-query approach or a union if the driver supports raw strings.
-      // Since 'neon' doesn't easily support raw identifier parameterization,
-      // we'll run two separate queries and merge.
-      const publicUsers = await sql`
-        SELECT user_id as id, tenant_id, role, password_hash, status, email, username
-        FROM public.users
-        WHERE (username = ${username} OR email = ${username})
-        AND status != 'suspended'
-      `;
-
-      const branchUsers = await sql.query(
-        `
-        SELECT user_id as id, tenant_id, role, password_hash, status, email, username
-        FROM "${validatedSchema}".users
-        WHERE (username = $1 OR email = $1)
-        AND status != 'suspended'
-      `,
-        [username],
-      );
-      const combinedUsers = [
-        ...(publicUsers as any),
-        ...((branchUsers as any).rows || (branchUsers as any)),
-      ];
-      return processUsers(combinedUsers as User[], sql, password);
+    } else if (isGlobal) {
+      // Global login: Search ALL active schemas to find the user's accounts
+      allTenants.forEach((t) => {
+        if (t.slug && t.slug !== "malolos") {
+          schemasToSearch.push(t.slug);
+        }
+      });
     }
+
+    // 3. Execute queries in parallel for all identified schemas
+    const userQueries = schemasToSearch.map(async (schema) => {
+      try {
+        if (schema === "public") {
+          return await sql`
+            SELECT user_id as id, tenant_id, role, password_hash, status, email, username
+            FROM public.users
+            WHERE (username = ${username} OR email = ${username})
+            AND status != 'suspended'
+          `;
+        } else {
+          const result = await sql.query(
+            `
+            SELECT user_id as id, tenant_id, role, password_hash, status, email, username
+            FROM "${schema}".users
+            WHERE (username = $1 OR email = $1)
+            AND status != 'suspended'
+          `,
+            [username],
+          );
+          return (result as any).rows || result || [];
+        }
+      } catch (err) {
+        console.warn(`Schema lookup failed for ${schema}:`, err);
+        return [];
+      }
+    });
+
+    const queryResults = await Promise.all(userQueries);
+    const combinedUsers = queryResults.flat() as User[];
+
+    return processUsers(combinedUsers, sql, password);
   } catch (error) {
     console.error("Identity lookup failed:", error);
     return { error: "Something went wrong" };

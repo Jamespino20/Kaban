@@ -47,16 +47,71 @@ const getNextAuth = () => {
 
             const sql = neon(connectionString);
 
-            // Fetch user with strict tenant scoping
-            const users = await sql`
-              SELECT u.user_id, u.tenant_id, u.username, u.email, u.password_hash, 
-                     u.role, u.status, u.member_code, t.slug as tenant_slug
-              FROM users u
-              LEFT JOIN tenants t ON u.tenant_id = t.tenant_id
-              WHERE (u.tenant_id = ${parsedTenantId} OR (u.tenant_id IS NULL AND ${parsedTenantId === null}))
-              AND (u.email = ${username} OR u.username = ${username})
-              LIMIT 1
-            `;
+            // 1. Resolve Target Schema based on tenantId
+            let targetSchema = "public";
+            let validatedTenantId = parsedTenantId;
+
+            if (parsedTenantId !== null) {
+              const tenants = await sql`
+                SELECT slug FROM tenants WHERE tenant_id = ${parsedTenantId}
+              `;
+              const tenant = tenants[0];
+              if (tenant) {
+                // Malolos uses the public schema physically
+                if (tenant.slug !== "malolos") {
+                  targetSchema = tenant.slug;
+                }
+              }
+            }
+
+            // 2. Fetch user with schema-aware scoping
+            let users: any[] = [];
+
+            try {
+              if (targetSchema === "public") {
+                users = await sql`
+                  SELECT u.user_id, u.tenant_id, u.username, u.email, u.password_hash, 
+                         u.role, u.status, u.member_code, t.slug as tenant_slug
+                  FROM public.users u
+                  LEFT JOIN public.tenants t ON u.tenant_id = t.tenant_id
+                  WHERE (u.tenant_id = ${validatedTenantId} OR (u.tenant_id IS NULL AND ${validatedTenantId === null}))
+                  AND (u.email = ${username} OR u.username = ${username})
+                  LIMIT 1
+                `;
+              } else {
+                // isolated branch schema
+                const result = await sql.query(
+                  `
+                  SELECT u.user_id, u.tenant_id, u.username, u.email, u.password_hash, 
+                         u.role, u.status, u.member_code, t.slug as tenant_slug
+                  FROM "${targetSchema}".users u
+                  LEFT JOIN public.tenants t ON u.tenant_id = t.tenant_id
+                  WHERE u.tenant_id = $1
+                  AND (u.email = $2 OR u.username = $2)
+                  LIMIT 1
+                `,
+                  [validatedTenantId, username],
+                );
+                users = (result as any).rows || result || [];
+              }
+            } catch (err) {
+              console.error(
+                `Auth lookup failed for schema ${targetSchema}:`,
+                err,
+              );
+              // Fallback to public if branch schema lookup fails (e.g. table doesn't exist yet)
+              if (targetSchema !== "public") {
+                users = await sql`
+                  SELECT u.user_id, u.tenant_id, u.username, u.email, u.password_hash, 
+                         u.role, u.status, u.member_code, t.slug as tenant_slug
+                  FROM public.users u
+                  LEFT JOIN public.tenants t ON u.tenant_id = t.tenant_id
+                  WHERE (u.tenant_id = ${validatedTenantId} OR (u.tenant_id IS NULL AND ${validatedTenantId === null}))
+                  AND (u.email = ${username} OR u.username = ${username})
+                  LIMIT 1
+                `;
+              }
+            }
 
             const user = users[0];
             if (!user) return null;
