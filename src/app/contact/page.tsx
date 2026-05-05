@@ -38,8 +38,8 @@ const CONTACT_METHODS = [
   },
   {
     title: "Head Office",
-    detail: "Taguig City, Philippines",
-    href: "https://maps.google.com/?q=Taguig%20City%20Philippines",
+    detail: "Malolos City, Philippines",
+    href: "https://maps.google.com/?q=Malolos%20City%20Philippines",
     actionLabel: "Open Map",
     icon: MapPin,
   },

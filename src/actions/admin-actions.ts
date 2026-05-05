@@ -1,6 +1,6 @@
 "use server";
 
-import prisma from "@/lib/prisma";
+import prisma, { getBranchPrisma } from "@/lib/prisma";
 import { requireTanawSession } from "@/lib/authorization";
 import { Role, UserStatus } from "@prisma/client";
 import {
@@ -12,13 +12,14 @@ import { determineInterestTierFromScore } from "@/lib/microfinance-policy";
 
 export async function getTenantMembers() {
   const session = await requireTanawSession();
+  const db = getBranchPrisma(session.user.tenantSlug);
   const tenantId = session.user.tenantId ?? undefined;
   const tenantFilter =
     session.user.role === "superadmin" && !tenantId
       ? {}
       : { tenant_id: tenantId };
 
-  const members = await prisma.user.findMany({
+  const members = await db.user.findMany({
     where: {
       ...tenantFilter,
     },
@@ -60,6 +61,7 @@ export async function getTenantMembers() {
 
 export async function getPendingApprovals() {
   const session = await requireTanawSession();
+  const db = getBranchPrisma(session.user.tenantSlug);
   const tenantId = session.user.tenantId ?? undefined;
   const tenantFilter =
     session.user.role === "superadmin" && !tenantId
@@ -71,7 +73,7 @@ export async function getPendingApprovals() {
       : { tenant_id: tenantId };
 
   // Fetch pending loans
-  const pendingLoans = await prisma.loan.findMany({
+  const pendingLoans = await db.loan.findMany({
     where: {
       ...loanTenantFilter,
       status: "pending",
@@ -90,7 +92,7 @@ export async function getPendingApprovals() {
   });
 
   // Fetch users with pending verification documents
-  const pendingVerifications = await prisma.user.findMany({
+  const pendingVerifications = await db.user.findMany({
     where: {
       ...tenantFilter,
       status: UserStatus.pending,
@@ -106,7 +108,7 @@ export async function getPendingApprovals() {
     },
   });
 
-  const approvedLoans = await prisma.loan.findMany({
+  const approvedLoans = await db.loan.findMany({
     where: {
       ...loanTenantFilter,
       status: "approved",
@@ -219,6 +221,7 @@ export async function getPendingApprovals() {
 
 export async function getDashboardMetrics() {
   const session = await requireTanawSession();
+  const db = getBranchPrisma(session.user.tenantSlug);
 
   const tenantId = session.user.tenantId ?? undefined;
   const tenantFilter = tenantId ? { tenant_id: tenantId } : {};
@@ -230,7 +233,7 @@ export async function getDashboardMetrics() {
   });
 
   // 1. Total Liquidity (Total Savings Pool)
-  const liquidity = await prisma.savingsAccount.aggregate({
+  const liquidity = await db.savingsAccount.aggregate({
     where: {
       ...tenantFilter,
       account_type: {
@@ -241,12 +244,12 @@ export async function getDashboardMetrics() {
   });
 
   // 2. Active Loans Count
-  const activeLoansCount = await prisma.loan.count({
+  const activeLoansCount = await db.loan.count({
     where: { ...tenantFilter, status: "active" },
   });
 
   // 3. Repayment Rate (Verified Payments vs Total Due)
-  const totalPaid = await prisma.payment.aggregate({
+  const totalPaid = await db.payment.aggregate({
     where: {
       ...loanRelationFilter,
       status: "verified",
@@ -254,7 +257,7 @@ export async function getDashboardMetrics() {
     _sum: { amount_paid: true },
   });
 
-  const totalDue = await prisma.loanSchedule.aggregate({
+  const totalDue = await db.loanSchedule.aggregate({
     where: {
       ...loanRelationFilter,
       due_date: { lte: new Date() },
@@ -267,7 +270,7 @@ export async function getDashboardMetrics() {
   const repaymentRate = dueVal > 0 ? (paidVal / dueVal) * 100 : 100;
 
   // 4. Risk Exposure (Sum of remaining balance on past-due/defaulted loans)
-  const riskExposure = await prisma.loan.aggregate({
+  const riskExposure = await db.loan.aggregate({
     where: {
       ...tenantFilter,
       OR: [
@@ -291,6 +294,7 @@ export async function getDashboardMetrics() {
  */
 export async function getTenantTrustMetrics() {
   const session = await requireTanawSession();
+  const db = getBranchPrisma(session.user.tenantSlug);
   const tenantId = session.user.tenantId ?? undefined;
   const tenantFilter = tenantId ? { tenant_id: tenantId } : {};
 
@@ -301,37 +305,37 @@ export async function getTenantTrustMetrics() {
 
   const [t1Count, t2Count, t3Count, t4Count, t5Count, overdueCount] =
     await Promise.all([
-      prisma.user.count({
+      db.user.count({
         where: {
           ...memberWhere,
           interest_tier: "T1_5_PERCENT",
         },
       }),
-      prisma.user.count({
+      db.user.count({
         where: {
           ...memberWhere,
           interest_tier: "T2_4_5_PERCENT",
         },
       }),
-      prisma.user.count({
+      db.user.count({
         where: {
           ...memberWhere,
           interest_tier: "T3_4_PERCENT",
         },
       }),
-      prisma.user.count({
+      db.user.count({
         where: {
           ...memberWhere,
           interest_tier: "T4_3_5_PERCENT",
         },
       }),
-      prisma.user.count({
+      db.user.count({
         where: {
           ...memberWhere,
           interest_tier: "T5_3_PERCENT",
         },
       }),
-      prisma.user.count({
+      db.user.count({
         where: {
           ...memberWhere,
           loans: { some: { schedules: { some: { status: "overdue" } } } },
@@ -383,25 +387,26 @@ export async function createStaffAccount(values: {
   }
 
   try {
+    const db = getBranchPrisma(session.user.tenantSlug);
     const bcrypt = await import("bcryptjs");
     const hashedPassword = await bcrypt.hash(
       values.plainPassword || values.passwordHash,
       10,
     );
 
-    const existingUser = await prisma.user.findFirst({
+    const existingUser = await db.user.findFirst({
       where: { email: values.email.toLowerCase() },
     });
     if (existingUser)
       return { success: false, error: "Email already exists in the system." };
 
-    const existingUsername = await prisma.user.findFirst({
+    const existingUsername = await db.user.findFirst({
       where: { username: values.username, tenant_id: values.tenantId },
     });
     if (existingUsername)
       return { success: false, error: "Username taken in this branch." };
 
-    const result = await prisma.$transaction(async (tx: any) => {
+    const result = await db.$transaction(async (tx: any) => {
       // 1. Generate Member Code for Staff (AGP-YYYY-[ROLE]-SERIAL)
       const year = new Date().getFullYear();
       const count = await tx.user.count({
@@ -473,8 +478,9 @@ export async function createStaffAccount(values: {
 export async function manuallyDeclareDefault(loanId: number) {
   const session = await requireTanawSession();
 
-    try {
-      await prisma.$transaction(async (tx: any) => {
+  try {
+    const db = getBranchPrisma(session.user.tenantSlug);
+    await db.$transaction(async (tx: any) => {
       return await enforceLoanDefault(tx, loanId, session.user.user_id);
     });
 

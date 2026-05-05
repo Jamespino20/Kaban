@@ -72,6 +72,7 @@ export const applyForLoan = async (
       {
         user_id: session.user.user_id,
         tenant_id: session.user.tenantId,
+        tenant_slug: session.user.tenantSlug,
         role: session.user.role,
         email: session.user.email!,
       },

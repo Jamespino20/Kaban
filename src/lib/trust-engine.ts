@@ -1,8 +1,6 @@
-import prisma from "@/lib/prisma";
+import prisma, { getBranchPrisma } from "@/lib/prisma";
 import { InterestTier } from "@prisma/client";
-import {
-  determineInterestTierFromScore,
-} from "@/lib/microfinance-policy";
+import { determineInterestTierFromScore } from "@/lib/microfinance-policy";
 
 /**
  * Agapay Socio-Economic Trust Engine
@@ -25,8 +23,10 @@ export interface TrustScoreBreakdown {
 export async function calculateTrustScore(
   userId: number,
   tenantId?: number | null,
+  tenantSlug?: string | null,
 ): Promise<TrustScoreBreakdown> {
-  const user = await prisma.user.findUnique({
+  const db = getBranchPrisma(tenantSlug || null);
+  const user = await db.user.findUnique({
     where: { user_id: userId },
     include: {
       loans: {
@@ -127,9 +127,14 @@ export async function calculateTrustScore(
 /**
  * Updates a user's interest tier in the database based on their current trust score.
  */
-export async function syncUserTier(userId: number, tenantId?: number | null) {
-  const breakdown = await calculateTrustScore(userId, tenantId);
-  return await prisma.user.update({
+export async function syncUserTier(
+  userId: number,
+  tenantId?: number | null,
+  tenantSlug?: string | null,
+) {
+  const breakdown = await calculateTrustScore(userId, tenantId, tenantSlug);
+  const db = getBranchPrisma(tenantSlug || null);
+  return await db.user.update({
     where: { user_id: userId },
     data: {
       interest_tier: breakdown.tier,

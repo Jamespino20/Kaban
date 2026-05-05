@@ -39,117 +39,77 @@ export default async function middleware(req: NextRequest) {
     const userTenantId = req.auth?.user?.tenantId ?? null;
     const userTenantSlug = req.auth?.user?.tenantSlug ?? null;
 
-    // Extract branch from path: /branch-slug/...
     const pathSegments = nextUrl.pathname.split("/").filter(Boolean);
     const urlBranchSlug = pathSegments[0];
-
-    // Asynchronously log traffic
-    logTraffic(nextUrl.pathname, userTenantId).catch((err) =>
-      console.error("Traffic log failed:", err),
-    );
-
-    console.log(
-      `[PROXY] ${req.method} ${nextUrl.pathname} | Branch: ${urlBranchSlug} | Role: ${role} | Tenant: ${userTenantId} | TenantSlug: ${userTenantSlug}`,
-    );
-
     const isAuthRoute = nextUrl.pathname.includes("/auth");
     const isLandingPage = nextUrl.pathname === "/";
 
-    // If logged in and on a public/auth route, redirect to the appropriate branch dashboard
-    if (isLoggedIn && (isAuthRoute || isLandingPage)) {
-      const targetBranch =
-        role === "superadmin" ? "main" : userTenantSlug || "branch";
+    // Async telemetry
+    logTraffic(nextUrl.pathname, userTenantId).catch(() => {});
+
+    console.log(
+      `[PROXY] ${req.method} ${nextUrl.pathname} | Branch: ${urlBranchSlug} | Role: ${role} | TenantSlug: ${userTenantSlug}`,
+    );
+
+    // 1. Unauthenticated workflow
+    if (!isLoggedIn) {
+      if (!isAuthRoute && !isLandingPage) {
+        // Force branch-sensitive login
+        const targetBranch = urlBranchSlug || "main";
+        return NextResponse.redirect(
+          new URL(`/${targetBranch}/auth/login`, nextUrl),
+        );
+      }
+      return NextResponse.next();
+    }
+
+    // 2. Authenticated workflow
+    const isSuperadmin = role === "superadmin";
+
+    // 2.1 Branch Isolation Guard
+    // Check if the user is in their assigned branch. Superadmins can be in any branch.
+    const hasBranchMismatch =
+      !isSuperadmin && urlBranchSlug && urlBranchSlug !== userTenantSlug;
+    const isMissingBranch = !urlBranchSlug;
+
+    if (hasBranchMismatch || isMissingBranch) {
+      const targetBranch = isSuperadmin
+        ? urlBranchSlug || "main"
+        : userTenantSlug || "main";
       const targetPath = role === "member" ? "agapay-pintig" : "agapay-tanaw";
+
+      // If we are already at the target path, don't redirect (prevent loop)
+      if (nextUrl.pathname === `/${targetBranch}/${targetPath}`) {
+        return NextResponse.next();
+      }
+
       return NextResponse.redirect(
         new URL(`/${targetBranch}/${targetPath}`, nextUrl),
       );
     }
 
-    // If not logged in and trying to access a private route
-    if (!isLoggedIn && !isAuthRoute && !isLandingPage) {
-      if (urlBranchSlug) {
-        return NextResponse.redirect(
-          new URL(`/${urlBranchSlug}/auth/login`, nextUrl),
-        );
-      }
-      // If we don't know the branch, bounce them to the global entry
-      return NextResponse.redirect(new URL("/", nextUrl));
+    // 2.2 Portal Correction (Member vs Staff)
+    const isTanawRoute = nextUrl.pathname.includes("/agapay-tanaw");
+    const isPintigRoute = nextUrl.pathname.includes("/agapay-pintig");
+
+    if (role === "member" && isTanawRoute) {
+      return NextResponse.redirect(
+        new URL(`/${urlBranchSlug}/agapay-pintig`, nextUrl),
+      );
+    }
+    if (role !== "member" && isPintigRoute && !isSuperadmin) {
+      return NextResponse.redirect(
+        new URL(`/${urlBranchSlug}/agapay-tanaw`, nextUrl),
+      );
     }
 
-    // Tenant Isolation Guard: ensure users cannot access a different branch
-    if (
-      isLoggedIn &&
-      urlBranchSlug &&
-      !isAuthRoute &&
-      !isLandingPage &&
-      role !== "superadmin"
-    ) {
-      if (userTenantSlug && userTenantSlug !== urlBranchSlug) {
-        // Enforce physical boundary redirection
-        return NextResponse.redirect(
-          new URL(`/${userTenantSlug}/agapay-tanaw`, nextUrl),
-        );
-      }
+    // 2.3 Entitlement Checks (Exclude Superadmin)
+    if (!isSuperadmin && userTenantId) {
+      // In middleware, we only do a quick check if possible or rely on the page guards
+      // to avoid excessive DB calls. The page guards in requireTanawSession handle this robustly.
     }
 
-    // Handle cross-role or cross-tenant route protection
-    if (isLoggedIn && urlBranchSlug) {
-      const isTanawRoute = nextUrl.pathname.includes("/agapay-tanaw");
-      const isPintigRoute = nextUrl.pathname.includes("/agapay-pintig");
-      const isTenantAccessRoute = nextUrl.pathname.includes("/tenant-access");
-
-      if (role === "superadmin") {
-        return NextResponse.rewrite(new URL(nextUrl.pathname, nextUrl));
-      }
-
-      if (role === "member" && isTanawRoute) {
-        return NextResponse.redirect(
-          new URL(`/${urlBranchSlug}/agapay-pintig`, nextUrl),
-        );
-      }
-
-      if (role !== "member" && isPintigRoute) {
-        return NextResponse.redirect(
-          new URL(`/${urlBranchSlug}/agapay-tanaw`, nextUrl),
-        );
-      }
-
-      // Entitlement checks
-      try {
-        const connectionString = getDbUrl();
-        if (connectionString && userTenantId) {
-          const sql = neon(connectionString);
-          const tenants = await sql`
-            SELECT is_active, entitlement_status
-            FROM tenants
-            WHERE tenant_id = ${userTenantId}
-            LIMIT 1
-          `;
-
-          const tenant = tenants[0] as
-            | { is_active: boolean; entitlement_status: string }
-            | undefined;
-          const tenantIsOperational =
-            !!tenant &&
-            tenant.is_active === true &&
-            tenant.entitlement_status === "active";
-
-          if (!tenantIsOperational && !isTenantAccessRoute) {
-            return NextResponse.redirect(
-              new URL(`/${urlBranchSlug}/tenant-access`, nextUrl),
-            );
-          }
-        }
-      } catch (error) {
-        console.error("Tenant entitlement check failed in proxy:", error);
-      }
-    }
-
-    // Rewrite to the internal dynamic directory flow if it's a branch route
-    if (urlBranchSlug) {
-      return NextResponse.rewrite(new URL(nextUrl.pathname, nextUrl));
-    }
-
+    // All guards passed, proceed
     return NextResponse.next();
   })(req, {} as any);
 }

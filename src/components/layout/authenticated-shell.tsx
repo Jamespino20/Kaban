@@ -24,6 +24,7 @@ import {
   TrendingUp,
 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
+import { BranchSelector } from "@/components/layout/branch-selector";
 
 function normalizeHexColor(color?: string | null) {
   if (!color) {
@@ -180,19 +181,18 @@ export function AuthenticatedShell({
       "border border-primary/20 bg-gradient-to-br from-primary/5 to-white/95",
     highlight:
       "border-primary/25 bg-primary/12 text-primary hover:border-primary/35 hover:bg-primary/18",
-    surface:
-      "border-white/10 bg-[linear-gradient(180deg,rgba(15,23,42,0.96),rgba(2,6,23,0.98))]",
+    surface: `border-white/10 bg-[linear-gradient(180deg,${rgba(normalizedTenantColor || "#0f172a", 0.96)},#020617)]`,
   };
 
   const sidebarStyle = {
     backgroundImage: normalizedTenantColor
-      ? `radial-gradient(circle at top left, ${rgba(normalizedTenantColor, 0.22)}, transparent 32%), linear-gradient(180deg, rgba(15,23,42,0.98), rgba(2,6,23,0.99))`
-      : "linear-gradient(180deg,rgba(15,23,42,0.96),rgba(2,6,23,0.98))",
+      ? `radial-gradient(circle at top left, ${rgba(normalizedTenantColor, 0.35)}, transparent 40%), linear-gradient(180deg, ${rgba(normalizedTenantColor, 0.15)}, #020617 100%)`
+      : "linear-gradient(180deg, #0f172a 0%, #020617 100%)",
   } as React.CSSProperties;
   const mainPaneStyle = {
     backgroundImage: normalizedTenantColor
-      ? `radial-gradient(circle at top, ${rgba(normalizedTenantColor, 0.12)}, transparent 28%), linear-gradient(180deg,#f8fafc 0%,#f1f5f9 100%)`
-      : "radial-gradient(circle at top,rgba(16,185,129,0.06),transparent 28%), linear-gradient(180deg,#f8fafc 0%,#f1f5f9 100%)",
+      ? `radial-gradient(circle at top, ${rgba(normalizedTenantColor, 0.15)}, transparent 30%), linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%)`
+      : "radial-gradient(circle at top, rgba(16,185,129,0.08), transparent 30%), linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%)",
   } as React.CSSProperties;
   const portalBadgeStyle = normalizedTenantColor
     ? ({
@@ -485,6 +485,7 @@ export function AuthenticatedShell({
               </div>
             </div>
             <div className="flex items-center gap-3 self-start lg:self-auto">
+              <BranchSelector currentBranch={branchSlug} />
               <NotificationBell />
               <div
                 className={`inline-flex items-center gap-2 rounded-full border px-4 py-2 ${dynamicStyles.badge}`}

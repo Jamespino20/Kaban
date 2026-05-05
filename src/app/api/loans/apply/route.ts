@@ -77,6 +77,7 @@ export async function POST(req: Request) {
       {
         user_id: context.user_id,
         tenant_id: context.tenant_id,
+        tenant_slug: context.tenant_slug,
         role: context.role || "member",
         email: context.email || "",
       },

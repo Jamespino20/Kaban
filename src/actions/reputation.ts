@@ -14,16 +14,26 @@ export async function refreshUserReputation(userId: number) {
     const session = await requireAuthenticatedSession();
     const targetUser = await prisma.user.findUnique({
       where: { user_id: userId },
-      select: { user_id: true, tenant_id: true },
+      select: {
+        user_id: true,
+        tenant_id: true,
+        tenant: { select: { slug: true } },
+      },
     });
 
     if (!targetUser) {
       throw new Error("User not found");
     }
 
+    const targetSlug = targetUser.tenant?.slug || null;
+
     if (session.user.role === "superadmin") {
-      await syncUserTier(userId, targetUser.tenant_id);
-      const breakdown = await calculateTrustScore(userId, targetUser.tenant_id);
+      await syncUserTier(userId, targetUser.tenant_id, targetSlug);
+      const breakdown = await calculateTrustScore(
+        userId,
+        targetUser.tenant_id,
+        targetSlug,
+      );
 
       revalidatePath("/agapay-pintig");
       revalidatePath("/agapay-tanaw");
@@ -42,8 +52,16 @@ export async function refreshUserReputation(userId: number) {
       throw new Error("Unauthorized reputation refresh");
     }
 
-    await syncUserTier(userId, session.user.tenantId);
-    const breakdown = await calculateTrustScore(userId, session.user.tenantId);
+    // For branch staff or members, use the session slug for safety
+    const slug =
+      session.user.role === "superadmin" ? targetSlug : session.user.tenantSlug;
+
+    await syncUserTier(userId, session.user.tenantId, slug);
+    const breakdown = await calculateTrustScore(
+      userId,
+      session.user.tenantId,
+      slug,
+    );
 
     revalidatePath("/agapay-pintig");
     revalidatePath("/agapay-tanaw");

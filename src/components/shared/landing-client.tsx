@@ -896,7 +896,7 @@ function HomeLoanCalculator() {
         </div>
       </div>
 
-      <div className="mt-12 flex flex-col md:flex-row items-center gap-6 justify-between p-6 md:p-8 bg-emerald-950 rounded-[2.5rem] text-white shadow-2xl relative overflow-hidden">
+      <div className="mt-12 flex flex-col md:flex-row items-center gap-6 justify-between p-6 md:p-8 bg-emerald-600 rounded-[2.5rem] text-white shadow-2xl relative overflow-hidden">
         <div className="absolute top-0 left-0 w-64 h-64 bg-emerald-400/10 rounded-full blur-[80px] -translate-x-1/2 -translate-y-1/2" />
         <div className="flex items-center gap-5 relative z-10">
           <div className="w-14 h-14 rounded-2xl bg-emerald-500/20 backdrop-blur-xl border border-emerald-400/30 flex items-center justify-center shadow-lg">

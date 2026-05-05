@@ -41,9 +41,11 @@ type LoginStep = "credentials" | "tenant" | "2fa";
 export const LoginForm = ({
   preselectedTenantId,
   branchName,
+  currentBranch,
 }: {
   preselectedTenantId?: string;
   branchName?: string;
+  currentBranch?: string;
 }) => {
   const [step, setStep] = useState<LoginStep>("credentials");
   const [showPassword, setShowPassword] = useState(false);
@@ -128,11 +130,11 @@ export const LoginForm = ({
           }
         } else {
           toast.success("Welcome! Login successful.");
-          // Instead of navigating to "/", we navigate to a server route that we know
-          // requires authentication. This forces a server-side request where the
-          // proxy middleware will intercept and route the user cleanly based on their role,
-          // without risking serving a cached version of the generic landing page.
-          window.location.href = "/agapay-tanaw"; // The proxy will correct this to pintig if they are a member.
+          // We navigate to a branch-scoped route that requires authentication.
+          // This forces a server-side request where the proxy middleware will
+          // validate the session and ensure the user is in the correct branch.
+          const targetBranch = currentBranch || "main";
+          window.location.href = `/${targetBranch}/agapay-tanaw`;
         }
       } catch (error) {
         toast.error("An error occurred during login.");

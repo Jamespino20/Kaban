@@ -31,6 +31,7 @@ export const submitCoopApplication = async (values: {
   region: string;
   membersCount: string;
   message?: string;
+  selectedPlanId?: string;
   docs?: {
     validId: string | null;
     barangayCert: string | null;
@@ -38,6 +39,11 @@ export const submitCoopApplication = async (values: {
   };
 }) => {
   try {
+    const planLabel = values.selectedPlanId
+      ? values.selectedPlanId.toUpperCase()
+      : "NONE";
+    const cycleLabel = "One-time Payment";
+
     // We use the Tenant model with 'prospect' status for applications
     const slug = values.name
       .toLowerCase()
@@ -53,7 +59,7 @@ export const submitCoopApplication = async (values: {
         name: values.name,
         slug: `${slug}-${Math.floor(Math.random() * 1000)}`,
         entitlement_status: "prospect",
-        entitlement_notes: `Application from ${values.email}. Phone: ${values.phone}. Region: ${values.region}. Estimated Members: ${values.membersCount}. Message: ${values.message}${docNotes}`,
+        entitlement_notes: `Plan: ${planLabel} (${cycleLabel}). Application from ${values.email}. Phone: ${values.phone}. Region: ${values.region}. Estimated Members: ${values.membersCount}. Message: ${values.message}${docNotes}`,
       },
     });
 

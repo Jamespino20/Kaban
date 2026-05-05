@@ -1,6 +1,6 @@
 "use server";
 
-import prisma from "@/lib/prisma";
+import prisma, { getBranchPrisma } from "@/lib/prisma";
 import { requireAuthenticatedSession } from "@/lib/authorization";
 import { Role, UserStatus } from "@prisma/client";
 
@@ -21,7 +21,8 @@ export async function searchEligibleGuarantors(query: string) {
   }
 
   try {
-    const users = await prisma.user.findMany({
+    const db = getBranchPrisma(session.user.tenantSlug);
+    const users = await db.user.findMany({
       where: {
         tenant_id: session.user.tenantId,
         user_id: { not: session.user.user_id },

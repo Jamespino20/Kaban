@@ -8,6 +8,7 @@ export type AuthorizedSession = {
     user_id: number;
     role: string;
     tenantId: number | null;
+    tenantSlug: string | null;
     username: string;
     accessibleTenantIds: number[];
     email?: string | null;

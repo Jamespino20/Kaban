@@ -1,4 +1,4 @@
-import prisma from "@/lib/prisma";
+import prisma, { getBranchPrisma } from "@/lib/prisma";
 import { Role, UserStatus, RepaymentFrequency } from "@prisma/client";
 import {
   computeLoanQuote,
@@ -18,6 +18,7 @@ export interface LoanApplicationParams {
 export interface UserContext {
   user_id: number;
   tenant_id: number;
+  tenant_slug?: string | null;
   role: string;
   email: string;
 }
@@ -28,7 +29,13 @@ export class LoanService {
    * or REST API Controllers (Mobile).
    */
   static async applyForLoan(ctx: UserContext, params: LoanApplicationParams) {
-    const { user_id: userId, tenant_id: tenantId, email } = ctx;
+    const {
+      user_id: userId,
+      tenant_id: tenantId,
+      email,
+      tenant_slug: tenantSlug,
+    } = ctx;
+    const db = getBranchPrisma(tenantSlug || null);
     const {
       product_id,
       amount,
@@ -38,10 +45,10 @@ export class LoanService {
     } = params;
 
     const [product, member] = await Promise.all([
-      prisma.loanProduct.findFirst({
+      db.loanProduct.findFirst({
         where: { product_id, tenant_id: tenantId },
       }),
-      prisma.user.findUnique({
+      db.user.findUnique({
         where: { user_id: userId },
         select: {
           email: true,
@@ -145,7 +152,7 @@ export class LoanService {
       return { error: policyValidationError };
     }
 
-    const eligibleGuarantors = await prisma.user.findMany({
+    const eligibleGuarantors = await db.user.findMany({
       where: {
         user_id: { in: uniqueGuarantorIds },
         tenant_id: tenantId,
@@ -170,7 +177,7 @@ export class LoanService {
     });
 
     // Execute Transaction
-    await prisma.$transaction(async (tx: any) => {
+    await db.$transaction(async (tx: any) => {
       const loan = await tx.loan.create({
         data: {
           user_id: userId,

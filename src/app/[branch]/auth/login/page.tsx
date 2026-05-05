@@ -23,6 +23,7 @@ export default async function LoginPage({
         <LoginForm
           preselectedTenantId={tenant?.tenant_id?.toString()}
           branchName={tenant?.name}
+          currentBranch={branch}
         />
       </div>
     </div>
