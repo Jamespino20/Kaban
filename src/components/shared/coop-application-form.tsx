@@ -104,10 +104,10 @@ export function CoopApplicationForm() {
       id: "core",
       name: "Core",
       price: "19,990",
-      description: "Ideal para sa mga bagong cooperative na nais magsimula.",
+      description: "Ideal for new cooperatives who want to get started.",
       icon: "core" as const,
       features: [
-        { text: "Hanggang 100 members", included: true },
+        { text: "Up to 100 members", included: true },
         { text: "Basic Loan Computation", included: true },
         { text: "Email Support", included: true },
         { text: "Analytics Dashboard", included: false },
@@ -118,12 +118,11 @@ export function CoopApplicationForm() {
       id: "pro",
       name: "Professional",
       price: "49,990",
-      description:
-        "Para sa lumalagong cooperative na kailangan ng advanced tools.",
+      description: "For growing cooperatives needing advanced tools.",
       icon: "pro" as const,
       isPopular: true,
       features: [
-        { text: "Hanggang 500 members", included: true },
+        { text: "Up to 500 members", included: true },
         { text: "Advanced Loan Products", included: true },
         { text: "Analytics & Reports", included: true },
         { text: "Priority Support", included: true },
@@ -134,7 +133,7 @@ export function CoopApplicationForm() {
       id: "enterprise",
       name: "Enterprise",
       price: "99,990",
-      description: "Full-scale solution para sa malalaki at multi-branch coop.",
+      description: "Full-scale solution for large and multi-branch coops.",
       icon: "enterprise" as const,
       features: [
         { text: "Unlimited members", included: true },
@@ -159,11 +158,11 @@ export function CoopApplicationForm() {
         </h3>
         <p className="text-slate-500 text-lg leading-relaxed">
           {currentStep === "info" &&
-            "Simulan ang inyong application sa pamamagitan ng pagbibigay ng basic details."}
+            "Start your application by providing basic details."}
           {currentStep === "plan" &&
-            "Pumili ng plan na angkop sa laki at pangangailangan ng inyong cooperative."}
+            "Select a plan that fits the size and needs of your cooperative."}
           {currentStep === "docs" &&
-            "I-upload ang mga mandatory documents para sa verification."}
+            "Upload mandatory documents for verification."}
         </p>
       </div>
 
@@ -256,7 +255,7 @@ export function CoopApplicationForm() {
               disabled={!isInfoValid}
               className="w-full h-16 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-black italic text-lg shadow-xl shadow-emerald-500/20 group transition-all"
             >
-              Susunod: Pumili ng Plan
+              Next: Select Plan
               <ChevronRight className="w-5 h-5 ml-3 group-hover:translate-x-1 transition-transform" />
             </Button>
           </motion.div>
@@ -290,13 +289,13 @@ export function CoopApplicationForm() {
                 className="h-16 px-8 rounded-2xl border-2 border-slate-100 font-bold hover:bg-slate-50"
               >
                 <ChevronLeft className="w-5 h-5 mr-2" />
-                Bumalik
+                Back
               </Button>
               <Button
                 onClick={handleNext}
                 className="flex-1 h-16 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-black italic text-lg shadow-xl shadow-emerald-500/20 group transition-all"
               >
-                Susunod: Documents
+                Next: Documents
                 <ChevronRight className="w-5 h-5 ml-3 group-hover:translate-x-1 transition-transform" />
               </Button>
             </div>
@@ -314,7 +313,7 @@ export function CoopApplicationForm() {
             <div className="bg-slate-50 p-8 rounded-[2.5rem] border-2 border-dashed border-slate-200">
               <label className="text-xs font-black text-slate-400 uppercase tracking-widest flex items-center justify-center gap-2 mb-8">
                 <ShieldCheck className="w-4 h-4" />
-                I-upload ang mga Dokumento
+                Upload Documents
               </label>
 
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
@@ -350,8 +349,8 @@ export function CoopApplicationForm() {
                 />
               </div>
               <p className="text-center text-[11px] text-slate-400 italic mt-8">
-                Ang mga dokumentong ito ay gagamitin lamang para sa verification
-                ng inyong branch application (Max 1MB per file).
+                These documents will be used solely for verification of your
+                branch application (Max 1MB per file).
               </p>
             </div>
 
@@ -363,7 +362,7 @@ export function CoopApplicationForm() {
                 className="h-16 px-8 rounded-2xl border-2 border-slate-100 font-bold hover:bg-slate-50"
               >
                 <ChevronLeft className="w-5 h-5 mr-2" />
-                Bumalik
+                Back
               </Button>
               <Button
                 onClick={handleSubmit}
@@ -374,7 +373,7 @@ export function CoopApplicationForm() {
                   <Loader2 className="w-6 h-6 animate-spin mx-auto" />
                 ) : (
                   <>
-                    Ipasa ang Application
+                    Submit Application
                     <Send className="w-5 h-5 ml-3 group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
                   </>
                 )}

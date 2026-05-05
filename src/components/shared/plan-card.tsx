@@ -31,7 +31,7 @@ export function PlanCard({
   isSelected,
   onSelect,
   icon,
-  billingLabel = "isang beses",
+  billingLabel = "one-time",
 }: PlanProps) {
   const Icon =
     icon === "enterprise" ? Crown : icon === "pro" ? Zap : ShieldCheck;
@@ -47,7 +47,7 @@ export function PlanCard({
     >
       {isPopular && (
         <div className="absolute -top-4 left-1/2 -translate-x-1/2 px-4 py-1 bg-gradient-to-r from-emerald-600 to-teal-600 text-white text-[10px] font-black uppercase tracking-widest rounded-full shadow-lg shadow-emerald-500/30">
-          Pinakasikat
+          Most Popular
         </div>
       )}
 
@@ -107,7 +107,7 @@ export function PlanCard({
             : "border-slate-200 text-slate-600 hover:border-emerald-500 hover:text-emerald-600"
         }`}
       >
-        {isSelected ? "Pinili" : "Piliin"}
+        {isSelected ? "Selected" : "Select Plan"}
       </Button>
     </div>
   );
