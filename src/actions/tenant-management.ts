@@ -96,6 +96,12 @@ export async function getTenants() {
 // 1.5 Get Active Branches (Public for Navigation/Map)
 export async function getActiveBranches() {
   try {
+    if (!prisma || !prisma.tenant) {
+      throw new Error(
+        "Prisma client not properly initialized (likely build phase).",
+      );
+    }
+
     const branches = await prisma.tenant.findMany({
       where: {
         is_active: true,
@@ -170,15 +176,21 @@ export async function getActiveBranches() {
     }));
   } catch (error) {
     console.error("Failed to fetch active branches:", error);
-    return [];
+    throw error; // Throw so unstable_cache doesn't cache an empty array
   }
 }
 
 export const getActiveBranchesForNav = unstable_cache(
   async () => {
-    const branches = await getActiveBranches();
-    // Return plain objects to avoid serialization issues
-    return branches.map((b) => ({ ...b }));
+    try {
+      const branches = await getActiveBranches();
+      // Return plain objects to avoid serialization issues
+      return branches.map((b) => ({ ...b }));
+    } catch (e) {
+      return []; // Return empty dynamically, but Next.js will cache this?
+      // Wait, if we return [] here, unstable_cache caches [].
+      // We want to throw so Next.js doesn't cache statically.
+    }
   },
   ["active-branches-nav"],
   {

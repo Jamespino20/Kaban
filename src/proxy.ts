@@ -53,7 +53,8 @@ export default async function middleware(req: NextRequest) {
 
     // 1. Unauthenticated workflow
     if (!isLoggedIn) {
-      if (!isAuthRoute && !isLandingPage) {
+      const isBranchHomepage = pathSegments.length === 1 && urlBranchSlug;
+      if (!isAuthRoute && !isLandingPage && !isBranchHomepage) {
         // Force branch-sensitive login
         const targetBranch = urlBranchSlug || "main";
         return NextResponse.redirect(
