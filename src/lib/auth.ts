@@ -49,7 +49,7 @@ const getNextAuth = () => {
 
             // 1. Resolve Target Schema based on tenantId
             let targetSchema = "public";
-            let validatedTenantId = parsedTenantId;
+            const validatedTenantId = parsedTenantId;
 
             if (parsedTenantId !== null) {
               const tenants = await sql`
