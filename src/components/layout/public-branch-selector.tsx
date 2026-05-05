@@ -1,9 +1,8 @@
 "use client";
 
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo } from "react";
 import { Search, Building2, ChevronDown, MapPin } from "lucide-react";
 import Link from "next/link";
-import { getActiveBranches } from "@/actions/tenant-management";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -32,32 +31,13 @@ export function PublicBranchSelector({
   isScrolled,
   isMobile,
 }: PublicBranchSelectorProps) {
-  const [branches, setBranches] = useState<Branch[]>(initialBranches);
   const [searchQuery, setSearchQuery] = useState("");
 
-  useEffect(() => {
-    if (initialBranches && initialBranches.length > 0) {
-      setBranches(initialBranches);
-      return;
-    }
-
-    async function loadBranches() {
-      try {
-        const data = await getActiveBranches();
-        // The data from getActiveBranches returns Branch objects matching our interface
-        setBranches(data as any as Branch[]);
-      } catch (error) {
-        console.error("Failed to fetch branches in selector:", error);
-      }
-    }
-    loadBranches();
-  }, [initialBranches]);
-
   const filteredBranches = useMemo(() => {
-    return branches.filter((branch) =>
+    return initialBranches.filter((branch) =>
       branch.name.toLowerCase().includes(searchQuery.toLowerCase()),
     );
-  }, [branches, searchQuery]);
+  }, [initialBranches, searchQuery]);
 
   const triggerClasses = isMobile
     ? "w-full flex items-center justify-between p-4 rounded-2xl hover:bg-slate-50 transition-colors border border-transparent hover:border-slate-100 text-slate-900 font-black italic text-lg outline-none"
@@ -127,7 +107,7 @@ export function PublicBranchSelector({
           ) : (
             <div className="py-8 text-center">
               <p className="text-xs font-bold text-slate-400 italic">
-                {branches.length === 0
+                {initialBranches.length === 0
                   ? "Loading branches..."
                   : "No branches found"}
               </p>

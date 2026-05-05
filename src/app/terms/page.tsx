@@ -1,7 +1,6 @@
-"use client";
-
 import { Footer } from "@/components/layout/footer";
 import { Navbar } from "@/components/layout/navbar";
+import { getActiveBranchesForNav } from "@/actions/tenant-management";
 
 const TERMS = [
   {
@@ -30,10 +29,12 @@ const TERMS = [
   },
 ];
 
-export default function TermsPage() {
+export default async function TermsPage() {
+  const branches = await getActiveBranchesForNav();
+
   return (
     <div className="relative min-h-screen bg-white flex flex-col items-center font-sans overflow-x-hidden text-slate-950">
-      <Navbar forceSolid />
+      <Navbar forceSolid branches={branches} />
       <main className="w-full pt-32 flex flex-col items-center">
         <section className="w-full py-24 px-6 max-w-5xl">
           <h1 className="text-4xl md:text-6xl font-black italic mb-6 text-slate-900">

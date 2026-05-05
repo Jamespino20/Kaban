@@ -1,7 +1,6 @@
-"use client";
-
 import { Footer } from "@/components/layout/footer";
 import { Navbar } from "@/components/layout/navbar";
+import { getActiveBranchesForNav } from "@/actions/tenant-management";
 import {
   BadgeCheck,
   CheckCircle2,
@@ -59,10 +58,12 @@ const CAPABILITIES = [
   },
 ];
 
-export default function PlatformPage() {
+export default async function PlatformPage() {
+  const branches = await getActiveBranchesForNav();
+
   return (
     <div className="relative min-h-screen bg-white flex flex-col items-center font-sans overflow-x-hidden text-slate-950">
-      <Navbar forceSolid />
+      <Navbar forceSolid branches={branches} />
 
       <main className="w-full pt-32 flex flex-col items-center">
         <section className="w-full py-24 px-6 max-w-7xl">

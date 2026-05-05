@@ -11,6 +11,7 @@ import {
   requireSuperadminSession,
 } from "@/lib/authorization";
 import { getDbUrl } from "@/lib/db-url";
+import { unstable_cache } from "next/cache";
 
 // 0. Get List of Regions (Public for Registration)
 export async function getRegions() {
@@ -172,6 +173,19 @@ export async function getActiveBranches() {
     return [];
   }
 }
+
+export const getActiveBranchesForNav = unstable_cache(
+  async () => {
+    const branches = await getActiveBranches();
+    // Return plain objects to avoid serialization issues
+    return branches.map((b) => ({ ...b }));
+  },
+  ["active-branches-nav"],
+  {
+    revalidate: 3600, // cache for 1 hour
+    tags: ["tenants"],
+  },
+);
 
 // 2. Decommission Branch
 export async function decommissionBranch(tenantId: number) {
