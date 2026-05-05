@@ -24,7 +24,11 @@ interface Tenant {
   role: string;
 }
 
-export async function getAvailableTenants(username: string, password?: string) {
+export async function getAvailableTenants(
+  username: string,
+  password?: string,
+  branchSlug?: string,
+) {
   try {
     let authenticatedSession = null;
     if (!password) {
@@ -44,13 +48,7 @@ export async function getAvailableTenants(username: string, password?: string) {
     }
 
     const connectionString = getDbUrl();
-    console.log(
-      "SURGERY: Connection String Status:",
-      connectionString ? "PRESENT" : "MISSING!",
-    );
-
     if (!connectionString) {
-      console.error("CRITICAL: DATABASE_URL is missing in identity.ts action!");
       return { error: "System configuration error: Database URL not found" };
     }
 
@@ -89,79 +87,138 @@ export async function getAvailableTenants(username: string, password?: string) {
     }
 
     // Atomic SQL queries — no Prisma adapter dependency
-    const users = (await sql`
-      SELECT 
-        user_id as id, tenant_id, role, password_hash, status, email, username
-      FROM users
-      WHERE (username = ${username} OR email = ${username})
-      AND status != 'suspended'
-    `) as unknown as User[];
+    // We check BOTH the public schema (for superadmins/global users)
+    // AND the branch-specific schema if provided (for isolated members).
+    const normalizedBranch = branchSlug?.toLowerCase().trim();
+    const isGlobal =
+      !normalizedBranch ||
+      normalizedBranch === "main" ||
+      normalizedBranch === "global";
 
-    if (users.length === 0) return { error: "User not found" };
-
-    const validTenants: Tenant[] = [];
-
-    for (const user of users) {
-      if (password) {
-        const isValid = await bcrypt.compare(password, user.password_hash);
-        if (!isValid) continue;
-      }
-
-      // Fetch tenant details atomically
-      let tenant = null;
-      let groupName = "Agapay HQ";
-
-      if (user.tenant_id) {
-        const tenants = await sql`
-          SELECT name, slug, tenant_group_id 
-          FROM tenants 
-          WHERE tenant_id = ${user.tenant_id}
+    let usersQuery = "";
+    if (isGlobal) {
+      // Standard global lookup
+      const results = await sql`
+        SELECT 
+          user_id as id, tenant_id, role, password_hash, status, email, username
+        FROM users
+        WHERE (username = ${username} OR email = ${username})
+        AND status != 'suspended'
+      `;
+      return processUsers(results as unknown as User[], sql, password);
+    } else {
+      // Schema-aware lookup: We must be careful with schema names (no parameterization for identifiers)
+      // We validate the branch exists first to prevent SQL injection.
+      const branchCheck =
+        await sql`SELECT slug FROM tenants WHERE slug = ${normalizedBranch} AND is_active = true`;
+      if (branchCheck.length === 0) {
+        // Fallback to global if branch doesn't exist? Or just stick to global logic.
+        const results = await sql`
+          SELECT user_id as id, tenant_id, role, password_hash, status, email, username
+          FROM public.users
+          WHERE (username = ${username} OR email = ${username})
+          AND status != 'suspended'
         `;
-        tenant = tenants[0];
-
-        if (tenant?.tenant_group_id) {
-          const groups = await sql`
-            SELECT name FROM tenant_groups WHERE id = ${tenant.tenant_group_id}
-          `;
-          if (groups[0]) groupName = groups[0].name;
-        }
+        return processUsers(results as unknown as User[], sql, password);
       }
 
-      validTenants.push({
-        tenant_id: user.tenant_id,
-        name: tenant?.name || "Global / System Admin",
-        groupName: groupName,
-        slug: tenant?.slug || "global",
-        role: user.role,
-      });
-    }
+      // Valid branch schema detected. Perform union lookup.
+      // NOTE: We don't use string interpolation for SQL queries except for validated schema names.
+      const validatedSchema = branchCheck[0].slug;
 
-    if (validTenants.length === 0) return { error: "Invalid credentials" };
+      // We use a multi-query approach or a union if the driver supports raw strings.
+      // Since 'neon' doesn't easily support raw identifier parameterization,
+      // we'll run two separate queries and merge.
+      const publicUsers = await sql`
+        SELECT user_id as id, tenant_id, role, password_hash, status, email, username
+        FROM public.users
+        WHERE (username = ${username} OR email = ${username})
+        AND status != 'suspended'
+      `;
 
-    const dedupedTenants = validTenants.filter((tenant, index, self) => {
-      return (
-        index ===
-        self.findIndex((candidate) => candidate.tenant_id === tenant.tenant_id)
+      const branchUsers = await sql.query(
+        `
+        SELECT user_id as id, tenant_id, role, password_hash, status, email, username
+        FROM "${validatedSchema}".users
+        WHERE (username = $1 OR email = $1)
+        AND status != 'suspended'
+      `,
+        [username],
       );
-    });
-
-    const primaryRole = dedupedTenants[0]?.role;
-    if (primaryRole && primaryRole !== "superadmin") {
-      const membershipError = validateBranchMembershipLimit(
-        dedupedTenants.filter((tenant) => tenant.tenant_id).length,
-      );
-
-      if (membershipError) {
-        return { error: membershipError };
-      }
+      const combinedUsers = [
+        ...(publicUsers as any),
+        ...((branchUsers as any).rows || (branchUsers as any)),
+      ];
+      return processUsers(combinedUsers as User[], sql, password);
     }
-
-    return {
-      success: true,
-      tenants: dedupedTenants,
-    };
   } catch (error) {
     console.error("Identity lookup failed:", error);
     return { error: "Something went wrong" };
   }
+}
+
+async function processUsers(users: User[], sql: any, password?: string) {
+  if (users.length === 0) return { error: "User not found" };
+
+  const validTenants: Tenant[] = [];
+
+  for (const user of users) {
+    if (password) {
+      const isValid = await bcrypt.compare(password, user.password_hash);
+      if (!isValid) continue;
+    }
+
+    // Fetch tenant details atomically
+    let tenant = null;
+    let groupName = "Agapay HQ";
+
+    if (user.tenant_id) {
+      const tenants = await sql`
+        SELECT name, slug, tenant_group_id 
+        FROM tenants 
+        WHERE tenant_id = ${user.tenant_id}
+      `;
+      tenant = tenants[0];
+
+      if (tenant?.tenant_group_id) {
+        const groups = await sql`
+          SELECT name FROM tenant_groups WHERE id = ${tenant.tenant_group_id}
+        `;
+        if (groups[0]) groupName = groups[0].name;
+      }
+    }
+
+    validTenants.push({
+      tenant_id: user.tenant_id,
+      name: tenant?.name || "Global / System Admin",
+      groupName: groupName,
+      slug: tenant?.slug || "global",
+      role: user.role,
+    });
+  }
+
+  if (validTenants.length === 0) return { error: "Invalid credentials" };
+
+  const dedupedTenants = validTenants.filter((tenant, index, self) => {
+    return (
+      index ===
+      self.findIndex((candidate) => candidate.tenant_id === tenant.tenant_id)
+    );
+  });
+
+  const primaryRole = dedupedTenants[0]?.role;
+  if (primaryRole && primaryRole !== "superadmin") {
+    const membershipError = validateBranchMembershipLimit(
+      dedupedTenants.filter((tenant) => tenant.tenant_id).length,
+    );
+
+    if (membershipError) {
+      return { error: membershipError };
+    }
+  }
+
+  return {
+    success: true,
+    tenants: dedupedTenants,
+  };
 }

@@ -33,7 +33,9 @@ export function BranchSwitcher() {
 
   async function loadTenants() {
     setLoading(true);
-    const result = await getAvailableTenants(session?.user?.email || "");
+    const result = (await getAvailableTenants(
+      session?.user?.email || "",
+    )) as any;
     if (result.success) {
       const nextTenants = isSuperadmin
         ? [

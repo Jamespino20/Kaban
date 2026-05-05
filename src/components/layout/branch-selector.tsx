@@ -25,7 +25,7 @@ export function BranchSelector({ currentBranch }: { currentBranch: string }) {
     if (session?.user?.username) {
       setIsLoading(true);
       getAvailableTenants(session.user.username)
-        .then((res) => {
+        .then((res: any) => {
           if (res.tenants) {
             setTenants(res.tenants);
           }

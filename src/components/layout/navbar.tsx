@@ -13,6 +13,7 @@ interface NavbarProps {
 }
 
 export function Navbar({ forceSolid = false, branches = [] }: NavbarProps) {
+  const { data: session, status } = useSession();
   const [isMounted, setIsMounted] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -61,7 +62,6 @@ export function Navbar({ forceSolid = false, branches = [] }: NavbarProps) {
 
         {/* Desktop Nav */}
         <nav className="hidden md:flex items-center gap-10">
-          <PublicBranchSelector branches={branches} isScrolled={isScrolled} />
           {navItems.map((item) => (
             <Link
               key={item.label}
@@ -81,8 +81,23 @@ export function Navbar({ forceSolid = false, branches = [] }: NavbarProps) {
 
         {/* Auth & Mobile Toggle */}
         <div className="flex items-center gap-4">
-          <div className="hidden md:flex items-center gap-4">
-            <AuthOrDashboard isMounted={isMounted} />
+          <div className="hidden md:flex items-center gap-6">
+            {!session && (
+              <PublicBranchSelector
+                branches={branches}
+                isScrolled={isScrolled}
+                triggerClassName={`flex items-center gap-2 px-6 h-12 rounded-full transition-all duration-300 font-bold text-sm shadow-lg ${
+                  isScrolled
+                    ? "bg-emerald-600 text-white hover:bg-emerald-700 shadow-emerald-900/10"
+                    : "bg-white text-emerald-900 hover:bg-emerald-50 shadow-white/10"
+                }`}
+              />
+            )}
+            <AuthOrDashboard
+              isMounted={isMounted}
+              session={session}
+              status={status}
+            />
           </div>
           <button
             onClick={() => setIsMenuOpen(!isMenuOpen)}
@@ -125,6 +140,8 @@ export function Navbar({ forceSolid = false, branches = [] }: NavbarProps) {
                 isMounted={isMounted}
                 isMobile
                 closeMenu={() => setIsMenuOpen(false)}
+                session={session}
+                status={status}
               />
             </div>
           </nav>
@@ -138,13 +155,15 @@ function AuthOrDashboard({
   isMobile,
   closeMenu,
   isMounted,
+  session,
+  status,
 }: {
   isMobile?: boolean;
   closeMenu?: () => void;
   isMounted: boolean;
+  session: any;
+  status: string;
 }) {
-  const { data: session, status } = useSession();
-
   if (!isMounted) return null;
   if (status === "loading") return null;
 
@@ -167,5 +186,9 @@ function AuthOrDashboard({
     );
   }
 
-  return <AuthModal />;
+  return (
+    <div className="flex items-center gap-3">
+      <AuthModal />
+    </div>
+  );
 }

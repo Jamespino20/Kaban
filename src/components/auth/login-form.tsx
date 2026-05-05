@@ -64,7 +64,11 @@ export const LoginForm = ({
 
   const onIdentify = (values: z.infer<typeof LoginSchema>) => {
     startTransition(async () => {
-      const res = await getAvailableTenants(values.username, values.password);
+      const res = (await getAvailableTenants(
+        values.username,
+        values.password,
+        currentBranch,
+      )) as any;
 
       if (res.error) {
         toast.error(res.error);
@@ -72,12 +76,13 @@ export const LoginForm = ({
       }
 
       if (res.tenants && res.tenants.length > 0) {
+        const tenantsList = res.tenants;
         // If they are on a branch-specific login page, force them to use that branch if it exists in their accounts
         if (preselectedTenantId) {
           const hasAccess =
-            res.tenants.some(
-              (t) => t.tenant_id?.toString() === preselectedTenantId,
-            ) || res.tenants.some((t) => !t.tenant_id);
+            tenantsList.some(
+              (t: any) => t.tenant_id?.toString() === preselectedTenantId,
+            ) || tenantsList.some((t: any) => !t.tenant_id);
           if (!hasAccess) {
             toast.error(
               `You don't have access to ${branchName || "this branch"}`,
@@ -89,13 +94,13 @@ export const LoginForm = ({
           return;
         }
 
-        if (res.tenants.length === 1) {
+        if (tenantsList.length === 1) {
           // Auto-select if only one tenant
-          const tId = res.tenants[0].tenant_id?.toString() || "global";
+          const tId = tenantsList[0].tenant_id?.toString() || "global";
           form.setValue("tenantId", tId);
           performLogin({ ...values, tenantId: tId });
         } else {
-          setAvailableTenants(res.tenants);
+          setAvailableTenants(tenantsList);
           setStep("tenant");
         }
       }
