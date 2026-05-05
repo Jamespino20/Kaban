@@ -276,7 +276,7 @@ export function CoopApplicationForm() {
                   key={plan.id}
                   {...plan}
                   isSelected={formData.selectedPlanId === plan.id}
-                  onSelect={(id) =>
+                  onSelect={(id: any) =>
                     setFormData((prev) => ({ ...prev, selectedPlanId: id }))
                   }
                 />

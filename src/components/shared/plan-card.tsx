@@ -16,6 +16,8 @@ export interface PlanProps {
   features: PlanFeature[];
   isPopular?: boolean;
   isSelected?: boolean;
+  onSelect: (id: string) => void;
+  icon?: "core" | "pro" | "enterprise";
   billingLabel?: string;
 }
 
