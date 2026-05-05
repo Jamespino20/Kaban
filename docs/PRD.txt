@@ -1,6 +1,6 @@
 I made a PRD issue list along with the business flow audit, encompassing every aspect from general issues to role-based issues and discrepancies.
 
-SEVERE:
+GENERAL:
 - Subscription isn't a monthly basis, it should be a one-time lifetime purchase of the branch.
 - Branch owners (admins) are not able to buy the systems as of right now when they should.
 - Multi-tenantness should be in a franchising manner. Photo is provided of the flow.
@@ -9,8 +9,8 @@ SEVERE:
 	   - agapay_main
 	   - agapay_branch1
 	   - agapay_branch2
-	   - and so on
-- Superadmin has the ability to make a new website directory with customizable colors, logos, font, and homepage content. Superadmin and tenant admins can change their tenant branch's homepage's hero section, testimonials, FAQs, and loan products. Main branch homepage can handpick and showcase all the branches' homepage content for relevance. Main homepage should also have a live map of branches. Here's an example:
+	   - and so on. When a new branch is made in the Global Management module, it should create a new schema for that branch. [IMPORTANT: Some of the users are not detected from the database' schemas, so logging some users in leads to invalid logins.
+- Superadmin has the ability to make a new website directory with customizable colors, logos, font, and homepage content. Superadmin and tenant admins can change their tenant branch's homepage's hero section, testimonials, FAQs, and loan products. When editing a branch, a dialog should pop up showing the live preview of the website as well as the customization elements. Here's an example:
            - agapay.saas.vercel.app [main homepage]
            - agapay.saas.vercel.app/main/ [main branch's homepage]
 	   - agapay.saas.vercel.app/main/agapay-tanaw/
@@ -22,17 +22,12 @@ SEVERE:
 	   - agapay.saas.vercel.app/branch2/agapay-tanaw/
 	   - agapay.saas.vercel.app/branch2/agapay-pintig/
 	   - and so on
-
-Kind of like this: https://onlineapp.national-u.edu.ph/portal/services.php
+- Main homepage should also have a live map of branches
+- Main branch homepage can handpick and showcase all the branches' homepage content for relevance. 
 - Malolos is the MAIN BRANCH where the superadmin will be, and where the other branches will buy Agapay for their own microfinancing cooperative services.
 - Cooperatives' logos are not showing properly. It should be uploadable media. The Agapay logo and the cooperative branch's logo should show in all receipts and SOAs.
-
-
-GENERAL:
 - Main homepage should have content improvements with regards to the new content put in there. For the 
-- The Pangkalahatan header bit remains stagnant with the exception of the [role] portal. Content should change according to the current selected module.
-- Logging in and registering as a member sometimes leads to agapay-tanaw by default, but does redirect to pintig upon reloading
-- Homepage's Calculator should have Weekly, Bi-weekly, and Monthly for Payment Cadences
+- The Pangkalahatan header bit remains stagnant with the exception of the [role] portal. Header and subtitle should change according to the current selected module.
 - Feedback systems are missing in every transactional request, loan application, mock fund release, recovery loan, payments, cancellations, rejections, and other processes. 
 - Messaging module is not designed and laid out like Instagram or Discord, and are missing in-chat composer emoji picker.
 - Updates do not dynamically happen (I have to reload it just for updates to come in)
@@ -45,6 +40,7 @@ GENERAL:
 - As of right now, I don't think there's a way Agapay's superadmin itself can obtain money. The only way I can see the superadmin gains money is through the paid subscription plans, added fees, and penalties.
 - Where does the available credit actually come from? Is this the money that a user can ask for a loan? If the available credit is lower than the desired loan, is there validation to lock loan products with higher required credit? Is there a feedback system?
 - Subscription plans and loan plans are not displayed in the homepage. Each plan should have benefits listed.
+- In Main Homepage, remove the Get Started with Agapay buttons and put the branch switcher where the Agapay button is located. For the branch homepages, the register should not ask for the Agapay region and branch since it should automatically detect for it. Login works the same. Ensure that the tenant limit is applied
 
 
 SUPERADMIN (Maintains the global view, no more branch swapping capability in the sidebar):

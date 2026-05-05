@@ -10,7 +10,8 @@
     "lint": "eslint",
     "postinstall": "prisma generate",
     "verify:wallet-default": "tsx scripts/verify-wallet-default.ts",
-    "test:business": "tsx --test tests/business-policy.test.ts"
+    "test:business": "tsx --test tests/business-policy.test.ts",
+    "db:reset": "tsx scripts/db-reset.ts"
   },
   "dependencies": {
     "@base-ui/react": "^1.3.0",

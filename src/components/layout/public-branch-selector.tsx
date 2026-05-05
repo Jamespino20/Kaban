@@ -17,19 +17,21 @@ interface Branch {
   id: string;
   name: string;
   slug: string;
-  color: string;
+  color?: string;
 }
 
 interface PublicBranchSelectorProps {
   branches?: Branch[];
   isScrolled?: boolean;
   isMobile?: boolean;
+  triggerClassName?: string;
 }
 
 export function PublicBranchSelector({
   branches: initialBranches = [],
   isScrolled,
   isMobile,
+  triggerClassName,
 }: PublicBranchSelectorProps) {
   const [searchQuery, setSearchQuery] = useState("");
 
@@ -39,13 +41,15 @@ export function PublicBranchSelector({
     );
   }, [initialBranches, searchQuery]);
 
-  const triggerClasses = isMobile
-    ? "w-full flex items-center justify-between p-4 rounded-2xl hover:bg-slate-50 transition-colors border border-transparent hover:border-slate-100 text-slate-900 font-black italic text-lg outline-none"
-    : `flex items-center gap-2 px-4 py-2 rounded-full transition-all duration-300 font-bold text-sm outline-none ${
-        isScrolled
-          ? "text-slate-700 hover:bg-slate-100"
-          : "text-white/90 hover:bg-white/10"
-      }`;
+  const triggerClasses = triggerClassName
+    ? triggerClassName
+    : isMobile
+      ? "w-full flex items-center justify-between p-4 rounded-2xl hover:bg-slate-50 transition-colors border border-transparent hover:border-slate-100 text-slate-900 font-black italic text-lg outline-none"
+      : `flex items-center gap-2 px-4 py-2 rounded-full transition-all duration-300 font-bold text-sm outline-none ${
+          isScrolled
+            ? "text-slate-700 hover:bg-slate-100"
+            : "text-white/90 hover:bg-white/10"
+        }`;
 
   return (
     <DropdownMenu>

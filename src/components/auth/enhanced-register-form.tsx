@@ -716,71 +716,78 @@ export function EnhancedRegisterForm({
 
               {step === 3 && (
                 <div className="space-y-4 animate-in fade-in slide-in-from-right-4 duration-300">
-                  <h4 className="text-sm font-semibold text-slate-500 uppercase tracking-wider">
-                    Agapay Cooperative
-                  </h4>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <FormField
-                      control={form.control}
-                      name="regionId"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Agapay Area</FormLabel>
-                          <FormControl>
-                            <select
-                              {...field}
-                              onChange={(e) => onRegionChange(e.target.value)}
-                              className="w-full rounded-xl h-12 border border-slate-200 px-4 bg-white outline-none"
-                            >
-                              <option value="">Select Agapay Area</option>
-                              {regions.map((r: any) => (
-                                <option key={r.id} value={r.id.toString()}>
-                                  {r.name}
-                                </option>
-                              ))}
-                            </select>
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={form.control}
-                      name="tenantId"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Branch</FormLabel>
-                          <FormControl>
-                            <select
-                              {...field}
-                              disabled={
-                                (!form.getValues("regionId") &&
-                                  !preselectedRegionId) ||
-                                !!preselectedTenantId
-                              }
-                              className="w-full rounded-xl h-12 border border-slate-200 px-4 bg-white outline-none font-bold text-emerald-700 disabled:opacity-50"
-                            >
-                              <option value="">Select Branch</option>
-                              {tenants.map((t: any) => (
-                                <option
-                                  key={t.tenant_id}
-                                  value={t.tenant_id.toString()}
+                  {!preselectedTenantId && (
+                    <>
+                      <h4 className="text-sm font-semibold text-slate-500 uppercase tracking-wider">
+                        Agapay Cooperative
+                      </h4>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <FormField
+                          control={form.control}
+                          name="regionId"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Agapay Area</FormLabel>
+                              <FormControl>
+                                <select
+                                  {...field}
+                                  onChange={(e) =>
+                                    onRegionChange(e.target.value)
+                                  }
+                                  className="w-full rounded-xl h-12 border border-slate-200 px-4 bg-white outline-none"
                                 >
-                                  {t.name}
-                                </option>
-                              ))}
-                              {preselectedTenantId && tenants.length === 0 && (
-                                <option value={preselectedTenantId}>
-                                  Preselected Branch
-                                </option>
-                              )}
-                            </select>
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </div>
+                                  <option value="">Select Agapay Area</option>
+                                  {regions.map((r: any) => (
+                                    <option key={r.id} value={r.id.toString()}>
+                                      {r.name}
+                                    </option>
+                                  ))}
+                                </select>
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={form.control}
+                          name="tenantId"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Branch</FormLabel>
+                              <FormControl>
+                                <select
+                                  {...field}
+                                  disabled={
+                                    (!form.getValues("regionId") &&
+                                      !preselectedRegionId) ||
+                                    !!preselectedTenantId
+                                  }
+                                  className="w-full rounded-xl h-12 border border-slate-200 px-4 bg-white outline-none font-bold text-emerald-700 disabled:opacity-50"
+                                >
+                                  <option value="">Select Branch</option>
+                                  {tenants.map((t: any) => (
+                                    <option
+                                      key={t.tenant_id}
+                                      value={t.tenant_id.toString()}
+                                    >
+                                      {t.name}
+                                    </option>
+                                  ))}
+                                  {preselectedTenantId &&
+                                    tenants.length === 0 && (
+                                      <option value={preselectedTenantId}>
+                                        Preselected Branch
+                                      </option>
+                                    )}
+                                </select>
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </div>
+                    </>
+                  )}
 
                   <div className="space-y-4 pt-4 border-t border-slate-100">
                     <h4 className="text-sm font-semibold text-slate-500 uppercase tracking-wider">

@@ -304,6 +304,7 @@ export async function createBranch(
   name: string,
   slug: string,
   groupId: number,
+  branding?: { logoUrl?: string; brandColor?: string; accentColor?: string },
 ) {
   await requireSuperadminSession();
 
@@ -315,13 +316,13 @@ export async function createBranch(
           slug,
           tenant_group_id: groupId,
           entitlement_status: "prospect",
+          logo_url: branding?.logoUrl || null,
+          brand_color: branding?.brandColor || null,
+          accent_color: branding?.accentColor || null,
         },
       });
 
       // B: Provision Physical Schema (Side Effect)
-      // Note: In serverless, we must be careful with long-running DDL.
-      // We will create the schema but the full table injection might be done via a separate 'provision' action in a real system.
-      // For this SaaS model, we run it here.
       await tx.$executeRawUnsafe(`CREATE SCHEMA IF NOT EXISTS "${slug}"`);
 
       try {
@@ -338,12 +339,10 @@ export async function createBranch(
 
           for (const sql of sqlLines) {
             try {
-              // Prepend search path for safety
               await tx.$executeRawUnsafe(
                 `SET search_path TO "${slug}"; ${sql}`,
               );
             } catch (err: any) {
-              // Ignore already exists errors during secondary provisioning
               if (!err.message.includes("already exists")) {
                 console.warn(`DDL line failed for ${slug}:`, err.message);
               }

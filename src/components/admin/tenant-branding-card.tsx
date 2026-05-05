@@ -155,12 +155,12 @@ export function TenantBrandingCard({
             <Input
               id="logo-upload"
               type="file"
-              accept="image/png,image/jpeg,image/svg+xml"
+              accept="image/png,image/webp,image/svg+xml"
               onChange={(e) => {
                 const file = e.target.files?.[0];
                 if (file) {
-                  if (file.size > 1.5 * 1024 * 1024) {
-                    toast.error("Masyadong malaki ang file. Limit: 1.5MB");
+                  if (file.size > 5 * 1024 * 1024) {
+                    toast.error("File too large. Max allowed: 5MB");
                     return;
                   }
                   const reader = new FileReader();
@@ -176,7 +176,7 @@ export function TenantBrandingCard({
               className="h-11 rounded-xl cursor-pointer"
             />
             <p className="text-[11px] text-slate-400 italic">
-              Nilalaman: SVG o Transparent PNG ang inirerekomenda (Max 1.5MB).
+              Transparent PNG, WebP, or SVG recommended (Max 5MB).
             </p>
           </div>
         </div>

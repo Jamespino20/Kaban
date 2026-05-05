@@ -22,12 +22,11 @@ const getAdapterMode = () => {
 export const getPrisma = () => {
   if (prismaInstance) return prismaInstance;
 
-  // During build-time, we must avoid initializing the DB client if possible
-  // as it often triggers network activity that Next.js treats as dynamic.
-  if (process.env.NEXT_PHASE === "phase-production-build") {
-    console.log("AGAPAY_PRISMA: Skipping initialization during build phase.");
-    return null as any;
-  }
+  // Ensure DB initializes on Vercel build so unstable_cache gets populated.
+  // if (process.env.NEXT_PHASE === "phase-production-build") {
+  //   console.log("AGAPAY_PRISMA: Skipping initialization during build phase.");
+  //   return null as any;
+  // }
 
   const rawUrl = getDbUrl();
   const connectionString = rawUrl
@@ -70,9 +69,7 @@ const prisma = new Proxy({} as PrismaClient, {
   get(target, prop, receiver) {
     const instance = getPrisma();
     if (!instance) {
-      if (process.env.NEXT_PHASE === "phase-production-build") {
-        return undefined; // Avoid crashing during build discovery
-      }
+      // We shouldn't reach here now, but if we do, throw immediately
       throw new Error("Agapay Prisma: Instance not initialized.");
     }
     return Reflect.get(instance, prop, receiver);
