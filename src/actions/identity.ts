@@ -95,7 +95,6 @@ export async function getAvailableTenants(
       normalizedBranch === "main" ||
       normalizedBranch === "global";
 
-    let usersQuery = "";
     if (isGlobal) {
       // Standard global lookup
       const results = await sql`
