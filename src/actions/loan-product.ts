@@ -1,7 +1,7 @@
 "use server";
 
 import * as z from "zod";
-import prisma from "@/lib/prisma";
+import prisma, { getBranchPrisma } from "@/lib/prisma";
 import { Prisma, RepaymentFrequency } from "@prisma/client";
 import {
   requireAdminSession,
@@ -74,7 +74,8 @@ export const createLoanProduct = async (
   }
 
   try {
-    await prisma.loanProduct.create({
+    const db = getBranchPrisma(session.user.tenantSlug ?? null);
+    await db.loanProduct.create({
       data: {
         name,
         description,
@@ -109,10 +110,8 @@ export const getLoanProducts = async () => {
   }
 
   try {
-    const products = await prisma.loanProduct.findMany({
-      where: {
-        tenant_id: session.user.tenantId,
-      },
+    const db = getBranchPrisma(session.user.tenantSlug ?? null);
+    const products = await db.loanProduct.findMany({
       orderBy: {
         product_id: "desc",
       },

@@ -1,6 +1,6 @@
 "use server";
 
-import prisma from "@/lib/prisma";
+import prisma, { getBranchPrisma } from "@/lib/prisma";
 import { requireAdminSession } from "@/lib/authorization";
 import { revalidatePath } from "next/cache";
 
@@ -22,13 +22,14 @@ export async function uploadSystemFile({
   tenantId?: number;
 }) {
   const session = await requireAdminSession();
+  const db = getBranchPrisma(session.user.tenantSlug);
 
   // If not superadmin, enforce that the file belongs to their branch
   const finalTenantId =
     session.user.role === "superadmin" ? tenantId : session.user.tenantId;
 
   try {
-    const file = await prisma.systemFile.create({
+    const file = await db.systemFile.create({
       data: {
         file_name: fileName,
         content_base64: contentBase64,
@@ -52,9 +53,10 @@ export async function uploadSystemFile({
  */
 export async function getSystemFile(fileId: string) {
   const session = await requireAdminSession();
+  const db = getBranchPrisma(session.user.tenantSlug);
 
   try {
-    const file = await prisma.systemFile.findUnique({
+    const file = await db.systemFile.findUnique({
       where: { id: fileId },
     });
 
@@ -82,6 +84,7 @@ export async function getSystemFile(fileId: string) {
  */
 export async function getSystemFiles(tenantId?: number) {
   const session = await requireAdminSession();
+  const db = getBranchPrisma(session.user.tenantSlug);
 
   try {
     const whereClause: any = {};
@@ -92,7 +95,7 @@ export async function getSystemFiles(tenantId?: number) {
       whereClause.tenant_id = tenantId;
     }
 
-    const files = await prisma.systemFile.findMany({
+    const files = await db.systemFile.findMany({
       where: whereClause,
       include: {
         uploader: {
@@ -117,9 +120,10 @@ export async function getSystemFiles(tenantId?: number) {
  */
 export async function deleteSystemFile(fileId: string) {
   const session = await requireAdminSession();
+  const db = getBranchPrisma(session.user.tenantSlug);
 
   try {
-    const file = await prisma.systemFile.findUnique({
+    const file = await db.systemFile.findUnique({
       where: { id: fileId },
     });
 
@@ -134,7 +138,7 @@ export async function deleteSystemFile(fileId: string) {
       return { success: false, error: "Unauthorized." };
     }
 
-    await prisma.systemFile.delete({
+    await db.systemFile.delete({
       where: { id: fileId },
     });
 

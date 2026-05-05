@@ -1,6 +1,6 @@
 "use server";
 
-import prisma from "@/lib/prisma";
+import prisma, { getBranchPrisma } from "@/lib/prisma";
 
 const normalizeEmail = (email: string) => email.trim().toLowerCase();
 
@@ -65,10 +65,22 @@ export const newVerification = async (token: string) => {
     return { error: "Email does not exist!" };
   }
 
-  await prisma.user.update({
+  // Resolve tenant slug for branch-scoped update
+  let tenantSlug = "malolos";
+  if (existingToken.tenant_id) {
+    const tenant = await prisma.tenant.findUnique({
+      where: { tenant_id: existingToken.tenant_id },
+      select: { slug: true },
+    });
+    if (tenant?.slug) tenantSlug = tenant.slug;
+  }
+
+  const db = getBranchPrisma(tenantSlug);
+
+  await db.user.update({
     where: { user_id: existingUser.user_id },
     data: {
-      status: "active", // Updated from 'pending' to 'active'
+      status: "active",
       email: normalizeEmail(existingToken.email),
     },
   });

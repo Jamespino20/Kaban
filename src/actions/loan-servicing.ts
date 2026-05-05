@@ -1,7 +1,7 @@
 "use server";
 
 import * as z from "zod";
-import prisma from "@/lib/prisma";
+import prisma, { getBranchPrisma } from "@/lib/prisma";
 import {
   requireAdminSession,
   requireAuthenticatedSession,
@@ -65,7 +65,8 @@ async function syncOverdueSchedules(tx: any, loanId: number) {
 
 async function requireLoanAdminAccess(loanId: number) {
   const session = await requireAdminSession();
-  const loan = await prisma.loan.findUnique({
+  const db = getBranchPrisma(session.user.tenantSlug);
+  const loan = await db.loan.findUnique({
     where: { loan_id: loanId },
     include: {
       tenant: {
@@ -111,7 +112,9 @@ export async function approveLoanApplication(
       return { error: "Loan application is no longer pending." };
     }
 
-    await prisma.loan.update({
+    const db = getBranchPrisma(session.user.tenantSlug);
+
+    await db.loan.update({
       where: { loan_id: loanId },
       data: {
         status: "approved",
@@ -120,7 +123,7 @@ export async function approveLoanApplication(
       },
     });
 
-    await prisma.auditLog.create({
+    await db.auditLog.create({
       data: {
         tenant_id: loan.tenant_id,
         user_id: session.user.user_id,
@@ -156,7 +159,9 @@ export async function rejectLoanApplication(
       };
     }
 
-    await prisma.loan.update({
+    const db = getBranchPrisma(session.user.tenantSlug);
+
+    await db.loan.update({
       where: { loan_id: loanId },
       data: {
         status: "rejected",
@@ -189,7 +194,9 @@ export async function releaseLoanFunds(
       };
     }
 
-    await prisma.loan.update({
+    const db = getBranchPrisma(session.user.tenantSlug);
+
+    await db.loan.update({
       where: { loan_id: loanId },
       data: {
         status: "active",
@@ -210,8 +217,9 @@ export async function submitMockRepayment(
   try {
     const { loanId, amount, methodId } = SubmitPaymentSchema.parse(input);
     const session = await requireAuthenticatedSession();
+    const db = getBranchPrisma(session.user.tenantSlug);
 
-    const loan = await prisma.loan.findUnique({
+    const loan = await db.loan.findUnique({
       where: { loan_id: loanId },
     });
 
@@ -223,7 +231,7 @@ export async function submitMockRepayment(
       return { error: "No active loan found for this transaction." };
     }
 
-    const payment = await prisma.payment.create({
+    const payment = await db.payment.create({
       data: {
         loan_id: loanId,
         method_id: methodId,
@@ -247,8 +255,9 @@ export async function verifySubmittedPayment(
   try {
     const { paymentId, notes: note } = ReviewPaymentSchema.parse(input);
     const session = await requireAuthenticatedSession();
+    const db = getBranchPrisma(session.user.tenantSlug);
 
-    const payment = await prisma.payment.findUnique({
+    const payment = await db.payment.findUnique({
       where: { payment_id: paymentId },
     });
 
@@ -256,7 +265,7 @@ export async function verifySubmittedPayment(
       return { error: "Payment record not found." };
     }
 
-    await prisma.payment.update({
+    await db.payment.update({
       where: { payment_id: paymentId },
       data: {
         status: "verified",
@@ -278,8 +287,9 @@ export async function rejectSubmittedPayment(
   try {
     const { paymentId, notes: note } = ReviewPaymentSchema.parse(input);
     const session = await requireAuthenticatedSession();
+    const db = getBranchPrisma(session.user.tenantSlug);
 
-    const payment = await prisma.payment.findUnique({
+    const payment = await db.payment.findUnique({
       where: { payment_id: paymentId },
     });
 
@@ -287,7 +297,7 @@ export async function rejectSubmittedPayment(
       return { error: "Payment record not found." };
     }
 
-    await prisma.payment.update({
+    await db.payment.update({
       where: { payment_id: paymentId },
       data: {
         status: "rejected",
@@ -307,7 +317,8 @@ export async function rejectSubmittedPayment(
 export async function getLoanStatement(loanId: number) {
   try {
     const session = await requireAuthenticatedSession();
-    const ledgerEntries = await prisma.businessLedger.findMany({
+    const db = getBranchPrisma(session.user.tenantSlug);
+    const ledgerEntries = await db.businessLedger.findMany({
       where: {
         loan_id: loanId,
         account: {
@@ -331,7 +342,10 @@ export async function getLoanStatement(loanId: number) {
  * Satisfies the "SOA balance truth" requirement.
  */
 export async function recalculateLoanBalanceFromLedger(loanId: number) {
-  const entries = await prisma.businessLedger.findMany({
+  const session = await requireAuthenticatedSession();
+  const db = getBranchPrisma(session.user.tenantSlug);
+
+  const entries = await db.businessLedger.findMany({
     where: {
       loan_id: loanId,
       account: {

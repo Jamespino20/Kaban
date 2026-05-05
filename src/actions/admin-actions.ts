@@ -134,7 +134,7 @@ export async function getPendingApprovals() {
     },
   });
 
-  const pendingPayments = await prisma.payment.findMany({
+  const pendingPayments = await db.payment.findMany({
     where: {
       status: "pending",
       loan: loanTenantFilter,
@@ -158,7 +158,7 @@ export async function getPendingApprovals() {
   });
 
   // CompassionAction is accessed via Prisma client directly as it is a known model
-  const pendingCompassionActions = await prisma.compassionAction.findMany({
+  const pendingCompassionActions = await db.compassionAction.findMany({
     where: {
       status: "pending",
       loan: loanTenantFilter,
@@ -175,7 +175,7 @@ export async function getPendingApprovals() {
     orderBy: { requested_at: "asc" },
   });
 
-  const recoveryLoans = await prisma.loan.findMany({
+  const recoveryLoans = await db.loan.findMany({
     where: {
       ...loanTenantFilter,
       is_recovery_loan: true,
@@ -188,7 +188,7 @@ export async function getPendingApprovals() {
     orderBy: { applied_at: "desc" },
   });
 
-  const overdueLoans = await prisma.loan.findMany({
+  const overdueLoans = await db.loan.findMany({
     where: {
       ...loanTenantFilter,
       status: "active",

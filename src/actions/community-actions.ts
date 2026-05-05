@@ -1,6 +1,6 @@
 "use server";
 
-import prisma from "@/lib/prisma";
+import prisma, { getBranchPrisma } from "@/lib/prisma";
 import {
   canAccessTenantStaffResource,
   requireAuthenticatedSession,
@@ -31,6 +31,7 @@ const DEFAULT_BRANCH_ROOMS = [
 type CommunityTenantContext = {
   session: AuthorizedSession;
   tenantId: number | null;
+  tenantSlug: string | null;
 };
 
 async function requireCommunityTenantContext(): Promise<CommunityTenantContext> {
@@ -38,13 +39,20 @@ async function requireCommunityTenantContext(): Promise<CommunityTenantContext> 
   return {
     session,
     tenantId: session.user.tenantId ?? null,
+    tenantSlug: session.user.tenantSlug ?? null,
   };
 }
 
-async function ensureBranchRooms(tenantId: number, actorUserId?: number) {
+async function ensureBranchRooms(
+  tenantId: number,
+  actorUserId?: number | string,
+  db?: ReturnType<typeof getBranchPrisma>,
+  tenantSlug?: string | null,
+) {
+  const database = db ?? getBranchPrisma(tenantSlug || null);
   await Promise.all(
     DEFAULT_BRANCH_ROOMS.map((room) =>
-      prisma.conversation.upsert({
+      database.conversation.upsert({
         where: {
           tenant_id_type_slug: {
             tenant_id: tenantId,
@@ -60,18 +68,18 @@ async function ensureBranchRooms(tenantId: number, actorUserId?: number) {
           type: ConversationType.branch_room,
           slug: room.slug,
           title: room.title,
-          created_by: actorUserId,
+          created_by: actorUserId ? Number(actorUserId) : undefined,
         },
       }),
     ),
   );
 }
-
 async function assertConversationAccess(
   session: AuthorizedSession,
   conversationId: string,
 ) {
-  const conversation = await prisma.conversation.findUnique({
+  const db = getBranchPrisma(session.user.tenantSlug);
+  const conversation = await db.conversation.findUnique({
     where: { id: conversationId },
     include: {
       participants: {
@@ -115,7 +123,8 @@ function buildUnreadFlag(
 }
 
 export async function getCommunityDashboardData() {
-  const { session, tenantId } = await requireCommunityTenantContext();
+  const { session, tenantId, tenantSlug } =
+    await requireCommunityTenantContext();
 
   if (!tenantId) {
     return {
@@ -128,7 +137,9 @@ export async function getCommunityDashboardData() {
     };
   }
 
-  await ensureBranchRooms(tenantId, session.user.user_id);
+  const db = getBranchPrisma(tenantSlug);
+
+  await ensureBranchRooms(tenantId, session.user.user_id, db);
 
   const [
     branchRooms,
@@ -137,7 +148,7 @@ export async function getCommunityDashboardData() {
     discoverableUsers,
     mentorships,
   ] = await Promise.all([
-    prisma.conversation.findMany({
+    db.conversation.findMany({
       where: {
         tenant_id: tenantId,
         type: ConversationType.branch_room,
@@ -159,7 +170,7 @@ export async function getCommunityDashboardData() {
       },
       orderBy: { title: "asc" },
     }),
-    prisma.conversation.findMany({
+    db.conversation.findMany({
       where: {
         tenant_id: tenantId,
         type: ConversationType.direct,
@@ -189,7 +200,7 @@ export async function getCommunityDashboardData() {
       },
       orderBy: { updated_at: "desc" },
     }),
-    prisma.conversation.findMany({
+    db.conversation.findMany({
       where: {
         tenant_id: tenantId,
         type: ConversationType.group_chat,
@@ -219,7 +230,7 @@ export async function getCommunityDashboardData() {
       },
       orderBy: { updated_at: "desc" },
     }),
-    prisma.user.findMany({
+    db.user.findMany({
       where: {
         tenant_id: tenantId,
         user_id: { not: session.user.user_id },
@@ -239,7 +250,7 @@ export async function getCommunityDashboardData() {
       orderBy: [{ role: "asc" }, { created_at: "desc" }],
       take: 16,
     }),
-    prisma.mentorshipConnection.findMany({
+    db.mentorshipConnection.findMany({
       where: {
         tenant_id: tenantId,
         OR: [
@@ -388,13 +399,14 @@ export async function getCommunityStaffSummary() {
       ? {}
       : { tenant_id: tenantId };
 
+  const db = getBranchPrisma(session.user.tenantSlug);
   const [
     pendingMentorships,
     activeMentorships,
     conversationCount,
     recentMessages,
   ] = await Promise.all([
-    prisma.mentorshipConnection.findMany({
+    db.mentorshipConnection.findMany({
       where: {
         ...tenantFilter,
         status: MentorshipStatus.pending_endorsement,
@@ -406,16 +418,16 @@ export async function getCommunityStaffSummary() {
       orderBy: { created_at: "desc" },
       take: 10,
     }),
-    prisma.mentorshipConnection.count({
+    db.mentorshipConnection.count({
       where: {
         ...tenantFilter,
         status: MentorshipStatus.endorsed,
       },
     }),
-    prisma.conversation.count({
+    db.conversation.count({
       where: tenantFilter,
     }),
-    prisma.message.findMany({
+    db.message.findMany({
       where: tenantFilter,
       include: {
         sender: { include: { profile: true } },
@@ -472,7 +484,8 @@ export async function getConversationThread(
     conversation.type === ConversationType.branch_room &&
     session.user.tenantId
   ) {
-    await prisma.conversationParticipant.upsert({
+    const db = getBranchPrisma(session.user.tenantSlug);
+    await db.conversationParticipant.upsert({
       where: {
         conversation_id_user_id: {
           conversation_id: conversationId,
@@ -487,7 +500,8 @@ export async function getConversationThread(
     });
   }
 
-  const thread = await prisma.conversation.findUnique({
+  const db = getBranchPrisma(session.user.tenantSlug);
+  const thread = await db.conversation.findUnique({
     where: { id: conversationId },
     include: {
       messages: {
@@ -580,11 +594,13 @@ export async function openDirectConversation(targetUserId: number) {
     return { error: "Please select a branch before using community tools." };
   }
 
+  const db = getBranchPrisma(session.user.tenantSlug);
+
   if (targetUserId === session.user.user_id) {
     return { error: "You cannot send a message to yourself." };
   }
 
-  const target = await prisma.user.findFirst({
+  const target = await db.user.findFirst({
     where: { user_id: targetUserId, tenant_id: tenantId },
   });
 
@@ -592,7 +608,7 @@ export async function openDirectConversation(targetUserId: number) {
     return { error: "The selected member was not found in this branch." };
   }
 
-  const existing = await prisma.conversation.findFirst({
+  const existing = await db.conversation.findFirst({
     where: {
       tenant_id: tenantId,
       type: ConversationType.direct,
@@ -607,7 +623,7 @@ export async function openDirectConversation(targetUserId: number) {
     return { success: true, conversationId: existing.id };
   }
 
-  const conversation = await prisma.conversation.create({
+  const conversation = await db.conversation.create({
     data: {
       tenant_id: tenantId,
       type: ConversationType.direct,
@@ -643,9 +659,9 @@ export async function sendConversationMessage(input: {
     return { error: "Please enter a message or attach a file." };
   }
 
-  await assertConversationAccess(session, input.conversationId);
+  const db = getBranchPrisma(session.user.tenantSlug);
 
-  const message = await prisma.message.create({
+  const message = await db.message.create({
     data: {
       tenant_id: tenantId,
       conversation_id: input.conversationId,
@@ -665,7 +681,7 @@ export async function sendConversationMessage(input: {
     },
   });
 
-  await prisma.conversation.update({
+  await db.conversation.update({
     where: { id: input.conversationId },
     data: { updated_at: new Date() },
   });
@@ -692,7 +708,9 @@ export async function createGroupConversation(input: {
     return { error: "A group chat requires at least 3 participants." };
   }
 
-  const validMembers = await prisma.user.findMany({
+  const db = getBranchPrisma(session.user.tenantSlug);
+
+  const validMembers = await db.user.findMany({
     where: { user_id: { in: allParticipantIds }, tenant_id: tenantId },
     select: { user_id: true },
   });
@@ -704,7 +722,7 @@ export async function createGroupConversation(input: {
     };
   }
 
-  const conversation = await prisma.conversation.create({
+  const conversation = await db.conversation.create({
     data: {
       tenant_id: tenantId,
       type: ConversationType.group_chat,
@@ -731,11 +749,13 @@ export async function requestMentorship(input: {
     return { error: "Please select a branch before requesting mentorship." };
   }
 
+  const db = getBranchPrisma(session.user.tenantSlug);
+
   if (input.mentorUserId === session.user.user_id) {
     return { error: "You cannot select yourself as a mentor." };
   }
 
-  const mentor = await prisma.user.findFirst({
+  const mentor = await db.user.findFirst({
     where: { user_id: input.mentorUserId, tenant_id: tenantId },
   });
 
@@ -743,7 +763,7 @@ export async function requestMentorship(input: {
     return { error: "The selected mentor is not available in this branch." };
   }
 
-  await prisma.mentorshipConnection.upsert({
+  await db.mentorshipConnection.upsert({
     where: {
       tenant_id_requester_id_mentor_id: {
         tenant_id: tenantId,
@@ -791,8 +811,9 @@ export async function reviewMentorshipConnection(input: {
   notes?: string;
 }) {
   const session = await requireTanawSession();
+  const db = getBranchPrisma(session.user.tenantSlug);
 
-  const connection = await prisma.mentorshipConnection.findUnique({
+  const connection = await db.mentorshipConnection.findUnique({
     where: { id: input.connectionId },
   });
 
@@ -807,7 +828,7 @@ export async function reviewMentorshipConnection(input: {
     return { error: "Unauthorized" };
   }
 
-  await prisma.mentorshipConnection.update({
+  await db.mentorshipConnection.update({
     where: { id: input.connectionId },
     data: {
       status:
@@ -854,7 +875,9 @@ export async function reviewMentorshipConnection(input: {
 export async function markConversationRead(conversationId: string) {
   const { session } = await requireCommunityTenantContext();
 
-  await prisma.conversationParticipant.update({
+  const db = getBranchPrisma(session.user.tenantSlug);
+
+  await db.conversationParticipant.update({
     where: {
       conversation_id_user_id: {
         conversation_id: conversationId,
@@ -874,7 +897,9 @@ export async function toggleMessageReaction(input: {
   try {
     const { session } = await requireCommunityTenantContext();
 
-    const existing = await prisma.messageReaction.findFirst({
+    const db = getBranchPrisma(session.user.tenantSlug);
+
+    const existing = await db.messageReaction.findFirst({
       where: {
         message_id: input.messageId,
         user_id: session.user.user_id,
@@ -883,11 +908,11 @@ export async function toggleMessageReaction(input: {
     });
 
     if (existing) {
-      await prisma.messageReaction.delete({
+      await db.messageReaction.delete({
         where: { id: existing.id },
       });
     } else {
-      await prisma.messageReaction.create({
+      await db.messageReaction.create({
         data: {
           message_id: input.messageId,
           user_id: session.user.user_id,

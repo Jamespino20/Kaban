@@ -1,7 +1,7 @@
 "use server";
 
 import * as z from "zod";
-import prisma from "@/lib/prisma";
+import prisma, { getBranchPrisma } from "@/lib/prisma";
 import { requireAuthenticatedSession } from "@/lib/authorization";
 import { revalidatePath } from "next/cache";
 import { Prisma } from "@prisma/client";
@@ -44,8 +44,9 @@ export const requestCompassionAction = async (
   const userId = session.user.user_id;
 
   try {
-    // Ensure loan belongs to member and is active (hardship usually applies to active loans)
-    const loan = await prisma.loan.findFirst({
+    const db = getBranchPrisma(session.user.tenantSlug);
+    // Ensure loan belongs to member and is active
+    const loan = await db.loan.findFirst({
       where: {
         loan_id,
         user_id: userId,
@@ -78,7 +79,7 @@ export const requestCompassionAction = async (
       };
     }
 
-    await prisma.compassionAction.create({
+    await db.compassionAction.create({
       data: {
         loan_id,
         action_type,
@@ -135,7 +136,8 @@ export const processCompassionAction = async (
   const { action_id, status, admin_notes } = validatedFields.data;
 
   try {
-    const action = await prisma.compassionAction.findUnique({
+    const db = getBranchPrisma(session.user.tenantSlug);
+    const action = await db.compassionAction.findUnique({
       where: { action_id },
       include: { loan: { include: { product: true } } },
     });
@@ -153,7 +155,7 @@ export const processCompassionAction = async (
       return { error: "Action has already been processed." };
     }
 
-    await prisma.$transaction(async (tx) => {
+    await db.$transaction(async (tx) => {
       // 1. Update the Compassion Action Status and Feedback
       await tx.compassionAction.update({
         where: { action_id },

@@ -2,7 +2,7 @@
 
 import { generateSecret, generateURI, verify } from "otplib";
 import QRCode from "qrcode";
-import prisma from "@/lib/prisma";
+import prisma, { getBranchPrisma } from "@/lib/prisma";
 import { requireAuthenticatedSession } from "@/lib/authorization";
 
 export async function generate2FASecret() {
@@ -13,7 +13,8 @@ export async function generate2FASecret() {
     return { error: "Unauthorized" };
   }
 
-  const user = await prisma.user.findUnique({
+  const db = getBranchPrisma(session.user.tenantSlug);
+  const user = await db.user.findUnique({
     where: { user_id: session.user.user_id },
     include: { two_factor_auth: true },
   });
@@ -24,7 +25,7 @@ export async function generate2FASecret() {
 
   if (!secret) {
     secret = generateSecret();
-    await prisma.twoFactorAuth.upsert({
+    await db.twoFactorAuth.upsert({
       where: { user_id: user.user_id },
       update: { totp_secret: secret },
       create: { user_id: user.user_id, totp_secret: secret },
@@ -50,7 +51,8 @@ export async function verifyAndEnable2FA(token: string) {
     return { error: "Unauthorized" };
   }
 
-  const user = await prisma.user.findUnique({
+  const db = getBranchPrisma(session.user.tenantSlug);
+  const user = await db.user.findUnique({
     where: { user_id: session.user.user_id },
     include: { two_factor_auth: true },
   });
@@ -66,7 +68,7 @@ export async function verifyAndEnable2FA(token: string) {
 
   if (!isValid) return { error: "Maling code. Subukan muli." };
 
-  await prisma.twoFactorAuth.update({
+  await db.twoFactorAuth.update({
     where: { user_id: user.user_id },
     data: { is_enabled: true },
   });
@@ -82,7 +84,8 @@ export async function disable2FA() {
     return { error: "Unauthorized" };
   }
 
-  await prisma.twoFactorAuth.update({
+  const db = getBranchPrisma(session.user.tenantSlug);
+  await db.twoFactorAuth.update({
     where: { user_id: session.user.user_id },
     data: { is_enabled: false },
   });

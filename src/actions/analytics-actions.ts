@@ -1,6 +1,6 @@
 "use server";
 
-import prisma from "@/lib/prisma";
+import prisma, { getBranchPrisma } from "@/lib/prisma";
 import { requireAuthenticatedSession } from "@/lib/authorization";
 import { subDays, startOfDay, format } from "date-fns";
 
@@ -42,8 +42,9 @@ export async function getTenantAnalytics(
   const startDate = startOfDay(subDays(new Date(), days));
 
   try {
+    const db = getBranchPrisma(session.user.tenantSlug);
     // 1. Traffic Trends
-    const traffic = await prisma.trafficLog.findMany({
+    const traffic = await db.trafficLog.findMany({
       where: {
         tenant_id: tenantId,
         created_at: { gte: startDate },
@@ -61,7 +62,7 @@ export async function getTenantAnalytics(
     );
 
     // 2. Behavioral Heatmap
-    const interactions = await prisma.interactionLog.groupBy({
+    const interactions = await db.interactionLog.groupBy({
       by: ["event_type"],
       where: {
         tenant_id: tenantId,
@@ -73,7 +74,7 @@ export async function getTenantAnalytics(
     });
 
     // 3. Geo Distribution
-    const geoDistribution = await prisma.trafficLog.groupBy({
+    const geoDistribution = await db.trafficLog.groupBy({
       by: ["region", "city"],
       where: {
         tenant_id: tenantId,
@@ -85,7 +86,7 @@ export async function getTenantAnalytics(
     });
 
     // 4. User Interaction Density
-    const activeUsers = await prisma.interactionLog.groupBy({
+    const activeUsers = await db.interactionLog.groupBy({
       by: ["user_id"],
       where: {
         tenant_id: tenantId,
@@ -133,8 +134,9 @@ export async function getOperationalInsights(
   const startDate = startOfDay(subDays(new Date(), days));
 
   try {
+    const db = getBranchPrisma(session.user.tenantSlug);
     // 1. Repayment Velocity
-    const payments = await prisma.payment.findMany({
+    const payments = await db.payment.findMany({
       where: {
         loan: { tenant_id: tenantId ?? undefined },
         status: "verified",
@@ -153,7 +155,7 @@ export async function getOperationalInsights(
     );
 
     // 2. Trust Tier Distribution
-    const migration = await prisma.user.groupBy({
+    const migration = await db.user.groupBy({
       by: ["interest_tier"],
       where: {
         tenant_id: tenantId ?? undefined,
@@ -169,7 +171,7 @@ export async function getOperationalInsights(
     }, {});
 
     // 3. Risk Concentration
-    const concentration = await prisma.loan.groupBy({
+    const concentration = await db.loan.groupBy({
       by: ["product_id"],
       where: {
         tenant_id: tenantId ?? undefined,
@@ -179,7 +181,7 @@ export async function getOperationalInsights(
       _count: { loan_id: true },
     });
 
-    const productNames = await prisma.loanProduct.findMany({
+    const productNames = await db.loanProduct.findMany({
       where: { tenant_id: tenantId ?? undefined },
       select: { product_id: true, name: true },
     });
@@ -225,8 +227,9 @@ export async function getFinancialIntegrityCheck(): Promise<FinancialIntegrity |
   const tenantId = session.user.tenantId || null;
 
   try {
+    const db = getBranchPrisma(session.user.tenantSlug);
     // 1. Treasury Ledger Balance (Asset)
-    const treasuryLedger = await prisma.businessLedger.aggregate({
+    const treasuryLedger = await db.businessLedger.aggregate({
       where: {
         account: {
           tenant_id: tenantId,
@@ -244,7 +247,7 @@ export async function getFinancialIntegrityCheck(): Promise<FinancialIntegrity |
       Number(treasuryLedger._sum.credit || 0);
 
     // 2. Member Savings Pool (Liability)
-    const savingsPool = await prisma.savingsAccount.aggregate({
+    const savingsPool = await db.savingsAccount.aggregate({
       where: {
         tenant_id: tenantId ?? undefined,
       },

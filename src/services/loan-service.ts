@@ -65,39 +65,27 @@ export class LoanService {
       return { error: "Member account not found." };
     }
 
-    // Business logic: Check accounts across branches (Agapay multi-tenant logic)
-    const relatedAccounts = await prisma.user.findMany({
-      where: {
-        email: member.email,
-        role: Role.member,
-      },
-      select: {
-        user_id: true,
-      },
-    });
-
-    const relatedAccountIds = relatedAccounts.map((account) => account.user_id);
-
-    const [activeLoansAcrossBranches, defaultedLoanCount, overdueLoanCount] =
+    // Business logic: Check accounts and loans strictly within this branch (Agapay multi-tenant logic)
+    const [activeLoans, defaultedLoanCount, overdueLoanCount] =
       await Promise.all([
-        prisma.loan.findMany({
+        db.loan.findMany({
           where: {
-            user_id: { in: relatedAccountIds },
+            user_id: userId,
             status: { in: ["pending", "approved", "active"] },
           },
           select: {
             balance_remaining: true,
           },
         }),
-        prisma.loan.count({
+        db.loan.count({
           where: {
-            user_id: { in: relatedAccountIds },
+            user_id: userId,
             status: "defaulted",
           },
         }),
-        prisma.loan.count({
+        db.loan.count({
           where: {
-            user_id: { in: relatedAccountIds },
+            user_id: userId,
             schedules: {
               some: { status: "overdue" },
             },
@@ -105,7 +93,7 @@ export class LoanService {
         }),
       ]);
 
-    const totalOutstandingBalance = activeLoansAcrossBranches.reduce(
+    const totalOutstandingBalance = activeLoans.reduce(
       (sum, loan) => sum + Number(loan.balance_remaining),
       0,
     );
@@ -114,7 +102,7 @@ export class LoanService {
     const overindebtedness = evaluateOverindebtedness({
       tier: member.interest_tier,
       totalOutstandingBalance,
-      activeLoanCount: activeLoansAcrossBranches.length,
+      activeLoanCount: activeLoans.length,
       overdueLoanCount,
       defaultedLoanCount,
     });

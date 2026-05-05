@@ -1,6 +1,6 @@
 "use server";
 
-import prisma from "@/lib/prisma";
+import prisma, { getBranchPrisma } from "@/lib/prisma";
 import { requireTanawSession } from "@/lib/authorization";
 
 export async function getEndOfDayReconciliation(
@@ -27,8 +27,10 @@ export async function getEndOfDayReconciliation(
     ? { account: { tenant_id: tenantId } }
     : {};
 
+  const db = getBranchPrisma(session.user.tenantSlug);
+
   // 1. Gather all Disbursed Loans today
-  const loansDisbursed = await prisma.loan.findMany({
+  const loansDisbursed = await db.loan.findMany({
     where: {
       ...tenantFilter,
       status: "active",
@@ -46,7 +48,7 @@ export async function getEndOfDayReconciliation(
   );
 
   // 2. Gather all Verified Payments today
-  const paymentsVerified = await prisma.payment.findMany({
+  const paymentsVerified = await db.payment.findMany({
     where: {
       loan: tenantFilter,
       status: "verified",
@@ -64,7 +66,7 @@ export async function getEndOfDayReconciliation(
   );
 
   // 3. Ledger Sanity Check (Debits vs Credits today for the branch)
-  const ledgerEntries = await prisma.businessLedger.findMany({
+  const ledgerEntries = await db.businessLedger.findMany({
     where: {
       ...ledgerTenantFilter,
       created_at: {
@@ -90,7 +92,7 @@ export async function getEndOfDayReconciliation(
     totalLedgerDebits === totalLedgerCredits && totalLedgerDebits > 0;
 
   // 4. Branch Wallet Checks (Total Active Savings Accounts)
-  const branchSavings = await prisma.savingsAccount.findMany({
+  const branchSavings = await db.savingsAccount.findMany({
     where: {
       ...tenantFilter,
     },
@@ -104,12 +106,12 @@ export async function getEndOfDayReconciliation(
 
   // 5. Master Pulse Check: Treasury (Asset) vs. User Wallets (Liability)
   // Sum of all CASH_EQUIVALENTS for this branch/tenant
-  const treasuryAccount = await prisma.ledgerAccount.findFirst({
+  const treasuryAccount = await db.ledgerAccount.findFirst({
     where: { code: "CASH_EQUIVALENTS", tenant_id: tenantId },
   });
 
   const treasuryEntries = treasuryAccount
-    ? await prisma.businessLedger.findMany({
+    ? await db.businessLedger.findMany({
         where: { account_id: treasuryAccount.id },
         select: { debit: true, credit: true },
       })
@@ -153,9 +155,11 @@ export async function resolveAndSignEndOfDay(reason?: string) {
 
   const eodData = await getEndOfDayReconciliation(undefined, tenantId);
 
+  const db = getBranchPrisma(session.user.tenantSlug);
+
   // If healthy and balanced, we just sign off.
   if (eodData.holdings.isTreasuryHealthy && eodData.ledger.isBalanced) {
-    await prisma.auditLog.create({
+    await db.auditLog.create({
       data: {
         tenant_id: tenantId,
         user_id: Number(session.user.id),
@@ -175,18 +179,18 @@ export async function resolveAndSignEndOfDay(reason?: string) {
   }
 
   if (!eodData.holdings.isTreasuryHealthy) {
-    const treasuryAccount = await prisma.ledgerAccount.findFirst({
+    const treasuryAccount = await db.ledgerAccount.findFirst({
       where: { code: "CASH_EQUIVALENTS", tenant_id: tenantId },
     });
 
     if (!treasuryAccount) throw new Error("Missing treasury account.");
 
-    let discrepancyAccount = await prisma.ledgerAccount.findFirst({
+    let discrepancyAccount = await db.ledgerAccount.findFirst({
       where: { code: "RECONC_DISCREPANCY", tenant_id: tenantId },
     });
 
     if (!discrepancyAccount) {
-      discrepancyAccount = await prisma.ledgerAccount.create({
+      discrepancyAccount = await db.ledgerAccount.create({
         data: {
           name: "Reconciliation Discrepancy",
           code: "RECONC_DISCREPANCY",
@@ -240,11 +244,11 @@ export async function resolveAndSignEndOfDay(reason?: string) {
     }
 
     if (entries.length > 0) {
-      await prisma.businessLedger.createMany({ data: entries });
+      await db.businessLedger.createMany({ data: entries });
     }
   }
 
-  await prisma.auditLog.create({
+  await db.auditLog.create({
     data: {
       tenant_id: tenantId,
       user_id: Number(session.user.id),

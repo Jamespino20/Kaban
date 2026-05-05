@@ -1,6 +1,6 @@
 "use server";
 
-import prisma from "@/lib/prisma";
+import prisma, { getBranchPrisma } from "@/lib/prisma";
 import { requireAuthenticatedSession } from "@/lib/authorization";
 import { revalidatePath } from "next/cache";
 import {
@@ -20,7 +20,8 @@ export async function approveWalletTopUp(requestId: number) {
   const tenantId = session.user.tenantId;
 
   try {
-    const result = await prisma.$transaction(async (tx) => {
+    const db = getBranchPrisma(session.user.tenantSlug);
+    const result = await db.$transaction(async (tx) => {
       // 1. Get request
       const request = await tx.topUpRequest.findUnique({
         where: { id: requestId, tenant_id: tenantId || undefined },
@@ -111,7 +112,8 @@ export async function rejectWalletTopUp(requestId: number) {
   const adminId = session.user.user_id;
 
   try {
-    await prisma.topUpRequest.update({
+    const db = getBranchPrisma(session.user.tenantSlug);
+    await db.topUpRequest.update({
       where: { id: requestId },
       data: {
         status: "rejected",
@@ -133,7 +135,8 @@ export async function getPendingTopUps() {
 
   if (!tenantId) return [];
 
-  const requests = await prisma.topUpRequest.findMany({
+  const db = getBranchPrisma(session.user.tenantSlug);
+  const requests = await db.topUpRequest.findMany({
     where: { tenant_id: tenantId, status: "pending" },
     include: { user: { include: { profile: true } } },
     orderBy: { created_at: "asc" },
@@ -146,7 +149,8 @@ export async function getMemberWallets() {
   const session = await requireAuthenticatedSession();
   const userId = session.user.user_id;
 
-  const accounts = await prisma.savingsAccount.findMany({
+  const db = getBranchPrisma(session.user.tenantSlug);
+  const accounts = await db.savingsAccount.findMany({
     where: {
       user_id: userId,
       tenant_id: session.user.tenantId || undefined,
@@ -168,7 +172,8 @@ export async function requestWalletTopUp(amount: number, receiptUrl?: string) {
     return { error: "Deposit amount must be greater than zero." };
 
   try {
-    await prisma.topUpRequest.create({
+    const db = getBranchPrisma(session.user.tenantSlug);
+    await db.topUpRequest.create({
       data: {
         tenant_id: tenantId!,
         user_id: userId,
@@ -197,7 +202,8 @@ export async function payLoanWithWallet(loanId: number, amount: number) {
     return { error: "Payment amount must be greater than zero." };
 
   try {
-    await prisma.$transaction(
+    const db = getBranchPrisma(session.user.tenantSlug);
+    await db.$transaction(
       async (tx) => {
         // 1. Get wallet
         const wallet = await tx.savingsAccount.findFirst({
@@ -314,8 +320,11 @@ export async function payLoanWithWallet(loanId: number, amount: number) {
 export async function getWalletTransactions() {
   const session = await requireAuthenticatedSession();
   const userId = session.user.user_id;
+  const tenantSlug = session.user.tenantSlug;
 
-  const savingsAccount = await prisma.savingsAccount.findFirst({
+  const db = getBranchPrisma(tenantSlug ?? null);
+
+  const savingsAccount = await db.savingsAccount.findFirst({
     where: {
       user_id: userId,
       account_type: AccountType.personal_wallet,

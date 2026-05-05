@@ -1,7 +1,7 @@
 "use server";
 
 import { syncUserTier, calculateTrustScore } from "@/lib/trust-engine";
-import prisma from "@/lib/prisma";
+import prisma, { getBranchPrisma } from "@/lib/prisma";
 import { requireAuthenticatedSession } from "@/lib/authorization";
 import { revalidatePath } from "next/cache";
 
@@ -12,7 +12,9 @@ import { revalidatePath } from "next/cache";
 export async function refreshUserReputation(userId: number) {
   try {
     const session = await requireAuthenticatedSession();
-    const targetUser = await prisma.user.findUnique({
+    const db = getBranchPrisma(session.user.tenantSlug ?? null);
+    
+    const targetUser = await db.user.findUnique({
       where: { user_id: userId },
       select: {
         user_id: true,

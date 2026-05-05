@@ -1,6 +1,6 @@
 "use server";
 
-import prisma from "@/lib/prisma";
+import prisma, { getBranchPrisma } from "@/lib/prisma";
 import { auth } from "@/lib/auth";
 import { Role } from "@prisma/client";
 
@@ -9,7 +9,8 @@ export const acceptConsent = async (version: string) => {
   if (!session?.user?.id) return { error: "Not authenticated" };
 
   try {
-    await prisma.user.update({
+    const db = getBranchPrisma(session.user.tenantSlug);
+    await db.user.update({
       where: { user_id: parseInt(session.user.id) },
       data: {
         consent_accepted_at: new Date(),

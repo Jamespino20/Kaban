@@ -1,6 +1,6 @@
 "use server";
 
-import prisma from "@/lib/prisma";
+import prisma, { getBranchPrisma } from "@/lib/prisma";
 import { auth } from "@/lib/auth";
 import { z } from "zod";
 
@@ -22,7 +22,9 @@ export async function submitContextualFeedback(
 
     const parsed = FeedbackSchema.parse(input);
 
-    await prisma.feedbackEntry.create({
+    const db = getBranchPrisma(session.user.tenantSlug);
+
+    await db.feedbackEntry.create({
       data: {
         tenant_id: session.user.tenantId,
         user_id: Number(session.user.id),
@@ -39,6 +41,8 @@ export async function submitContextualFeedback(
     return { success: "Salamat sa iyong feedback!" };
   } catch (error: any) {
     console.error("Feedback error:", error);
-    return { error: "Unable to submit feedback at this time. Please try again later." };
+    return {
+      error: "Unable to submit feedback at this time. Please try again later.",
+    };
   }
 }

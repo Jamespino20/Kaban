@@ -1,6 +1,6 @@
 "use server";
 
-import prisma from "@/lib/prisma";
+import prisma, { getBranchPrisma } from "@/lib/prisma";
 import {
   requireAdminSession,
   requireAuthenticatedSession,
@@ -88,15 +88,17 @@ function ensureHomepageEditorRole(role?: string | null) {
 
 /**
  * Core fetching logic for homepage content.
- * Extracted into a plain function to allow calling from API routes without Server Action manifest triggers.
  */
 export async function fetchHomepageContent() {
+  // Homepage content is always pulled from public (malolos) schema for the main landing page
+  const db = getBranchPrisma("malolos");
+
   const [faqs, testimonials] = await Promise.all([
-    prisma.homepageFaq.findMany({
+    db.homepageFaq.findMany({
       where: { is_active: true, workflow_status: CONTENT_STATUS.published },
       orderBy: [{ sort_order: "asc" }, { created_at: "desc" }],
     }),
-    prisma.homepageTestimonial.findMany({
+    db.homepageTestimonial.findMany({
       where: { is_active: true, workflow_status: CONTENT_STATUS.published },
       orderBy: [{ sort_order: "asc" }, { created_at: "desc" }],
     }),
@@ -112,6 +114,7 @@ export async function getHomepageContent() {
 export async function getHomepageContentAdmin() {
   const session = await requireTanawSession();
   ensureHomepageEditorRole(session.user.role);
+  const db = getBranchPrisma(session.user.tenantSlug);
   const tenantId = session.user.tenantId ?? null;
 
   const baseWhere =
@@ -120,7 +123,7 @@ export async function getHomepageContentAdmin() {
       : { tenant_id: tenantId ?? -1 };
 
   const [faqs, testimonials] = await Promise.all([
-    prisma.homepageFaq.findMany({
+    db.homepageFaq.findMany({
       where: baseWhere,
       orderBy: [
         { workflow_status: "asc" },
@@ -128,7 +131,7 @@ export async function getHomepageContentAdmin() {
         { created_at: "desc" },
       ],
     }),
-    prisma.homepageTestimonial.findMany({
+    db.homepageTestimonial.findMany({
       where: baseWhere,
       orderBy: [
         { workflow_status: "asc" },
@@ -147,6 +150,7 @@ export async function submitHomepageFaqProposal(
   try {
     const session = await requireAdminSession();
     ensureHomepageEditorRole(session.user.role);
+    const db = getBranchPrisma(session.user.tenantSlug);
     const data = faqProposalSchema.parse(input);
 
     if (session.user.role === "admin" && !session.user.tenantId) {
@@ -156,7 +160,7 @@ export async function submitHomepageFaqProposal(
     }
 
     if (data.id) {
-      const existing = await prisma.homepageFaq.findUnique({
+      const existing = await db.homepageFaq.findUnique({
         where: { id: data.id },
       });
       if (!existing) return { error: "FAQ proposal not found." };
@@ -177,7 +181,7 @@ export async function submitHomepageFaqProposal(
       }
     }
 
-    await prisma.homepageFaq.upsert({
+    await db.homepageFaq.upsert({
       where: { id: data.id ?? 0 },
       update: {
         question: data.question,
@@ -229,6 +233,7 @@ export async function submitHomepageTestimonialProposal(
   try {
     const session = await requireAdminSession();
     ensureHomepageEditorRole(session.user.role);
+    const db = getBranchPrisma(session.user.tenantSlug);
     const data = testimonialProposalSchema.parse(input);
 
     if (session.user.role === "admin" && !session.user.tenantId) {
@@ -236,7 +241,7 @@ export async function submitHomepageTestimonialProposal(
     }
 
     if (data.id) {
-      const existing = await prisma.homepageTestimonial.findUnique({
+      const existing = await db.homepageTestimonial.findUnique({
         where: { id: data.id },
       });
       if (!existing) return { error: "Hindi makita ang testimonial proposal." };
@@ -257,7 +262,7 @@ export async function submitHomepageTestimonialProposal(
       }
     }
 
-    await prisma.homepageTestimonial.upsert({
+    await db.homepageTestimonial.upsert({
       where: { id: data.id ?? 0 },
       update: {
         name: data.name,
@@ -312,14 +317,15 @@ export async function reviewHomepageFaqProposal(
 ) {
   try {
     const session = await requireSuperadminSession();
+    const db = getBranchPrisma(session.user.tenantSlug);
     const data = faqReviewSchema.parse(input);
 
-    const existing = await prisma.homepageFaq.findUnique({
+    const existing = await db.homepageFaq.findUnique({
       where: { id: data.id },
     });
     if (!existing) return { error: "Hindi makita ang FAQ proposal." };
 
-    await prisma.homepageFaq.update({
+    await db.homepageFaq.update({
       where: { id: data.id },
       data: {
         question: data.question,
@@ -354,14 +360,15 @@ export async function reviewHomepageTestimonialProposal(
 ) {
   try {
     const session = await requireSuperadminSession();
+    const db = getBranchPrisma(session.user.tenantSlug);
     const data = testimonialReviewSchema.parse(input);
 
-    const existing = await prisma.homepageTestimonial.findUnique({
+    const existing = await db.homepageTestimonial.findUnique({
       where: { id: data.id },
     });
     if (!existing) return { error: "Hindi makita ang testimonial proposal." };
 
-    await prisma.homepageTestimonial.update({
+    await db.homepageTestimonial.update({
       where: { id: data.id },
       data: {
         name: data.name,
@@ -395,8 +402,9 @@ export async function reviewHomepageTestimonialProposal(
 
 export async function deleteHomepageFaq(id: number) {
   try {
-    await requireSuperadminSession();
-    await prisma.homepageFaq.delete({ where: { id } });
+    const session = await requireSuperadminSession();
+    const db = getBranchPrisma(session.user.tenantSlug);
+    await db.homepageFaq.delete({ where: { id } });
     revalidateContentPaths();
     return { success: "Nabura na ang FAQ entry." };
   } catch (error) {
@@ -407,8 +415,9 @@ export async function deleteHomepageFaq(id: number) {
 
 export async function deleteHomepageTestimonial(id: number) {
   try {
-    await requireSuperadminSession();
-    await prisma.homepageTestimonial.delete({ where: { id } });
+    const session = await requireSuperadminSession();
+    const db = getBranchPrisma(session.user.tenantSlug);
+    await db.homepageTestimonial.delete({ where: { id } });
     revalidateContentPaths();
     return { success: "Nabura na ang testimonial entry." };
   } catch (error) {
@@ -425,6 +434,8 @@ export async function submitFeedback(input: z.infer<typeof feedbackSchema>) {
       session = await requireAuthenticatedSession();
     } catch {}
 
+    const db = getBranchPrisma(session?.user?.tenantSlug || "malolos");
+
     await sendFeedbackNotificationEmail({
       name: data.name,
       email: data.email || session?.user?.email || null,
@@ -434,7 +445,7 @@ export async function submitFeedback(input: z.infer<typeof feedbackSchema>) {
       message: data.message,
     });
 
-    await prisma.feedbackEntry.create({
+    await db.feedbackEntry.create({
       data: {
         tenant_id: session?.user?.tenantId ?? null,
         user_id: session?.user?.user_id ?? null,
@@ -460,13 +471,14 @@ export async function submitFeedback(input: z.infer<typeof feedbackSchema>) {
 
 export async function getFeedbackEntries() {
   const session = await requireTanawSession();
+  const db = getBranchPrisma(session.user.tenantSlug);
   const tenantId = session.user.tenantId ?? null;
   const where =
     session.user.role === "superadmin" && tenantId === null
       ? {}
       : { tenant_id: tenantId ?? -1 };
 
-  return prisma.feedbackEntry.findMany({
+  return db.feedbackEntry.findMany({
     where,
     orderBy: [{ status: "asc" }, { created_at: "desc" }],
     include: {
@@ -486,8 +498,9 @@ export async function updateFeedbackEntryStatus(
 ) {
   try {
     const session = await requireTanawSession();
+    const db = getBranchPrisma(session.user.tenantSlug);
     const data = feedbackUpdateSchema.parse(input);
-    const existing = await prisma.feedbackEntry.findUnique({
+    const existing = await db.feedbackEntry.findUnique({
       where: { id: data.id },
     });
 
@@ -499,7 +512,7 @@ export async function updateFeedbackEntryStatus(
       return { error: "Hindi ka puwedeng mag-update ng feedback na ito." };
     }
 
-    await prisma.feedbackEntry.update({
+    await db.feedbackEntry.update({
       where: { id: data.id },
       data: { status: data.status },
     });
@@ -515,6 +528,7 @@ export async function updateFeedbackEntryStatus(
 export async function getContentWorkflowSummary() {
   const session = await requireTanawSession();
   ensureHomepageEditorRole(session.user.role);
+  const db = getBranchPrisma(session.user.tenantSlug);
   const tenantId = session.user.tenantId ?? null;
 
   const tenantWhere =
@@ -524,19 +538,19 @@ export async function getContentWorkflowSummary() {
 
   const [pendingFaqs, pendingTestimonials, openFeedback, testimonialFeedback] =
     await Promise.all([
-      prisma.homepageFaq.count({
+      db.homepageFaq.count({
         where: { ...tenantWhere, workflow_status: CONTENT_STATUS.pending },
       }),
-      prisma.homepageTestimonial.count({
+      db.homepageTestimonial.count({
         where: { ...tenantWhere, workflow_status: CONTENT_STATUS.pending },
       }),
-      prisma.feedbackEntry.count({
+      db.feedbackEntry.count({
         where: {
           ...tenantWhere,
           status: { in: ["open", "in_review"] },
         },
       }),
-      prisma.feedbackEntry.count({
+      db.feedbackEntry.count({
         where: {
           ...tenantWhere,
           category: "testimonial",

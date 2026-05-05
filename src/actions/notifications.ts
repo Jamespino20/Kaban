@@ -1,15 +1,19 @@
 "use server";
 
-import prisma from "@/lib/prisma";
+import prisma, { getBranchPrisma } from "@/lib/prisma";
 import { auth } from "@/lib/auth";
 
 export async function getUserNotifications() {
   const session = await auth();
   if (!session?.user?.id) return { data: [], error: "Unauthorized" };
 
+  const userId = parseInt(session.user.id);
+  const tenantSlug = (session.user as any).tenantSlug as string | null;
+  const db = getBranchPrisma(tenantSlug ?? null);
+
   try {
-    const notifications = await prisma.notification.findMany({
-      where: { user_id: parseInt(session.user.id) },
+    const notifications = await db.notification.findMany({
+      where: { user_id: userId },
       orderBy: { created_at: "desc" },
       take: 20,
     });
@@ -25,10 +29,14 @@ export async function getUnreadNotificationCount() {
   const session = await auth();
   if (!session?.user?.id) return { count: 0 };
 
+  const userId = parseInt(session.user.id);
+  const tenantSlug = (session.user as any).tenantSlug as string | null;
+  const db = getBranchPrisma(tenantSlug ?? null);
+
   try {
-    const count = await prisma.notification.count({
+    const count = await db.notification.count({
       where: {
-        user_id: parseInt(session.user.id),
+        user_id: userId,
         is_read: false,
       },
     });
@@ -43,9 +51,13 @@ export async function markNotificationAsRead(id: string) {
   const session = await auth();
   if (!session?.user?.id) return { error: "Unauthorized" };
 
+  const userId = parseInt(session.user.id);
+  const tenantSlug = (session.user as any).tenantSlug as string | null;
+  const db = getBranchPrisma(tenantSlug ?? null);
+
   try {
-    await prisma.notification.update({
-      where: { id, user_id: parseInt(session.user.id) },
+    await db.notification.update({
+      where: { id, user_id: userId },
       data: { is_read: true },
     });
     return { success: true };
@@ -58,9 +70,13 @@ export async function markAllNotificationsAsRead() {
   const session = await auth();
   if (!session?.user?.id) return { error: "Unauthorized" };
 
+  const userId = parseInt(session.user.id);
+  const tenantSlug = (session.user as any).tenantSlug as string | null;
+  const db = getBranchPrisma(tenantSlug ?? null);
+
   try {
-    await prisma.notification.updateMany({
-      where: { user_id: parseInt(session.user.id), is_read: false },
+    await db.notification.updateMany({
+      where: { user_id: userId, is_read: false },
       data: { is_read: true },
     });
     return { success: true };

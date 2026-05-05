@@ -2,7 +2,7 @@
 
 import * as z from "zod";
 import bcrypt from "bcryptjs";
-import prisma from "@/lib/prisma";
+import prisma, { getBranchPrisma } from "@/lib/prisma";
 import { generatePasswordResetToken } from "@/lib/tokens";
 import {
   sendPasswordResetEmail,
@@ -106,6 +106,7 @@ export const resetPassword = async (
     };
   }
 
+  // Use global client to find the user basic info first (including tenant)
   const existingUser = await prisma.user.findFirst({
     where: {
       email: existingToken.email,
@@ -119,7 +120,19 @@ export const resetPassword = async (
 
   const hashedPassword = await bcrypt.hash(password, 10);
 
-  await prisma.user.update({
+  // Resolve tenant slug for branch-scoped update
+  let tenantSlug = "malolos";
+  if (existingToken.tenant_id) {
+    const tenant = await prisma.tenant.findUnique({
+      where: { tenant_id: existingToken.tenant_id },
+      select: { slug: true },
+    });
+    if (tenant?.slug) tenantSlug = tenant.slug;
+  }
+
+  const db = getBranchPrisma(tenantSlug);
+
+  await db.user.update({
     where: { user_id: existingUser.user_id },
     data: { password_hash: hashedPassword },
   });
