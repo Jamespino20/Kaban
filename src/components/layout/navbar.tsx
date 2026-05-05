@@ -5,12 +5,14 @@ import { Menu, X, LayoutDashboard } from "lucide-react";
 import Link from "next/link";
 import { useSession } from "next-auth/react";
 import { AuthModal } from "@/components/auth/auth-modal";
+import { PublicBranchSelector } from "@/components/layout/public-branch-selector";
 
 interface NavbarProps {
   forceSolid?: boolean;
+  branches?: any[];
 }
 
-export function Navbar({ forceSolid = false }: NavbarProps) {
+export function Navbar({ forceSolid = false, branches = [] }: NavbarProps) {
   const [isMounted, setIsMounted] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -59,6 +61,7 @@ export function Navbar({ forceSolid = false }: NavbarProps) {
 
         {/* Desktop Nav */}
         <nav className="hidden md:flex items-center gap-10">
+          <PublicBranchSelector branches={branches} isScrolled={isScrolled} />
           {navItems.map((item) => (
             <Link
               key={item.label}
@@ -100,6 +103,11 @@ export function Navbar({ forceSolid = false }: NavbarProps) {
       {isMenuOpen && (
         <div className="md:hidden absolute top-full left-0 right-0 bg-white border-t border-slate-100 shadow-xl p-6 animate-in slide-in-from-top duration-300">
           <nav className="flex flex-col gap-6">
+            <PublicBranchSelector
+              branches={branches}
+              isScrolled={isScrolled}
+              isMobile
+            />
             {navItems.map((item) => (
               <Link
                 key={item.label}

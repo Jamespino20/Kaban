@@ -51,7 +51,7 @@ export async function requireAuthenticatedSession(): Promise<AuthorizedSession> 
       ((tenant.entitlement_status as any) !== "active" &&
         (tenant.entitlement_status as any) !== "availed")
     ) {
-      redirect("/tenant-access");
+      redirect(`/${session.user.tenantSlug || "main"}/tenant-access`);
     }
   }
 

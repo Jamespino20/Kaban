@@ -68,8 +68,12 @@ export default async function middleware(req: NextRequest) {
 
     // 2.1 Branch Isolation Guard
     // Check if the user is in their assigned branch. Superadmins can be in any branch.
+    const isTenantAccessPage = nextUrl.pathname.includes("/tenant-access");
     const hasBranchMismatch =
-      !isSuperadmin && urlBranchSlug && urlBranchSlug !== userTenantSlug;
+      !isSuperadmin &&
+      urlBranchSlug &&
+      urlBranchSlug !== userTenantSlug &&
+      !isTenantAccessPage;
     const isMissingBranch = !urlBranchSlug;
 
     if (hasBranchMismatch || isMissingBranch) {

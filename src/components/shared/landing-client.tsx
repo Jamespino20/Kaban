@@ -335,7 +335,7 @@ export function LandingClient({ branches }: { branches: Branch[] }) {
         <div className="absolute inset-0 bg-gradient-to-b from-black/35 via-black/10 to-slate-50 z-10" />
       </div>
 
-      <Navbar />
+      <Navbar branches={branches} />
 
       <main className="relative z-20 w-full flex flex-col items-center">
         <section className="relative w-full h-[95vh] flex flex-col items-start justify-center px-6 max-w-7xl">

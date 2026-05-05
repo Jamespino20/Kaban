@@ -1,0 +1,140 @@
+"use client";
+
+import { useState, useMemo, useEffect } from "react";
+import { Search, Building2, ChevronDown, MapPin } from "lucide-react";
+import Link from "next/link";
+import { getActiveBranches } from "@/actions/tenant-management";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Input } from "@/components/ui/input";
+
+interface Branch {
+  id: string;
+  name: string;
+  slug: string;
+  color: string;
+}
+
+interface PublicBranchSelectorProps {
+  branches?: Branch[];
+  isScrolled?: boolean;
+  isMobile?: boolean;
+}
+
+export function PublicBranchSelector({
+  branches: initialBranches = [],
+  isScrolled,
+  isMobile,
+}: PublicBranchSelectorProps) {
+  const [branches, setBranches] = useState<Branch[]>(initialBranches);
+  const [searchQuery, setSearchQuery] = useState("");
+
+  useEffect(() => {
+    if (initialBranches && initialBranches.length > 0) {
+      setBranches(initialBranches);
+      return;
+    }
+
+    async function loadBranches() {
+      try {
+        const data = await getActiveBranches();
+        // The data from getActiveBranches returns Branch objects matching our interface
+        setBranches(data as any as Branch[]);
+      } catch (error) {
+        console.error("Failed to fetch branches in selector:", error);
+      }
+    }
+    loadBranches();
+  }, [initialBranches]);
+
+  const filteredBranches = useMemo(() => {
+    return branches.filter((branch) =>
+      branch.name.toLowerCase().includes(searchQuery.toLowerCase()),
+    );
+  }, [branches, searchQuery]);
+
+  const triggerClasses = isMobile
+    ? "w-full flex items-center justify-between p-4 rounded-2xl hover:bg-slate-50 transition-colors border border-transparent hover:border-slate-100 text-slate-900 font-black italic text-lg outline-none"
+    : `flex items-center gap-2 px-4 py-2 rounded-full transition-all duration-300 font-bold text-sm outline-none ${
+        isScrolled
+          ? "text-slate-700 hover:bg-slate-100"
+          : "text-white/90 hover:bg-white/10"
+      }`;
+
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger className={triggerClasses}>
+        <div className="flex items-center gap-2 text-left">
+          <MapPin className="w-4 h-4" />
+          <span>Find Cooperative</span>
+        </div>
+        <ChevronDown className="w-4 h-4 opacity-50" />
+      </DropdownMenuTrigger>
+      <DropdownMenuContent
+        align={isMobile ? "center" : "end"}
+        className="w-[300px] p-2 rounded-3xl border-slate-200 shadow-2xl animate-in zoom-in-95 duration-200 z-[60]"
+      >
+        <DropdownMenuLabel className="px-3 pt-3 pb-2">
+          <p className="text-xs font-black uppercase tracking-widest text-slate-400 mb-3">
+            Active Branches
+          </p>
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+            <Input
+              placeholder="Search branch name..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-10 h-10 bg-slate-50 border-none rounded-2xl focus-visible:ring-emerald-500/20"
+            />
+          </div>
+        </DropdownMenuLabel>
+        <DropdownMenuSeparator className="mx-2 bg-slate-100" />
+        <div className="max-h-[300px] overflow-y-auto py-1 scrollbar-hide">
+          {filteredBranches.length > 0 ? (
+            filteredBranches.map((branch) => (
+              <DropdownMenuItem key={branch.id} asChild className="p-0">
+                <Link
+                  href={`/${branch.slug}`}
+                  className="w-full flex items-center gap-3 px-3 py-3 hover:bg-emerald-50 rounded-2xl transition-colors group"
+                >
+                  <div
+                    className="w-10 h-10 rounded-xl flex items-center justify-center text-emerald-600 transition-colors"
+                    style={{
+                      backgroundColor: branch.color
+                        ? `${branch.color}15`
+                        : "#ECFDF5",
+                    }}
+                  >
+                    <Building2 className="w-5 h-5" />
+                  </div>
+                  <div className="flex flex-col">
+                    <span className="text-sm font-bold text-slate-900 group-hover:text-emerald-700 transition-colors">
+                      {branch.name}
+                    </span>
+                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-tight">
+                      /{branch.slug}
+                    </span>
+                  </div>
+                </Link>
+              </DropdownMenuItem>
+            ))
+          ) : (
+            <div className="py-8 text-center">
+              <p className="text-xs font-bold text-slate-400 italic">
+                {branches.length === 0
+                  ? "Loading branches..."
+                  : "No branches found"}
+              </p>
+            </div>
+          )}
+        </div>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+}
