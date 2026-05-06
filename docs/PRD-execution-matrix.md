@@ -1,292 +1,347 @@
-# Agapay Codebase Audit (Revised)
+# Agapay PRD Execution Matrix (Scratch Revamp)
 
-**Date:** 2026-05-04 | **Source:** PRD.txt + PRD-execution-matrix.md + User Annotations
+This document is the execution control surface for the scratch revamp defined in `agapay-web/docs/PRD.md`.
 
----
+The previous issue-derived matrix has been replaced. All entries below are sourced from the new PRD and should be treated as the new implementation baseline.
 
-## Status Legend
+**Status Legend:**
 
-| Symbol | Meaning                                                   |
-| ------ | --------------------------------------------------------- |
-| ✅     | Implemented — present and aligned with PRD                |
-| 🟡     | Partial — present but incomplete or misaligned            |
-| ❌     | Missing — not found in codebase                           |
-| 🔴     | Broken — present but has a clear correctness / UX problem |
-| ⬛     | Out of scope — acknowledged but will not be built         |
-| 🚫     | Stale concern — was a bug/gap, now resolved               |
+- `NEW` - New PRD requirement; not yet implemented in the scratch revamp.
+- `REBUILD` - Legacy implementation may exist, but it must be rebuilt or revalidated against the new PRD.
+- `VERIFY` - Potentially reusable implementation exists and needs code-level verification.
+- `DONE` - Implemented and verified against the new PRD.
+- `OUT_OF_SCOPE` - Explicitly excluded from this revamp scope.
 
 ---
 
-## Section A — Core Platform & Multi-Tenant Isolation
+## Section A: Core Features
 
-| Feature                                | Status | Key Files                                                                                                                                                                                                                                                                                          | Gap / Action                                                                                                                                                                                            |
-| -------------------------------------- | ------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Canonical tenant-scoped identity       | ✅     | [proxy.ts](file:///c:/Users/James%20Bryant/Documents/Agapay/agapay-web/src/proxy.ts), [lib/auth.ts](file:///c:/Users/James%20Bryant/Documents/Agapay/agapay-web/src/lib/auth.ts), [lib/scoped-identity.ts](file:///c:/Users/James%20Bryant/Documents/Agapay/agapay-web/src/lib/scoped-identity.ts) | —                                                                                                                                                                                                       |
-| Branch-subpath routing `/[branch]/...` | 🔴     | `app/[branch]/agapay-tanaw/`, [proxy.ts](file:///c:/Users/James%20Bryant/Documents/Agapay/agapay-web/src/proxy.ts)                                                                                                                                                                                 | **Subfolder mechanic required.** Paths: `/main/` (main branch), `/[branch]/` (tenant branch), `/[branch]/agapay-tanaw/` (admin), `/[branch]/agapay-pintig/` (member). Branch selector on main homepage. |
-| **Header branch-selector**             | 🔴     | `components/layout/branch-switcher.tsx`                                                                                                                                                                                                                                                            | **Remove sidebar branch switcher.** Implement header selector element in global+branch-scoped modules instead.                                                                                          |
-| One-DB multi-schema isolation (seed)   | ✅     | [prisma/seed.ts](file:///c:/Users/James%20Bryant/Documents/Agapay/agapay-web/prisma/seed.ts), [prisma/init.sql](file:///c:/Users/James%20Bryant/Documents/Agapay/agapay-web/prisma/init.sql)                                                                                                       | Working. Must verify runtime API routes use [getBranchPrisma](file:///c:/Users/James%20Bryant/Documents/Agapay/agapay-web/src/lib/prisma.ts#84-129)                                                     |
-| Runtime API schema switching           | 🟡     | [lib/prisma.ts](file:///c:/Users/James%20Bryant/Documents/Agapay/agapay-web/src/lib/prisma.ts) → [getBranchPrisma](file:///c:/Users/James%20Bryant/Documents/Agapay/agapay-web/src/lib/prisma.ts#84-129)                                                                                           | Systematic pass across all 30 action files required                                                                                                                                                     |
-| Request-side authorization guards      | ✅     | [lib/authorization.ts](file:///c:/Users/James%20Bryant/Documents/Agapay/agapay-web/src/lib/authorization.ts), [proxy.ts](file:///c:/Users/James%20Bryant/Documents/Agapay/agapay-web/src/proxy.ts)                                                                                                 | —                                                                                                                                                                                                       |
-| **Franchise billing stage**            | 🔴     | [actions/subscription-actions.ts](file:///c:/Users/James%20Bryant/Documents/Agapay/agapay-web/src/actions/subscription-actions.ts), `app/pricing/page.tsx`                                                                                                                                         | **One-time lifetime purchase.** Branch owners (admins) must be able to buy the system. Includes payment plans before superadmin approval.                                                               |
-| Mobile API bearer auth                 | ⬛     | —                                                                                                                                                                                                                                                                                                  | Out of scope for this phase                                                                                                                                                                             |
-
----
-
-## Section B — Public Site, Branding & Content
-
-| Feature                                 | Status | Key Files                                                                                                                                                                                                                                                                  | Gap / Action                                                                                                                                                          |
-| --------------------------------------- | ------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Language**                            | ✅     | All pages, modals, dialogs, forms                                                                                                                                                                                                                                          | **Standardized to English.** Filipino brand names (Pintig, Tanaw, etc.) remain. Validation messages and labels refactored.                                            |
-| Homepage (public)                       | 🟡     | [app/page.tsx](file:///c:/Users/James%20Bryant/Documents/Agapay/agapay-web/src/app/page.tsx), `app/about/`, `app/platform/`, `app/about/`                                                                                                                                  | Main landing site. Malolos is the MAIN branch. Live map of branches. Showcase branch content on main homepage.                                                        |
-| **Subscription/Loan Plans on Homepage** | ❌     | `app/about/page.tsx`                                                                                                                                                                                                                                                       | Must display **lifetime** pricing benefits. Leads to cooperative application mailing system with specific criteria.                                                   |
-| **Dynamic FAQ & Testimonial workflow**  | 🔴     | [actions/site-content.ts](file:///c:/Users/James%20Bryant/Documents/Agapay/agapay-web/src/actions/site-content.ts), [components/admin/homepage-content-tab.tsx](file:///c:/Users/James%20Bryant/Documents/Agapay/agapay-web/src/components/admin/homepage-content-tab.tsx) | **P2000 column-too-long error.** Support image uploads. Penting/Published/Rejected segregation with internal scrollbars. Multi-branch content curation for main site. |
-| Tenant-branding color customization     | 🔴     | [components/admin/tenant-branding-card.tsx](file:///c:/Users/James%20Bryant/Documents/Agapay/agapay-web/src/components/admin/tenant-branding-card.tsx), [app/globals.css](file:///c:/Users/James%20Bryant/Documents/Agapay/agapay-web/src/app/globals.css)                 | **Full palette customization** (Main, Accents, Fonts). Apply globally. Accent colors should affect the entire theme, not just sidebar.                                |
-| Email header with `agapay_titled.png`   | 🔴     | [lib/mail.ts](file:///c:/Users/James%20Bryant/Documents/Agapay/agapay-web/src/lib/mail.ts)                                                                                                                                                                                 | All automated emails must use the `agapay_titled.png` header photo.                                                                                                   |
-| Cooperative logo (shell, SOA, receipts) | 🟡     | `components/layout/authenticated-shell.tsx`, `app/[branch]/reports/soa/`                                                                                                                                                                                                   | Letter placeholders still used; logos not shown in receipts/SOA headers                                                                                               |
-| Live branch map on homepage             | ❌     | [app/page.tsx](file:///c:/Users/James%20Bryant/Documents/Agapay/agapay-web/src/app/page.tsx)                                                                                                                                                                               | Not implemented                                                                                                                                                       |
-| Tenant T&C / DPA consent dashboard      | 🟡     | [components/member/consent-dashboard.tsx](file:///c:/Users/James%20Bryant/Documents/Agapay/agapay-web/src/components/member/consent-dashboard.tsx)                                                                                                                         | Member consent flow exists; broader compliance is thin                                                                                                                |
-
----
-
-## Section C — Authentication, Registration & Account Recovery
-
-| Feature                                          | Status | Key Files                                                                                                                                                                                                                  | Gap / Action                                                                             |
-| ------------------------------------------------ | ------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------- |
-| Tenant-safe registration                         | ✅     | [actions/register.ts](file:///c:/Users/James%20Bryant/Documents/Agapay/agapay-web/src/actions/register.ts)                                                                                                                 | —                                                                                        |
-| Registration limited to availed tenants          | ✅     | [actions/register.ts](file:///c:/Users/James%20Bryant/Documents/Agapay/agapay-web/src/actions/register.ts), [actions/tenant.ts](file:///c:/Users/James%20Bryant/Documents/Agapay/agapay-web/src/actions/tenant.ts)         | —                                                                                        |
-| **Branch-homepage-sensitive login/registration** | 🔴     | [actions/register.ts](file:///c:/Users/James%20Bryant/Documents/Agapay/agapay-web/src/actions/register.ts), [proxy.ts](file:///c:/Users/James%20Bryant/Documents/Agapay/agapay-web/src/proxy.ts)                           | A Branch B user must be blocked from logging in on the Branch A homepage, and vice versa |
-| Email verification                               | ✅     | [actions/new-verification.ts](file:///c:/Users/James%20Bryant/Documents/Agapay/agapay-web/src/actions/new-verification.ts), [lib/tokens.ts](file:///c:/Users/James%20Bryant/Documents/Agapay/agapay-web/src/lib/tokens.ts) | —                                                                                        |
-| TOTP-based 2FA                                   | ✅     | [actions/2fa.ts](file:///c:/Users/James%20Bryant/Documents/Agapay/agapay-web/src/actions/2fa.ts)                                                                                                                           | —                                                                                        |
-| **Forgot password — multi-tenant UX**            | 🟡     | [actions/reset.ts](file:///c:/Users/James%20Bryant/Documents/Agapay/agapay-web/src/actions/reset.ts)                                                                                                                       | **Cooperative selector required** when same email exists across branches.                |
-| **Idle session lock**                            | 🟡     | `components/auth/idle-session-timer.tsx`                                                                                                                                                                                   | No warning state. Implement role-aware timeout + accessibility/preference toggles.       |
-| **Registration schema robustness**               | ✅     | [actions/register.ts](file:///c:/Users/James%20Bryant/Documents/Agapay/agapay-web/src/actions/register.ts)                                                                                                                 | PSGC names/labels standardized. Field lengths audited.                                   |
+| ID | Feature | Status | Gap / Action |
+| --- | --- | --- | --- |
+| F-01 | Mock e-wallet | REBUILD | Build tenant-scoped wallet balances, transaction records, confirmation steps, and admin-reportable pending states for members and lenders. |
+| F-02 | Withdrawal | REBUILD | Support preset/custom withdrawal amounts, method selection, processing fee display, remaining balance preview, confirmation, and withdrawal record creation. |
+| F-03 | Deposit | REBUILD | Support preset/custom deposit amounts, method selection, applicable fee display, total balance preview, confirmation, and deposit record creation. |
+| F-04 | Identity and document verification | REBUILD | Centralize ID/photo/document upload and verification for tenant applications and member identity verification. |
+| F-05 | Mock loans | REBUILD | Implement tenant-scoped loan products, tier-based rates, one-active-loan-per-user-per-tenant enforcement, guarantor support, and approval records. |
+| F-06 | Repayments | REBUILD | Implement installment/full payment flows, e-wallet/manual/GCash method handling, admin approval, loaner notification, and payment records. |
+| F-07 | Interest tiers | NEW | Map user tier to interest rate: Gabay 5%, Bagong Sigla 4.5%, Kasapi 4%, Katuwang 3.5%, Kaagapay 3%. |
+| F-08 | Transaction feedback | NEW | Add feedback submission and tracking across wallet, loan, payment, homepage, and system concern contexts. |
+| F-09 | Imbalance tracking | NEW | Track discrepancies between payments received, loans released, outstanding balances, wallet movement, and expected ledger totals. |
+| F-10 | Investigation and resolution | NEW | Add admin investigation workflow for unresolved wallet, loan, and reconciliation discrepancies. |
+| F-11 | Guarantorship | NEW | Allow 1-2 tenant member guarantors and enforce 25% guarantor liability where applicable. |
+| F-12 | Mentorship | NEW | Add tenant-toggleable mentorship support for tenants that opt into the feature. |
+| F-13 | Receipt generation | NEW | Generate receipts for wallet, loan, repayment, and relevant admin-approved transactions. |
+| F-14 | Multi-tenancy by regions and tenants | REBUILD | Model parent regions, active tenant lookup, tenant slug routing, tenant-specific homepages, and tenant-specific dashboards. |
+| F-15 | Tenant schema creation | REBUILD | Ensure Superadmin tenant creation provisions tenant database isolation according to the selected tenant and region. |
+| F-16 | Two-factor authentication (TOTP) | VERIFY | Verify existing 2FA code against login flow, setup flow, enforcement rules, and role/tenant access behavior. |
+| F-17 | RBAC | REBUILD | Rebuild role permissions around Superadmin, Tenant Admin, Tenant Lender, Tenant Member, and tenant dashboard feature toggles. |
+| F-18 | Audit logging | REBUILD | Record actions across all modules and nodes, including cross-tenant Superadmin events and tenant-scoped admin/staff events. |
+| F-19 | Report generation | NEW | Add CSV/PDF exports for financial reports, performance reports, SOA-like reports, and scheduled email dispatch. |
+| F-20 | Discord-style chat | REBUILD | Support internal messaging, individual chats, group chats, file uploads, emojis, custom reactions, and announcements. |
+| F-21 | In-app notifications | REBUILD | Trigger notifications for approvals, rejections, pending records, repayments, loan events, voting requirements, and system messages. |
+| F-22 | Email notifications | REBUILD | Add email dispatch for major workflow events, scheduled reports, security notices, and announcements. |
+| F-23 | Three-dot actions | REBUILD | Standardize overflow action menus across cards, grids, tables, headers, and list items. |
+| F-24 | Tenant management | REBUILD | Add tenant lifecycle controls: create, edit, mark availed, suspend, decommission, and restore. |
+| F-25 | Homepage customization | REBUILD | Support tenant/platform homepage content, testimonials, FAQs, hero content, branding, calculators, and contact content. |
+| F-26 | Dashboard customization | NEW | Let Superadmin toggle tenant dashboard functions by role and plan from the tenant creation/management builder. |
+| F-27 | Backup and recovery | VERIFY | Verify backup snapshot content and design full recovery workflow for tenant and platform data. |
+| F-28 | AI-assisted analytics | NEW | Add AI snapshot summaries, portfolio/risk summaries, financial tips, risk alerts, and configurable analysis prompts. |
+| F-29 | Mobile integration | OUT_OF_SCOPE | Keep mobile integration excluded from this revamp unless later promoted into scope. |
 
 ---
 
-## Section D — Loan Lifecycle, Policy Engine & Computation
+## Section B: Roles and Access Scope
 
-| Feature                             | Status | Key Files                                                                                                                                                                                                                                                                          | Gap / Action                                                                                                                     |
-| ----------------------------------- | ------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
-| Shared microfinance policy engine   | ✅     | [lib/microfinance-policy.ts](file:///c:/Users/James%20Bryant/Documents/Agapay/agapay-web/src/lib/microfinance-policy.ts)                                                                                                                                                           | —                                                                                                                                |
-| Loan application validation         | ✅     | [actions/loan-application.ts](file:///c:/Users/James%20Bryant/Documents/Agapay/agapay-web/src/actions/loan-application.ts)                                                                                                                                                         | —                                                                                                                                |
-| Overindebtedness blocking           | ✅     | [lib/microfinance-policy.ts](file:///c:/Users/James%20Bryant/Documents/Agapay/agapay-web/src/lib/microfinance-policy.ts)                                                                                                                                                           | —                                                                                                                                |
-| Loan approval → release → repayment | ✅     | [actions/loan-servicing.ts](file:///c:/Users/James%20Bryant/Documents/Agapay/agapay-web/src/actions/loan-servicing.ts), [components/admin/verification-queue-tab.tsx](file:///c:/Users/James%20Bryant/Documents/Agapay/agapay-web/src/components/admin/verification-queue-tab.tsx) | —                                                                                                                                |
-| **Repayment frequencies**           | ✅     | [lib/microfinance-policy.ts](file:///c:/Users/James%20Bryant/Documents/Agapay/agapay-web/src/lib/microfinance-policy.ts)                                                                                                                                                           | **Weekly, Bi-weekly, Monthly support.** Computation matrix validated.                                                            |
-| **Loan application form layout**    | ✅     | [components/member/loan-application-form.tsx](file:///c:/Users/James%20Bryant/Documents/Agapay/agapay-web/src/components/member/loan-application-form.tsx)                                                                                                                         | **Refactored to 2-column landscape grid.** Warns users of active loans. Lazy-loading guarantor suggestions.                      |
-| SOA from ledger truth               | ✅     | `app/reports/soa/page.tsx`, `lib/reporting/engine.ts`                                                                                                                                                                                                                              | **English standardized.** Includes cooperative logos and "Part of Agapay" caption.                                               |
-| Fixed vs declining balance math     | ✅     | [actions/loan-product.ts](file:///c:/Users/James%20Bryant/Documents/Agapay/agapay-web/src/actions/loan-product.ts)                                                                                                                                                                 | —                                                                                                                                |
-| **Homepage loan calculator**        | ✅     | [app/page.tsx](file:///c:/Users/James%20Bryant/Documents/Agapay/agapay-web/src/app/page.tsx)                                                                                                                                                                                       | **Responsive layout fixed.** Weekly/Bi-weekly/Monthly cadences added. Standardized to English.                                   |
-| **Transactional feedback hooks**    | ❌     | [actions/loan-application.ts](file:///c:/Users/James%20Bryant/Documents/Agapay/agapay-web/src/actions/loan-application.ts)                                                                                                                                                         | Feedback missing for loan release, payment, rejection, and recovery processes.                                                   |
-| **Wallet & Ipon module**            | 🔴     | [actions/wallet-actions.ts](file:///c:/Users/James%20Bryant/Documents/Agapay/agapay-web/src/actions/wallet-actions.ts)                                                                                                                                                             | **Strict deposit validation required.** Prevent magic money / cross-branch debt-laundering. invalid dates in transactions fixed. |
+| ID | Role | Status | Gap / Action |
+| --- | --- | --- | --- |
+| R-01 | Superadmin | REBUILD | Define platform governance permissions for cross-tenant control, system integrity, SaaS monetization, and tenant lifecycle management. |
+| R-02 | Tenant Admin | REBUILD | Define cooperative operations permissions for loans, members, risk, finance, content, reconciliation, and tenant settings. |
+| R-03 | Tenant Lender | REBUILD | Define capital provider permissions for investments, risk evaluation, wallet movement, documents, insights, and chats. |
+| R-04 | Tenant Member | REBUILD | Define borrower/member permissions for applications, repayments, vouches, documents, community, support, and settings. |
+| R-05 | Multi-tenant member access | NEW | Add handling for members linked to multiple tenants, including login prompt and max-two-tenant enforcement. |
+| R-06 | Tenant feature toggles | NEW | Bind tenant role capabilities to plan and Superadmin dashboard builder configuration. |
 
 ---
 
-## Section E — Default, Penalties, Guarantors & Compassion
+## Section C: Public and Dashboard Sections
 
-| Feature                                   | Status | Key Files                                                                                                                                                                                                                                                                                  | Gap / Action                                                                                                                                                        |
-| ----------------------------------------- | ------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Default enforcement + cron                | ✅     | [lib/default-enforcement.ts](file:///c:/Users/James%20Bryant/Documents/Agapay/agapay-web/src/lib/default-enforcement.ts), [trigger/default-enforcement.ts](file:///c:/Users/James%20Bryant/Documents/Agapay/agapay-web/src/trigger/default-enforcement.ts)                                 | **Using Trigger.dev (v4).** Daily midnight UTC cron. Observed and retriable batch processing.                                                                       |
-| **Guarantor liability %**                 | 🟡     | [lib/default-enforcement.ts](file:///c:/Users/James%20Bryant/Documents/Agapay/agapay-web/src/lib/default-enforcement.ts), [lib/microfinance-policy.ts](file:///c:/Users/James%20Bryant/Documents/Agapay/agapay-web/src/lib/microfinance-policy.ts)                                         | Should be configurable per branch admin. Superadmin can override individual branch settings                                                                         |
-| Trust graph (borrower + guarantor impact) | 🟡     | [lib/trust-engine.ts](file:///c:/Users/James%20Bryant/Documents/Agapay/agapay-web/src/lib/trust-engine.ts)                                                                                                                                                                                 | No full reciprocity; "Community Hero" model absent                                                                                                                  |
-| **Monthly peer voting for trust scores**  | ❌     | [lib/trust-engine.ts](file:///c:/Users/James%20Bryant/Documents/Agapay/agapay-web/src/lib/trust-engine.ts)                                                                                                                                                                                 | Members must vote for each other's trust monthly. If a user does not vote within the period, they are **temporarily locked out of their dashboard** until they vote |
-| Compassion request + admin approval       | ✅     | [actions/compassion-actions.ts](file:///c:/Users/James%20Bryant/Documents/Agapay/agapay-web/src/actions/compassion-actions.ts), [components/admin/compassion-actions-tab.tsx](file:///c:/Users/James%20Bryant/Documents/Agapay/agapay-web/src/components/admin/compassion-actions-tab.tsx) | Member-facing discovery still thin                                                                                                                                  |
-| EOD reconciliation sign-off               | 🔴     | [components/admin/reconciliation-tab.tsx](file:///c:/Users/James%20Bryant/Documents/Agapay/agapay-web/src/components/admin/reconciliation-tab.tsx)                                                                                                                                         | Banner does not clear after sign-off. **EOD cannot be a one-click sign-off.** There must be actual resolution attempts before sign-off is permitted                 |
-| Guarantor revocation / reassignment       | ❌     | —                                                                                                                                                                                                                                                                                          | No lifecycle for revoking or reassigning a guarantor                                                                                                                |
-
----
-
-## Section F — Community, Mentorship & Messaging
-
-| Feature                                         | Status | Key Files                                                                                                                                  | Gap / Action                                                                                                 |
-| ----------------------------------------------- | ------ | ------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------ |
-| Tenant-scoped DMs, branch rooms, group chats    | ✅     | [actions/community-actions.ts](file:///c:/Users/James%20Bryant/Documents/Agapay/agapay-web/src/actions/community-actions.ts)               | —                                                                                                            |
-| Replies, reactions, attachments, unread         | ✅     | [actions/community-actions.ts](file:///c:/Users/James%20Bryant/Documents/Agapay/agapay-web/src/actions/community-actions.ts)               | Data contract exists                                                                                         |
-| Mentorship endorsement                          | ✅     | [actions/community-actions.ts](file:///c:/Users/James%20Bryant/Documents/Agapay/agapay-web/src/actions/community-actions.ts)               | —                                                                                                            |
-| Cross-tenant isolation                          | ✅     | `tests/business-policy.test.ts`                                                                                                            | —                                                                                                            |
-| **Community layout (all roles)**                | 🔴     | [components/member/community-tab.tsx](file:///c:/Users/James%20Bryant/Documents/Agapay/agapay-web/src/components/member/community-tab.tsx) | **Discord/Instagram-style layout.** In-chat emoji picker. Internal popups and selectors to reduce scrolling. |
-| **Default GCs and initiation rules**            | ❌     | [actions/community-actions.ts](file:///c:/Users/James%20Bryant/Documents/Agapay/agapay-web/src/actions/community-actions.ts)               | Superadmins ↔ Admins GCs. Admin/Lender ↔ Member GCs. Member initiation strictly limited to staff/admins.     |
-| Rich messaging UI (emoji, attachments, threads) | 🟡     | [components/member/community-tab.tsx](file:///c:/Users/James%20Bryant/Documents/Agapay/agapay-web/src/components/member/community-tab.tsx) | Add emoji picker. Improve Composer UX. Dynamic updates (Websockets/SSE) for in-chat feed.                    |
-| Notification bell / tray (60s polling)          | ✅     | `components/layout/notification-bell.tsx`                                                                                                  | Poll-only; no WebSocket                                                                                      |
-| SMS fallback                                    | ⬛     | —                                                                                                                                          | Out of scope                                                                                                 |
-| Real-time (WebSocket/push)                      | 🟡     | —                                                                                                                                          | Polling only                                                                                                 |
-| Offline-first                                   | ❌     | —                                                                                                                                          | Not implemented (lower priority)                                                                             |
+| ID | Section | Status | Gap / Action |
+| --- | --- | --- | --- |
+| S-01 | Platform homepage navbar | REBUILD | Include Agapay logo, quick links, and find cooperatives entry point. |
+| S-02 | Platform homepage hero | REBUILD | Use tagline and subtitle with no primary hero buttons. |
+| S-03 | Platform Why Agapay section | REBUILD | Add platform value explanation aligned with new PRD messaging. |
+| S-04 | Platform Features section | REBUILD | Present new product feature set without obsolete issue framing. |
+| S-05 | Platform Sample Calculator | REBUILD | Use PRD loan constants and tier/cadence rules. |
+| S-06 | Platform zoomable live branch section | NEW | Add branch/tenant discovery visualization. |
+| S-07 | Platform SaaS pricing | REBUILD | Present Core, Pro, Enterprise, and Sangay pricing with plan limits. |
+| S-08 | Platform Testimonials | REBUILD | Support Superadmin moderation and tenant testimonial selection. |
+| S-09 | Platform FAQs | REBUILD | Support General-scoped FAQ moderation and season grouping. |
+| S-10 | Platform Contact section | REBUILD | Route tenant onboarding and feedback entry points from contact flow. |
+| S-11 | Platform footer | REBUILD | Align footer links and contact information with new PRD constants. |
+| S-12 | Tenant homepage navbar | REBUILD | Include cooperative logo, quick links, and find cooperatives entry point. |
+| S-13 | Tenant homepage hero | REBUILD | Include `agapay_titled.png` powered-by branding, tenant tagline, tenant subtitle, and no hero buttons. |
+| S-14 | Tenant Mission and Vision | NEW | Add tenant-managed content block. |
+| S-15 | Tenant Values | NEW | Add tenant-managed values block. |
+| S-16 | Tenant Sample Calculator | REBUILD | Use tenant calculator configuration and PRD loan constants. |
+| S-17 | Tenant Testimonials | REBUILD | Support tenant-scoped testimonial management. |
+| S-18 | Tenant FAQs | REBUILD | Support tenant-scoped FAQ overrides. |
+| S-19 | Tenant Contact section | REBUILD | Support tenant-specific contact configuration. |
+| S-20 | Tenant footer | REBUILD | Align tenant footer with tenant brand and platform attribution. |
+| S-21 | Agapay Tanaw shell | REBUILD | Build sidebar, navigation links, profile preview, signout button, main content, module header, role name, notifications, and three-dot actions. |
+| S-22 | Agapay Pintig shell | REBUILD | Build member-specific sidebar, navigation links, profile preview, signout button, main content, module header, notifications, and three-dot actions. |
+| S-23 | Dashboard tours | NEW | Add welcome message and direction tour after member registration. |
 
 ---
 
-## Section G — Analytics, Reporting & Operational Oversight
-
-| Feature                                  | Status | Key Files                                                                                                                                                                                                                                                                  | Gap / Action                                                                                                                                                                   |
-| ---------------------------------------- | ------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| **KPI + trust score criteria**           | 🔴     | `app/agapay-tanaw/page.tsx`, [lib/trust-engine.ts](file:///c:/Users/James%20Bryant/Documents/Agapay/agapay-web/src/lib/trust-engine.ts)                                                                                                                                    | **The trust score criteria for a branch (and for all Agapay operations) are undefined and vague.** Must define the exact formula and surface it. Add a trust/tier progress bar |
-| **Tier upgrade criteria + progress bar** | ❌     | `components/analytics/trust-distribution-chart.tsx`                                                                                                                                                                                                                        | No progress indicator showing how members level up (Starter → Growth → Trusted → Elite)                                                                                        |
-| Analytics Insights (operations module)   | ✅     | [components/admin/analytics-dashboard-tab.tsx](file:///c:/Users/James%20Bryant/Documents/Agapay/agapay-web/src/components/admin/analytics-dashboard-tab.tsx)                                                                                                               | —                                                                                                                                                                              |
-| **Analytics Insights visible to Lender** | 🔴     | `app/agapay-tanaw/page.tsx`                                                                                                                                                                                                                                                | Remove Analytics Insights from Lender's view                                                                                                                                   |
-| EOD reconciliation                       | 🔴     | [actions/reconciliation.ts](file:///c:/Users/James%20Bryant/Documents/Agapay/agapay-web/src/actions/reconciliation.ts), [components/admin/reconciliation-tab.tsx](file:///c:/Users/James%20Bryant/Documents/Agapay/agapay-web/src/components/admin/reconciliation-tab.tsx) | Analytics is the main highlight. Sign-off must require actual imbalance resolution, not just a click                                                                           |
-| Audit logs                               | ✅     | [components/admin/audit-log-viewer.tsx](file:///c:/Users/James%20Bryant/Documents/Agapay/agapay-web/src/components/admin/audit-log-viewer.tsx)                                                                                                                             | —                                                                                                                                                                              |
-| AI-assisted report summaries             | ❌     | —                                                                                                                                                                                                                                                                          | Not yet built                                                                                                                                                                  |
-
----
-
-## Section H — Dashboard UX, Layout & Accessibility
-
-| Feature                                   | Status | Key Files                                                                                                                                | Gap / Action                                                              |
-| ----------------------------------------- | ------ | ---------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------- |
-| Authenticated sidebar shell               | ✅     | `components/layout/authenticated-shell.tsx`                                                                                              | —                                                                         |
-| Scroll-reset on tab switch                | ✅     | `components/layout/dashboard-tabs-shell.tsx`                                                                                             | —                                                                         |
-| **Dynamic "Pangkalahatan" header**        | 🔴     | `app/agapay-tanaw/page.tsx`, `app/agapay-pintig/page.tsx`                                                                                | Header content must change based on the active module, not stay stagnant. |
-| **Dark mode / accessibility preferences** | ❌     | [app/globals.css](file:///c:/Users/James%20Bryant/Documents/Agapay/agapay-web/src/app/globals.css)                                       | Profile preference center: theme, font sizes, a11y toggles.               |
-| Login redirect & Scroll Reset             | ✅     | [lib/auth.ts](file:///c:/Users/James%20Bryant/Documents/Agapay/agapay-web/src/lib/auth.ts), `components/layout/dashboard-tabs-shell.tsx` | Redirection and scroll-reset on switch are stable.                        |
-
----
-
-## Section I — Role-by-Role Product Fit
+## Section D: Modules per Role
 
 ### Superadmin
 
-| Surface                                   | Status | Gap / Action                                                                                                                                    |
-| ----------------------------------------- | ------ | ----------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Header branch-selector**                | 🔴     | Remove sidebar switcher. Use header selector per module instead                                                                                 |
-| **Branch/homepage website builder**       | ❌     | Create new website directories with customizable colors, logos, fonts, and homepage content. Main branch homepage curation of branch content.   |
-| **Decommission + Recommission lifecycle** | 🟡     | On decommission: users see data download snapshot. Recommissioning rewards compensation bonuses.                                                |
-| Mga Miyembro — management actions         | 🟡     | **Three-dot actions.** Vouch scores, trust meters. Branch column. staff creation (Admin/Lender) with cooperative region assignment.             |
-| Produkto ng Loan — global view            | 🟡     | Header selector (branches vs global). **Three-dot actions.** Guarantor liability % column. Payment cadence settings.                            |
-| Global Tenant Mgmt — region segregation   | 🟡     | Segregate branches by regional logic. Add Branch includes logo upload and hex color pickers.                                                    |
-| **Testimonial Moderation**                | 🔴     | P2000 column error. Photo URL rendering fix. Published/Rejected segregation with internal scrollbars. Show creator admin for FAQs/Testimonials. |
-| Ka-AgapayCommunity layout                 | 🔴     | Instagram/Discord-style layout. In-chat emoji picker. Popups for community navigation.                                                          |
-| **Settings**                              | 🔴     | Expand: Profile image, username, email, phone. Dark mode and accessibility preferences.                                                         |
-| EOD Reconcilliation Sign-off              | 🔴     | **Not a one-click sign-off.** Require imbalance resolution attempts. Banner must clear after signature.                                         |
+| ID | Module | Status | Gap / Action |
+| --- | --- | --- | --- |
+| SA-01 | Overview | NEW | Add global KPIs for funds, active loans, portfolio growth, repayment rates, risks, recent logs, Agapay trust score, and AI snapshot summaries. |
+| SA-02 | Approvals | NEW | Build card-grid approval area with expanding cards, search, internal scrolling, appropriate sizing, and filters. |
+| SA-03 | Tenant application document verification | NEW | Show applicant name, tenant name/email/phone, estimated member count, region, selected plan, and attached documents. |
+| SA-04 | Global Management | REBUILD | Sort tenants by region and display member counts, paid plan, portfolio, tenant score, and last availment date. |
+| SA-05 | Tenant lifecycle actions | REBUILD | Add edit, mark availed, suspend, decommission, and restore actions. |
+| SA-06 | Add Tenant dialog | NEW | Build two-pane creation dialog with homepage/dashboard builder on the left and live tenant homepage preview on the right. |
+| SA-07 | Homepage builder | NEW | Capture parent region, tenant name, URL slug, brand/main/accent colors, branch logo, primary contents, starter testimonials/FAQs, hero content, and calculator configs. |
+| SA-08 | Dashboard builder | NEW | Show role dashboard functions and allow Superadmin to toggle functions by current plan. |
+| SA-09 | Tenant site preview | NEW | Provide landscape live preview and access button for the actual tenant homepage. |
+| SA-10 | Tenant schema provisioning | REBUILD | Create a new tenant schema when the Superadmin creates a new tenant. |
+| SA-11 | Platform FAQ moderation | NEW | Support question, parent season, answer, season creation, hide/show season, tick all, and individual ticking. |
+| SA-12 | Platform testimonial moderation | NEW | Let Superadmin choose testimonials from tenants and hide/show tenants/testimonials. |
+| SA-13 | Platform feedback | NEW | Receive feedback from platform homepage and system concern flows. |
+| SA-14 | Cross-tenant audit logs | REBUILD | Display and filter audit logs across all tenants. |
+| SA-15 | Cross-tenant financial reports | NEW | Report total disbursed vs repaid, default rates per region, and portfolio at risk. |
+| SA-16 | Tenant performance reports | NEW | Report growth trends, member acquisition, and retention rates. |
+| SA-17 | Report exports and scheduling | NEW | Support CSV/PDF exports and scheduled email dispatch. |
+| SA-18 | System Health | NEW | Track API uptime, queue processing status, AI processing logs, and DB usage per tenant schema. |
+| SA-19 | Fraud and Risk Monitoring | NEW | Detect cross-tenant fraud signals, duplicate identities across tenants, and suspicious transaction patterns. |
+| SA-20 | Community | REBUILD | Support internal messaging, bulletin, global announcements, and individual/group chats with admins only. |
+| SA-21 | Platform Config | NEW | Configure global scoring weights, risk thresholds, and default loan calculator configs. |
+| SA-22 | Subscription and Billing | NEW | Manage plan creation, member/lender/feature limits, pricing tiers, tenant billing cycles, and invoices. |
+| SA-23 | AI Configuration | NEW | Configure snapshot prompts, risk sensitivity, and notification system behavior. |
+| SA-24 | Email/SMS templates | NEW | Manage templates and global announcement broadcaster. |
+| SA-25 | Security settings | REBUILD | Manage RBAC templates and 2FA enforcement rules. |
 
-### Admin
+### Tenant Admin
 
-| Surface                                           | Status | Gap / Action                                                                                      |
-| ------------------------------------------------- | ------ | ------------------------------------------------------------------------------------------------- |
-| **Verification Queue UX**                         | 🔴     | **Header selector required** (Loan Applications / Mock Releases). Card info density improvements. |
-| Mga Miyembro — management actions                 | 🟡     | **Three-dot actions.** Trust meters, lenders list. Lender creation requests to superadmin.        |
-| **Admin → Superadmin lender creation escalation** | ❌     | Escalation flow with criteria/docs upload for new lender requests.                                |
-| **KYC document validation**                       | 🟡     | Admin side validation workflow for ID, Barangay Cert, and Business Permit.                        |
-| Ka-AgapayCommunity layout                         | 🔴     | Instagram/Discord-style layout. In-chat emoji picker.                                             |
-| **Settings**                                      | 🔴     | Profile photo, username, email, phone. Dark mode, a11y preferences.                               |
+| ID | Module | Status | Gap / Action |
+| --- | --- | --- | --- |
+| TA-01 | Overview | NEW | Add tenant KPIs for funds, active loans, portfolio growth, repayment rates, risks, recent logs, trust score, and AI snapshots. |
+| TA-02 | Loan Applications approval queue | REBUILD | Show rejected, pending, and approved applications with applicant, scores, product, value, cadence, term, date, purpose, and reference number. |
+| TA-03 | Fund Releases queue | NEW | Show unreleased/released items with applicant, scores, product, value, cadence, term, date, purpose, and reference number. |
+| TA-04 | Pending Payments queue | NEW | Show rejected, pending, and approved payments with applicant, scores, product, installment count, payments list, and reference number. |
+| TA-05 | Identity document verification | REBUILD | Show applicant name, tenant name, region, selected plan, and attached documents. |
+| TA-06 | Delinquent / Compassion queue | NEW | Show applicant, scores, product, installment count, payments list, compassion type or delinquency penalty count, and reference number. |
+| TA-07 | Member Directory | REBUILD | Build grid/card directory for tenant members. |
+| TA-08 | Member Profiles | REBUILD | Include personal info, loan history, trust/vouch scores, and uploaded documents. |
+| TA-09 | Member Status Controls | NEW | Add active, suspended, and blacklisted controls. |
+| TA-10 | Documents repository | REBUILD | Categorize uploaded files by identity, loan attachments, payment proofs, and bulk verification tools. |
+| TA-11 | Top-Up Queue | NEW | Track lender capital requests with pending/approved/rejected state, lender name, amount, payment method, and reference number. |
+| TA-12 | Loan Products | REBUILD | Create/edit products with flat/diminishing interest, payment cadence, term limits, eligibility rules, and risk modifiers. |
+| TA-13 | Tenant-level Global Management | REBUILD | Manage branches for Sangay plan, staff roles, permissions, admins, officers, collectors, and homepage content. |
+| TA-14 | Tenant Homepage Content | REBUILD | Edit hero, calculator, testimonials, FAQs, branding, typography, and announcements banner. |
+| TA-15 | Feedback | NEW | Handle member complaints, system issues, and feature requests. |
+| TA-16 | Community | REBUILD | Support internal messaging, bulletin, announcements, member engagement posts, and chats. |
+| TA-17 | EOD Reconciliation | NEW | Add daily reconciliation for payments received, loans released, outstanding balances, and discrepancy flags. |
+| TA-18 | Compassion Actions | REBUILD | Support restructuring, grace periods, penalty waivers, notes, and approval trail. |
+| TA-19 | Analytics | REBUILD | Track portfolio growth, repayment rates, default trends, and member behavior insights. |
+| TA-20 | Tenant audit logs | REBUILD | Filter tenant admin/staff actions by user, module, and date. |
+| TA-21 | Tenant Config | NEW | Configure tenant loan rules and scoring tweaks within platform limits. |
+| TA-22 | Tenant Notifications | NEW | Configure email triggers. |
+| TA-23 | Payment Integrations | NEW | Configure e-wallets and banks. |
+| TA-24 | Tenant Security | REBUILD | Configure 2FA and session control. |
 
-### Lender
+### Tenant Lender
 
-| Surface                              | Status | Gap / Action                                                                    |
-| ------------------------------------ | ------ | ------------------------------------------------------------------------------- |
-| **Mga Pag-apruba — header selector** | 🔴     | Loan Applications vs Mock Fund Releases. **Three-dot actions.** Rich card info. |
-| Mga Miyembro — filters               | 🟡     | Role/branch filters. **Three-dot actions.** Trust/vouch meter standardization.  |
-| **Analytics Insights — remove**      | 🔴     | Not for the lender role to see.                                                 |
-| **Nav order fix**                    | 🔴     | **Compassion Actions, then Settings.**                                          |
-| Ka-AgapayCommunity layout            | 🔴     | Instagram/Discord-style layout.                                                 |
-| **Settings**                         | 🔴     | Profile photo, contact info. Dark mode/a11y. Cannot change tenant name.         |
+| ID | Module | Status | Gap / Action |
+| --- | --- | --- | --- |
+| TL-01 | Overview | NEW | Show total funds invested, active loans funded, ROI/earnings, risk exposure, and AI portfolio summary. |
+| TL-02 | Funding Marketplace | NEW | Browse loan requests with filters for risk level, loan type, and duration. |
+| TL-03 | Marketplace loan cards | NEW | Show borrower profile, trust/vouch score, expected return, and risk rating. |
+| TL-04 | My Investments | NEW | Track active investments, completed loans, defaulted loans, and earnings breakdown. |
+| TL-05 | Top-Up / Wallet | REBUILD | Add funds, withdraw funds, and view transaction history. |
+| TL-06 | Risk and Insights | NEW | Show portfolio diversification, risk alerts, and AI-driven suggested investments. |
+| TL-07 | Agreements and Documents | NEW | Provide contracts, disclosures, and downloadable reports. |
+| TL-08 | Community | REBUILD | Support internal messaging, bulletin, group announcements, member engagement posts, and individual/group chats. |
+| TL-09 | Profile settings | REBUILD | Edit username, address, profile picture, and light/dark theme. |
+| TL-10 | Security settings | REBUILD | Manage password and 2FA. |
+| TL-11 | Linked accounts | NEW | Manage linked financial/account identities. |
+| TL-12 | Bank / wallet accounts | NEW | Manage payout and top-up account details. |
+| TL-13 | Notification preferences | NEW | Configure lender notification channels and triggers. |
 
-### Member
+### Tenant Member
 
-| Surface                             | Status | Gap / Action                                                                                         |
-| ----------------------------------- | ------ | ---------------------------------------------------------------------------------------------------- |
-| **Pangkalahatan — design overhaul** | 🟡     | Redesign with optimized KPIs and information layout.                                                 |
-| **Wallet & Ipon module**            | 🔴     | **Strict deposit validation.** Table dropdowns for transaction details. Prevent magic money exploit. |
-| **Loan Application — guardrails**   | 🟡     | Warn if active loan exists. Standardized English application UI. Landscape layout.                   |
-| **Loan Application — search**       | 🟡     | Guarantor search to checkbox dropdown with co-branch suggestions.                                    |
-| Ka-AgapayCommunity layout           | 🔴     | Instagram/Discord-style layout. Popups/selectors for scrolling reduction.                            |
-| **Compassion Actions**              | 🟡     | Member-facing discovery and trigger flow.                                                            |
-| **Settings**                        | 🔴     | Profile photo, username, email, phone, dark mode, a11y. Camera/File upload.                          |
-
----
-
-## Section J — Notifications & Realtime
-
-| Feature                              | Status | Gap / Action                               |
-| ------------------------------------ | ------ | ------------------------------------------ |
-| Email notifications                  | ✅     | —                                          |
-| In-app notification persistence + UI | ✅     | 60s polling                                |
-| Real-time (WebSocket/SSE)            | 🟡     | Polling only — feeds require manual reload |
-| SMS fallback                         | ⬛     | Out of scope                               |
-| Offline-first                        | ❌     | Lower priority; not in immediate roadmap   |
-
----
-
-## Section K — Compliance, Risk & Abuse
-
-| Feature                                 | Status | Gap / Action                                                                                         |
-| --------------------------------------- | ------ | ---------------------------------------------------------------------------------------------------- |
-| Max branch memberships                  | ✅     | Hard cap enforced                                                                                    |
-| Overindebtedness automation             | ✅     | —                                                                                                    |
-| **Monthly peer trust voting + lockout** | ❌     | Members vote each other monthly. Non-voters are locked out of dashboard until they complete the vote |
-| Cross-tenant token collision            | 🚫     | Fixed                                                                                                |
-
----
-
-## Section L — Testing
-
-| Feature                                           | Status | Gap / Action                    |
-| ------------------------------------------------- | ------ | ------------------------------- |
-| Business-rule unit tests                          | ✅     | `tests/business-policy.test.ts` |
-| Community isolation tests                         | ✅     | `tests/business-policy.test.ts` |
-| **E2E role/use-case coverage**                    | ❌     | No Playwright/Cypress suite     |
-| **Edge-case regression (onboarding, money flow)** | ❌     | No regression harness           |
-| Penalty/compassion policy tests                   | ❌     | Untested                        |
-
----
-
-## Prioritized Actionable Backlog
-
-### 🔴 P0 — Critical / Broken (Fix First)
-
-1. Fix `agapay-tanaw/agapay-tanaw` routing duplication; implement branch-homepage-sensitive login/registration
-2. Remove sidebar branch switcher → use header selector in global+branch modules
-3. Remove hardcoded `#0e1529` sidebar gradient; apply full tenant color palette globally
-4. Dynamic "Pangkalahatan" module header (changes per active tab)
-5. Fix member login redirect (sometimes lands on Tanaw)
-6. Fix Testimonial P2000 column-too-long error; add image upload; remove broken live preview
-7. Analytics Insights hidden from Lender view
-8. Lender nav: Compassion Actions before Settings
-9. Homepage calculator: add Weekly/Bi-weekly cadences; fix overflow; fix rates palette (green-white)
-10. Wallet exploit: require actual funding source validation for top-up
-11. EOD sign-off must require imbalance resolution, not one-click
-12. Loan application form → landscape layout
-13. Registration schema-length validation with friendly error messages
-
-### 🟡 P1 — High-Value Partials
-
-14. Franchise billing: pricing page → onboarding form → payment prompt (lifetime only)
-15. Multi-tenant password reset UX: cooperative selector for shared emails
-16. Idle session lock: warning state + role-aware timeout + user preference
-17. Repayment frequency: full end-to-end UX + reporting for weekly/bi-weekly
-18. Email templates: inject `agapay_titled.png` header everywhere
-19. Cooperative logos: replace letter placeholders in shell, SOA, receipts
-20. Community layout: restyle like Instagram/Discord (all roles)
-21. Default GCs: superadmin↔admins, admin/lender↔members; initiation rules per role
-22. Settings expansion (all roles): profile photo, username, email, phone, dark mode, a11y
-23. Verification Queue: header selector (Loan Apps / Mock Releases) + richer cards
-24. Mga Miyembro: three-dot actions, trust/vouch columns, staff creation/escalation
-25. Produkto ng Loan: global view, guarantor liability %, payment cadence setting
-26. Trust score criteria: define formula publicly, add tier progress bar
-27. Decommission/recommission lifecycle + data snapshot download for affected users
-28. Add Branch "website builder": homepage editing, module flags, color/logo pickers
-29. Guarantor liability: configurable per branch admin, overridable by superadmin
-30. KYC document validation workflow on admin/superadmin side
-
-### ❌ P2 — New Builds
-
-31. Monthly peer trust voting with dashboard lockout for non-voters
-32. Live branch map on main homepage
-33. Lifetime subscription plans + loan plans on homepage with benefit lists
-34. Dark mode system-wide preference center
-35. Guarantor revocation / reassignment lifecycle
-36. E2E test suite (Playwright) covering all roles
-37. AI-assisted report summaries
-38. Real-time (WebSocket/SSE) for community, notifications, reconciliation
+| ID | Module | Status | Gap / Action |
+| --- | --- | --- | --- |
+| TM-01 | Overview | NEW | Show active loans, remaining balance, next due date, trust/vouch score, and AI financial tips. |
+| TM-02 | Apply for Loan | REBUILD | Support loan product selection, calculator preview, application submission, and requirements upload. |
+| TM-03 | My Loans | REBUILD | Show active loans, payment schedule, remaining balance, and payment history. |
+| TM-04 | Payments | REBUILD | Pay installments, upload manual proof, and track payment status. |
+| TM-05 | Vouch System | NEW | Request vouches, give vouches, and view trust network. |
+| TM-06 | Documents | REBUILD | Upload IDs and track verification status. |
+| TM-07 | Community | REBUILD | Support internal messaging, bulletin, group announcements, engagement posts, and individual/group chats. |
+| TM-08 | Support / Feedback | NEW | Submit concerns and track ticket status. |
+| TM-09 | Profile settings | REBUILD | Edit username, address, profile picture, and light/dark theme. |
+| TM-10 | Security settings | REBUILD | Manage password and 2FA. |
+| TM-11 | Linked accounts | NEW | Manage linked financial/account identities. |
+| TM-12 | Bank / wallet accounts | NEW | Manage deposit, withdrawal, and repayment account details. |
+| TM-13 | Notification preferences | NEW | Configure member notification channels and triggers. |
 
 ---
 
-## Open Question
+## Section E: Constants and Policies
 
-> **Cron Jobs:** ✅ **RESOLVED — Using Trigger.dev (v4)** as the job scheduler.
->
-> - Implemented in [trigger/default-enforcement.ts](file:///c:/Users/James%20Bryant/Documents/Agapay/agapay-web/src/trigger/default-enforcement.ts)
-> - Runs daily at midnight UTC with automatic retries
-> - Provides observability dashboard for tracking enforced loans
-> - Requires user configuration via `npx trigger.dev login` to set project ID in [trigger.config.ts](file:///c:/Users/James%20Bryant/Documents/Agapay/agapay-web/trigger.config.ts)
+| ID | Constant / Policy | Status | Gap / Action |
+| --- | --- | --- | --- |
+| CP-01 | Agapay tagline | REBUILD | Use "Iyong Agapay, Ating Tagumpay" consistently across platform branding. |
+| CP-02 | Main tenant | REBUILD | Use Malolos City, Bulacan as the main tenant constant where required. |
+| CP-03 | Agapay email | REBUILD | Use `agapay.saas@gmail.com` for platform contact and notification defaults. |
+| CP-04 | Role constants | REBUILD | Standardize Superadmin, Tenant Admins, Tenant Lenders, and Tenant Members. |
+| CP-05 | Dashboard constants | REBUILD | Standardize Agapay Tanaw for Superadmin/Admin/Lender and Agapay Pintig for Members. |
+| CP-06 | Agapay Core plan | NEW | Enforce P3,500/mo, up to 500 members, basic admin dashboard, standard policy access, audit logs, and email support. |
+| CP-07 | Agapay Pro plan | NEW | Enforce P6,500/mo, up to 2500 members, custom branding, mentorship/community tools, chat/priority email, and automated compassion workflow. |
+| CP-08 | Agapay Enterprise plan | NEW | Enforce P12,000/mo, unlimited members, analytics, priority support, data export/reporting, and configuration controls. |
+| CP-09 | Agapay Sangay add-on | NEW | Enforce P3,000 per branch/mo, Enterprise-only, branch roles, branch analytics, monitoring, reporting, and configuration controls. |
+| CP-10 | Tier 1 Gabay | NEW | Default all new users to 5% interest tier. |
+| CP-11 | Tier 2 Bagong Sigla | NEW | Map tier to 4.5% interest. |
+| CP-12 | Tier 3 Kasapi | NEW | Map tier to 4% interest. |
+| CP-13 | Tier 4 Katuwang | NEW | Map tier to 3.5% interest. |
+| CP-14 | Tier 5 Kaagapay | NEW | Map tier to 3% interest. |
+| CP-15 | Loan amount range | NEW | Enforce P2,000 to P1,000,000 standard range and support special-case overrides. |
+| CP-16 | Agapay Sari-Sari product | NEW | Configure P2,000 to P5,000 sample product. |
+| CP-17 | Agapay Negosyo product | NEW | Configure P6,000 to P29,000 sample product. |
+| CP-18 | Agapay Paluwagan product | NEW | Configure P30,000 to P59,000 sample product. |
+| CP-19 | Agapay Angat product | NEW | Configure P60,000 to above P100,000 sample product. |
+| CP-20 | Payment cadence | REBUILD | Standardize weekly, bi-weekly, and monthly cadence. |
+| CP-21 | Penalty staircase | REBUILD | Apply 2% for 1-3 days, 5% for 4-7 days, 8% for 8-14 days, 12% for 15+ days, capped at 20% of missed installment. |
+| CP-22 | Processing fee | NEW | Apply P20 where required. |
+| CP-23 | Service fee | NEW | Apply P50 where required. |
+| CP-24 | Guarantor liability | NEW | Apply 25% guarantor liability with 1-2 tenant member guarantors. |
+| CP-25 | Member tenant limit | NEW | Enforce maximum of 2 tenants per member. |
+| CP-26 | Member trust score weights | NEW | Apply repayment behavior 40%, savings/discipline 20%, loan utilization 15%, membership/activity 15%, peer/community validation 10%. |
+| CP-27 | Tenant trust score weights | NEW | Apply repayment health 35%, savings growth 20%, loan portfolio quality/risk 20%, operational compliance 15%, satisfaction/engagement 10%. |
+| CP-28 | Vouch score | NEW | Compute vouch score as a mean with base/scale value of 10. |
+| CP-29 | Prefer not to say | NEW | Add this option for sensitive registration details. |
+| CP-30 | One active loan rule | NEW | Enforce one active loan per user per tenant. |
 
 ---
 
-_Audit revised: 2026-05-04 | Based on PRD.txt, execution matrix, and user annotations._
+## Section F: Use Flows
+
+| ID | Flow | Status | Gap / Action |
+| --- | --- | --- | --- |
+| FL-01 | Platform access | REBUILD | User accesses `agapay-saas.vercel.app` and can search active tenants through selector or zoomable live map. |
+| FL-02 | Tenant homepage access | REBUILD | User opens `agapay-saas.vercel.app/[tenant-slug]/` for tenant-specific homepage. |
+| FL-03 | Login and 2FA | REBUILD | User logs in, verifies TOTP if enabled, then enters `agapay-[tanaw/pintig]`. |
+| FL-04 | Multi-tenant login prompt | NEW | If member belongs to multiple tenants, show tenant selection during login. |
+| FL-05 | Member registration entry | REBUILD | User finds a tenant from platform homepage/map and starts tenant member registration. |
+| FL-06 | Registration account details | REBUILD | Capture username, email, phone, password, and confirm password. |
+| FL-07 | Registration personal information | REBUILD | Capture first/middle/last names, birthdate, gender, marital status, and addresses. |
+| FL-08 | Registration income and employment | NEW | Capture source of income, occupation/business type, employer/business name, monthly income range, and length of employment/business operation. |
+| FL-09 | Registration business information | NEW | Capture business presence, name, type/industry, years operating, estimated monthly revenue, and address when applicable. |
+| FL-10 | Registration financial obligations | NEW | Capture current loans, active loan count, estimated monthly repayments, and other recurring expenses where applicable. |
+| FL-11 | Registration savings and assets | NEW | Capture savings status/range and owned assets where applicable. |
+| FL-12 | Registration references | NEW | Capture reference person name, relationship, and contact number where applicable. |
+| FL-13 | Registration documents | REBUILD | Upload valid government ID, selfie with valid ID, business permit if applicable, barangay residency certificate, and proof of income. |
+| FL-14 | Registration completion | NEW | Route member to `agapay-pintig` and show welcome message plus direction tour. |
+| FL-15 | Tenant onboarding entry | REBUILD | Tenant owner can start onboarding from Get in Touch, Contact Us, or Pricing page. |
+| FL-16 | Tenant onboarding details | NEW | Tenant owner fills tenant details, picks paid plan, receives billing prompt, and awaits Superadmin approval. |
+| FL-17 | Tenant onboarding approval | NEW | After payment/application approval, tenant owner accesses `agapay-tanaw`. |
+| FL-18 | Region creation | NEW | Superadmin creates a parent region. |
+| FL-19 | Tenant creation dialog | NEW | Superadmin creates tenant using name, slug, parent region, color palette, and logo up to 5MB. |
+| FL-20 | Tenant creation confirmation | NEW | Superadmin sees confirmation and can check created tenant site. |
+| FL-21 | Tenant availability controls | NEW | Superadmin can avail, suspend, decommission, or restore tenant access based on plan/performance/offense. |
+| FL-22 | Withdrawal | REBUILD | User chooses preset/custom amount and method, reviews value, fee, method, remaining wallet value, confirms, and creates record. |
+| FL-23 | Withdrawal issue reporting | NEW | User can report a pending/unprocessed withdrawal to admin. |
+| FL-24 | Deposit | REBUILD | User chooses preset/custom amount and method, reviews value, fee if applicable, method, total wallet value, confirms, and creates record. |
+| FL-25 | Deposit issue reporting | NEW | User can report a pending/unprocessed deposit to admin. |
+| FL-26 | Loan application | REBUILD | Loanee selects product by tier, enters loan value, cadence, purpose, and 1-2 guarantors. |
+| FL-27 | Loan confirmation | REBUILD | Show loan value, processing fee, service fee, guarantors, penalties, installments, and installment costs before confirmation. |
+| FL-28 | Loan approval chain | NEW | Notify loaner/admin according to role, forward to tenant admin, approve/reject, notify parties, and create record. |
+| FL-29 | Loan rejection reason | NEW | Notify loanee with rejection reason. |
+| FL-30 | Loan issue reporting | NEW | User can report pending/unprocessed loan transaction to admin. |
+| FL-31 | Installment/full payment choice | REBUILD | Loanee checks active loan and chooses installment or full payment, with full-payment discount support. |
+| FL-32 | Payment method choice | REBUILD | Loanee chooses e-wallet, real-life payment, or GCash. |
+| FL-33 | Payment confirmation | REBUILD | Show cadence/option, payment method, payment value, and fees before submission. |
+| FL-34 | Payment approval | NEW | Admin approves/rejects payment and notifies loaner, who receives money if approved. |
+| FL-35 | Paid loan closure | NEW | Mark active loan paid and allow loanee to apply for a new product. |
+| FL-36 | Trust score monthly voting | NEW | At month end, users rate one another and/or tenant according to role. |
+| FL-37 | Superadmin rating | NEW | Superadmin rates tenants and admins. |
+| FL-38 | Lender/member rating | NEW | Lenders and members rate one another according to trust rules. |
+| FL-39 | Missed voting suspension | NEW | Suspend interactions until required voting is completed. |
+| FL-40 | Low-rating action workflow | NEW | Trigger necessary action against consistently low-rated users. |
+| FL-41 | Scalable voting method | NEW | Use randomized sampling, weighted trust graph, and minimum voting quota to avoid all-to-all voting overload. |
+| FL-42 | Vouching | NEW | Member can vouch for another member and both can receive additional discounts. |
+| FL-43 | Tier upgrade/downgrade | NEW | Automatically upgrade or downgrade users based on configured Agapay goals. |
+| FL-44 | Default handling | NEW | Freeze account, charge guarantors, reduce trust score, and trigger reminders, restructuring offer, and final write-off workflow. |
+
+---
+
+## Section G: UI/UX Standards
+
+| ID | Standard | Status | Gap / Action |
+| --- | --- | --- | --- |
+| UI-01 | Scannability | REBUILD | Use clear title, subtitle, and metadata hierarchy for lists/cards. |
+| UI-02 | Consistent item structure | REBUILD | Keep repeated rows/cards aligned to the same information layout. |
+| UI-03 | Limited emphasis | REBUILD | Highlight only one or two key attributes per item. |
+| UI-04 | Progressive disclosure | REBUILD | Show essential info first and hide secondary detail behind expand/collapse, view more, or drill-down screens. |
+| UI-05 | Grouping and segmentation | REBUILD | Break long lists into meaningful sections, headers, categories, or tags. |
+| UI-06 | Compact touch-safe rows | REBUILD | Balance density with approximately 44px minimum mobile touch targets. |
+| UI-07 | Smart truncation | REBUILD | Truncate long text, prioritize distinguishing information, and reveal full content on tap/hover. |
+| UI-08 | Visual anchors | REBUILD | Use icons, thumbnails, status indicators, badges, and consistent alignment. |
+| UI-09 | Fast filtering and sorting | REBUILD | Include search, filters, and sorting for long admin and member lists. |
+| UI-10 | Sticky controls | REBUILD | Use sticky search bars, filters, and section headers where appropriate. |
+| UI-11 | Pagination vs infinite scroll | REBUILD | Choose pagination for task-oriented admin lists and infinite scroll only for discovery-oriented feeds. |
+| UI-12 | Hidden item-level actions | REBUILD | Use swipe, hover, or overflow menus to keep item actions available without clutter. |
+| UI-13 | Consistent spacing and alignment | REBUILD | Use predictable grids, margins, and alignment. |
+| UI-14 | Skeleton loading | REBUILD | Use skeleton placeholders for long/dynamic lists. |
+| UI-15 | Position awareness | NEW | Add scroll indicators, back-to-top controls, or section jump navigation where needed. |
+| UI-16 | Empty and edge states | REBUILD | Show helpful empty states, suggested actions, and quick resets. |
+| UI-17 | Real-data validation | NEW | Validate layouts against long names, inconsistent data, missing fields, and messy real-world content. |
+| UI-18 | Recognition/decision/action timing | NEW | Target "recognize in under 1 second, decide in under 3 seconds, act in under 5 seconds" for dense lists. |
+
+---
+
+## Section H: Reuse Candidates Before Deletion
+
+| ID | Area | Status | Gap / Action |
+| --- | --- | --- | --- |
+| RC-01 | Auth and session handling | VERIFY | KEEP core, REBUILD flow. Candidate files: `src/lib/auth.ts`, `src/lib/auth.config.ts`, `src/types/next-auth.d.ts`, `src/actions/2fa.ts`, `src/actions/two-factor-token.ts`, `src/components/auth/two-factor-setup.tsx`, `src/components/auth/login-form.tsx`, `src/components/auth/enhanced-register-form.tsx`. Reuse NextAuth credential wiring, TOTP checks, tenant-aware session fields, and branch membership guard. Rebuild login UX around PRD tenant selector, multi-tenant prompt, PRD max-2 tenant limit, dashboard routing, and English copy cleanup. |
+| RC-02 | Tenant and branch routing | VERIFY | KEEP core, REBUILD naming/scope. Candidate files: `src/proxy.ts`, `src/app/[branch]/page.tsx`, `src/app/[branch]/agapay-tanaw/page.tsx`, `src/app/[branch]/agapay-pintig/page.tsx`, `src/components/layout/branch-selector.tsx`, `src/components/layout/branch-switcher.tsx`, `src/components/layout/public-branch-selector.tsx`, `src/actions/tenant.ts`, `src/actions/tenant-management.ts`. Reuse branch-slug routing and portal guards. Rebuild around PRD tenant regions, active tenant discovery, tenant selector/live map, tenant lifecycle, and consistent tenant terminology. |
+| RC-03 | Prisma schema and migrations | VERIFY | KEEP as data-model baseline, REBUILD constants and missing PRD entities. Candidate files: `prisma/schema.prisma`, `prisma/init.sql`, `prisma/seed.ts`, and migrations covering multi-tenant identity, site content, messaging, ledger, compassion, backups, branding, subscriptions. Current schema already has tenants, users, profiles, docs, 2FA, loans, schedules, payments, wallet/savings, audit, feedback, chat, mentorship, reactions, notifications, backups, guarantees, ledger, vouches, top-ups, subscriptions. Rebuild policy values and add explicit PRD gaps: tenant region hierarchy semantics, dashboard feature toggles, receipt records, scheduled reports, AI config, fraud/risk signals, investigation/resolution records, ticket tracking, and trust voting rounds. |
+| RC-04 | Ledger and wallet actions | VERIFY | KEEP ledger utility, REBUILD wallet product flow. Candidate files: `src/actions/ledger.ts`, `src/actions/wallet-actions.ts`, `src/components/member/wallet-tab.tsx`, `src/components/admin/topup-queue-tab.tsx`, `prisma/migrations/20260424224500_ledger_loan_truth/migration.sql`, `prisma/migrations/20260424110000_wallet_default_enforcement/migration.sql`. Reuse double-entry validation, top-up queue skeleton, savings account models, and transaction listing. Rebuild deposit/withdrawal as PRD e-wallet flows with confirmation, processing fee, method selection, pending issue reports, lender/member support, and reconciliation hooks. |
+| RC-05 | Loan services and actions | VERIFY | KEEP service shape, REBUILD policies and approval chain. Candidate files: `src/services/loan-service.ts`, `src/actions/loan-application.ts`, `src/actions/loan-servicing.ts`, `src/actions/loan-product.ts`, `src/lib/microfinance-policy.ts`, `src/components/member/loan-application-tab.tsx`, `src/components/member/loan-application-form.tsx`, `src/components/member/loan-servicing-tab.tsx`, `src/components/admin/loan-products-tab.tsx`, `src/components/member/guarantee-request-panel.tsx`. Reuse transaction pattern, guarantor validation, schedule generation, payment review, and loan product admin shell. Rebuild constants because current policy uses PHP 5,000-100,000 and max 3 memberships while PRD requires PHP 2,000-1,000,000 and max 2 tenants; rebuild product names, service fee, processing fee, purpose capture, rejection reason, one-active-loan-per-user-per-tenant, and loanee-loaner-admin notification chain. |
+| RC-06 | Trust and reputation logic | VERIFY | KEEP scoring skeleton, REBUILD formula. Candidate files: `src/lib/trust-engine.ts`, `src/actions/reputation.ts`, `src/components/analytics/trust-meter.tsx`, `src/components/analytics/trust-distribution-chart.tsx`, `src/components/analytics/kpi-metric-card.tsx`, `tests/business-policy.test.ts`. Current engine uses payment/business/peer/guarantor weights from older docs. Rebuild to PRD member weights, tenant trust weights, monthly sampled voting, mandatory lockout for missed voting, vouch score mean of 10, and tier upgrade/downgrade rules. |
+| RC-07 | Reconciliation and compliance | VERIFY | KEEP EOD/compassion foundations, REBUILD investigation workflow. Candidate files: `src/actions/reconciliation.ts`, `src/components/admin/reconciliation-tab.tsx`, `src/actions/compliance-actions.ts`, `src/actions/compassion-actions.ts`, `src/components/admin/compassion-actions-tab.tsx`, `src/components/member/consent-dashboard.tsx`, `src/lib/default-enforcement.ts`, `src/trigger/default-enforcement.ts`. Reuse treasury-vs-wallet imbalance calculation, EOD sign-off, consent recording, compassion request/review, and default enforcement hooks. Rebuild to require explicit investigation/resolution records, admin approval trail, default workflow steps, guarantor charging, write-off path, and tenant-configurable compassion rules. |
+| RC-08 | Notifications and mail | VERIFY | KEEP delivery utilities, REBUILD templates/triggers. Candidate files: `src/lib/notifications.ts`, `src/actions/notifications.ts`, `src/lib/mail.ts`, `src/components/layout/notification-bell.tsx`, `prisma/migrations/20260424193000_message_replies_notifications_limits/migration.sql`. Reuse notification model, in-app/email channel enum, email guard, and notification bell. Rebuild notification triggers across loan, wallet, verification, reports, voting, tenant lifecycle, and system health; replace mixed Filipino/old-brand email copy with PRD-aligned templates and `agapay_titled.png` header use. |
+| RC-09 | Community messaging | VERIFY | KEEP message data model and core actions, REBUILD UX and feature completeness. Candidate files: `src/actions/community-actions.ts`, `src/components/member/community-tab.tsx`, `src/components/admin/community-operations-tab.tsx`, `prisma/migrations/20260424170000_community_messaging_mentorship/migration.sql`, `prisma/migrations/20260424193000_message_replies_notifications_limits/migration.sql`. Reuse conversations, participants, messages, attachments, replies, reactions, direct/group chat, branch rooms, and mentorship actions. Rebuild Discord-style interface, file upload UX, emoji/custom reaction controls, role-specific announcement rules, admin-only Superadmin chats, and tenant-toggleable mentorship. |
+| RC-10 | Site content management | VERIFY | KEEP workflow concepts, REBUILD PRD homepage builders. Candidate files: `src/actions/site-content.ts`, `src/actions/transactional-feedback.ts`, `src/components/shared/landing-client.tsx`, `src/components/shared/feedback-form.tsx`, `src/components/shared/coop-application-form.tsx`, `src/components/shared/branch-network-map.tsx`, `src/components/admin/homepage-content-tab.tsx`, `src/components/admin/tenant-branding-card.tsx`, `src/components/admin/mock-homepage-preview.tsx`, `src/app/page.tsx`, `src/app/contact/contact-content.tsx`, `src/app/pricing/page.tsx`. Reuse FAQ/testimonial proposal workflow, feedback storage, tenant branding fields, public selector/map component, and preview shell. Rebuild platform homepage, tenant homepage, mission/vision/values, FAQ seasons, testimonial tenant selection, SaaS pricing, tenant onboarding path, two-pane builder, calculator configs, and contact routing. |
+| RC-11 | Admin dashboard components | VERIFY | KEEP component inventory, REBUILD Tanaw module map. Candidate files: `src/app/[branch]/agapay-tanaw/page.tsx`, `src/components/layout/authenticated-shell.tsx`, `src/components/layout/dashboard-tabs-shell.tsx`, `src/components/admin/*`, `src/actions/admin-actions.ts`, `src/actions/file-management.ts`, `src/actions/subscription-actions.ts`. Reuse shell mechanics, tabs, notification/header area, many admin tab components, subscription settings, audit viewer, file management, and analytics cards. Rebuild around PRD Superadmin/Tenant Admin/Tenant Lender separation, module header with role name and three-dot actions, card-grid approvals, dashboard builder, lender-specific marketplace/investment modules, and plan-based feature toggles. |
+| RC-12 | Member dashboard components | VERIFY | KEEP component inventory, REBUILD Pintig module map. Candidate files: `src/app/[branch]/agapay-pintig/page.tsx`, `src/components/member/wallet-tab.tsx`, `src/components/member/loan-application-tab.tsx`, `src/components/member/loan-application-form.tsx`, `src/components/member/loan-servicing-tab.tsx`, `src/components/member/community-tab.tsx`, `src/components/member/member-settings-tab.tsx`, `src/components/member/consent-dashboard.tsx`. Reuse Pintig shell hookup, wallet panel, loan application shell, repayment shell, community tab, and settings display. Rebuild overview KPIs, AI financial tips, documents status, support/ticket feedback, vouch network, welcome tour, profile editing, linked accounts, bank/wallet accounts, and notification preferences. |
+| RC-13 | Reporting utilities | VERIFY | KEEP PDF route pattern, REBUILD report catalog and receipts. Candidate files: `src/lib/reporting/engine.ts`, `src/app/api/reports/soa/route.ts`, `src/app/[branch]/reports/soa/page.tsx`, `src/components/admin/system-file-management.tsx`, `src/actions/file-management.ts`. Reuse Puppeteer PDF generation pattern, SOA route/page pattern, and system file storage. Rebuild CSV/PDF financial reports, tenant performance reports, scheduled email dispatch, receipt generation for wallet/loan/payment transactions, and downloadable lender/member/admin reports. |
+| RC-14 | Design system references | VERIFY | KEEP references, REBUILD actual UI against PRD. Candidate files: `design-system/agapay-dashboards/MASTER.md`, `design-system/agapay-dashboards/pages/tanaw.md`, `design-system/kaban-saas/MASTER.md`, `AGAPAY SCREENSHOTS/*`, `src/components/ui/*`, `src/app/globals.css`. Reuse shadcn-style primitives, screenshots, and dashboard reference docs for visual direction. Rebuild dense list/card layouts, progressive disclosure, sticky filters, standard three-dot menus, role-specific Tanaw/Pintig navigation, and real-data hardening. |
+| RC-15 | Backup snapshot code | VERIFY | KEEP download primitive, REBUILD recovery workflow. Candidate files: `src/app/api/admin/backups/[id]/route.ts`, `prisma/migrations/20260429104500_backup_snapshot_content/migration.sql`, `src/components/admin/tenant-management-tab.tsx`, `src/components/admin/system-file-management.tsx`. Reuse `DecommissionedBackup` snapshot download and Superadmin authorization. Rebuild full backup/recovery lifecycle, tenant restore flow, scheduled backups, recovery audit trail, and tenant/user-facing data export rules. |
+
+---
+
+## Section I: Prioritized Scratch Revamp Backlog
+
+| Priority | Workstream | Status | Gap / Action |
+| --- | --- | --- | --- |
+| P0-01 | PRD-to-code inventory | NEW | Map every reuse candidate to current files and mark keep, rebuild, delete, or unknown before deleting obsolete code. |
+| P0-02 | Data model baseline | NEW | Rebuild schema around tenants, regions, roles, users, wallets, ledger entries, loans, repayments, documents, feedback, audit logs, reports, chats, notifications, and content. |
+| P0-03 | Tenant access baseline | NEW | Rebuild platform homepage discovery, tenant slug routing, login/registration, 2FA, tenant selector, and role dashboard routing. |
+| P0-04 | Dashboard shell baseline | NEW | Rebuild Tanaw/Pintig shells, sidebars, headers, notifications, profile preview, signout, and three-dot actions. |
+| P0-05 | Wallet and ledger baseline | NEW | Rebuild deposits, withdrawals, balances, transaction records, pending issue reporting, and imbalance hooks. |
+| P0-06 | Loan and repayment baseline | NEW | Rebuild loan products, tiered calculator, applications, guarantors, approvals, repayments, fees, penalties, and one-active-loan enforcement. |
+| P0-07 | Admin operations baseline | NEW | Rebuild approvals, members, documents, top-up queue, loan products, tenant management, reconciliation, compassion actions, audit logs, and analytics. |
+| P0-08 | Superadmin governance baseline | NEW | Rebuild tenant onboarding, regions, tenant creation, dashboard builder, billing/plans, global reports, system health, fraud/risk, and platform settings. |
+| P1-01 | Public and tenant content baseline | NEW | Rebuild platform homepage, tenant homepage, content moderation, branding, testimonials, FAQs, calculator, contact, and live branch map. |
+| P1-02 | Trust, vouch, and default baseline | NEW | Rebuild trust scoring, voting, scalable sampling, vouching, tier upgrade/downgrade, default handling, and guarantor charging. |
+| P1-03 | Notifications and communications baseline | NEW | Rebuild in-app/email notifications, announcements, bulletin, chats, file uploads, emojis, and custom reactions. |
+| P1-04 | Reports, receipts, and recovery baseline | NEW | Rebuild receipts, CSV/PDF reports, scheduled dispatch, SOA-like outputs, backup snapshots, and recovery workflows. |
+| P2-01 | AI analytics baseline | NEW | Add AI snapshots, risk summaries, portfolio suggestions, financial tips, and configurable prompts/sensitivity. |
+| P2-02 | Real-data UI hardening | NEW | Validate all dense lists, cards, dialogs, and dashboards against messy data and PRD UI/UX standards. |
