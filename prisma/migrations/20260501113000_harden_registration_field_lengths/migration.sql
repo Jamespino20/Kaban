@@ -1,9 +1,0 @@
-ALTER TABLE "user_profiles"
-  ALTER COLUMN "region" TYPE VARCHAR(255),
-  ALTER COLUMN "province" TYPE VARCHAR(255),
-  ALTER COLUMN "city" TYPE VARCHAR(255),
-  ALTER COLUMN "barangay" TYPE VARCHAR(255),
-  ALTER COLUMN "photo_url" TYPE TEXT;
-
-ALTER TABLE "user_documents"
-  ALTER COLUMN "file_url" TYPE TEXT;

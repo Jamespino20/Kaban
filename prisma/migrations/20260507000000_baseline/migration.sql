@@ -29,18 +29,6 @@ CREATE TYPE "ScheduleStatus" AS ENUM ('pending', 'paid', 'overdue');
 CREATE TYPE "PaymentStatus" AS ENUM ('pending', 'verified', 'rejected');
 
 -- CreateEnum
-CREATE TYPE "ImbalanceSourceModule" AS ENUM ('wallet', 'loan', 'repayment', 'ledger', 'reconciliation', 'topup', 'manual_adjustment', 'system');
-
--- CreateEnum
-CREATE TYPE "ImbalanceInvestigationStatus" AS ENUM ('detected', 'assigned', 'investigating', 'awaiting_approval', 'resolved', 'dismissed');
-
--- CreateEnum
-CREATE TYPE "ImbalanceResolutionAction" AS ENUM ('no_adjustment_needed', 'wallet_adjustment', 'ledger_adjustment', 'loan_adjustment', 'repayment_adjustment', 'write_off', 'escalated');
-
--- CreateEnum
-CREATE TYPE "DailyReconciliationStatus" AS ENUM ('draft', 'blocked', 'pending_approval', 'signed_off', 'adjusted', 'rejected', 'reopened');
-
--- CreateEnum
 CREATE TYPE "GuaranteeStatus" AS ENUM ('pending', 'vouched', 'rejected', 'voided', 'charged');
 
 -- CreateEnum
@@ -51,9 +39,6 @@ CREATE TYPE "AccountType" AS ENUM ('share_capital', 'regular_savings', 'personal
 
 -- CreateEnum
 CREATE TYPE "TransactionType" AS ENUM ('deposit', 'withdrawal', 'dividend', 'fee', 'default_recovery_debit', 'default_recovery_credit');
-
--- CreateEnum
-CREATE TYPE "WalletRequestType" AS ENUM ('deposit', 'withdrawal');
 
 -- CreateEnum
 CREATE TYPE "RepaymentFrequency" AS ENUM ('weekly', 'bi_weekly', 'monthly');
@@ -103,7 +88,7 @@ CREATE TABLE "tenants" (
     "brand_color" VARCHAR(20),
     "accent_color" VARCHAR(20),
     "font_pairing" VARCHAR(50) DEFAULT 'inter_outfit',
-    "logo_url" VARCHAR(255),
+    "logo_url" TEXT,
     "is_active" BOOLEAN NOT NULL DEFAULT true,
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMP(3) NOT NULL,
@@ -284,12 +269,8 @@ CREATE TABLE "savings_accounts" (
     "tenant_id" INTEGER NOT NULL,
     "user_id" INTEGER NOT NULL,
     "account_type" "AccountType" NOT NULL,
-    "owner_role" "Role",
     "balance" DECIMAL(15,2) NOT NULL DEFAULT 0,
-    "is_locked" BOOLEAN NOT NULL DEFAULT false,
-    "lock_reason" VARCHAR(255),
     "opened_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updated_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT "savings_accounts_pkey" PRIMARY KEY ("account_id")
 );
@@ -300,17 +281,7 @@ CREATE TABLE "savings_transactions" (
     "account_id" INTEGER NOT NULL,
     "transaction_type" "TransactionType" NOT NULL,
     "amount" DECIMAL(15,2) NOT NULL,
-    "fee_amount" DECIMAL(15,2) NOT NULL DEFAULT 0,
-    "net_amount" DECIMAL(15,2),
-    "status" "PaymentStatus" NOT NULL DEFAULT 'verified',
-    "method_label" VARCHAR(80),
-    "external_reference" VARCHAR(120),
     "reference" VARCHAR(100),
-    "reconciliation_reference" VARCHAR(120),
-    "ledger_transaction_id" TEXT,
-    "issue_status" VARCHAR(50) NOT NULL DEFAULT 'none',
-    "issue_reported_at" TIMESTAMP(3),
-    "issue_notes" TEXT,
     "processed_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "processed_by" INTEGER,
 
@@ -334,83 +305,6 @@ CREATE TABLE "audit_logs" (
     "region" VARCHAR(100),
 
     CONSTRAINT "audit_logs_pkey" PRIMARY KEY ("log_id")
-);
-
--- CreateTable
-CREATE TABLE "imbalance_investigations" (
-    "id" SERIAL NOT NULL,
-    "tenant_id" INTEGER,
-    "source_module" "ImbalanceSourceModule" NOT NULL,
-    "source_entity_type" VARCHAR(80),
-    "source_entity_id" VARCHAR(120),
-    "expected_amount" DECIMAL(15,2) NOT NULL,
-    "actual_amount" DECIMAL(15,2) NOT NULL,
-    "difference_amount" DECIMAL(15,2) NOT NULL,
-    "status" "ImbalanceInvestigationStatus" NOT NULL DEFAULT 'detected',
-    "priority" VARCHAR(30) NOT NULL DEFAULT 'normal',
-    "reconciliation_reference" VARCHAR(120),
-    "related_ledger_transaction_id" TEXT,
-    "related_wallet_transaction_id" INTEGER,
-    "related_topup_request_id" INTEGER,
-    "related_loan_id" INTEGER,
-    "related_payment_id" INTEGER,
-    "assigned_to" INTEGER,
-    "assigned_at" TIMESTAMP(3),
-    "detected_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "investigated_at" TIMESTAMP(3),
-    "resolved_at" TIMESTAMP(3),
-    "resolved_by" INTEGER,
-    "resolution_action" "ImbalanceResolutionAction",
-    "adjustment_ledger_transaction_id" TEXT,
-    "adjustment_savings_transaction_id" INTEGER,
-    "audit_log_id" INTEGER,
-    "notes" TEXT,
-    "resolution_notes" TEXT,
-    "metadata" JSONB,
-    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updated_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-
-    CONSTRAINT "imbalance_investigations_pkey" PRIMARY KEY ("id")
-);
-
--- CreateTable
-CREATE TABLE "daily_reconciliations" (
-    "id" SERIAL NOT NULL,
-    "tenant_id" INTEGER NOT NULL,
-    "business_date" DATE NOT NULL,
-    "status" "DailyReconciliationStatus" NOT NULL DEFAULT 'draft',
-    "total_disbursed" DECIMAL(15,2) NOT NULL DEFAULT 0,
-    "disbursed_count" INTEGER NOT NULL DEFAULT 0,
-    "total_collected" DECIMAL(15,2) NOT NULL DEFAULT 0,
-    "collected_count" INTEGER NOT NULL DEFAULT 0,
-    "total_ledger_debits" DECIMAL(15,2) NOT NULL DEFAULT 0,
-    "total_ledger_credits" DECIMAL(15,2) NOT NULL DEFAULT 0,
-    "is_ledger_balanced" BOOLEAN NOT NULL DEFAULT false,
-    "total_branch_savings" DECIMAL(15,2) NOT NULL DEFAULT 0,
-    "total_treasury_balance" DECIMAL(15,2) NOT NULL DEFAULT 0,
-    "imbalance_amount" DECIMAL(15,2) NOT NULL DEFAULT 0,
-    "has_discrepancy" BOOLEAN NOT NULL DEFAULT false,
-    "signoff_blocked" BOOLEAN NOT NULL DEFAULT false,
-    "block_reason" TEXT,
-    "reconciliation_reference" VARCHAR(120) NOT NULL,
-    "imbalance_investigation_id" INTEGER,
-    "resolution_action" "ImbalanceResolutionAction",
-    "resolution_reference" VARCHAR(120),
-    "adjustment_ledger_transaction_id" TEXT,
-    "audit_log_id" INTEGER,
-    "prepared_by" INTEGER,
-    "prepared_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "signed_off_by" INTEGER,
-    "signed_off_at" TIMESTAMP(3),
-    "approved_by" INTEGER,
-    "approved_at" TIMESTAMP(3),
-    "approval_notes" TEXT,
-    "notes" TEXT,
-    "metadata" JSONB,
-    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updated_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-
-    CONSTRAINT "daily_reconciliations_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -662,21 +556,9 @@ CREATE TABLE "loan_guarantees" (
     "loan_id" INTEGER NOT NULL,
     "guarantor_id" INTEGER NOT NULL,
     "status" "GuaranteeStatus" NOT NULL DEFAULT 'pending',
-    "liability_percentage" DECIMAL(5,2) NOT NULL DEFAULT 25.00,
-    "liability_amount" DECIMAL(15,2),
-    "charged_amount" DECIMAL(15,2) NOT NULL DEFAULT 0,
-    "charge_reason" VARCHAR(255),
     "vouched_at" TIMESTAMP(3),
     "soft_freeze_at" TIMESTAMP(3),
     "hard_freeze_at" TIMESTAMP(3),
-    "default_triggered_at" TIMESTAMP(3),
-    "charged_at" TIMESTAMP(3),
-    "revoked_at" TIMESTAMP(3),
-    "reassigned_to_guarantee_id" INTEGER,
-    "notification_id" TEXT,
-    "audit_log_id" INTEGER,
-    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updated_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT "loan_guarantees_pkey" PRIMARY KEY ("id")
 );
@@ -705,12 +587,6 @@ CREATE TABLE "business_ledger" (
     "debit" DECIMAL(15,2) NOT NULL DEFAULT 0,
     "credit" DECIMAL(15,2) NOT NULL DEFAULT 0,
     "description" TEXT NOT NULL,
-    "source_module" VARCHAR(80),
-    "source_reference" VARCHAR(120),
-    "reconciliation_reference" VARCHAR(120),
-    "reconciled_at" TIMESTAMP(3),
-    "is_reversal" BOOLEAN NOT NULL DEFAULT false,
-    "reversed_entry_id" INTEGER,
     "ledger_hash" VARCHAR(255),
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "created_by" INTEGER,
@@ -727,9 +603,6 @@ CREATE TABLE "ledger_accounts" (
     "code" VARCHAR(20) NOT NULL,
     "type" "LedgerAccountType" NOT NULL,
     "tenant_id" INTEGER,
-    "is_active" BOOLEAN NOT NULL DEFAULT true,
-    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updated_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT "ledger_accounts_pkey" PRIMARY KEY ("id")
 );
@@ -755,6 +628,21 @@ CREATE TABLE "interest_audit" (
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT "interest_audit_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "topup_requests" (
+    "id" SERIAL NOT NULL,
+    "tenant_id" INTEGER NOT NULL,
+    "user_id" INTEGER NOT NULL,
+    "amount" DECIMAL(15,2) NOT NULL,
+    "status" "PaymentStatus" NOT NULL DEFAULT 'pending',
+    "receipt_url" VARCHAR(255),
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "processed_at" TIMESTAMP(3),
+    "processed_by" INTEGER,
+
+    CONSTRAINT "topup_requests_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -831,81 +719,6 @@ CREATE UNIQUE INDEX "payments_payment_reference_key" ON "payments"("payment_refe
 
 -- CreateIndex
 CREATE UNIQUE INDEX "savings_accounts_user_id_account_type_key" ON "savings_accounts"("user_id", "account_type");
-
--- CreateIndex
-CREATE INDEX "savings_accounts_tenant_id_account_type_idx" ON "savings_accounts"("tenant_id", "account_type");
-
--- CreateIndex
-CREATE INDEX "savings_accounts_tenant_id_owner_role_idx" ON "savings_accounts"("tenant_id", "owner_role");
-
--- CreateIndex
-CREATE INDEX "savings_transactions_account_id_status_processed_at_idx" ON "savings_transactions"("account_id", "status", "processed_at");
-
--- CreateIndex
-CREATE INDEX "savings_transactions_reconciliation_reference_idx" ON "savings_transactions"("reconciliation_reference");
-
--- CreateIndex
-CREATE INDEX "savings_transactions_ledger_transaction_id_idx" ON "savings_transactions"("ledger_transaction_id");
-
--- CreateIndex
-CREATE INDEX "savings_transactions_issue_status_idx" ON "savings_transactions"("issue_status");
-
--- CreateIndex
-CREATE INDEX "imbalance_investigations_tenant_id_status_detected_at_idx" ON "imbalance_investigations"("tenant_id", "status", "detected_at");
-
--- CreateIndex
-CREATE INDEX "imbalance_investigations_source_module_source_entity_id_idx" ON "imbalance_investigations"("source_module", "source_entity_id");
-
--- CreateIndex
-CREATE INDEX "imbalance_investigations_assigned_to_status_idx" ON "imbalance_investigations"("assigned_to", "status");
-
--- CreateIndex
-CREATE INDEX "imbalance_investigations_reconciliation_reference_idx" ON "imbalance_investigations"("reconciliation_reference");
-
--- CreateIndex
-CREATE INDEX "imbalance_investigations_related_ledger_transaction_id_idx" ON "imbalance_investigations"("related_ledger_transaction_id");
-
--- CreateIndex
-CREATE INDEX "imbalance_investigations_related_wallet_transaction_id_idx" ON "imbalance_investigations"("related_wallet_transaction_id");
-
--- CreateIndex
-CREATE INDEX "imbalance_investigations_related_topup_request_id_idx" ON "imbalance_investigations"("related_topup_request_id");
-
--- CreateIndex
-CREATE INDEX "imbalance_investigations_related_loan_id_idx" ON "imbalance_investigations"("related_loan_id");
-
--- CreateIndex
-CREATE INDEX "imbalance_investigations_related_payment_id_idx" ON "imbalance_investigations"("related_payment_id");
-
--- CreateIndex
-CREATE INDEX "imbalance_investigations_audit_log_id_idx" ON "imbalance_investigations"("audit_log_id");
-
--- CreateIndex
-CREATE UNIQUE INDEX "daily_reconciliations_reconciliation_reference_key" ON "daily_reconciliations"("reconciliation_reference");
-
--- CreateIndex
-CREATE UNIQUE INDEX "daily_reconciliations_tenant_id_business_date_key" ON "daily_reconciliations"("tenant_id", "business_date");
-
--- CreateIndex
-CREATE INDEX "daily_reconciliations_tenant_id_status_business_date_idx" ON "daily_reconciliations"("tenant_id", "status", "business_date");
-
--- CreateIndex
-CREATE INDEX "daily_reconciliations_imbalance_investigation_id_idx" ON "daily_reconciliations"("imbalance_investigation_id");
-
--- CreateIndex
-CREATE INDEX "daily_reconciliations_resolution_reference_idx" ON "daily_reconciliations"("resolution_reference");
-
--- CreateIndex
-CREATE INDEX "daily_reconciliations_adjustment_ledger_transaction_id_idx" ON "daily_reconciliations"("adjustment_ledger_transaction_id");
-
--- CreateIndex
-CREATE INDEX "daily_reconciliations_audit_log_id_idx" ON "daily_reconciliations"("audit_log_id");
-
--- CreateIndex
-CREATE INDEX "daily_reconciliations_signed_off_by_idx" ON "daily_reconciliations"("signed_off_by");
-
--- CreateIndex
-CREATE INDEX "daily_reconciliations_approved_by_idx" ON "daily_reconciliations"("approved_by");
 
 -- CreateIndex
 CREATE INDEX "traffic_logs_tenant_id_created_at_idx" ON "traffic_logs"("tenant_id", "created_at");
@@ -989,40 +802,10 @@ CREATE INDEX "notifications_user_id_is_read_created_at_idx" ON "notifications"("
 CREATE INDEX "notifications_tenant_id_type_created_at_idx" ON "notifications"("tenant_id", "type", "created_at");
 
 -- CreateIndex
-CREATE INDEX "loan_guarantees_loan_id_status_idx" ON "loan_guarantees"("loan_id", "status");
-
--- CreateIndex
-CREATE INDEX "loan_guarantees_guarantor_id_status_idx" ON "loan_guarantees"("guarantor_id", "status");
-
--- CreateIndex
-CREATE INDEX "loan_guarantees_notification_id_idx" ON "loan_guarantees"("notification_id");
-
--- CreateIndex
-CREATE INDEX "loan_guarantees_audit_log_id_idx" ON "loan_guarantees"("audit_log_id");
-
--- CreateIndex
-CREATE INDEX "loan_guarantees_reassigned_to_guarantee_id_idx" ON "loan_guarantees"("reassigned_to_guarantee_id");
-
--- CreateIndex
 CREATE INDEX "branch_transfer_requests_status_idx" ON "branch_transfer_requests"("status");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "ledger_accounts_code_key" ON "ledger_accounts"("code");
-
--- CreateIndex
-CREATE INDEX "business_ledger_transaction_id_idx" ON "business_ledger"("transaction_id");
-
--- CreateIndex
-CREATE INDEX "business_ledger_source_module_source_reference_idx" ON "business_ledger"("source_module", "source_reference");
-
--- CreateIndex
-CREATE INDEX "business_ledger_reconciliation_reference_idx" ON "business_ledger"("reconciliation_reference");
-
--- CreateIndex
-CREATE INDEX "business_ledger_reversed_entry_id_idx" ON "business_ledger"("reversed_entry_id");
-
--- CreateIndex
-CREATE INDEX "ledger_accounts_tenant_id_type_idx" ON "ledger_accounts"("tenant_id", "type");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "interest_audit_loan_id_key" ON "interest_audit"("loan_id");
@@ -1223,52 +1006,6 @@ ALTER TABLE "social_vouches" ADD CONSTRAINT "social_vouches_voucher_id_fkey" FOR
 ALTER TABLE "interest_audit" ADD CONSTRAINT "interest_audit_loan_id_fkey" FOREIGN KEY ("loan_id") REFERENCES "loans"("loan_id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "system_files" ADD CONSTRAINT "system_files_tenant_id_fkey" FOREIGN KEY ("tenant_id") REFERENCES "tenants"("tenant_id") ON DELETE SET NULL ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "system_files" ADD CONSTRAINT "system_files_uploader_id_fkey" FOREIGN KEY ("uploader_id") REFERENCES "users"("user_id") ON DELETE RESTRICT ON UPDATE CASCADE;
-
--- CreateTable
-CREATE TABLE "topup_requests" (
-    "id" SERIAL NOT NULL,
-    "tenant_id" INTEGER NOT NULL,
-    "user_id" INTEGER NOT NULL,
-    "request_type" "WalletRequestType" NOT NULL DEFAULT 'deposit',
-    "amount" DECIMAL(15,2) NOT NULL,
-    "fee_amount" DECIMAL(15,2) NOT NULL DEFAULT 0,
-    "net_amount" DECIMAL(15,2),
-    "method_label" VARCHAR(80),
-    "external_reference" VARCHAR(120),
-    "status" "PaymentStatus" NOT NULL DEFAULT 'pending',
-    "receipt_url" VARCHAR(255),
-    "issue_status" VARCHAR(50) NOT NULL DEFAULT 'none',
-    "issue_notes" TEXT,
-    "admin_notes" TEXT,
-    "reconciliation_reference" VARCHAR(120),
-    "ledger_transaction_id" TEXT,
-    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "processed_at" TIMESTAMP(3),
-    "processed_by" INTEGER,
-
-    CONSTRAINT "topup_requests_pkey" PRIMARY KEY ("id")
-);
-
--- CreateIndex
-CREATE INDEX "topup_requests_tenant_id_request_type_status_idx" ON "topup_requests"("tenant_id", "request_type", "status");
-
--- CreateIndex
-CREATE INDEX "topup_requests_user_id_request_type_created_at_idx" ON "topup_requests"("user_id", "request_type", "created_at");
-
--- CreateIndex
-CREATE INDEX "topup_requests_reconciliation_reference_idx" ON "topup_requests"("reconciliation_reference");
-
--- CreateIndex
-CREATE INDEX "topup_requests_ledger_transaction_id_idx" ON "topup_requests"("ledger_transaction_id");
-
--- CreateIndex
-CREATE INDEX "topup_requests_issue_status_idx" ON "topup_requests"("issue_status");
-
--- AddForeignKey
 ALTER TABLE "topup_requests" ADD CONSTRAINT "topup_requests_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "users"("user_id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
@@ -1278,7 +1015,14 @@ ALTER TABLE "topup_requests" ADD CONSTRAINT "topup_requests_processed_by_fkey" F
 ALTER TABLE "topup_requests" ADD CONSTRAINT "topup_requests_tenant_id_fkey" FOREIGN KEY ("tenant_id") REFERENCES "tenants"("tenant_id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
+ALTER TABLE "system_files" ADD CONSTRAINT "system_files_tenant_id_fkey" FOREIGN KEY ("tenant_id") REFERENCES "tenants"("tenant_id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "system_files" ADD CONSTRAINT "system_files_uploader_id_fkey" FOREIGN KEY ("uploader_id") REFERENCES "users"("user_id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
 ALTER TABLE "tenant_subscriptions" ADD CONSTRAINT "tenant_subscriptions_tenant_id_fkey" FOREIGN KEY ("tenant_id") REFERENCES "tenants"("tenant_id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "tenant_subscriptions" ADD CONSTRAINT "tenant_subscriptions_plan_id_fkey" FOREIGN KEY ("plan_id") REFERENCES "subscription_plans"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+

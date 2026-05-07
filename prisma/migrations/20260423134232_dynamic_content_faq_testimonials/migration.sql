@@ -1,5 +1,0 @@
--- RenameIndex
-ALTER INDEX IF EXISTS "homepage_faqs_tenant_id_workflow_status_is_active_sort_order_id" RENAME TO "homepage_faqs_tenant_id_workflow_status_is_active_sort_orde_idx";
-
--- RenameIndex
-ALTER INDEX IF EXISTS "homepage_testimonials_tenant_id_workflow_status_is_active_sort_" RENAME TO "homepage_testimonials_tenant_id_workflow_status_is_active_s_idx";

@@ -33,25 +33,38 @@ async function main() {
 
   // Step 2: Prisma migrate reset (handles public schema)
   console.log("📦 Step 2: Running prisma migrate reset --force...");
-  execSync("npx prisma migrate reset --force", {
-    stdio: "inherit",
-    env: { ...process.env },
-  });
-  console.log("   ✅ Migrations applied\n");
+  try {
+    execSync("npx prisma migrate reset --force", {
+      stdio: "inherit",
+      env: { ...process.env },
+    });
+    console.log("   ✅ Migrations applied\n");
+  } catch (err: any) {
+    console.error(
+      "   ❌ Prisma migrate reset failed. Check your schema or connection.",
+    );
+    throw err;
+  }
 
   // Step 3: Seed
   console.log("📦 Step 3: Seeding fresh data...");
-  execSync("npx tsx prisma/seed.ts", {
-    stdio: "inherit",
-    env: { ...process.env },
-  });
-  console.log("\n   ✅ Seed complete\n");
+  try {
+    execSync("npx tsx prisma/seed.ts", {
+      stdio: "inherit",
+      env: { ...process.env },
+    });
+    console.log("\n   ✅ Seed complete\n");
+  } catch (err: any) {
+    console.error("   ❌ Seeding failed. Check prisma/seed.ts for errors.");
+    throw err;
+  }
 
   console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
   console.log("🎉 Database reset complete!\n");
 }
 
 main().catch((e) => {
-  console.error("❌ Reset failed:", e);
+  if (e.stdout) console.log(e.stdout.toString());
+  if (e.stderr) console.error(e.stderr.toString());
   process.exit(1);
 });

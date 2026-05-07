@@ -274,27 +274,47 @@ model SavingsAccount {
   tenant_id    Int
   user_id      Int
   account_type AccountType
+  owner_role   Role?
   balance      Decimal              @default(0) @db.Decimal(15, 2)
+  is_locked    Boolean              @default(false)
+  lock_reason  String?              @db.VarChar(255)
   opened_at    DateTime             @default(now())
+  updated_at   DateTime             @updatedAt
   tenant       Tenant               @relation(fields: [tenant_id], references: [tenant_id])
   user         User                 @relation(fields: [user_id], references: [user_id], onDelete: Cascade)
   transactions SavingsTransaction[]
 
   @@unique([user_id, account_type])
+  @@index([tenant_id, account_type])
+  @@index([tenant_id, owner_role])
   @@map("savings_accounts")
 }
 
 model SavingsTransaction {
-  transaction_id   Int             @id @default(autoincrement())
-  account_id       Int
-  transaction_type TransactionType
-  amount           Decimal         @db.Decimal(15, 2)
-  reference        String?         @db.VarChar(100)
-  processed_at     DateTime        @default(now())
-  processed_by     Int?
-  account          SavingsAccount  @relation(fields: [account_id], references: [account_id])
-  processor        User?           @relation("ProcessedSavings", fields: [processed_by], references: [user_id])
+  transaction_id            Int             @id @default(autoincrement())
+  account_id                Int
+  transaction_type          TransactionType
+  amount                    Decimal         @db.Decimal(15, 2)
+  fee_amount                Decimal         @default(0) @db.Decimal(15, 2)
+  net_amount                Decimal?        @db.Decimal(15, 2)
+  status                    PaymentStatus   @default(verified)
+  method_label              String?         @db.VarChar(80)
+  external_reference        String?         @db.VarChar(120)
+  reference                 String?         @db.VarChar(100)
+  reconciliation_reference  String?         @db.VarChar(120)
+  ledger_transaction_id     String?
+  issue_status              String          @default("none") @db.VarChar(50)
+  issue_reported_at         DateTime?
+  issue_notes               String?
+  processed_at              DateTime        @default(now())
+  processed_by              Int?
+  account                   SavingsAccount  @relation(fields: [account_id], references: [account_id])
+  processor                 User?           @relation("ProcessedSavings", fields: [processed_by], references: [user_id])
 
+  @@index([account_id, status, processed_at])
+  @@index([reconciliation_reference])
+  @@index([ledger_transaction_id])
+  @@index([issue_status])
   @@map("savings_transactions")
 }
 
@@ -316,6 +336,99 @@ model AuditLog {
   user        User?    @relation(fields: [user_id], references: [user_id])
 
   @@map("audit_logs")
+}
+
+model ImbalanceInvestigation {
+  id                            Int                         @id @default(autoincrement())
+  tenant_id                     Int?
+  source_module                 ImbalanceSourceModule
+  source_entity_type            String?                     @db.VarChar(80)
+  source_entity_id              String?                     @db.VarChar(120)
+  expected_amount               Decimal                     @db.Decimal(15, 2)
+  actual_amount                 Decimal                     @db.Decimal(15, 2)
+  difference_amount             Decimal                     @db.Decimal(15, 2)
+  status                        ImbalanceInvestigationStatus @default(detected)
+  priority                      String                      @default("normal") @db.VarChar(30)
+  reconciliation_reference      String?                     @db.VarChar(120)
+  related_ledger_transaction_id String?
+  related_wallet_transaction_id Int?
+  related_topup_request_id      Int?
+  related_loan_id               Int?
+  related_payment_id            Int?
+  assigned_to                   Int?
+  assigned_at                   DateTime?
+  detected_at                   DateTime                    @default(now())
+  investigated_at               DateTime?
+  resolved_at                   DateTime?
+  resolved_by                   Int?
+  resolution_action             ImbalanceResolutionAction?
+  adjustment_ledger_transaction_id String?
+  adjustment_savings_transaction_id Int?
+  audit_log_id                  Int?
+  notes                         String?
+  resolution_notes              String?
+  metadata                      Json?
+  created_at                    DateTime                    @default(now())
+  updated_at                    DateTime                    @updatedAt
+
+  @@index([tenant_id, status, detected_at])
+  @@index([source_module, source_entity_id])
+  @@index([assigned_to, status])
+  @@index([reconciliation_reference])
+  @@index([related_ledger_transaction_id])
+  @@index([related_wallet_transaction_id])
+  @@index([related_topup_request_id])
+  @@index([related_loan_id])
+  @@index([related_payment_id])
+  @@index([audit_log_id])
+  @@map("imbalance_investigations")
+}
+
+model DailyReconciliation {
+  id                              Int                        @id @default(autoincrement())
+  tenant_id                       Int
+  business_date                   DateTime                   @db.Date
+  status                          DailyReconciliationStatus  @default(draft)
+  total_disbursed                 Decimal                    @default(0) @db.Decimal(15, 2)
+  disbursed_count                 Int                        @default(0)
+  total_collected                 Decimal                    @default(0) @db.Decimal(15, 2)
+  collected_count                 Int                        @default(0)
+  total_ledger_debits             Decimal                    @default(0) @db.Decimal(15, 2)
+  total_ledger_credits            Decimal                    @default(0) @db.Decimal(15, 2)
+  is_ledger_balanced              Boolean                    @default(false)
+  total_branch_savings            Decimal                    @default(0) @db.Decimal(15, 2)
+  total_treasury_balance          Decimal                    @default(0) @db.Decimal(15, 2)
+  imbalance_amount                Decimal                    @default(0) @db.Decimal(15, 2)
+  has_discrepancy                 Boolean                    @default(false)
+  signoff_blocked                 Boolean                    @default(false)
+  block_reason                    String?
+  reconciliation_reference        String                     @unique @db.VarChar(120)
+  imbalance_investigation_id      Int?
+  resolution_action               ImbalanceResolutionAction?
+  resolution_reference            String?                    @db.VarChar(120)
+  adjustment_ledger_transaction_id String?
+  audit_log_id                    Int?
+  prepared_by                     Int?
+  prepared_at                     DateTime                   @default(now())
+  signed_off_by                   Int?
+  signed_off_at                   DateTime?
+  approved_by                     Int?
+  approved_at                     DateTime?
+  approval_notes                  String?
+  notes                           String?
+  metadata                        Json?
+  created_at                      DateTime                   @default(now())
+  updated_at                      DateTime                   @updatedAt
+
+  @@unique([tenant_id, business_date])
+  @@index([tenant_id, status, business_date])
+  @@index([imbalance_investigation_id])
+  @@index([resolution_reference])
+  @@index([adjustment_ledger_transaction_id])
+  @@index([audit_log_id])
+  @@index([signed_off_by])
+  @@index([approved_by])
+  @@map("daily_reconciliations")
 }
 
 model TrafficLog {
@@ -603,16 +716,33 @@ model DecommissionedBackup {
 }
 
 model LoanGuarantee {
-  id             Int             @id @default(autoincrement())
-  loan_id        Int
-  guarantor_id   Int
-  status         GuaranteeStatus @default(pending)
-  vouched_at     DateTime?
-  soft_freeze_at DateTime?
-  hard_freeze_at DateTime?
-  guarantor      User            @relation("Guarantor", fields: [guarantor_id], references: [user_id])
-  loan           Loan            @relation(fields: [loan_id], references: [loan_id], onDelete: Cascade)
+  id                         Int             @id @default(autoincrement())
+  loan_id                    Int
+  guarantor_id               Int
+  status                     GuaranteeStatus @default(pending)
+  liability_percentage       Decimal         @default(25.00) @db.Decimal(5, 2)
+  liability_amount           Decimal?        @db.Decimal(15, 2)
+  charged_amount             Decimal         @default(0) @db.Decimal(15, 2)
+  charge_reason              String?         @db.VarChar(255)
+  vouched_at                 DateTime?
+  soft_freeze_at             DateTime?
+  hard_freeze_at             DateTime?
+  default_triggered_at       DateTime?
+  charged_at                 DateTime?
+  revoked_at                 DateTime?
+  reassigned_to_guarantee_id Int?
+  notification_id            String?
+  audit_log_id               Int?
+  created_at                 DateTime        @default(now())
+  updated_at                 DateTime        @updatedAt
+  guarantor                  User            @relation("Guarantor", fields: [guarantor_id], references: [user_id])
+  loan                       Loan            @relation(fields: [loan_id], references: [loan_id], onDelete: Cascade)
 
+  @@index([loan_id, status])
+  @@index([guarantor_id, status])
+  @@index([notification_id])
+  @@index([audit_log_id])
+  @@index([reassigned_to_guarantee_id])
   @@map("loan_guarantees")
 }
 
@@ -635,20 +765,30 @@ model CompassionAction {
 }
 
 model BusinessLedger {
-  id             Int           @id @default(autoincrement())
-  transaction_id String        @default(cuid())
-  account_id     Int
-  debit          Decimal       @default(0) @db.Decimal(15, 2)
-  credit         Decimal       @default(0) @db.Decimal(15, 2)
-  description    String
-  ledger_hash    String?       @db.VarChar(255)
-  created_at     DateTime      @default(now())
-  created_by     Int?
-  loan_id        Int?
-  metadata       Json?
-  account        LedgerAccount @relation(fields: [account_id], references: [id])
-  loan           Loan?         @relation(fields: [loan_id], references: [loan_id])
+  id                       Int           @id @default(autoincrement())
+  transaction_id           String        @default(cuid())
+  account_id               Int
+  debit                    Decimal       @default(0) @db.Decimal(15, 2)
+  credit                   Decimal       @default(0) @db.Decimal(15, 2)
+  description              String
+  source_module            String?       @db.VarChar(80)
+  source_reference         String?       @db.VarChar(120)
+  reconciliation_reference String?       @db.VarChar(120)
+  reconciled_at            DateTime?
+  is_reversal              Boolean       @default(false)
+  reversed_entry_id        Int?
+  ledger_hash              String?       @db.VarChar(255)
+  created_at               DateTime      @default(now())
+  created_by               Int?
+  loan_id                  Int?
+  metadata                 Json?
+  account                  LedgerAccount @relation(fields: [account_id], references: [id])
+  loan                     Loan?         @relation(fields: [loan_id], references: [loan_id])
 
+  @@index([transaction_id])
+  @@index([source_module, source_reference])
+  @@index([reconciliation_reference])
+  @@index([reversed_entry_id])
   @@map("business_ledger")
 }
 
@@ -658,8 +798,12 @@ model LedgerAccount {
   code           String            @unique @db.VarChar(20)
   type           LedgerAccountType
   tenant_id      Int?
+  is_active      Boolean           @default(true)
+  created_at     DateTime          @default(now())
+  updated_at     DateTime          @updatedAt
   ledger_entries BusinessLedger[]
 
+  @@index([tenant_id, type])
   @@map("ledger_accounts")
 }
 
@@ -688,20 +832,35 @@ model InterestAudit {
 }
 
 model TopUpRequest {
-  id           Int           @id @default(autoincrement())
-  tenant_id    Int
-  user_id      Int
-  amount       Decimal       @db.Decimal(15, 2)
-  status       PaymentStatus @default(pending)
-  receipt_url  String?       @db.VarChar(255)
-  created_at   DateTime      @default(now())
-  processed_at DateTime?
-  processed_by Int?
+  id                       Int               @id @default(autoincrement())
+  tenant_id                Int
+  user_id                  Int
+  request_type             WalletRequestType @default(deposit)
+  amount                   Decimal           @db.Decimal(15, 2)
+  fee_amount               Decimal           @default(0) @db.Decimal(15, 2)
+  net_amount               Decimal?          @db.Decimal(15, 2)
+  method_label             String?           @db.VarChar(80)
+  external_reference       String?           @db.VarChar(120)
+  status                   PaymentStatus     @default(pending)
+  receipt_url              String?           @db.VarChar(255)
+  issue_status             String            @default("none") @db.VarChar(50)
+  issue_notes              String?
+  admin_notes              String?
+  reconciliation_reference String?           @db.VarChar(120)
+  ledger_transaction_id    String?
+  created_at               DateTime          @default(now())
+  processed_at             DateTime?
+  processed_by             Int?
 
-  user         User          @relation(fields: [user_id], references: [user_id])
-  processor    User?         @relation("TopUpProcessor", fields: [processed_by], references: [user_id])
-  tenant       Tenant        @relation(fields: [tenant_id], references: [tenant_id])
+  user                     User              @relation(fields: [user_id], references: [user_id])
+  processor                User?             @relation("TopUpProcessor", fields: [processed_by], references: [user_id])
+  tenant                   Tenant            @relation(fields: [tenant_id], references: [tenant_id])
 
+  @@index([tenant_id, request_type, status])
+  @@index([user_id, request_type, created_at])
+  @@index([reconciliation_reference])
+  @@index([ledger_transaction_id])
+  @@index([issue_status])
   @@map("topup_requests")
 }
 
@@ -771,6 +930,46 @@ enum PaymentStatus {
   rejected
 }
 
+enum ImbalanceSourceModule {
+  wallet
+  loan
+  repayment
+  ledger
+  reconciliation
+  topup
+  manual_adjustment
+  system
+}
+
+enum ImbalanceInvestigationStatus {
+  detected
+  assigned
+  investigating
+  awaiting_approval
+  resolved
+  dismissed
+}
+
+enum ImbalanceResolutionAction {
+  no_adjustment_needed
+  wallet_adjustment
+  ledger_adjustment
+  loan_adjustment
+  repayment_adjustment
+  write_off
+  escalated
+}
+
+enum DailyReconciliationStatus {
+  draft
+  blocked
+  pending_approval
+  signed_off
+  adjusted
+  rejected
+  reopened
+}
+
 enum GuaranteeStatus {
   pending
   vouched
@@ -800,6 +999,11 @@ enum TransactionType {
   fee
   default_recovery_debit
   default_recovery_credit
+}
+
+enum WalletRequestType {
+  deposit
+  withdrawal
 }
 
 enum RepaymentFrequency {

@@ -558,9 +558,16 @@ async function main() {
       if (!isMain) {
         await provisionBranchSchema(branchPrisma, tenant);
       }
-      await branchPrisma.$transaction(async (tx) => {
-        await seedTenantData(tx, tenant, { hashedPassword, hashedAdmin, year });
-      });
+      await branchPrisma.$transaction(
+        async (tx) => {
+          await seedTenantData(tx, tenant, {
+            hashedPassword,
+            hashedAdmin,
+            year,
+          });
+        },
+        { timeout: 60000 },
+      );
     } catch (err) {
       console.error(`❌ Failed to seed ${coop.name}:`, err);
     } finally {
@@ -573,7 +580,15 @@ async function main() {
 
 main()
   .catch((e) => {
-    console.error("❌ Seed Failed:", e);
+    console.error("❌ Seed Failed!");
+    if (e instanceof Error) {
+      console.error(`  Message: ${e.message}`);
+      if ("code" in e) console.error(`  Code: ${(e as any).code}`);
+      if ("meta" in e)
+        console.error(`  Meta: ${JSON.stringify((e as any).meta)}`);
+    } else {
+      console.error(e);
+    }
     process.exit(1);
   })
   .finally(() => prisma.$disconnect());
