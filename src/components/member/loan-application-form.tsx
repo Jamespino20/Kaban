@@ -129,8 +129,9 @@ export const LoanApplicationForm = ({
       monthly: quote.installmentAmount,
       total: quote.totalPayable,
       interest: quote.totalInterest,
-      fees: quote.processingFee,
-      totalCostOfCredit: quote.totalInterest + quote.processingFee,
+      fees: quote.processingFee + quote.serviceFee,
+      totalCostOfCredit:
+        quote.totalInterest + quote.processingFee + quote.serviceFee,
     });
   }, [watchAmount, watchTerm, product]);
 

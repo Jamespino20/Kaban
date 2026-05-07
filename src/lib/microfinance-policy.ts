@@ -30,16 +30,16 @@ export const RepaymentFrequency = {
 } as const;
 
 export const MICROFINANCE_POLICY = {
-  minAmount: 5_000,
-  maxAmount: 100_000,
-  maxBranchMembershipsPerUser: 3,
+  minAmount: 2_000,
+  maxAmount: 1_000_000,
+  maxBranchMembershipsPerUser: 2,
   minTermMonths: 3,
   maxTermMonths: 12,
   minGuarantors: 1,
   maxGuarantors: 2,
   defaultGuarantorLiabilityRate: 25,
-  processingFeeRate: 0.02,
-  processingFeeMinimum: 50,
+  processingFee: 20,
+  serviceFee: 50,
   missedPenaltyCapRate: 0.2,
   gracePeriodDays: 14,
   compassionActionsPerLoanCycle: 1,
@@ -61,7 +61,7 @@ export interface TierPolicy {
 export const TIER_POLICIES: Record<InterestTier, TierPolicy> = {
   [InterestTier.T1_5_PERCENT]: {
     tier: InterestTier.T1_5_PERCENT,
-    label: "Starter",
+    label: "Gabay",
     shortLabel: "5%",
     capAmount: 5_000,
     monthlyRatePercent: 5,
@@ -71,9 +71,9 @@ export const TIER_POLICIES: Record<InterestTier, TierPolicy> = {
   },
   [InterestTier.T2_4_5_PERCENT]: {
     tier: InterestTier.T2_4_5_PERCENT,
-    label: "Starter Plus",
+    label: "Bagong Sigla",
     shortLabel: "4.5%",
-    capAmount: 10_000,
+    capAmount: 29_000,
     monthlyRatePercent: 4.5,
     trustScoreMin: 55,
     trustScoreMax: 64,
@@ -81,9 +81,9 @@ export const TIER_POLICIES: Record<InterestTier, TierPolicy> = {
   },
   [InterestTier.T3_4_PERCENT]: {
     tier: InterestTier.T3_4_PERCENT,
-    label: "Growth",
+    label: "Kasapi",
     shortLabel: "4%",
-    capAmount: 20_000,
+    capAmount: 59_000,
     monthlyRatePercent: 4,
     trustScoreMin: 65,
     trustScoreMax: 74,
@@ -91,9 +91,9 @@ export const TIER_POLICIES: Record<InterestTier, TierPolicy> = {
   },
   [InterestTier.T4_3_5_PERCENT]: {
     tier: InterestTier.T4_3_5_PERCENT,
-    label: "Trusted",
+    label: "Katuwang",
     shortLabel: "3.5%",
-    capAmount: 50_000,
+    capAmount: 100_000,
     monthlyRatePercent: 3.5,
     trustScoreMin: 75,
     trustScoreMax: 84,
@@ -101,9 +101,9 @@ export const TIER_POLICIES: Record<InterestTier, TierPolicy> = {
   },
   [InterestTier.T5_3_PERCENT]: {
     tier: InterestTier.T5_3_PERCENT,
-    label: "Elite",
+    label: "Kaagapay",
     shortLabel: "3%",
-    capAmount: 100_000,
+    capAmount: 1_000_000,
     monthlyRatePercent: 3,
     trustScoreMin: 85,
     trustScoreMax: 100,
@@ -118,6 +118,7 @@ export type LoanQuote = {
   frequency: RepaymentFrequency;
   totalInterest: number;
   processingFee: number;
+  serviceFee: number;
   totalPayable: number;
   installmentAmount: number;
   installmentCount: number;
@@ -159,12 +160,11 @@ export function getAvailableCreditForTier(
 }
 
 export function computeProcessingFee(principalAmount: number) {
-  return roundMoney(
-    Math.max(
-      MICROFINANCE_POLICY.processingFeeMinimum,
-      principalAmount * MICROFINANCE_POLICY.processingFeeRate,
-    ),
-  );
+  return roundMoney(MICROFINANCE_POLICY.processingFee);
+}
+
+export function computeServiceFee() {
+  return roundMoney(MICROFINANCE_POLICY.serviceFee);
 }
 
 export function computeLoanQuote({
@@ -188,8 +188,9 @@ export function computeLoanQuote({
     normalizedPrincipal * (normalizedRate / 100) * normalizedTerm,
   );
   const processingFee = computeProcessingFee(normalizedPrincipal);
+  const serviceFee = computeServiceFee();
   const totalPayable = roundMoney(
-    normalizedPrincipal + totalInterest + processingFee,
+    normalizedPrincipal + totalInterest + processingFee + serviceFee,
   );
 
   let installmentCount = normalizedTerm;
@@ -208,6 +209,7 @@ export function computeLoanQuote({
     frequency,
     totalInterest,
     processingFee,
+    serviceFee,
     totalPayable,
     installmentAmount,
     installmentCount,
@@ -326,7 +328,7 @@ export function validateLoanProductPolicy({
     return `Minimum amount must be at least PHP ${MICROFINANCE_POLICY.minAmount.toLocaleString()}.`;
   }
   if (maxAmount > MICROFINANCE_POLICY.maxAmount) {
-    return `Maximum amount must stay within the current Elite cap of PHP ${MICROFINANCE_POLICY.maxAmount.toLocaleString()}.`;
+    return `Maximum amount must stay within the current Kaagapay cap of PHP ${MICROFINANCE_POLICY.maxAmount.toLocaleString()}.`;
   }
   if (minAmount > maxAmount) {
     return "Minimum amount cannot exceed maximum amount.";

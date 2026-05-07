@@ -129,7 +129,6 @@ model UserProfile {
   business_name       String?        @db.VarChar(150)
   marital_status      MaritalStatus? @default(single)
   occupation          String?        @db.VarChar(150)
-  mothers_maiden_name String?        @db.VarChar(150)
   place_of_birth      String?        @db.VarChar(150)
   tin                 String?        @db.VarChar(20)
   region              String?        @db.VarChar(255)

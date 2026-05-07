@@ -139,7 +139,6 @@ CREATE TABLE "user_profiles" (
     "business_name" VARCHAR(150),
     "marital_status" "MaritalStatus" DEFAULT 'single',
     "occupation" VARCHAR(150),
-    "mothers_maiden_name" VARCHAR(150),
     "place_of_birth" VARCHAR(150),
     "tin" VARCHAR(20),
     "region" VARCHAR(255),
@@ -1002,4 +1001,3 @@ ALTER TABLE "tenant_subscriptions" ADD CONSTRAINT "tenant_subscriptions_tenant_i
 
 -- AddForeignKey
 ALTER TABLE "tenant_subscriptions" ADD CONSTRAINT "tenant_subscriptions_plan_id_fkey" FOREIGN KEY ("plan_id") REFERENCES "subscription_plans"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
-

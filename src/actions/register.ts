@@ -39,7 +39,6 @@ const RegisterSchema = z.object({
   idPicture: z.string().min(1, "ID picture is required."),
   brgyCertUrl: z.string().optional(),
   businessPermitUrl: z.string().optional(),
-  mothersMaidenName: z.string().max(150).optional(),
   placeOfBirth: z.string().max(150).optional(),
   tin: z.string().max(20).optional(),
   tenantId: z.number().int().positive("Please select a branch (Cooperative)."),
@@ -74,7 +73,6 @@ export const register = async (values: z.infer<typeof RegisterSchema>) => {
     idPicture,
     brgyCertUrl,
     businessPermitUrl,
-    mothersMaidenName,
     placeOfBirth,
     tin,
   } = validatedFields.data;
@@ -127,7 +125,6 @@ export const register = async (values: z.infer<typeof RegisterSchema>) => {
             province,
             city,
             barangay,
-            mothers_maiden_name: mothersMaidenName,
             place_of_birth: placeOfBirth,
             tin,
             photo_url: idPicture,
@@ -160,7 +157,7 @@ export const register = async (values: z.infer<typeof RegisterSchema>) => {
       },
     });
 
-    const memberCode = `ASN-${user.user_id.toString().padStart(4, "0")}`;
+    const memberCode = `AGP-${user.user_id.toString().padStart(12, "0")}`;
 
     const verificationToken = await generateVerificationToken(email, tenantId);
     await sendVerificationEmail(

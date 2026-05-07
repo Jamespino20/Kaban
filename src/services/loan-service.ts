@@ -180,7 +180,7 @@ export class LoanService {
           interest_applied: quote.totalInterest,
           principal_receivable: amount,
           interest_receivable: quote.totalInterest,
-          fees_applied: quote.processingFee,
+          fees_applied: quote.processingFee + quote.serviceFee,
           total_payable: quote.totalPayable,
           balance_remaining: quote.totalPayable,
         },

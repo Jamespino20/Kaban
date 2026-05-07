@@ -76,7 +76,6 @@ const EnhancedRegisterSchema = z
     city: z.string().min(1, "City is required"),
     barangay: z.string().min(1, "Barangay is required"),
     streetAddress: z.string().min(1, "Street address is required"),
-    mothersMaidenName: z.string().min(1, "Mother's maiden name is required"),
     placeOfBirth: z.string().min(1, "Place of birth is required"),
     tin: z.string().optional(),
     termsAccepted: z.boolean().refine((v) => v === true, "Must accept terms"),
@@ -153,7 +152,6 @@ export function EnhancedRegisterForm({
       city: "",
       barangay: "",
       streetAddress: "",
-      mothersMaidenName: "",
       placeOfBirth: "",
       tin: "",
       termsAccepted: false,
@@ -270,7 +268,6 @@ export function EnhancedRegisterForm({
           "birthdate",
           "gender",
           "maritalStatus",
-          "mothersMaidenName",
           "placeOfBirth",
           "businessName",
         ];
@@ -338,7 +335,6 @@ export function EnhancedRegisterForm({
         idPicture: idUrl,
         brgyCertUrl,
         businessPermitUrl,
-        mothersMaidenName: values.mothersMaidenName,
         placeOfBirth: values.placeOfBirth,
         tin: values.tin,
       })) as any;
@@ -348,7 +344,7 @@ export function EnhancedRegisterForm({
         toast.success(res.success);
         setSuccessData({
           msg: res.success,
-          memberCode: res.memberCode || "ASN-TEMP",
+          memberCode: res.memberCode || "AGP-TEMP",
         });
       }
     });
@@ -634,23 +630,6 @@ export function EnhancedRegisterForm({
                               <option value="separated">Separated</option>
                               <option value="annulled">Annulled</option>
                             </select>
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={form.control}
-                      name="mothersMaidenName"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Mother&apos;s Maiden Name</FormLabel>
-                          <FormControl>
-                            <Input
-                              {...field}
-                              placeholder="Name before marriage"
-                              className="rounded-xl h-12"
-                            />
                           </FormControl>
                           <FormMessage />
                         </FormItem>

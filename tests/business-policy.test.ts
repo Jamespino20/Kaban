@@ -20,19 +20,22 @@ test("trust score boundaries map to the full five-tier policy", () => {
 });
 
 test("available credit shrinks with outstanding balance and never goes below zero", () => {
-  assert.equal(getAvailableCreditForTier(InterestTier.T4_3_5_PERCENT, 12500), 37500);
+  assert.equal(
+    getAvailableCreditForTier(InterestTier.T4_3_5_PERCENT, 12500),
+    87500,
+  );
   assert.equal(getAvailableCreditForTier(InterestTier.T1_5_PERCENT, 6000), 0);
 });
 
 test("loan request validation blocks excess cap and invalid guarantor count", () => {
   assert.match(
     validateLoanRequestAgainstPolicy({
-      amount: 15000,
+      amount: 30000,
       termMonths: 4,
       guarantorCount: 1,
       tier: InterestTier.T2_4_5_PERCENT,
     }) || "",
-    /supports up to PHP 10,000/i,
+    /supports up to PHP 29,000/i,
   );
 
   assert.match(
@@ -93,11 +96,11 @@ test("repayment schedule uses the chosen cadence instead of staying monthly-only
   );
 });
 
-test("branch membership policy blocks more than three tenant memberships", () => {
-  assert.equal(validateBranchMembershipLimit(3), null);
+test("branch membership policy blocks more than two tenant memberships", () => {
+  assert.equal(validateBranchMembershipLimit(2), null);
   assert.match(
-    validateBranchMembershipLimit(4) || "",
-    /at most 3 branch memberships/i,
+    validateBranchMembershipLimit(3) || "",
+    /at most 2 branch memberships/i,
   );
 });
 
@@ -113,7 +116,7 @@ test("overindebtedness blocks borrowers with overdue or excessive exposure", () 
 
   const blockedByExposure = evaluateOverindebtedness({
     tier: InterestTier.T2_4_5_PERCENT,
-    totalOutstandingBalance: 9000,
+    totalOutstandingBalance: 24000,
     activeLoanCount: 1,
     overdueLoanCount: 0,
     defaultedLoanCount: 0,
