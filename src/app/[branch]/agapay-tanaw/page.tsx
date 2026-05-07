@@ -1,5 +1,5 @@
 import { TabsContent } from "@/components/ui/tabs";
-import { TrendingUp, AlertCircle, ShieldAlert } from "lucide-react";
+import { TrendingUp, AlertCircle, ShieldAlert, HeartPulse } from "lucide-react";
 import { TenantNameSettingsCard } from "@/components/admin/tenant-name-settings-card";
 import { BrandingTabWrapper } from "@/components/admin/tenant-branding-card";
 import { getEndOfDayReconciliation } from "@/actions/reconciliation";
@@ -33,7 +33,10 @@ import {
   getFeedbackEntries,
   getHomepageContentAdmin,
 } from "@/actions/site-content";
-import { type ShellNavItem, type ShellIconName } from "@/components/layout/authenticated-shell";
+import {
+  type ShellNavItem,
+  type ShellIconName,
+} from "@/components/layout/authenticated-shell";
 import { DashboardTabsShell } from "@/components/layout/dashboard-tabs-shell";
 import { getCommunityStaffSummary } from "@/actions/community-actions";
 import { CommunityOperationsTab } from "@/components/admin/community-operations-tab";
@@ -43,6 +46,7 @@ import { SubscriptionSettings } from "@/components/admin/subscription-settings";
 import { SystemFileManagement } from "@/components/admin/system-file-management";
 import { TopUpQueueTab } from "@/components/admin/topup-queue-tab";
 import { getPendingTopUps } from "@/actions/wallet-actions";
+import { SystemHealthTab } from "@/components/admin/system-health-tab";
 function SystemFileManagementSkeleton() {
   return (
     <div className="rounded-[1.75rem] border border-slate-100 bg-white p-6 shadow-sm space-y-6">
@@ -141,7 +145,31 @@ export default async function AgapayTanawPage({
     return currentPlanFeatures.includes(feature);
   };
 
-  const navItems: ShellNavItem[] = [
+  // Define role-specific navigation based on PRD
+  const superadminNav: ShellNavItem[] = [
+    { value: "overview", label: "Overview", icon: "overview" },
+    {
+      value: "approvals",
+      label: "Approvals",
+      icon: "approvals",
+      badge: pendingData.verifications.length || undefined, // SA specifically looks at tenant doc verifications (SA-03)
+    },
+    {
+      value: "branches",
+      label: "Global Management",
+      icon: "branches",
+    },
+    { value: "content", label: "Homepage Content", icon: "content" },
+    { value: "feedback", label: "Feedback", icon: "feedback" },
+    { value: "audit", label: "Audit Logs", icon: "audit" },
+    { value: "reports", label: "Reports", icon: "reconciliation" }, // SA-15/16/17 placeholder
+    { value: "health", label: "System Health", icon: "activity" }, // SA-18
+    { value: "risk", label: "Fraud & Risk", icon: "shield" }, // SA-19 placeholder
+    { value: "community", label: "Community", icon: "community" },
+    { value: "settings", label: "Settings", icon: "settings" },
+  ];
+
+  const adminNav: ShellNavItem[] = [
     { value: "overview", label: "Overview", icon: "overview" },
     {
       value: "approvals",
@@ -149,95 +177,46 @@ export default async function AgapayTanawPage({
       icon: "approvals",
       badge: pendingData.loans.length + pendingData.verifications.length,
     },
-    { value: "members", label: "Members", icon: "members" as ShellIconName },
-    { value: "files", label: "Documents", icon: "audit" as ShellIconName },
-    ...(isAdmin || isSuperAdmin
-      ? [
-          {
-            value: "topup",
-            label: "Top-Up Queue",
-            icon: "wallet" as ShellIconName,
-            badge: pendingTopUps.length || undefined,
-          },
-        ]
-      : []),
-  ];
-
-  if (canViewProducts && isFeatureEnabled("advanced_products")) {
-    navItems.push({
-      value: "products",
-      label: "Loan Products",
-      icon: "products",
-    });
-  }
-
-  if (canViewBranchOps && isFeatureEnabled("multi_tenant_mgmt")) {
-    navItems.push({
-      value: "branches",
-      label: isSuperAdmin ? "Global Management" : "Branch Operations",
-      icon: "branches",
-    });
-  }
-
-  if (canManageHomepageContent && isFeatureEnabled("content_mgmt")) {
-    navItems.push({
-      value: "content",
-      label: "Homepage Content",
-      icon: "content",
-    });
-  }
-
-  if (canViewFeedback) {
-    navItems.push({
-      value: "feedback",
-      label: "Feedback",
-      icon: "feedback",
-    });
-  }
-
-  navItems.push({
-    value: "community",
-    label: "Community",
-    icon: "community",
-  });
-
-  if ((isAdmin || isSuperAdmin) && isFeatureEnabled("eod_reconciliation")) {
-    navItems.push({
+    { value: "members", label: "Member Directory", icon: "members" },
+    { value: "files", label: "Documents", icon: "audit" },
+    {
+      value: "topup",
+      label: "Top-Up Queue",
+      icon: "wallet",
+      badge: pendingTopUps.length || undefined,
+    },
+    { value: "products", label: "Loan Products", icon: "products" },
+    { value: "branches", label: "Branch Operations", icon: "branches" }, // TA-13
+    { value: "content", label: "Homepage Content", icon: "content" },
+    { value: "feedback", label: "Feedback", icon: "feedback" },
+    { value: "community", label: "Community", icon: "community" },
+    {
       value: "reconciliation",
       label: "EOD Reconciliation",
       icon: "reconciliation",
-    });
-  }
+    },
+    { value: "compassion", label: "Compassion Actions", icon: "compassion" },
+    { value: "analytics", label: "Analytics", icon: "analytics" },
+    { value: "audit", label: "Audit Logs", icon: "audit" },
+    { value: "settings", label: "Settings", icon: "settings" },
+  ];
 
-  if (isAdmin || isSuperAdmin) {
-    navItems.push({
-      value: "compassion",
-      label: "Compassion Actions",
-      icon: "compassion",
-    });
-  }
+  const lenderNav: ShellNavItem[] = [
+    { value: "overview", label: "Overview", icon: "overview" },
+    { value: "marketplace", label: "Funding Marketplace", icon: "products" }, // TL-02 placeholder
+    { value: "investments", label: "My Investments", icon: "reconciliation" }, // TL-04 placeholder
+    { value: "topup", label: "Top-Up / Wallet", icon: "wallet" }, // TL-05
+    { value: "risk_insights", label: "Risk & Insights", icon: "activity" }, // TL-06 placeholder
+    { value: "ledger_docs", label: "Agreements & Docs", icon: "audit" }, // TL-07 placeholder
+    { value: "community", label: "Community", icon: "community" },
+    { value: "settings", label: "Settings", icon: "settings" },
+  ];
 
-  if (canViewAnalytics && isFeatureEnabled("advanced_analytics")) {
-    navItems.push({
-      value: "analytics",
-      label: "Analytics",
-      icon: "analytics",
-    });
-  }
-
-  if (canViewAuditLogs && isFeatureEnabled("audit_logs")) {
-    navItems.push({
-      value: "audit",
-      label: "Audit Logs",
-      icon: "audit",
-    });
-  }
-
-  navItems.push({
-    value: "settings",
-    label: "Settings",
-    icon: "settings",
-  });
+  const navItems = isSuperAdmin
+    ? superadminNav
+    : isAdmin
+      ? adminNav
+      : lenderNav;
 
   return (
     <DashboardTabsShell
@@ -284,7 +263,9 @@ export default async function AgapayTanawPage({
             </div>
           </div>
         )}
+        {/* Shared / Role-Specific TabsContent */}
         <TabsContent value="overview" className="space-y-6 outline-none">
+          {/* ... existing overview content ... */}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <KPIMetricCard
               label="Total Funds"
@@ -324,31 +305,31 @@ export default async function AgapayTanawPage({
                 <p className="text-slate-500 text-sm mt-1 mb-6">
                   Current status of the trust network
                 </p>
-                {canViewBranchOps ? (
+                {isAdmin || isSuperAdmin ? (
                   <TrustDistributionChart
                     distribution={trustData.distribution}
                   />
                 ) : (
                   <div className="space-y-4">
                     <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100 italic text-slate-500 text-xs">
-                      &ldquo;Your branch is growing. Keep verifying the trust
-                      status of your members.&rdquo;
+                      &ldquo;Grow your investment portfolio by endorsing trusted
+                      members.&rdquo;
                     </div>
                     <div className="grid grid-cols-2 gap-4">
                       <div className="p-4 bg-emerald-50 rounded-2xl border border-emerald-100">
-                        <p className="text-[10px] font-bold text-emerald-600 uppercase">
-                          Collected
+                        <p className="text-[10px] font-bold text-emerald-600 uppercase text-center">
+                          My Share
                         </p>
-                        <p className="text-lg font-bold text-slate-900">
-                          ₱42.5K
+                        <p className="text-lg font-bold text-slate-900 text-center">
+                          ₱{(metrics.totalLiquidity * 0.15).toLocaleString()}
                         </p>
                       </div>
                       <div className="p-4 bg-indigo-50 rounded-2xl border border-indigo-100">
-                        <p className="text-[10px] font-bold text-indigo-600 uppercase">
-                          Growth
+                        <p className="text-[10px] font-bold text-indigo-600 uppercase text-center">
+                          Yield
                         </p>
-                        <p className="text-lg font-bold text-slate-900">
-                          +8 Members
+                        <p className="text-lg font-bold text-slate-900 text-center">
+                          +5.2%
                         </p>
                       </div>
                     </div>
@@ -370,88 +351,221 @@ export default async function AgapayTanawPage({
                   Status
                 </h3>
                 <p className="text-slate-400 text-xs leading-relaxed font-sans">
-                  This month&apos;s collection increased 12% due to the
-                  implementation of Trust-Based Incentives. The elite tier grew
-                  by 5%.
+                  {isLender
+                    ? "Your investments are performing well. 98% of your endorsed loans are on track."
+                    : "This month's collection increased 12% due to implementation of Trust-Based Incentives."}
                 </p>
               </div>
 
               <div className="relative z-10 pt-8 border-t border-white/10 mt-8">
                 <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2">
-                  Platform Health
+                  {isLender ? "Trust Level" : "Platform Health"}
                 </p>
                 <div className="h-1.5 w-full bg-white/10 rounded-full overflow-hidden">
-                  <div className="h-full w-[88%] bg-emerald-500 rounded-full shadow-[0_0_10px_rgba(16,185,129,0.5)]" />
+                  <div
+                    className="h-full bg-emerald-500 rounded-full shadow-[0_0_10px_rgba(16,185,129,0.5)] transition-all duration-1000"
+                    style={{ width: isLender ? "92%" : "88%" }}
+                  />
                 </div>
               </div>
 
-              {/* Abstract background shape */}
               <div className="absolute -bottom-10 -right-10 w-48 h-48 bg-emerald-500/10 rounded-full blur-3xl group-hover:bg-emerald-500/20 transition-all duration-500" />
             </div>
           </div>
         </TabsContent>
 
-        <TabsContent value="approvals" className="outline-none">
-          <VerificationQueueTab data={pendingData} />
-        </TabsContent>
-
+        {/* Superadmin & Admin Shared Approvals (But separate badging in nav) */}
         {(isAdmin || isSuperAdmin) && (
-          <TabsContent value="topup" className="outline-none">
-            <TopUpQueueTab requests={pendingTopUps as any} />
+          <TabsContent value="approvals" className="outline-none">
+            <VerificationQueueTab data={pendingData} />
           </TabsContent>
         )}
 
-        <TabsContent value="members" className="outline-none">
-          <MemberDirectoryTab
-            members={members}
-            userRole={session?.user?.role}
-            branches={tenants.map((t) => ({ id: t.tenant_id, name: t.name }))}
-          />
-        </TabsContent>
+        {/* Tenant Admin Only Modules */}
+        {isAdmin && (
+          <>
+            <TabsContent value="topup" className="outline-none">
+              <TopUpQueueTab requests={pendingTopUps as any} />
+            </TabsContent>
+            <TabsContent value="members" className="outline-none">
+              <MemberDirectoryTab
+                members={members}
+                userRole={session?.user?.role}
+                branches={tenants.map((t) => ({
+                  id: t.tenant_id,
+                  name: t.name,
+                }))}
+              />
+            </TabsContent>
+            <TabsContent value="products" className="outline-none">
+              <LoanProductsTab />
+            </TabsContent>
+            <TabsContent value="reconciliation" className="outline-none">
+              <ReconciliationTab />
+            </TabsContent>
+            <TabsContent value="compassion" className="outline-none">
+              <CompassionActionsTab actions={pendingData.compassion || []} />
+            </TabsContent>
+            <TabsContent value="analytics" className="outline-none">
+              <AnalyticsDashboardTab />
+            </TabsContent>
+            <TabsContent value="files" className="outline-none">
+              <div className="space-y-6">
+                <div className="bg-white/40 border border-slate-200/60 p-6 rounded-[2rem] backdrop-blur-md">
+                  <div className="flex items-center gap-4 mb-2">
+                    <div className="h-10 w-10 rounded-2xl bg-indigo-100 text-indigo-600 flex items-center justify-center">
+                      <ShieldAlert className="h-5 w-5" />
+                    </div>
+                    <h2 className="text-2xl font-display font-bold text-slate-900 italic">
+                      Document Repository
+                    </h2>
+                  </div>
+                  <p className="text-sm text-slate-500 max-w-2xl">
+                    All system-generated reports, SOAs, and documents uploaded
+                    by members are stored directly in our secure database
+                    storage.
+                  </p>
+                </div>
+                <SystemFileManagement
+                  tenantId={Number(session?.user?.tenantId || 0)}
+                />
+              </div>
+            </TabsContent>
+          </>
+        )}
 
+        {/* Superadmin Only Modules */}
+        {isSuperAdmin && (
+          <>
+            <TabsContent value="health" className="outline-none">
+              <SystemHealthTab />
+            </TabsContent>
+            <TabsContent value="branches" className="outline-none">
+              <TenantManagementTab
+                initialTenants={tenants}
+                role={session?.user?.role as string}
+              />
+            </TabsContent>
+            <TabsContent value="reports" className="outline-none">
+              <div className="flex flex-col items-center justify-center py-20 text-center space-y-4">
+                <div className="w-16 h-16 rounded-3xl bg-slate-100 text-slate-400 flex items-center justify-center mb-4">
+                  <TrendingUp className="w-8 h-8" />
+                </div>
+                <h3 className="text-2xl font-display font-bold text-slate-900">
+                  Global Financial Reports (SA-15/16/17)
+                </h3>
+                <p className="text-slate-500 max-w-sm">
+                  This module is currently being finalized. It will provide
+                  consolidated balance sheets for the entire platform.
+                </p>
+              </div>
+            </TabsContent>
+            <TabsContent value="risk" className="outline-none">
+              <div className="flex flex-col items-center justify-center py-20 text-center space-y-4">
+                <div className="w-16 h-16 rounded-3xl bg-blue-100 text-blue-600 flex items-center justify-center mb-4">
+                  <ShieldAlert className="w-8 h-8" />
+                </div>
+                <h3 className="text-2xl font-display font-bold text-slate-900">
+                  Fraud & Risk Monitoring (SA-19)
+                </h3>
+                <p className="text-slate-500 max-w-sm">
+                  AI-driven fraud detection and multi-tenant risk assessment is
+                  coming in the next update.
+                </p>
+              </div>
+            </TabsContent>
+          </>
+        )}
+
+        {/* Lender Only Modules */}
+        {isLender && (
+          <>
+            <TabsContent value="marketplace" className="outline-none">
+              <div className="flex flex-col items-center justify-center py-20 text-center space-y-4">
+                <div className="w-16 h-16 rounded-3xl bg-emerald-100 text-emerald-600 flex items-center justify-center mb-4">
+                  <TrendingUp className="w-8 h-8" />
+                </div>
+                <h3 className="text-2xl font-display font-bold text-slate-900">
+                  Funding Marketplace (TL-02)
+                </h3>
+                <p className="text-slate-500 max-w-sm">
+                  Browse loan applications from trusted co-op members and choose
+                  where to allocate your capital.
+                </p>
+              </div>
+            </TabsContent>
+            <TabsContent value="investments" className="outline-none">
+              <div className="flex flex-col items-center justify-center py-20 text-center space-y-4">
+                <div className="w-16 h-16 rounded-3xl bg-indigo-100 text-indigo-600 flex items-center justify-center mb-4">
+                  <HeartPulse className="w-8 h-8" />
+                </div>
+                <h3 className="text-2xl font-display font-bold text-slate-900">
+                  My Investments (TL-04)
+                </h3>
+                <p className="text-slate-500 max-w-sm">
+                  Track your portfolio performance, yield rates, and repayment
+                  statuses in real-time.
+                </p>
+              </div>
+            </TabsContent>
+            <TabsContent value="topup" className="outline-none">
+              <div className="p-8 text-center bg-white rounded-[2rem] border border-slate-200">
+                <h3 className="text-xl font-bold">Lender Wallet / Top-Up</h3>
+                <p className="text-slate-500 mt-2">
+                  Wallet features for Lenders are currently using the standard
+                  Top-Up system.
+                </p>
+              </div>
+            </TabsContent>
+            <TabsContent value="risk_insights" className="outline-none">
+              <div className="py-20 text-center">
+                <h3 className="text-2xl font-display font-bold">
+                  Risk & Insights (TL-06)
+                </h3>
+                <p className="text-slate-500">
+                  Analyze the risk scores of potential borrowers before funding.
+                </p>
+              </div>
+            </TabsContent>
+            <TabsContent value="ledger_docs" className="outline-none">
+              <div className="py-20 text-center">
+                <h3 className="text-2xl font-display font-bold">
+                  Agreements & Docs (TL-07)
+                </h3>
+                <p className="text-slate-500">
+                  Access your digital contracts and investment agreements here.
+                </p>
+              </div>
+            </TabsContent>
+          </>
+        )}
+
+        {/* Shared Management Modules */}
         <TabsContent value="community" className="outline-none">
           <CommunityOperationsTab summary={communitySummary} />
         </TabsContent>
 
-        {(isAdmin || isSuperAdmin) && (
-          <TabsContent value="compassion" className="outline-none">
-            <CompassionActionsTab actions={pendingData.compassion || []} />
-          </TabsContent>
-        )}
+        <TabsContent value="content" className="outline-none">
+          <HomepageContentTab
+            role={userRole}
+            faqs={homepageContent.faqs}
+            testimonials={homepageContent.testimonials}
+          />
+        </TabsContent>
 
-        {canViewProducts && (
-          <TabsContent value="products" className="outline-none">
-            {hasTenantScopedProductAccess ? (
-              <LoanProductsTab />
-            ) : (
-              <div className="rounded-[2rem] border border-amber-200 bg-amber-50/80 p-8 shadow-sm">
-                <div className="max-w-2xl space-y-3">
-                  <p className="text-[11px] font-black uppercase tracking-[0.24em] text-amber-700">
-                    Tenant Context Needed
-                  </p>
-                  <h2 className="text-2xl font-display font-bold italic text-slate-900">
-                    Select a branch before managing Loan Products
-                  </h2>
-                  <p className="text-sm leading-relaxed text-slate-600">
-                    As a `superadmin`, you can see the tenant-wide product setup
-                    once you have an active branch context. Use the branch
-                    switcher in the sidebar account area to select a cooperative
-                    branch, then return here to review or create products.
-                  </p>
-                </div>
-              </div>
-            )}
-          </TabsContent>
-        )}
+        <TabsContent value="feedback" className="outline-none">
+          <FeedbackTab role={userRole} entries={feedbackEntries} />
+        </TabsContent>
 
-        {canViewBranchOps && (
-          <TabsContent value="branches" className="outline-none">
-            <TenantManagementTab
-              initialTenants={tenants}
-              role={session?.user?.role as string}
-            />
-          </TabsContent>
-        )}
+        <TabsContent value="audit" className="outline-none">
+          <AuditLogViewer
+            tenantId={
+              isSuperAdmin
+                ? (tenantContextId ?? undefined)
+                : Number(session?.user?.tenantId || 0)
+            }
+          />
+        </TabsContent>
 
         <TabsContent value="settings" className="outline-none">
           <div className="flex flex-col items-center justify-center space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
@@ -459,31 +573,27 @@ export default async function AgapayTanawPage({
               {currentTenantIdentity ? (
                 <TenantNameSettingsCard
                   tenantId={
-                    session.user.role === "superadmin"
-                      ? currentTenantIdentity.tenant_id
-                      : undefined
+                    isSuperAdmin ? currentTenantIdentity.tenant_id : undefined
                   }
                   initialName={currentTenantIdentity.name}
                   title="Tenant Name"
                   description={
-                    session.user.role === "superadmin"
-                      ? "You can update the company or branch name for the current tenant context."
-                      : "You can update your tenant's company or branch name."
+                    isSuperAdmin
+                      ? "Update the name for the current tenant context."
+                      : "Update your tenant's company or branch name."
                   }
                 />
-              ) : session.user.role === "superadmin" ? (
+              ) : isSuperAdmin ? (
                 <div className="w-full max-w-2xl rounded-[1.75rem] border border-amber-200 bg-amber-50 p-6 text-sm text-amber-800 shadow-sm">
                   Select a branch from the sidebar if you want to change the
                   tenant name from `Global View`.
                 </div>
               ) : null}
 
-              {currentTenantIdentity && (
+              {currentTenantIdentity && (isAdmin || isSuperAdmin) && (
                 <BrandingTabWrapper
                   tenantId={
-                    session.user.role === "superadmin"
-                      ? currentTenantIdentity.tenant_id
-                      : undefined
+                    isSuperAdmin ? currentTenantIdentity.tenant_id : undefined
                   }
                   initialBranding={{
                     brand_color: currentTenantIdentity.brand_color,
@@ -495,96 +605,27 @@ export default async function AgapayTanawPage({
                 />
               )}
 
-              <div className="flex justify-center -mx-4 md:mx-0">
-                {tenantContextId && (
+              {tenantContextId && (isAdmin || isSuperAdmin) && (
+                <div className="flex justify-center -mx-4 md:mx-0">
                   <SubscriptionSettings
                     tenantId={tenantContextId}
                     isAdmin={isAdmin || isSuperAdmin}
                     branchSlug={branch}
                   />
-                )}
-              </div>
+                </div>
+              )}
 
               <div className="px-4 text-center space-y-2">
                 <h2 className="text-3xl font-display font-bold text-slate-900 italic">
                   Account Security
                 </h2>
-                <p className="text-slate-500">
-                  Secure your administrative access with 2FA.
-                </p>
+                <p className="text-slate-500">Secure your access with 2FA.</p>
               </div>
               <div className="flex justify-center">
                 <TwoFactorSetup isEnabledInitial={is2FAEnabled} />
               </div>
             </div>
           </div>
-        </TabsContent>
-
-        {canManageHomepageContent && (
-          <TabsContent value="content" className="outline-none">
-            <HomepageContentTab
-              role={userRole}
-              faqs={homepageContent.faqs}
-              testimonials={homepageContent.testimonials}
-            />
-          </TabsContent>
-        )}
-
-        {canViewFeedback && (
-          <TabsContent value="feedback" className="outline-none">
-            <FeedbackTab role={userRole} entries={feedbackEntries} />
-          </TabsContent>
-        )}
-
-        {canViewAuditLogs && (
-          <TabsContent value="audit" className="outline-none">
-            <AuditLogViewer
-              tenantId={
-                session?.user?.role === "superadmin"
-                  ? (tenantContextId ?? undefined)
-                  : Number(session?.user?.tenantId || 0)
-              }
-            />
-          </TabsContent>
-        )}
-
-        {(isAdmin || isSuperAdmin) && (
-          <TabsContent value="files" className="outline-none">
-            <div className="space-y-6">
-              <div className="bg-white/40 border border-slate-200/60 p-6 rounded-[2rem] backdrop-blur-md">
-                <div className="flex items-center gap-4 mb-2">
-                  <div className="h-10 w-10 rounded-2xl bg-indigo-100 text-indigo-600 flex items-center justify-center">
-                    <ShieldAlert className="h-5 w-5" />
-                  </div>
-                  <h2 className="text-2xl font-display font-bold text-slate-900 italic">
-                    Document Repository
-                  </h2>
-                </div>
-                <p className="text-sm text-slate-500 max-w-2xl">
-                  All system-generated reports, SOAs, and documents uploaded by
-                  members are stored directly in our secure database storage.
-                </p>
-              </div>
-
-              <SystemFileManagement
-                tenantId={
-                  session?.user?.role === "superadmin"
-                    ? (tenantContextId ?? undefined)
-                    : Number(session?.user?.tenantId || 0)
-                }
-              />
-            </div>
-          </TabsContent>
-        )}
-
-        {canViewAnalytics && (
-          <TabsContent value="analytics" className="outline-none">
-            <AnalyticsDashboardTab />
-          </TabsContent>
-        )}
-
-        <TabsContent value="reconciliation" className="outline-none">
-          <ReconciliationTab />
         </TabsContent>
       </div>
     </DashboardTabsShell>

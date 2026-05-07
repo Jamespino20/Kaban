@@ -1,5 +1,10 @@
 import { TabsContent } from "@/components/ui/tabs";
-import { Wallet, LayoutDashboard, ArrowUpRight } from "lucide-react";
+import {
+  Wallet,
+  LayoutDashboard,
+  ArrowUpRight,
+  HeartPulse,
+} from "lucide-react";
 import { LoanApplicationTab } from "@/components/member/loan-application-tab";
 import { LoanServicingTab } from "@/components/member/loan-servicing-tab";
 import prisma from "@/lib/prisma";
@@ -151,8 +156,12 @@ export default async function AgapayPintigPage({
     { value: "overview", label: "Pangkalahatan", icon: "overview" },
     { value: "wallet", label: "Wallet & Ipon", icon: "wallet" },
     { value: "apply", label: "Mag-loan", icon: "apply" },
-    { value: "repayment", label: "Repayment", icon: "repayment" },
+    { value: "loans", label: "Aking mga Loan", icon: "repayment" }, // TM-03
+    { value: "payments", label: "Pagbabayad", icon: "wallet" }, // TM-04
+    { value: "vouch", label: "Vouch System", icon: "members" }, // TM-05
+    { value: "documents", label: "Mga Dokumento", icon: "approvals" }, // TM-06
     { value: "community", label: "Ka-Agapay", icon: "community" },
+    { value: "support", label: "Suporta at Feedback", icon: "feedback" }, // TM-08
     { value: "settings", label: "Settings", icon: "settings" },
   ];
 
@@ -326,8 +335,9 @@ export default async function AgapayPintigPage({
           <LoanApplicationTab />
         </TabsContent>
 
+        {/* TM-03: My Loans */}
         <TabsContent
-          value="repayment"
+          value="loans"
           className="outline-none animate-in fade-in slide-in-from-bottom-4 duration-500"
         >
           <LoanServicingTab
@@ -336,11 +346,108 @@ export default async function AgapayPintigPage({
           />
         </TabsContent>
 
+        {/* TM-04: Payments Placeholder */}
+        <TabsContent
+          value="payments"
+          className="outline-none animate-in fade-in slide-in-from-bottom-4 duration-500"
+        >
+          <div className="bg-white rounded-[2.5rem] border border-slate-100 p-12 text-center space-y-6 shadow-sm">
+            <div className="w-20 h-20 bg-emerald-50 text-emerald-500 rounded-full flex items-center justify-center mx-auto mb-4">
+              <Wallet className="w-10 h-10" />
+            </div>
+            <div className="space-y-2">
+              <h3 className="text-2xl font-display font-bold text-slate-900">
+                Ulat ng mga Bayad
+              </h3>
+              <p className="text-slate-500 max-w-md mx-auto">
+                Ang detalyadong listahan ng lahat ng iyong payment history ay
+                kasalukuyang pinapaganda. Pansamantala, makikita ang iyong
+                payments sa ilalim ng bawat loan sa &quot;Aking mga Loan&quot;
+                tab.
+              </p>
+            </div>
+          </div>
+        </TabsContent>
+
+        {/* TM-05: Vouch System Placeholder */}
+        <TabsContent
+          value="vouch"
+          className="outline-none animate-in fade-in slide-in-from-bottom-4 duration-500"
+        >
+          <div className="bg-white rounded-[2.5rem] border border-slate-100 p-12 text-center space-y-6 shadow-sm">
+            <div className="w-20 h-20 bg-indigo-50 text-indigo-500 rounded-full flex items-center justify-center mx-auto mb-4">
+              <ArrowUpRight className="w-10 h-10" />
+            </div>
+            <div className="space-y-2">
+              <h3 className="text-2xl font-display font-bold text-slate-900">
+                Vouch System
+              </h3>
+              <p className="text-slate-500 max-w-md mx-auto">
+                Parating na ang social trust validation. Dito mo magagawang
+                mag-endorso ng ibang miyembro para tulungan silang mapataas ang
+                kanilang loan limit at mapababa ang kanilang interest.
+              </p>
+            </div>
+          </div>
+        </TabsContent>
+
+        {/* TM-06: Documents Placeholder */}
+        <TabsContent
+          value="documents"
+          className="outline-none animate-in fade-in slide-in-from-bottom-4 duration-500"
+        >
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="col-span-full bg-white rounded-[2rem] border border-slate-100 p-8 shadow-sm">
+              <h2 className="text-2xl font-display font-bold text-slate-900 italic mb-2">
+                Aking mga Dokumento
+              </h2>
+              <p className="text-slate-500">
+                Pamahalaan ang iyong mga ID, sertipiko, at iba pang kailangang
+                papeles dito.
+              </p>
+            </div>
+            {/* Mock document cards */}
+            {[1, 2].map((i) => (
+              <div
+                key={i}
+                className="bg-white/50 border border-slate-100 border-dashed rounded-[1.75rem] p-6 h-40 flex flex-col items-center justify-center text-slate-400"
+              >
+                <span className="text-xs uppercase font-bold tracking-widest">
+                  Walang Laman
+                </span>
+              </div>
+            ))}
+          </div>
+        </TabsContent>
+
         <TabsContent
           value="community"
           className="outline-none animate-in fade-in slide-in-from-bottom-4 duration-500"
         >
           <CommunityTab initialData={communityData} />
+        </TabsContent>
+
+        {/* TM-08: Support Placeholder */}
+        <TabsContent
+          value="support"
+          className="outline-none animate-in fade-in slide-in-from-bottom-4 duration-500"
+        >
+          <div className="max-w-3xl mx-auto space-y-8 py-10">
+            <div className="text-center space-y-3">
+              <h2 className="text-3xl font-display font-bold text-slate-900 italic">
+                Suporta at Feedback
+              </h2>
+              <p className="text-slate-500">
+                May katanungan o komento? Narito Kami para tumulong.
+              </p>
+            </div>
+            <div className="bg-white rounded-[2.5rem] border border-slate-100 p-8 shadow-md">
+              <p className="text-center text-slate-400 italic py-10">
+                Ang support ticket system ay kasalukuyang ginagawa. Mangyaring
+                makipag-ugnayan sa iyong branch cashier para sa agarang tulong.
+              </p>
+            </div>
+          </div>
         </TabsContent>
 
         <TabsContent value="settings" className="outline-none">

@@ -79,7 +79,10 @@ export type ShellIconName =
   | "wallet"
   | "community"
   | "analytics"
-  | "reconciliation";
+  | "reconciliation"
+  | "activity"
+  | "shield"
+  | "check";
 
 const ICON_MAP = {
   overview: LayoutDashboard,
@@ -97,7 +100,10 @@ const ICON_MAP = {
   wallet: Wallet,
   community: MessagesSquare,
   analytics: TrendingUp,
-  reconciliation: History,
+  reconciliation: FileText,
+  activity: HeartPulse,
+  shield: ShieldAlert,
+  check: HeartPulse, // Using HeartPulse as placeholder for check if needed
 } satisfies Record<ShellIconName, React.ComponentType<{ className?: string }>>;
 
 export function AuthenticatedShell({
@@ -375,7 +381,7 @@ export function AuthenticatedShell({
 
       <div className="border-t border-white/10 p-3">
         <div
-          className="space-y-3 rounded-[1.75rem] border border-white/8 bg-white/5 p-3 shadow-[0_10px_30px_rgba(2,6,23,0.22)]"
+          className="space-y-3 rounded-[1.75rem] border border-white/8 bg-white/5 p-3"
           style={accountPanelStyle}
         >
           <div
