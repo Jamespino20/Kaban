@@ -1,7 +1,7 @@
 "use server";
 
 import * as z from "zod";
-import prisma, { getBranchPrisma } from "@/lib/prisma";
+import prisma from "@/lib/prisma";
 import {
   requireAdminSession,
   requireAuthenticatedSession,
@@ -65,40 +65,50 @@ async function syncOverdueSchedules(tx: any, loanId: number) {
 
 async function requireLoanAdminAccess(loanId: number) {
   const session = await requireAdminSession();
-  const db = getBranchPrisma(session.user.tenantSlug);
-  const loan = await db.loan.findUnique({
-    where: { loan_id: loanId },
-    include: {
-      tenant: {
-        include: {
-          payment_methods: {
-            where: { is_active: true },
-            orderBy: { provider_name: "asc" },
+  const tenantId = session.user.tenantId;
+
+  const targetTenantId = session.user.tenantId || -1;
+  const targetUserRole = session.user.role;
+
+  const query = async (db: any) => {
+    const loan = await db.loan.findUnique({
+      where: { loan_id: loanId },
+      include: {
+        tenant: {
+          include: {
+            payment_methods: {
+              where: { is_active: true },
+              orderBy: { provider_name: "asc" },
+            },
           },
         },
+        user: {
+          include: { profile: true },
+        },
+        product: true,
+        schedules: {
+          orderBy: { installment_number: "asc" },
+        },
       },
-      user: {
-        include: { profile: true },
-      },
-      product: true,
-      schedules: {
-        orderBy: { installment_number: "asc" },
-      },
-    },
+    });
+
+    if (!loan) {
+      throw new Error("Loan not found");
+    }
+
+    if (
+      session.user.role !== "superadmin" &&
+      loan.tenant_id !== session.user.tenantId
+    ) {
+      throw new Error("Unauthorized");
+    }
+
+    return { session, loan, tenantId };
+  };
+
+  return await prisma.$withTenant(targetTenantId, async (tx) => {
+    return await query(tx);
   });
-
-  if (!loan) {
-    throw new Error("Loan not found");
-  }
-
-  if (
-    session.user.role !== "superadmin" &&
-    loan.tenant_id !== session.user.tenantId
-  ) {
-    throw new Error("Unauthorized");
-  }
-
-  return { session, loan };
 }
 
 export async function approveLoanApplication(
@@ -106,32 +116,34 @@ export async function approveLoanApplication(
 ) {
   try {
     const { loanId } = ApproveLoanSchema.parse(input);
-    const { session, loan } = await requireLoanAdminAccess(loanId);
+    const { session, loan, tenantId } = await requireLoanAdminAccess(loanId);
 
     if (loan.status !== "pending") {
       return { error: "Loan application is no longer pending." };
     }
 
-    const db = getBranchPrisma(session.user.tenantSlug);
+    const targetTenantId = tenantId || loan.tenant_id;
 
-    await db.loan.update({
-      where: { loan_id: loanId },
-      data: {
-        status: "approved",
-        approved_at: new Date(),
-        approved_by: session.user.user_id,
-      },
-    });
+    await prisma.$withTenant(targetTenantId, async (tx) => {
+      await tx.loan.update({
+        where: { loan_id: loanId },
+        data: {
+          status: "approved",
+          approved_at: new Date(),
+          approved_by: session.user.user_id,
+        },
+      });
 
-    await db.auditLog.create({
-      data: {
-        tenant_id: loan.tenant_id,
-        user_id: session.user.user_id,
-        action: "LOAN_APPROVED",
-        entity_type: "Loan",
-        entity_id: loanId,
-        new_values: { status: "approved", mockFlow: true },
-      },
+      await tx.auditLog.create({
+        data: {
+          tenant_id: targetTenantId,
+          user_id: session.user.user_id,
+          action: "LOAN_APPROVED",
+          entity_type: "Loan",
+          entity_id: loanId,
+          new_values: { status: "approved", mockFlow: true },
+        },
+      });
     });
 
     revalidatePath("/agapay-tanaw");
@@ -150,7 +162,7 @@ export async function rejectLoanApplication(
 ) {
   try {
     const { loanId } = RejectLoanSchema.parse(input);
-    const { session, loan } = await requireLoanAdminAccess(loanId);
+    const { session, loan, tenantId } = await requireLoanAdminAccess(loanId);
 
     if (loan.status !== "pending") {
       return {
@@ -159,15 +171,17 @@ export async function rejectLoanApplication(
       };
     }
 
-    const db = getBranchPrisma(session.user.tenantSlug);
+    const targetTenantId = tenantId || loan.tenant_id;
 
-    await db.loan.update({
-      where: { loan_id: loanId },
-      data: {
-        status: "rejected",
-        approved_at: new Date(),
-        approved_by: session.user.user_id,
-      },
+    await prisma.$withTenant(targetTenantId, async (tx) => {
+      await tx.loan.update({
+        where: { loan_id: loanId },
+        data: {
+          status: "rejected",
+          approved_at: new Date(),
+          approved_by: session.user.user_id,
+        },
+      });
     });
 
     revalidatePath("/agapay-tanaw");
@@ -186,7 +200,7 @@ export async function releaseLoanFunds(
 ) {
   try {
     const { loanId } = ReleaseLoanSchema.parse(input);
-    const { session, loan } = await requireLoanAdminAccess(loanId);
+    const { session, loan, tenantId } = await requireLoanAdminAccess(loanId);
 
     if (loan.status !== "approved") {
       return {
@@ -194,13 +208,15 @@ export async function releaseLoanFunds(
       };
     }
 
-    const db = getBranchPrisma(session.user.tenantSlug);
+    const targetTenantId = tenantId || loan.tenant_id;
 
-    await db.loan.update({
-      where: { loan_id: loanId },
-      data: {
-        status: "active",
-      },
+    await prisma.$withTenant(targetTenantId, async (tx) => {
+      await tx.loan.update({
+        where: { loan_id: loanId },
+        data: {
+          status: "active",
+        },
+      });
     });
 
     revalidatePath("/agapay-tanaw");
@@ -217,32 +233,37 @@ export async function submitMockRepayment(
   try {
     const { loanId, amount, methodId } = SubmitPaymentSchema.parse(input);
     const session = await requireAuthenticatedSession();
-    const db = getBranchPrisma(session.user.tenantSlug);
+    const tenantId = session.user.tenantId;
 
-    const loan = await db.loan.findUnique({
-      where: { loan_id: loanId },
+    if (!tenantId) return { error: "Tenant context required." };
+
+    return await prisma.$withTenant(tenantId, async (tx) => {
+      const loan = await tx.loan.findUnique({
+        where: { loan_id: loanId },
+      });
+
+      if (!loan || loan.user_id !== session.user.user_id) {
+        return { error: "This action is only available for members." };
+      }
+
+      if (loan.status !== "active") {
+        return { error: "No active loan found for this transaction." };
+      }
+
+      const payment = await tx.payment.create({
+        data: {
+          tenant_id: tenantId,
+          loan_id: loanId,
+          method_id: methodId,
+          amount_paid: amount,
+          payment_reference: `MOCK-${Date.now()}`,
+          status: "pending",
+          submitted_at: new Date(),
+        },
+      });
+
+      return { success: "Repayment submitted successfully.", payment };
     });
-
-    if (!loan || loan.user_id !== session.user.user_id) {
-      return { error: "This action is only available for members." };
-    }
-
-    if (loan.status !== "active") {
-      return { error: "No active loan found for this transaction." };
-    }
-
-    const payment = await db.payment.create({
-      data: {
-        loan_id: loanId,
-        method_id: methodId,
-        amount_paid: amount,
-        payment_reference: `MOCK-${Date.now()}`,
-        status: "pending",
-        submitted_at: new Date(),
-      },
-    });
-
-    return { success: "Repayment submitted successfully.", payment };
   } catch (error) {
     console.error("submitMockRepayment failed:", error);
     return { error: "Failed to process repayment. Please try again." };
@@ -255,26 +276,30 @@ export async function verifySubmittedPayment(
   try {
     const { paymentId, notes: note } = ReviewPaymentSchema.parse(input);
     const session = await requireAuthenticatedSession();
-    const db = getBranchPrisma(session.user.tenantSlug);
+    const tenantId = session.user.tenantId;
 
-    const payment = await db.payment.findUnique({
-      where: { payment_id: paymentId },
+    if (!tenantId) return { error: "Tenant context required." };
+
+    return await prisma.$withTenant(tenantId, async (tx) => {
+      const payment = await tx.payment.findUnique({
+        where: { payment_id: paymentId },
+      });
+
+      if (!payment) {
+        return { error: "Payment record not found." };
+      }
+
+      await tx.payment.update({
+        where: { payment_id: paymentId },
+        data: {
+          status: "verified",
+          verified_at: new Date(),
+          verified_by: session.user.user_id,
+        },
+      });
+
+      return { success: "Payment verified successfully." };
     });
-
-    if (!payment) {
-      return { error: "Payment record not found." };
-    }
-
-    await db.payment.update({
-      where: { payment_id: paymentId },
-      data: {
-        status: "verified",
-        verified_at: new Date(),
-        verified_by: session.user.user_id,
-      },
-    });
-
-    return { success: "Payment verified successfully." };
   } catch (error) {
     console.error("verifySubmittedPayment failed:", error);
     return { error: "Failed to verify this repayment. Please try again." };
@@ -287,27 +312,31 @@ export async function rejectSubmittedPayment(
   try {
     const { paymentId, notes: note } = ReviewPaymentSchema.parse(input);
     const session = await requireAuthenticatedSession();
-    const db = getBranchPrisma(session.user.tenantSlug);
+    const tenantId = session.user.tenantId;
 
-    const payment = await db.payment.findUnique({
-      where: { payment_id: paymentId },
+    if (!tenantId) return { error: "Tenant context required." };
+
+    return await prisma.$withTenant(tenantId, async (tx) => {
+      const payment = await tx.payment.findUnique({
+        where: { payment_id: paymentId },
+      });
+
+      if (!payment) {
+        return { error: "Payment record not found." };
+      }
+
+      await tx.payment.update({
+        where: { payment_id: paymentId },
+        data: {
+          status: "rejected",
+          verified_at: new Date(),
+          verified_by: session.user.user_id,
+          notes: note,
+        },
+      });
+
+      return { success: "Payment rejected successfully." };
     });
-
-    if (!payment) {
-      return { error: "Payment record not found." };
-    }
-
-    await db.payment.update({
-      where: { payment_id: paymentId },
-      data: {
-        status: "rejected",
-        verified_at: new Date(),
-        verified_by: session.user.user_id,
-        notes: note,
-      },
-    });
-
-    return { success: "Payment rejected successfully." };
   } catch (error) {
     console.error("rejectSubmittedPayment failed:", error);
     return { error: "Failed to reject this repayment. Please try again." };
@@ -317,20 +346,23 @@ export async function rejectSubmittedPayment(
 export async function getLoanStatement(loanId: number) {
   try {
     const session = await requireAuthenticatedSession();
-    const db = getBranchPrisma(session.user.tenantSlug);
-    const ledgerEntries = await db.businessLedger.findMany({
-      where: {
-        loan_id: loanId,
-        account: {
-          code: "LOAN_RECEIVABLES",
-        },
-      },
-      orderBy: {
-        created_at: "desc",
-      },
-    });
+    const tenantId = session.user.tenantId;
 
-    return ledgerEntries;
+    if (!tenantId) return [];
+
+    return await prisma.$withTenant(tenantId, async (tx) => {
+      return await tx.businessLedger.findMany({
+        where: {
+          loan_id: loanId,
+          account: {
+            code: "LOAN_RECEIVABLES",
+          },
+        },
+        orderBy: {
+          created_at: "desc",
+        },
+      });
+    });
   } catch (error) {
     console.error("getLoanStatement failed:", error);
     return [];
@@ -343,22 +375,26 @@ export async function getLoanStatement(loanId: number) {
  */
 export async function recalculateLoanBalanceFromLedger(loanId: number) {
   const session = await requireAuthenticatedSession();
-  const db = getBranchPrisma(session.user.tenantSlug);
+  const tenantId = session.user.tenantId;
 
-  const entries = await db.businessLedger.findMany({
-    where: {
-      loan_id: loanId,
-      account: {
-        code: "LOAN_RECEIVABLES",
+  if (!tenantId) return 0;
+
+  return await prisma.$withTenant(tenantId, async (tx) => {
+    const entries = await tx.businessLedger.findMany({
+      where: {
+        loan_id: loanId,
+        account: {
+          code: "LOAN_RECEIVABLES",
+        },
       },
-    },
+    });
+
+    // For a receivable account: Debit (Increments) - Credit (Decrements)
+    // Principal Release = Debit. Repayment = Credit.
+    const balance = entries.reduce((acc: number, entry: any) => {
+      return acc + Number(entry.debit) - Number(entry.credit);
+    }, 0);
+
+    return Math.max(0, balance);
   });
-
-  // For a receivable account: Debit (Increments) - Credit (Decrements)
-  // Principal Release = Debit. Repayment = Credit.
-  const balance = entries.reduce((acc, entry) => {
-    return acc + Number(entry.debit) - Number(entry.credit);
-  }, 0);
-
-  return Math.max(0, balance);
 }

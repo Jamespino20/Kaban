@@ -97,11 +97,12 @@ export function CommunityTab({
     initialData.directConversations.length +
     (initialData.groupChats?.length || 0);
   const unreadCount =
-    initialData.branchRooms.filter((room) => room.hasUnread).length +
+    initialData.branchRooms.filter((room: any) => room.hasUnread).length +
     initialData.directConversations.filter(
-      (conversation) => conversation.hasUnread,
+      (conversation: any) => conversation.hasUnread,
     ).length +
-    (initialData.groupChats?.filter((group) => group.hasUnread).length || 0);
+    (initialData.groupChats?.filter((group: any) => group.hasUnread).length ||
+      0);
 
   const discoverableDirectory = useMemo(
     () => initialData.discoverableUsers || [],
@@ -386,7 +387,7 @@ export function CommunityTab({
             </div>
           </div>
           <div className="space-y-2">
-            {initialData.branchRooms.map((room) => (
+            {initialData.branchRooms.map((room: any) => (
               <ConversationButton
                 key={room.id}
                 title={room.title || "Branch Room"}
@@ -423,7 +424,7 @@ export function CommunityTab({
                 para magsimula.
               </p>
             ) : (
-              initialData.directConversations.map((conversation) => (
+              initialData.directConversations.map((conversation: any) => (
                 <ConversationButton
                   key={conversation.id}
                   title={conversation.counterparty?.name || "Direct Message"}
@@ -463,7 +464,7 @@ export function CommunityTab({
                 ibaba.
               </p>
             ) : (
-              (initialData.groupChats || []).map((group) => (
+              (initialData.groupChats || []).map((group: any) => (
                 <ConversationButton
                   key={group.id}
                   title={group.title}
@@ -488,7 +489,7 @@ export function CommunityTab({
               className="rounded-xl bg-white"
             />
             <div className="max-h-40 space-y-2 overflow-y-auto pr-1">
-              {discoverableDirectory.map((user) => (
+              {discoverableDirectory.map((user: any) => (
                 <label
                   key={user.userId}
                   className="flex items-center gap-3 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700"
@@ -538,7 +539,7 @@ export function CommunityTab({
             </div>
           </div>
           <div className="max-h-[22rem] space-y-2 overflow-y-auto pr-1">
-            {discoverableDirectory.map((user) => (
+            {discoverableDirectory.map((user: any) => (
               <div
                 key={user.userId}
                 className="rounded-2xl border border-slate-100 bg-slate-50 px-3 py-3"
@@ -580,7 +581,7 @@ export function CommunityTab({
               className="h-10 w-full rounded-xl border border-slate-200 bg-white px-3 text-sm text-slate-700"
             >
               <option value="">Pumili ng mentor o guarantor-fit</option>
-              {discoverableDirectory.map((user) => (
+              {discoverableDirectory.map((user: any) => (
                 <option key={user.userId} value={String(user.userId)}>
                   {user.name} ({user.role})
                 </option>
@@ -936,7 +937,7 @@ export function CommunityTab({
                 Wala ka pang active o pending mentorship relationships.
               </p>
             ) : (
-              initialData.mentorships.map((mentorship) => (
+              initialData.mentorships.map((mentorship: any) => (
                 <div
                   key={mentorship.id}
                   className="rounded-2xl border border-slate-100 bg-slate-50 px-4 py-3"

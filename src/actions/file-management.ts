@@ -1,6 +1,6 @@
 "use server";
 
-import prisma, { getBranchPrisma } from "@/lib/prisma";
+import prisma from "@/lib/prisma";
 import { requireAdminSession } from "@/lib/authorization";
 import { revalidatePath } from "next/cache";
 
@@ -22,14 +22,11 @@ export async function uploadSystemFile({
   tenantId?: number;
 }) {
   const session = await requireAdminSession();
-  const db = getBranchPrisma(session.user.tenantSlug);
-
-  // If not superadmin, enforce that the file belongs to their branch
   const finalTenantId =
     session.user.role === "superadmin" ? tenantId : session.user.tenantId;
 
-  try {
-    const file = await db.systemFile.create({
+  const query = async (db: any) => {
+    return await db.systemFile.create({
       data: {
         file_name: fileName,
         content_base64: contentBase64,
@@ -39,6 +36,17 @@ export async function uploadSystemFile({
         uploader_id: session.user.user_id,
       },
     });
+  };
+
+  try {
+    let file;
+    if (!finalTenantId) {
+      file = await query(prisma);
+    } else {
+      file = await prisma.$withTenant(finalTenantId, async (tx) => {
+        return await query(tx);
+      });
+    }
 
     revalidatePath("/agapay-tanaw/files");
     return { success: true, data: file };
@@ -53,9 +61,9 @@ export async function uploadSystemFile({
  */
 export async function getSystemFile(fileId: string) {
   const session = await requireAdminSession();
-  const db = getBranchPrisma(session.user.tenantSlug);
+  const tenantId = session.user.tenantId;
 
-  try {
+  const query = async (db: any) => {
     const file = await db.systemFile.findUnique({
       where: { id: fileId },
     });
@@ -73,6 +81,15 @@ export async function getSystemFile(fileId: string) {
     }
 
     return { success: true, data: file };
+  };
+
+  try {
+    if (!tenantId) {
+      return await query(prisma);
+    }
+    return await prisma.$withTenant(tenantId, async (tx) => {
+      return await query(tx);
+    });
   } catch (error) {
     console.error("Failed to retrieve system file:", error);
     return { success: false, error: "Failed to fetch file." };
@@ -84,18 +101,18 @@ export async function getSystemFile(fileId: string) {
  */
 export async function getSystemFiles(tenantId?: number) {
   const session = await requireAdminSession();
-  const db = getBranchPrisma(session.user.tenantSlug);
+  const finalTenantId =
+    session.user.role === "superadmin" ? tenantId : session.user.tenantId;
 
-  try {
+  const query = async (db: any) => {
     const whereClause: any = {};
-
     if (session.user.role !== "superadmin") {
       whereClause.tenant_id = session.user.tenantId;
     } else if (tenantId) {
       whereClause.tenant_id = tenantId;
     }
 
-    const files = await db.systemFile.findMany({
+    return await db.systemFile.findMany({
       where: whereClause,
       include: {
         uploader: {
@@ -107,6 +124,17 @@ export async function getSystemFiles(tenantId?: number) {
       },
       orderBy: { created_at: "desc" },
     });
+  };
+
+  try {
+    let files;
+    if (!finalTenantId) {
+      files = await query(prisma);
+    } else {
+      files = await prisma.$withTenant(finalTenantId, async (tx) => {
+        return await query(tx);
+      });
+    }
 
     return { success: true, data: files };
   } catch (error) {
@@ -120,9 +148,9 @@ export async function getSystemFiles(tenantId?: number) {
  */
 export async function deleteSystemFile(fileId: string) {
   const session = await requireAdminSession();
-  const db = getBranchPrisma(session.user.tenantSlug);
+  const tenantId = session.user.tenantId;
 
-  try {
+  const query = async (db: any) => {
     const file = await db.systemFile.findUnique({
       where: { id: fileId },
     });
@@ -142,8 +170,23 @@ export async function deleteSystemFile(fileId: string) {
       where: { id: fileId },
     });
 
-    revalidatePath("/agapay-tanaw/files");
     return { success: true };
+  };
+
+  try {
+    let result;
+    if (!tenantId) {
+      result = await query(prisma);
+    } else {
+      result = await prisma.$withTenant(tenantId, async (tx) => {
+        return await query(tx);
+      });
+    }
+
+    if (result.success) {
+      revalidatePath("/agapay-tanaw/files");
+    }
+    return result;
   } catch (error) {
     console.error("Failed to delete system file:", error);
     return { success: false, error: "Failed to delete file." };

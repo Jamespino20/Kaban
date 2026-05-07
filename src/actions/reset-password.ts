@@ -2,7 +2,7 @@
 
 import * as z from "zod";
 import bcrypt from "bcryptjs";
-import prisma, { getBranchPrisma } from "@/lib/prisma";
+import prisma from "@/lib/prisma";
 import { generatePasswordResetToken } from "@/lib/tokens";
 import {
   sendPasswordResetEmail,
@@ -130,11 +130,11 @@ export const resetPassword = async (
     if (tenant?.slug) tenantSlug = tenant.slug;
   }
 
-  const db = getBranchPrisma(tenantSlug);
-
-  await db.user.update({
-    where: { user_id: existingUser.user_id },
-    data: { password_hash: hashedPassword },
+  await prisma.$withTenant(existingToken.tenant_id ?? 0, async (tx) => {
+    await tx.user.update({
+      where: { user_id: existingUser.user_id },
+      data: { password_hash: hashedPassword },
+    });
   });
 
   await prisma.passwordResetToken.delete({

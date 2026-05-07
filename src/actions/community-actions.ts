@@ -1,6 +1,6 @@
 "use server";
 
-import prisma, { getBranchPrisma } from "@/lib/prisma";
+import prisma from "@/lib/prisma";
 import {
   canAccessTenantStaffResource,
   requireAuthenticatedSession,
@@ -38,18 +38,21 @@ async function requireCommunityTenantContext(): Promise<CommunityTenantContext> 
   const session = await requireAuthenticatedSession();
   return {
     session,
-    tenantId: session.user.tenantId ?? null,
-    tenantSlug: session.user.tenantSlug ?? null,
+    tenantId: session.user.tenantId,
+    tenantSlug: session.user.tenantSlug,
   };
 }
 
 async function ensureBranchRooms(
   tenantId: number,
-  actorUserId?: number | string,
-  db?: ReturnType<typeof getBranchPrisma>,
-  tenantSlug?: string | null,
+  actorUserId: number | string | undefined,
+  db: any,
 ) {
-  const database = db ?? getBranchPrisma(tenantSlug || null);
+  const database = db;
+  if (!database) {
+    throw new Error("RLS context (tx) required for ensureBranchRooms");
+  }
+
   await Promise.all(
     DEFAULT_BRANCH_ROOMS.map((room) =>
       database.conversation.upsert({
@@ -78,39 +81,45 @@ async function assertConversationAccess(
   session: AuthorizedSession,
   conversationId: string,
 ) {
-  const db = getBranchPrisma(session.user.tenantSlug);
-  const conversation = await db.conversation.findUnique({
-    where: { id: conversationId },
-    include: {
-      participants: {
-        where: { user_id: session.user.user_id },
-        take: 1,
+  const tenantId = session.user.tenantId;
+  const query = async (db: any) => {
+    const conversation = await db.conversation.findUnique({
+      where: { id: conversationId },
+      include: {
+        participants: {
+          where: { user_id: session.user.user_id },
+          take: 1,
+        },
       },
-    },
+    });
+
+    if (!conversation) {
+      throw new Error("Conversation not found.");
+    }
+
+    const sameTenant =
+      session.user.role === "superadmin"
+        ? session.user.tenantId === null ||
+          session.user.tenantId === conversation.tenant_id
+        : session.user.tenantId === conversation.tenant_id;
+
+    if (!sameTenant) {
+      throw new Error("Unauthorized");
+    }
+
+    if (
+      conversation.type === ConversationType.direct &&
+      conversation.participants.length === 0
+    ) {
+      throw new Error("Unauthorized");
+    }
+
+    return conversation;
+  };
+
+  return await prisma.$withTenant(tenantId || -1, async (tx) => {
+    return await query(tx);
   });
-
-  if (!conversation) {
-    throw new Error("Conversation not found.");
-  }
-
-  const sameTenant =
-    session.user.role === "superadmin"
-      ? session.user.tenantId === null ||
-        session.user.tenantId === conversation.tenant_id
-      : session.user.tenantId === conversation.tenant_id;
-
-  if (!sameTenant) {
-    throw new Error("Unauthorized");
-  }
-
-  if (
-    conversation.type === ConversationType.direct &&
-    conversation.participants.length === 0
-  ) {
-    throw new Error("Unauthorized");
-  }
-
-  return conversation;
 }
 
 function buildUnreadFlag(
@@ -123,8 +132,7 @@ function buildUnreadFlag(
 }
 
 export async function getCommunityDashboardData() {
-  const { session, tenantId, tenantSlug } =
-    await requireCommunityTenantContext();
+  const { session, tenantId } = await requireCommunityTenantContext();
 
   if (!tenantId) {
     return {
@@ -137,454 +145,451 @@ export async function getCommunityDashboardData() {
     };
   }
 
-  const db = getBranchPrisma(tenantSlug);
+  return await prisma.$withTenant(tenantId, async (tx) => {
+    await ensureBranchRooms(tenantId, session.user.user_id, tx);
 
-  await ensureBranchRooms(tenantId, session.user.user_id, db);
-
-  const [
-    branchRooms,
-    directConversations,
-    groupChats,
-    discoverableUsers,
-    mentorships,
-  ] = await Promise.all([
-    db.conversation.findMany({
-      where: {
-        tenant_id: tenantId,
-        type: ConversationType.branch_room,
-      },
-      include: {
-        messages: {
-          orderBy: { created_at: "desc" },
-          take: 1,
-          include: {
-            sender: {
-              include: { profile: true },
-            },
-          },
+    const [
+      branchRooms,
+      directConversations,
+      groupChats,
+      discoverableUsers,
+      mentorships,
+    ] = await Promise.all([
+      tx.conversation.findMany({
+        where: {
+          type: ConversationType.branch_room,
         },
-        participants: {
-          where: { user_id: session.user.user_id },
-          take: 1,
-        },
-      },
-      orderBy: { title: "asc" },
-    }),
-    db.conversation.findMany({
-      where: {
-        tenant_id: tenantId,
-        type: ConversationType.direct,
-        participants: {
-          some: {
-            user_id: session.user.user_id,
-          },
-        },
-      },
-      include: {
-        messages: {
-          orderBy: { created_at: "desc" },
-          take: 1,
-          include: {
-            sender: {
-              include: { profile: true },
-            },
-          },
-        },
-        participants: {
-          include: {
-            user: {
-              include: { profile: true },
-            },
-          },
-        },
-      },
-      orderBy: { updated_at: "desc" },
-    }),
-    db.conversation.findMany({
-      where: {
-        tenant_id: tenantId,
-        type: ConversationType.group_chat,
-        participants: {
-          some: {
-            user_id: session.user.user_id,
-          },
-        },
-      },
-      include: {
-        messages: {
-          orderBy: { created_at: "desc" },
-          take: 1,
-          include: {
-            sender: {
-              include: { profile: true },
-            },
-          },
-        },
-        participants: {
-          include: {
-            user: {
-              include: { profile: true },
-            },
-          },
-        },
-      },
-      orderBy: { updated_at: "desc" },
-    }),
-    db.user.findMany({
-      where: {
-        tenant_id: tenantId,
-        user_id: { not: session.user.user_id },
-        status: UserStatus.active,
-        role: {
-          in: [Role.member, Role.admin, Role.lender],
-        },
-      },
-      include: {
-        profile: true,
-        social_vouches_received: {
-          select: {
-            score: true,
-          },
-        },
-      },
-      orderBy: [{ role: "asc" }, { created_at: "desc" }],
-      take: 16,
-    }),
-    db.mentorshipConnection.findMany({
-      where: {
-        tenant_id: tenantId,
-        OR: [
-          { requester_id: session.user.user_id },
-          { mentor_id: session.user.user_id },
-        ],
-      },
-      include: {
-        requester: {
-          include: { profile: true },
-        },
-        mentor: {
-          include: { profile: true },
-        },
-        endorser: {
-          include: { profile: true },
-        },
-      },
-      orderBy: { created_at: "desc" },
-    }),
-  ]);
-
-  return {
-    requiresTenantContext: false,
-    branchRooms: branchRooms.map((room) => {
-      const lastReadAt = room.participants[0]?.last_read_at;
-      const lastMessage = room.messages[0];
-
-      return {
-        id: room.id,
-        title: room.title,
-        slug: room.slug,
-        lastMessagePreview: lastMessage?.content ?? null,
-        lastMessageAt: lastMessage?.created_at ?? null,
-        lastMessageSender:
-          lastMessage?.sender?.profile?.first_name ||
-          lastMessage?.sender?.username ||
-          null,
-        hasUnread: buildUnreadFlag(lastReadAt, lastMessage?.created_at),
-      };
-    }),
-    directConversations: directConversations.map((conversation) => {
-      const selfParticipant = conversation.participants.find(
-        (participant) => participant.user_id === session.user.user_id,
-      );
-      const counterparty = conversation.participants.find(
-        (participant) => participant.user_id !== session.user.user_id,
-      )?.user;
-      const lastMessage = conversation.messages[0];
-
-      return {
-        id: conversation.id,
-        counterparty: counterparty
-          ? {
-              userId: counterparty.user_id,
-              role: counterparty.role,
-              name:
-                counterparty.profile?.first_name &&
-                counterparty.profile?.last_name
-                  ? `${counterparty.profile.first_name} ${counterparty.profile.last_name}`
-                  : counterparty.username,
-              subtitle:
-                counterparty.profile?.business_name ||
-                counterparty.profile?.occupation ||
-                counterparty.role,
-            }
-          : null,
-        lastMessagePreview: lastMessage?.content ?? null,
-        lastMessageAt: lastMessage?.created_at ?? null,
-        lastMessageSenderId: lastMessage?.sender_id ?? null,
-        hasUnread: buildUnreadFlag(
-          selfParticipant?.last_read_at,
-          lastMessage?.created_at,
-        ),
-      };
-    }),
-    groupChats: groupChats.map((conversation) => {
-      const selfParticipant = conversation.participants.find(
-        (participant) => participant.user_id === session.user.user_id,
-      );
-      const lastMessage = conversation.messages[0];
-
-      return {
-        id: conversation.id,
-        title: conversation.title || "Group Chat",
-        participantCount: conversation.participants.length,
-        lastMessagePreview: lastMessage?.content ?? null,
-        lastMessageAt: lastMessage?.created_at ?? null,
-        lastMessageSender:
-          lastMessage?.sender?.profile?.first_name ||
-          lastMessage?.sender?.username ||
-          null,
-        hasUnread: buildUnreadFlag(
-          selfParticipant?.last_read_at,
-          lastMessage?.created_at,
-        ),
-      };
-    }),
-    discoverableUsers: discoverableUsers.map((user) => ({
-      userId: user.user_id,
-      role: user.role,
-      name:
-        user.profile?.first_name && user.profile?.last_name
-          ? `${user.profile.first_name} ${user.profile.last_name}`
-          : user.username,
-      subtitle:
-        user.profile?.business_name || user.profile?.occupation || "Ka-Agapay",
-      averageVouchScore:
-        user.social_vouches_received.length > 0
-          ? user.social_vouches_received.reduce(
-              (sum, item) => sum + item.score,
-              0,
-            ) / user.social_vouches_received.length
-          : null,
-    })),
-    mentorships: mentorships.map((connection) => ({
-      id: connection.id,
-      status: connection.status,
-      focusArea: connection.focus_area,
-      notes: connection.notes,
-      requesterName:
-        connection.requester.profile?.first_name &&
-        connection.requester.profile?.last_name
-          ? `${connection.requester.profile.first_name} ${connection.requester.profile.last_name}`
-          : connection.requester.username,
-      mentorName:
-        connection.mentor.profile?.first_name &&
-        connection.mentor.profile?.last_name
-          ? `${connection.mentor.profile.first_name} ${connection.mentor.profile.last_name}`
-          : connection.mentor.username,
-      endorsedBy:
-        connection.endorser?.profile?.first_name &&
-        connection.endorser?.profile?.last_name
-          ? `${connection.endorser.profile.first_name} ${connection.endorser.profile.last_name}`
-          : connection.endorser?.username || null,
-      createdAt: connection.created_at,
-    })),
-  };
-}
-
-export async function getCommunityStaffSummary() {
-  const session = await requireTanawSession();
-  const tenantId = session.user.tenantId ?? undefined;
-  const tenantFilter =
-    session.user.role === "superadmin" && !tenantId
-      ? {}
-      : { tenant_id: tenantId };
-
-  const db = getBranchPrisma(session.user.tenantSlug);
-  const [
-    pendingMentorships,
-    activeMentorships,
-    conversationCount,
-    recentMessages,
-  ] = await Promise.all([
-    db.mentorshipConnection.findMany({
-      where: {
-        ...tenantFilter,
-        status: MentorshipStatus.pending_endorsement,
-      },
-      include: {
-        requester: { include: { profile: true } },
-        mentor: { include: { profile: true } },
-      },
-      orderBy: { created_at: "desc" },
-      take: 10,
-    }),
-    db.mentorshipConnection.count({
-      where: {
-        ...tenantFilter,
-        status: MentorshipStatus.endorsed,
-      },
-    }),
-    db.conversation.count({
-      where: tenantFilter,
-    }),
-    db.message.findMany({
-      where: tenantFilter,
-      include: {
-        sender: { include: { profile: true } },
-        conversation: true,
-      },
-      orderBy: { created_at: "desc" },
-      take: 8,
-    }),
-  ]);
-
-  return {
-    pendingMentorships: pendingMentorships.map((connection) => ({
-      id: connection.id,
-      requesterName:
-        connection.requester.profile?.first_name &&
-        connection.requester.profile?.last_name
-          ? `${connection.requester.profile.first_name} ${connection.requester.profile.last_name}`
-          : connection.requester.username,
-      mentorName:
-        connection.mentor.profile?.first_name &&
-        connection.mentor.profile?.last_name
-          ? `${connection.mentor.profile.first_name} ${connection.mentor.profile.last_name}`
-          : connection.mentor.username,
-      focusArea: connection.focus_area,
-      createdAt: connection.created_at,
-    })),
-    activeMentorships,
-    conversationCount,
-    recentMessages: recentMessages.map((message) => ({
-      id: message.id,
-      content: message.content,
-      createdAt: message.created_at,
-      conversationTitle:
-        message.conversation.title ||
-        (message.conversation.type === ConversationType.branch_room
-          ? "Branch Room"
-          : "Direct Message"),
-      senderName:
-        message.sender.profile?.first_name && message.sender.profile?.last_name
-          ? `${message.sender.profile.first_name} ${message.sender.profile.last_name}`
-          : message.sender.username,
-    })),
-  };
-}
-
-export async function getConversationThread(
-  conversationId: string,
-  options?: { beforeMessageId?: string; take?: number },
-) {
-  const { session } = await requireCommunityTenantContext();
-  const conversation = await assertConversationAccess(session, conversationId);
-
-  if (
-    conversation.type === ConversationType.branch_room &&
-    session.user.tenantId
-  ) {
-    const db = getBranchPrisma(session.user.tenantSlug);
-    await db.conversationParticipant.upsert({
-      where: {
-        conversation_id_user_id: {
-          conversation_id: conversationId,
-          user_id: session.user.user_id,
-        },
-      },
-      update: {},
-      create: {
-        conversation_id: conversationId,
-        user_id: session.user.user_id,
-      },
-    });
-  }
-
-  const db = getBranchPrisma(session.user.tenantSlug);
-  const thread = await db.conversation.findUnique({
-    where: { id: conversationId },
-    include: {
-      messages: {
-        orderBy: { created_at: "desc" },
-        ...(options?.beforeMessageId
-          ? {
-              cursor: { id: options.beforeMessageId },
-              skip: 1,
-            }
-          : {}),
-        take: options?.take ?? 30,
         include: {
-          sender: {
-            include: { profile: true },
-          },
-          reply_to: {
+          messages: {
+            orderBy: { created_at: "desc" },
+            take: 1,
             include: {
               sender: {
                 include: { profile: true },
               },
             },
           },
-          attachments: true,
-          reactions: true,
+          participants: {
+            where: { user_id: session.user.user_id },
+            take: 1,
+          },
         },
-      },
-      participants: {
+        orderBy: { title: "asc" },
+      }),
+      tx.conversation.findMany({
+        where: {
+          type: ConversationType.direct,
+          participants: {
+            some: {
+              user_id: session.user.user_id,
+            },
+          },
+        },
         include: {
-          user: {
+          messages: {
+            orderBy: { created_at: "desc" },
+            take: 1,
+            include: {
+              sender: {
+                include: { profile: true },
+              },
+            },
+          },
+          participants: {
+            include: {
+              user: {
+                include: { profile: true },
+              },
+            },
+          },
+        },
+        orderBy: { updated_at: "desc" },
+      }),
+      tx.conversation.findMany({
+        where: {
+          type: ConversationType.group_chat,
+          participants: {
+            some: {
+              user_id: session.user.user_id,
+            },
+          },
+        },
+        include: {
+          messages: {
+            orderBy: { created_at: "desc" },
+            take: 1,
+            include: {
+              sender: {
+                include: { profile: true },
+              },
+            },
+          },
+          participants: {
+            include: {
+              user: {
+                include: { profile: true },
+              },
+            },
+          },
+        },
+        orderBy: { updated_at: "desc" },
+      }),
+      tx.user.findMany({
+        where: {
+          user_id: { not: session.user.user_id },
+          status: UserStatus.active,
+          role: {
+            in: [Role.member, Role.admin, Role.lender],
+          },
+        },
+        include: {
+          profile: true,
+          social_vouches_received: {
+            select: {
+              score: true,
+            },
+          },
+        },
+        orderBy: [{ role: "asc" }, { created_at: "desc" }],
+        take: 16,
+      }),
+      tx.mentorshipConnection.findMany({
+        where: {
+          OR: [
+            { requester_id: session.user.user_id },
+            { mentor_id: session.user.user_id },
+          ],
+        },
+        include: {
+          requester: {
+            include: { profile: true },
+          },
+          mentor: {
+            include: { profile: true },
+          },
+          endorser: {
             include: { profile: true },
           },
         },
-      },
-    },
-  });
+        orderBy: { created_at: "desc" },
+      }),
+    ]);
 
-  if (!thread) {
-    throw new Error("Conversation not found.");
-  }
+    return {
+      requiresTenantContext: false,
+      branchRooms: branchRooms.map((room: any) => {
+        const lastReadAt = room.participants[0]?.last_read_at;
+        const lastMessage = room.messages[0];
 
-  return {
-    id: thread.id,
-    type: thread.type,
-    title: thread.title,
-    participants: thread.participants.map((participant) => ({
-      userId: participant.user_id,
-      name:
-        participant.user.profile?.first_name &&
-        participant.user.profile?.last_name
-          ? `${participant.user.profile.first_name} ${participant.user.profile.last_name}`
-          : participant.user.username,
-      role: participant.user.role,
-    })),
-    messages: thread.messages.map((message) => ({
-      id: message.id,
-      content: message.content,
-      senderId: message.sender_id,
-      senderName:
-        message.sender.profile?.first_name && message.sender.profile?.last_name
-          ? `${message.sender.profile.first_name} ${message.sender.profile.last_name}`
-          : message.sender.username,
-      createdAt: message.created_at,
-      replyTo: message.reply_to
-        ? {
-            id: message.reply_to.id,
-            senderName:
-              message.reply_to.sender.profile?.first_name &&
-              message.reply_to.sender.profile?.last_name
-                ? `${message.reply_to.sender.profile.first_name} ${message.reply_to.sender.profile.last_name}`
-                : message.reply_to.sender.username,
-            content: message.reply_to.content,
-          }
-        : null,
-      attachments: message.attachments.map((attachment) => ({
-        id: attachment.id,
-        fileName: attachment.file_name,
-        fileUrl: attachment.file_url,
-        mimeType: attachment.mime_type,
-        sizeBytes: attachment.size_bytes,
+        return {
+          id: room.id,
+          title: room.title,
+          slug: room.slug,
+          lastMessagePreview: lastMessage?.content ?? null,
+          lastMessageAt: lastMessage?.created_at ?? null,
+          lastMessageSender:
+            lastMessage?.sender?.profile?.first_name ||
+            lastMessage?.sender?.username ||
+            null,
+          hasUnread: buildUnreadFlag(lastReadAt, lastMessage?.created_at),
+        };
+      }),
+      directConversations: directConversations.map((conversation: any) => {
+        const selfParticipant = conversation.participants.find(
+          (participant: any) => participant.user_id === session.user.user_id,
+        );
+        const counterparty = conversation.participants.find(
+          (participant: any) => participant.user_id !== session.user.user_id,
+        )?.user;
+        const lastMessage = conversation.messages[0];
+
+        return {
+          id: conversation.id,
+          counterparty: counterparty
+            ? {
+                userId: counterparty.user_id,
+                role: counterparty.role,
+                name:
+                  counterparty.profile?.first_name &&
+                  counterparty.profile?.last_name
+                    ? `${counterparty.profile.first_name} ${counterparty.profile.last_name}`
+                    : counterparty.username,
+                subtitle:
+                  counterparty.profile?.business_name ||
+                  counterparty.profile?.occupation ||
+                  counterparty.role,
+              }
+            : null,
+          lastMessagePreview: lastMessage?.content ?? null,
+          lastMessageAt: lastMessage?.created_at ?? null,
+          lastMessageSenderId: lastMessage?.sender_id ?? null,
+          hasUnread: buildUnreadFlag(
+            selfParticipant?.last_read_at,
+            lastMessage?.created_at,
+          ),
+        };
+      }),
+      groupChats: groupChats.map((conversation: any) => {
+        const selfParticipant = conversation.participants.find(
+          (participant: any) => participant.user_id === session.user.user_id,
+        );
+        const lastMessage = conversation.messages[0];
+
+        return {
+          id: conversation.id,
+          title: conversation.title || "Group Chat",
+          participantCount: conversation.participants.length,
+          lastMessagePreview: lastMessage?.content ?? null,
+          lastMessageAt: lastMessage?.created_at ?? null,
+          lastMessageSender:
+            lastMessage?.sender?.profile?.first_name ||
+            lastMessage?.sender?.username ||
+            null,
+          hasUnread: buildUnreadFlag(
+            selfParticipant?.last_read_at,
+            lastMessage?.created_at,
+          ),
+        };
+      }),
+      discoverableUsers: discoverableUsers.map((user: any) => ({
+        userId: user.user_id,
+        role: user.role,
+        name:
+          user.profile?.first_name && user.profile?.last_name
+            ? `${user.profile.first_name} ${user.profile.last_name}`
+            : user.username,
+        subtitle:
+          user.profile?.business_name ||
+          user.profile?.occupation ||
+          "Ka-Agapay",
+        averageVouchScore:
+          user.social_vouches_received.length > 0
+            ? user.social_vouches_received.reduce(
+                (sum: number, item: any) => sum + item.score,
+                0,
+              ) / user.social_vouches_received.length
+            : null,
       })),
-      reactions: message.reactions,
-    })),
+      mentorships: mentorships.map((connection: any) => ({
+        id: connection.id,
+        status: connection.status,
+        focusArea: connection.focus_area,
+        notes: connection.notes,
+        requesterName:
+          connection.requester.profile?.first_name &&
+          connection.requester.profile?.last_name
+            ? `${connection.requester.profile.first_name} ${connection.requester.profile.last_name}`
+            : connection.requester.username,
+        mentorName:
+          connection.mentor.profile?.first_name &&
+          connection.mentor.profile?.last_name
+            ? `${connection.mentor.profile.first_name} ${connection.mentor.profile.last_name}`
+            : connection.mentor.username,
+        endorsedBy:
+          connection.endorser?.profile?.first_name &&
+          connection.endorser?.profile?.last_name
+            ? `${connection.endorser.profile.first_name} ${connection.endorser.profile.last_name}`
+            : connection.endorser?.username || null,
+        createdAt: connection.created_at,
+      })),
+    };
+  });
+}
+
+export async function getCommunityStaffSummary() {
+  const session = await requireTanawSession();
+  const tenantId = session.user.tenantId;
+
+  const query = async (db: any) => {
+    const [
+      pendingMentorships,
+      activeMentorships,
+      conversationCount,
+      recentMessages,
+    ] = await Promise.all([
+      db.mentorshipConnection.findMany({
+        where: {
+          status: MentorshipStatus.pending_endorsement,
+        },
+        include: {
+          requester: { include: { profile: true } },
+          mentor: { include: { profile: true } },
+        },
+        orderBy: { created_at: "desc" },
+        take: 10,
+      }),
+      db.mentorshipConnection.count({
+        where: {
+          status: MentorshipStatus.endorsed,
+        },
+      }),
+      db.conversation.count(),
+      db.message.findMany({
+        include: {
+          sender: { include: { profile: true } },
+          conversation: true,
+        },
+        orderBy: { created_at: "desc" },
+        take: 8,
+      }),
+    ]);
+
+    return {
+      pendingMentorships: pendingMentorships.map((connection: any) => ({
+        id: connection.id,
+        requesterName:
+          connection.requester.profile?.first_name &&
+          connection.requester.profile?.last_name
+            ? `${connection.requester.profile.first_name} ${connection.requester.profile.last_name}`
+            : connection.requester.username,
+        mentorName:
+          connection.mentor.profile?.first_name &&
+          connection.mentor.profile?.last_name
+            ? `${connection.mentor.profile.first_name} ${connection.mentor.profile.last_name}`
+            : connection.mentor.username,
+        focusArea: connection.focus_area,
+        createdAt: connection.created_at,
+      })),
+      activeMentorships,
+      conversationCount,
+      recentMessages: recentMessages.map((message: any) => ({
+        id: message.id,
+        content: message.content,
+        createdAt: message.created_at,
+        conversationTitle:
+          message.conversation.title ||
+          (message.conversation.type === ConversationType.branch_room
+            ? "Branch Room"
+            : "Direct Message"),
+        senderName:
+          message.sender.profile?.first_name &&
+          message.sender.profile?.last_name
+            ? `${message.sender.profile.first_name} ${message.sender.profile.last_name}`
+            : message.sender.username,
+      })),
+    };
   };
+
+  return await prisma.$withTenant(tenantId || -1, async (tx) => {
+    return await query(tx);
+  });
+}
+
+export async function getConversationThread(
+  conversationId: string,
+  options?: { beforeMessageId?: string; take?: number },
+) {
+  const { session, tenantId } = await requireCommunityTenantContext();
+  const conversation = await assertConversationAccess(session, conversationId);
+
+  const query = async (db: any) => {
+    if (conversation.type === ConversationType.branch_room && tenantId) {
+      await db.conversationParticipant.upsert({
+        where: {
+          conversation_id_user_id: {
+            conversation_id: conversationId,
+            user_id: session.user.user_id,
+          },
+        },
+        update: {},
+        create: {
+          conversation_id: conversationId,
+          user_id: session.user.user_id,
+          tenant_id: tenantId,
+        },
+      });
+    }
+
+    const thread = await db.conversation.findUnique({
+      where: { id: conversationId },
+      include: {
+        messages: {
+          orderBy: { created_at: "desc" },
+          ...(options?.beforeMessageId
+            ? {
+                cursor: { id: options.beforeMessageId },
+                skip: 1,
+              }
+            : {}),
+          take: options?.take ?? 30,
+          include: {
+            sender: {
+              include: { profile: true },
+            },
+            reply_to: {
+              include: {
+                sender: {
+                  include: { profile: true },
+                },
+              },
+            },
+            attachments: true,
+            reactions: true,
+          },
+        },
+        participants: {
+          include: {
+            user: {
+              include: { profile: true },
+            },
+          },
+        },
+      },
+    });
+
+    if (!thread) {
+      throw new Error("Conversation not found.");
+    }
+
+    return {
+      id: thread.id,
+      type: thread.type,
+      title: thread.title,
+      participants: thread.participants.map((participant: any) => ({
+        userId: participant.user_id,
+        name:
+          participant.user.profile?.first_name &&
+          participant.user.profile?.last_name
+            ? `${participant.user.profile.first_name} ${participant.user.profile.last_name}`
+            : participant.user.username,
+        role: participant.user.role,
+      })),
+      messages: thread.messages.map((message: any) => ({
+        id: message.id,
+        content: message.content,
+        senderId: message.sender_id,
+        senderName:
+          message.sender.profile?.first_name &&
+          message.sender.profile?.last_name
+            ? `${message.sender.profile.first_name} ${message.sender.profile.last_name}`
+            : message.sender.username,
+        createdAt: message.created_at,
+        replyTo: message.reply_to
+          ? {
+              id: message.reply_to.id,
+              senderName:
+                message.reply_to.sender.profile?.first_name &&
+                message.reply_to.sender.profile?.last_name
+                  ? `${message.reply_to.sender.profile.first_name} ${message.reply_to.sender.profile.last_name}`
+                  : message.reply_to.sender.username,
+              content: message.reply_to.content,
+            }
+          : null,
+        attachments: message.attachments.map((attachment: any) => ({
+          id: attachment.id,
+          fileName: attachment.file_name,
+          fileUrl: attachment.file_url,
+          mimeType: attachment.mime_type,
+          sizeBytes: attachment.size_bytes,
+        })),
+        reactions: message.reactions,
+      })),
+    };
+  };
+
+  return await prisma.$withTenant(tenantId || -1, async (tx) => {
+    return await query(tx);
+  });
 }
 
 export async function openDirectConversation(targetUserId: number) {
@@ -594,48 +599,50 @@ export async function openDirectConversation(targetUserId: number) {
     return { error: "Please select a branch before using community tools." };
   }
 
-  const db = getBranchPrisma(session.user.tenantSlug);
-
   if (targetUserId === session.user.user_id) {
     return { error: "You cannot send a message to yourself." };
   }
 
-  const target = await db.user.findFirst({
-    where: { user_id: targetUserId, tenant_id: tenantId },
-  });
+  return await prisma.$withTenant(tenantId, async (tx) => {
+    const target = await tx.user.findFirst({
+      where: { user_id: targetUserId },
+    });
 
-  if (!target) {
-    return { error: "The selected member was not found in this branch." };
-  }
+    if (!target) {
+      return { error: "The selected member was not found in this branch." };
+    }
 
-  const existing = await db.conversation.findFirst({
-    where: {
-      tenant_id: tenantId,
-      type: ConversationType.direct,
-      AND: [
-        { participants: { some: { user_id: session.user.user_id } } },
-        { participants: { some: { user_id: targetUserId } } },
-      ],
-    },
-  });
-
-  if (existing) {
-    return { success: true, conversationId: existing.id };
-  }
-
-  const conversation = await db.conversation.create({
-    data: {
-      tenant_id: tenantId,
-      type: ConversationType.direct,
-      created_by: session.user.user_id,
-      participants: {
-        create: [{ user_id: session.user.user_id }, { user_id: targetUserId }],
+    const existing = await tx.conversation.findFirst({
+      where: {
+        type: ConversationType.direct,
+        AND: [
+          { participants: { some: { user_id: session.user.user_id } } },
+          { participants: { some: { user_id: targetUserId } } },
+        ],
       },
-    },
-  });
+    });
 
-  revalidatePath("/agapay-pintig");
-  return { success: true, conversationId: conversation.id };
+    if (existing) {
+      return { success: true, conversationId: existing.id };
+    }
+
+    const conversation = await tx.conversation.create({
+      data: {
+        tenant_id: tenantId,
+        type: ConversationType.direct,
+        created_by: session.user.user_id,
+        participants: {
+          create: [
+            { user_id: session.user.user_id, tenant_id: tenantId },
+            { user_id: targetUserId, tenant_id: tenantId },
+          ],
+        },
+      },
+    });
+
+    revalidatePath("/agapay-pintig");
+    return { success: true, conversationId: conversation.id };
+  });
 }
 
 export async function sendConversationMessage(input: {
@@ -659,35 +666,38 @@ export async function sendConversationMessage(input: {
     return { error: "Please enter a message or attach a file." };
   }
 
-  const db = getBranchPrisma(session.user.tenantSlug);
+  const result = await prisma.$withTenant(tenantId, async (tx) => {
+    const message = await tx.message.create({
+      data: {
+        tenant_id: tenantId,
+        conversation_id: input.conversationId,
+        sender_id: session.user.user_id,
+        content: input.content.trim(),
+        reply_to_id: input.replyToMessageId ?? null,
+        attachments: input.attachments
+          ? {
+              create: input.attachments.map((a) => ({
+                tenant_id: tenantId,
+                file_name: a.fileName,
+                file_url: a.fileUrl,
+                mime_type: a.mimeType,
+                size_bytes: a.sizeBytes,
+              })),
+            }
+          : undefined,
+      },
+    });
 
-  const message = await db.message.create({
-    data: {
-      tenant_id: tenantId,
-      conversation_id: input.conversationId,
-      sender_id: session.user.user_id,
-      content: input.content.trim(),
-      reply_to_id: input.replyToMessageId ?? null,
-      attachments: input.attachments
-        ? {
-            create: input.attachments.map((a) => ({
-              file_name: a.fileName,
-              file_url: a.fileUrl,
-              mime_type: a.mimeType,
-              size_bytes: a.sizeBytes,
-            })),
-          }
-        : undefined,
-    },
-  });
+    await tx.conversation.update({
+      where: { id: input.conversationId },
+      data: { updated_at: new Date() },
+    });
 
-  await db.conversation.update({
-    where: { id: input.conversationId },
-    data: { updated_at: new Date() },
+    return message;
   });
 
   revalidatePath("/agapay-pintig");
-  return { success: true, messageId: message.id };
+  return { success: true, messageId: result.id };
 }
 
 export async function createGroupConversation(input: {
@@ -708,34 +718,37 @@ export async function createGroupConversation(input: {
     return { error: "A group chat requires at least 3 participants." };
   }
 
-  const db = getBranchPrisma(session.user.tenantSlug);
+  return await prisma.$withTenant(tenantId, async (tx) => {
+    const validMembers = await tx.user.findMany({
+      where: { user_id: { in: allParticipantIds } },
+      select: { user_id: true },
+    });
 
-  const validMembers = await db.user.findMany({
-    where: { user_id: { in: allParticipantIds }, tenant_id: tenantId },
-    select: { user_id: true },
-  });
+    if (validMembers.length !== allParticipantIds.length) {
+      return {
+        error:
+          "One or more selected participants are not valid members of this branch.",
+      };
+    }
 
-  if (validMembers.length !== allParticipantIds.length) {
-    return {
-      error:
-        "One or more selected participants are not valid members of this branch.",
-    };
-  }
-
-  const conversation = await db.conversation.create({
-    data: {
-      tenant_id: tenantId,
-      type: ConversationType.group_chat,
-      title: input.title?.trim() || "Group Chat",
-      created_by: session.user.user_id,
-      participants: {
-        create: allParticipantIds.map((uid) => ({ user_id: uid })),
+    const conversation = await tx.conversation.create({
+      data: {
+        tenant_id: tenantId,
+        type: ConversationType.group_chat,
+        title: input.title?.trim() || "Group Chat",
+        created_by: session.user.user_id,
+        participants: {
+          create: allParticipantIds.map((uid) => ({
+            user_id: uid,
+            tenant_id: tenantId,
+          })),
+        },
       },
-    },
-  });
+    });
 
-  revalidatePath("/agapay-pintig");
-  return { success: true, conversationId: conversation.id };
+    revalidatePath("/agapay-pintig");
+    return { success: true, conversationId: conversation.id };
+  });
 }
 
 export async function requestMentorship(input: {
@@ -749,60 +762,65 @@ export async function requestMentorship(input: {
     return { error: "Please select a branch before requesting mentorship." };
   }
 
-  const db = getBranchPrisma(session.user.tenantSlug);
-
   if (input.mentorUserId === session.user.user_id) {
     return { error: "You cannot select yourself as a mentor." };
   }
 
-  const mentor = await db.user.findFirst({
-    where: { user_id: input.mentorUserId, tenant_id: tenantId },
-  });
+  try {
+    await prisma.$withTenant(tenantId, async (tx) => {
+      const mentor = await tx.user.findFirst({
+        where: { user_id: input.mentorUserId },
+      });
 
-  if (!mentor) {
-    return { error: "The selected mentor is not available in this branch." };
+      if (!mentor) {
+        throw new Error("The selected mentor is not available in this branch.");
+      }
+
+      await tx.mentorshipConnection.upsert({
+        where: {
+          tenant_id_requester_id_mentor_id: {
+            tenant_id: tenantId,
+            requester_id: session.user.user_id,
+            mentor_id: input.mentorUserId,
+          },
+        },
+        update: {
+          status: MentorshipStatus.pending_endorsement,
+          focus_area: input.focusArea?.trim() || null,
+          notes: input.notes?.trim() || null,
+          endorsed_by: null,
+          endorsed_at: null,
+        },
+        create: {
+          tenant_id: tenantId,
+          requester_id: session.user.user_id,
+          mentor_id: input.mentorUserId,
+          focus_area: input.focusArea?.trim() || null,
+          notes: input.notes?.trim() || null,
+        },
+      });
+
+      await createNotification({
+        userId: input.mentorUserId,
+        tenantId,
+        type: "mentorship_request",
+        title: "May bagong mentorship request",
+        body:
+          input.focusArea?.trim() ||
+          "May gustong lumapit sa iyo para sa mentorship o guarantor support.",
+        actionUrl: "/agapay-pintig",
+        channel: NotificationChannel.both,
+      });
+    });
+
+    revalidatePath("/agapay-pintig");
+    revalidatePath("/agapay-tanaw");
+    return {
+      success: "Naipasa na ang mentorship request para sa endorsement.",
+    };
+  } catch (err: any) {
+    return { error: err.message || "Failed to request mentorship." };
   }
-
-  await db.mentorshipConnection.upsert({
-    where: {
-      tenant_id_requester_id_mentor_id: {
-        tenant_id: tenantId,
-        requester_id: session.user.user_id,
-        mentor_id: input.mentorUserId,
-      },
-    },
-    update: {
-      status: MentorshipStatus.pending_endorsement,
-      focus_area: input.focusArea?.trim() || null,
-      notes: input.notes?.trim() || null,
-      endorsed_by: null,
-      endorsed_at: null,
-    },
-    create: {
-      tenant_id: tenantId,
-      requester_id: session.user.user_id,
-      mentor_id: input.mentorUserId,
-      focus_area: input.focusArea?.trim() || null,
-      notes: input.notes?.trim() || null,
-    },
-  });
-
-  revalidatePath("/agapay-pintig");
-  revalidatePath("/agapay-tanaw");
-
-  await createNotification({
-    userId: input.mentorUserId,
-    tenantId,
-    type: "mentorship_request",
-    title: "May bagong mentorship request",
-    body:
-      input.focusArea?.trim() ||
-      "May gustong lumapit sa iyo para sa mentorship o guarantor support.",
-    actionUrl: "/agapay-pintig",
-    channel: NotificationChannel.both,
-  });
-
-  return { success: "Naipasa na ang mentorship request para sa endorsement." };
 }
 
 export async function reviewMentorshipConnection(input: {
@@ -811,80 +829,102 @@ export async function reviewMentorshipConnection(input: {
   notes?: string;
 }) {
   const session = await requireTanawSession();
-  const db = getBranchPrisma(session.user.tenantSlug);
+  const tenantId = session.user.tenantId;
 
-  const connection = await db.mentorshipConnection.findUnique({
-    where: { id: input.connectionId },
-  });
-
-  if (!connection) {
-    return { error: "Mentorship request not found." };
+  if (!tenantId && session.user.role !== "superadmin") {
+    return { error: "Tenant context required." };
   }
 
-  if (
-    !canAccessTenantStaffResource(session, connection.tenant_id) &&
-    session.user.role !== "superadmin"
-  ) {
-    return { error: "Unauthorized" };
+  try {
+    const query = async (db: any) => {
+      const connection = await db.mentorshipConnection.findUnique({
+        where: { id: input.connectionId },
+      });
+
+      if (!connection) {
+        throw new Error("Mentorship request not found.");
+      }
+
+      if (
+        !canAccessTenantStaffResource(session, connection.tenant_id) &&
+        session.user.role !== "superadmin"
+      ) {
+        throw new Error("Unauthorized");
+      }
+
+      await db.mentorshipConnection.update({
+        where: { id: input.connectionId },
+        data: {
+          status:
+            input.status === "endorsed"
+              ? MentorshipStatus.endorsed
+              : MentorshipStatus.rejected,
+          notes: input.notes?.trim() || connection.notes,
+          endorsed_by: session.user.user_id,
+          endorsed_at: new Date(),
+        },
+      });
+
+      await createNotification({
+        userId: connection.requester_id,
+        tenantId: connection.tenant_id,
+        type:
+          input.status === "endorsed"
+            ? "mentorship_endorsed"
+            : "mentorship_rejected",
+        title:
+          input.status === "endorsed"
+            ? "Na-endorse ang mentorship request mo"
+            : "Na-reject ang mentorship request mo",
+        body:
+          input.notes?.trim() ||
+          (input.status === "endorsed"
+            ? "Maari mo nang makita ang formal mentorship connection sa Agapay."
+            : "Maaari kang makipag-usap muna at magsumite ulit kung kinakailangan."),
+        actionUrl: "/agapay-pintig",
+        channel: NotificationChannel.both,
+      });
+
+      return {
+        success:
+          input.status === "endorsed"
+            ? "Na-endorse na ang mentorship pairing."
+            : "Na-reject ang mentorship request.",
+      };
+    };
+
+    let result;
+    if (!tenantId) {
+      result = await query(prisma);
+    } else {
+      result = await prisma.$withTenant(tenantId, async (tx) => {
+        return await query(tx);
+      });
+    }
+
+    revalidatePath("/agapay-pintig");
+    revalidatePath("/agapay-tanaw");
+    return result;
+  } catch (err: any) {
+    return { error: err.message || "Failed to review mentorship." };
   }
-
-  await db.mentorshipConnection.update({
-    where: { id: input.connectionId },
-    data: {
-      status:
-        input.status === "endorsed"
-          ? MentorshipStatus.endorsed
-          : MentorshipStatus.rejected,
-      notes: input.notes?.trim() || connection.notes,
-      endorsed_by: session.user.user_id,
-      endorsed_at: new Date(),
-    },
-  });
-
-  revalidatePath("/agapay-pintig");
-  revalidatePath("/agapay-tanaw");
-
-  await createNotification({
-    userId: connection.requester_id,
-    tenantId: connection.tenant_id,
-    type:
-      input.status === "endorsed"
-        ? "mentorship_endorsed"
-        : "mentorship_rejected",
-    title:
-      input.status === "endorsed"
-        ? "Na-endorse ang mentorship request mo"
-        : "Na-reject ang mentorship request mo",
-    body:
-      input.notes?.trim() ||
-      (input.status === "endorsed"
-        ? "Maari mo nang makita ang formal mentorship connection sa Agapay."
-        : "Maaari kang makipag-usap muna at magsumite ulit kung kinakailangan."),
-    actionUrl: "/agapay-pintig",
-    channel: NotificationChannel.both,
-  });
-
-  return {
-    success:
-      input.status === "endorsed"
-        ? "Na-endorse na ang mentorship pairing."
-        : "Na-reject ang mentorship request.",
-  };
 }
 
 export async function markConversationRead(conversationId: string) {
-  const { session } = await requireCommunityTenantContext();
+  const { session, tenantId } = await requireCommunityTenantContext();
 
-  const db = getBranchPrisma(session.user.tenantSlug);
+  if (!tenantId) return { error: "Tenant context required." };
 
-  await db.conversationParticipant.update({
-    where: {
-      conversation_id_user_id: {
-        conversation_id: conversationId,
-        user_id: session.user.user_id,
+  await prisma.$withTenant(tenantId, async (tx) => {
+    await tx.conversationParticipant.update({
+      where: {
+        conversation_id_user_id: {
+          conversation_id: conversationId,
+          user_id: session.user.user_id,
+        },
       },
-    },
-    data: { last_read_at: new Date() },
+      data: { last_read_at: new Date() },
+    });
   });
 
   return { success: true };
@@ -895,31 +935,34 @@ export async function toggleMessageReaction(input: {
   emoji: string;
 }) {
   try {
-    const { session } = await requireCommunityTenantContext();
+    const { session, tenantId } = await requireCommunityTenantContext();
 
-    const db = getBranchPrisma(session.user.tenantSlug);
+    if (!tenantId) return { error: "Tenant context required." };
 
-    const existing = await db.messageReaction.findFirst({
-      where: {
-        message_id: input.messageId,
-        user_id: session.user.user_id,
-        emoji: input.emoji,
-      },
-    });
-
-    if (existing) {
-      await db.messageReaction.delete({
-        where: { id: existing.id },
-      });
-    } else {
-      await db.messageReaction.create({
-        data: {
+    await prisma.$withTenant(tenantId, async (tx) => {
+      const existing = await tx.messageReaction.findFirst({
+        where: {
           message_id: input.messageId,
           user_id: session.user.user_id,
           emoji: input.emoji,
         },
       });
-    }
+
+      if (existing) {
+        await tx.messageReaction.delete({
+          where: { id: existing.id },
+        });
+      } else {
+        await tx.messageReaction.create({
+          data: {
+            tenant_id: tenantId,
+            message_id: input.messageId,
+            user_id: session.user.user_id,
+            emoji: input.emoji,
+          },
+        });
+      }
+    });
 
     return { success: true };
   } catch (error) {

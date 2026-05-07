@@ -1,6 +1,6 @@
 "use server";
 
-import prisma, { getBranchPrisma } from "@/lib/prisma";
+import prisma from "@/lib/prisma";
 import { auth } from "@/lib/auth";
 import { z } from "zod";
 
@@ -22,20 +22,20 @@ export async function submitContextualFeedback(
 
     const parsed = FeedbackSchema.parse(input);
 
-    const db = getBranchPrisma(session.user.tenantSlug);
-
-    await db.feedbackEntry.create({
-      data: {
-        tenant_id: session.user.tenantId,
-        user_id: Number(session.user.id),
-        name: session.user.name || "Anonymous Member",
-        email: session.user.email,
-        category: parsed.category,
-        message: parsed.message,
-        subject: parsed.subject,
-        page_path: parsed.pagePath,
-        status: "open",
-      },
+    await prisma.$withTenant(session.user.tenantId, async (tx) => {
+      await tx.feedbackEntry.create({
+        data: {
+          tenant_id: session.user.tenantId,
+          user_id: Number(session.user.id),
+          name: session.user.name || "Anonymous Member",
+          email: session.user.email,
+          category: parsed.category,
+          message: parsed.message,
+          subject: parsed.subject,
+          page_path: parsed.pagePath,
+          status: "open",
+        },
+      });
     });
 
     return { success: "Salamat sa iyong feedback!" };

@@ -1,6 +1,6 @@
 "use server";
 
-import prisma, { getBranchPrisma } from "@/lib/prisma";
+import prisma from "@/lib/prisma";
 import { auth } from "@/lib/auth";
 
 export async function getUserNotifications() {
@@ -9,14 +9,17 @@ export async function getUserNotifications() {
 
   const userId = parseInt(session.user.id);
   const tenantSlug = (session.user as any).tenantSlug as string | null;
-  const db = getBranchPrisma(tenantSlug ?? null);
-
   try {
-    const notifications = await db.notification.findMany({
-      where: { user_id: userId },
-      orderBy: { created_at: "desc" },
-      take: 20,
-    });
+    const notifications = await prisma.$withTenant(
+      session.user.tenantId,
+      async (tx) => {
+        return await tx.notification.findMany({
+          where: { user_id: userId },
+          orderBy: { created_at: "desc" },
+          take: 20,
+        });
+      },
+    );
 
     return { data: notifications };
   } catch (error) {
@@ -31,15 +34,18 @@ export async function getUnreadNotificationCount() {
 
   const userId = parseInt(session.user.id);
   const tenantSlug = (session.user as any).tenantSlug as string | null;
-  const db = getBranchPrisma(tenantSlug ?? null);
-
   try {
-    const count = await db.notification.count({
-      where: {
-        user_id: userId,
-        is_read: false,
+    const count = await prisma.$withTenant(
+      session.user.tenantId,
+      async (tx) => {
+        return await tx.notification.count({
+          where: {
+            user_id: userId,
+            is_read: false,
+          },
+        });
       },
-    });
+    );
 
     return { count };
   } catch (error) {
@@ -53,12 +59,12 @@ export async function markNotificationAsRead(id: string) {
 
   const userId = parseInt(session.user.id);
   const tenantSlug = (session.user as any).tenantSlug as string | null;
-  const db = getBranchPrisma(tenantSlug ?? null);
-
   try {
-    await db.notification.update({
-      where: { id, user_id: userId },
-      data: { is_read: true },
+    await prisma.$withTenant(session.user.tenantId, async (tx) => {
+      await tx.notification.update({
+        where: { id, user_id: userId },
+        data: { is_read: true },
+      });
     });
     return { success: true };
   } catch (error) {
@@ -72,12 +78,12 @@ export async function markAllNotificationsAsRead() {
 
   const userId = parseInt(session.user.id);
   const tenantSlug = (session.user as any).tenantSlug as string | null;
-  const db = getBranchPrisma(tenantSlug ?? null);
-
   try {
-    await db.notification.updateMany({
-      where: { user_id: userId, is_read: false },
-      data: { is_read: true },
+    await prisma.$withTenant(session.user.tenantId, async (tx) => {
+      await tx.notification.updateMany({
+        where: { user_id: userId, is_read: false },
+        data: { is_read: true },
+      });
     });
     return { success: true };
   } catch (error) {

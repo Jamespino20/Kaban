@@ -309,51 +309,16 @@ export async function createBranch(
   await requireSuperadminSession();
 
   try {
-    const branch = await prisma.$transaction(async (tx) => {
-      const b = await tx.tenant.create({
-        data: {
-          name,
-          slug,
-          tenant_group_id: groupId,
-          entitlement_status: "prospect",
-          logo_url: branding?.logoUrl || null,
-          brand_color: branding?.brandColor || null,
-          accent_color: branding?.accentColor || null,
-        },
-      });
-
-      // B: Provision Physical Schema (Side Effect)
-      await tx.$executeRawUnsafe(`CREATE SCHEMA IF NOT EXISTS "${slug}"`);
-
-      try {
-        const sqlPath = path.resolve(process.cwd(), "prisma/init.sql");
-        if (fs.existsSync(sqlPath)) {
-          const sqlRaw = fs.readFileSync(sqlPath, "utf8");
-          const sqlLines = sqlRaw
-            .replace(
-              /CREATE SCHEMA IF NOT EXISTS "public";/g,
-              "-- schema public already exists",
-            )
-            .split(";")
-            .filter((line) => line.trim().length > 0);
-
-          for (const sql of sqlLines) {
-            try {
-              await tx.$executeRawUnsafe(
-                `SET search_path TO "${slug}"; ${sql}`,
-              );
-            } catch (err: any) {
-              if (!err.message.includes("already exists")) {
-                console.warn(`DDL line failed for ${slug}:`, err.message);
-              }
-            }
-          }
-        }
-      } catch (ddlErr) {
-        console.error("DDL Provisioning failed:", ddlErr);
-      }
-
-      return b;
+    const branch = await prisma.tenant.create({
+      data: {
+        name,
+        slug,
+        tenant_group_id: groupId,
+        entitlement_status: "prospect",
+        logo_url: branding?.logoUrl || null,
+        brand_color: branding?.brandColor || null,
+        accent_color: branding?.accentColor || null,
+      },
     });
 
     return { success: true, data: branch };

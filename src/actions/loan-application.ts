@@ -1,7 +1,7 @@
 "use server";
 
 import * as z from "zod";
-import prisma, { getBranchPrisma } from "@/lib/prisma";
+import prisma from "@/lib/prisma";
 import { requireAuthenticatedSession } from "@/lib/authorization";
 import { Role, UserStatus, RepaymentFrequency } from "@prisma/client";
 import { revalidatePath } from "next/cache";

@@ -19,49 +19,95 @@ model TenantGroup {
 }
 
 model Tenant {
-  tenant_id              Int                     @id @default(autoincrement())
-  tenant_group_id        Int?
-  name                   String                  @db.VarChar(100)
-  slug                   String                  @unique @db.VarChar(50)
-  brand_color            String?                 @db.VarChar(20)
-  accent_color           String?                 @db.VarChar(20)
-  font_pairing           String?                 @db.VarChar(50) @default("inter_outfit")
-  logo_url               String?                 @db.Text
-  is_active              Boolean                 @default(true)
-  created_at             DateTime                @default(now())
-  updated_at             DateTime                @updatedAt
-  entitlement_status     TenantEntitlementStatus @default(prospect)
-  lifetime_availed_at    DateTime?
-  availed_type           String?                 @db.VarChar(50) // "One-Time", "Core", "Pro"
-  region                 String?                 @db.VarChar(100)
-  metadata               Json?                   // For future flexible branch config
-  entitlement_reference  String?                 @db.VarChar(120)
-  entitlement_notes      String?
-  entitled_by_user_id    Int?
-  audit_logs             AuditLog[]
-  transfers_out          BranchTransferRequest[] @relation("TransferOut")
-  transfers_in           BranchTransferRequest[] @relation("TransferIn")
-  conversations          Conversation[]
-  decommissioned_backups DecommissionedBackup[]
-  feedbackEntries        FeedbackEntry[]
-  homepage_faqs          HomepageFaq[]
-  homepage_testimonials  HomepageTestimonial[]
-  interaction_logs       InteractionLog[]
-  products               LoanProduct[]
-  loans                  Loan[]
-  mentorship_connections MentorshipConnection[]
-  messages               Message[]
-  notifications          Notification[]
-  payment_methods        PaymentMethod[]
-  savings                SavingsAccount[]
-  tenant_group           TenantGroup?            @relation(fields: [tenant_group_id], references: [id])
-  traffic_logs           TrafficLog[]
-  users                  User[]
-  system_files           SystemFile[]
-  tenantSubscription     TenantSubscription?
-  topup_requests         TopUpRequest[]
+  tenant_id                Int                       @id @default(autoincrement())
+  tenant_group_id          Int?
+  name                     String                    @db.VarChar(100)
+  slug                     String                    @unique @db.VarChar(50)
+  brand_color              String?                   @db.VarChar(20)
+  accent_color             String?                   @db.VarChar(20)
+  font_pairing             String?                   @default("inter_outfit") @db.VarChar(50)
+  logo_url                 String?                   @db.Text
+  is_active                Boolean                   @default(true)
+  created_at               DateTime                  @default(now())
+  updated_at               DateTime                  @updatedAt
+  entitlement_status       TenantEntitlementStatus   @default(prospect)
+  lifetime_availed_at      DateTime?
+  availed_type             String?                   @db.VarChar(50) // "One-Time", "Core", "Pro"
+  region                   String?                   @db.VarChar(100)
+  metadata                 Json? // For future flexible branch config
+  entitlement_reference    String?                   @db.VarChar(120)
+  entitlement_notes        String?
+  entitled_by_user_id      Int?
+  audit_logs               AuditLog[]
+  transfers_out            BranchTransferRequest[]   @relation("TransferOut")
+  transfers_in             BranchTransferRequest[]   @relation("TransferIn")
+  conversations            Conversation[]
+  decommissioned_backups   DecommissionedBackup[]
+  feedbackEntries          FeedbackEntry[]
+  homepage_faqs            HomepageFaq[]
+  homepage_testimonials    HomepageTestimonial[]
+  interaction_logs         InteractionLog[]
+  products                 LoanProduct[]
+  loans                    Loan[]
+  mentorship_connections   MentorshipConnection[]
+  messages                 Message[]
+  notifications            Notification[]
+  payment_methods          PaymentMethod[]
+  savings                  SavingsAccount[]
+  tenant_group             TenantGroup?              @relation(fields: [tenant_group_id], references: [id])
+  traffic_logs             TrafficLog[]
+  users                    User[]
+  system_files             SystemFile[]
+  tenantSubscription       TenantSubscription?
+  topup_requests           TopUpRequest[]
+  userProfiles             UserProfile[]
+  userDocuments            UserDocument[]
+  loanSchedules            LoanSchedule[]
+  payments                 Payment[]
+  savingsTransactions      SavingsTransaction[]
+  conversationParticipants ConversationParticipant[]
+  messageAttachments       MessageAttachment[]
+  messageReactions         MessageReaction[]
+  loanGuarantees           LoanGuarantee[]
+  compassionActions        CompassionAction[]
+  businessLedgers          BusinessLedger[]
+  interestAudits           InterestAudit[]
 
   @@map("tenants")
+}
+
+// ============================================================
+// Tenant Application (SA-03)
+// ============================================================
+
+enum TenantApplicationStatus {
+  pending
+  approved
+  rejected
+}
+
+model TenantApplication {
+  application_id      Int            @id @default(autoincrement())
+  tenant_name          String         @db.VarChar(100)
+  tenant_slug         String         @unique @db.VarChar(50)
+  applicant_name      String?        @db.VarChar(150)
+  applicant_email    String         @db.VarChar(150)
+  applicant_phone    String?        @db.VarChar(20)
+  estimated_members  Int?           @default(100)
+  tenant_group_id     Int?
+  brand_color        String?        @db.VarChar(20)
+  accent_color       String?        @db.VarChar(20)
+  logo_url           String?        @db.Text
+  status             TenantApplicationStatus @default(pending)
+  submitted_by       Int
+  reviewed_by       Int?
+  reviewed_at       DateTime?
+  review_notes      String?
+  documents         Json?
+  created_at         DateTime      @default(now())
+  updated_at         DateTime      @updatedAt
+
+  @@map("tenant_applications")
 }
 
 model User {
@@ -89,6 +135,10 @@ model User {
   created_conversations     Conversation[]            @relation("ConversationCreator")
   feedback_entries          FeedbackEntry[]
   interaction_logs          InteractionLog[]
+  submitted_faqs            HomepageFaq[]         @relation("FaqSubmitter")
+  reviewed_faqs             HomepageFaq[]         @relation("FaqReviewer")
+  submitted_testimonials    HomepageTestimonial[] @relation("TestimonialSubmitter")
+  reviewed_testimonials     HomepageTestimonial[] @relation("TestimonialReviewer")
   guarantees                LoanGuarantee[]           @relation("Guarantor")
   approved_loans            Loan[]                    @relation("ApprovedLoans")
   loans                     Loan[]                    @relation("UserLoans")
@@ -105,9 +155,9 @@ model User {
   social_vouches_sent       SocialVouch[]             @relation("Voucher")
   two_factor_auth           TwoFactorAuth?
   documents                 UserDocument[]
-  system_files              SystemFile[] @relation("FileUploader")
+  system_files              SystemFile[]              @relation("FileUploader")
   topup_requests            TopUpRequest[]
-  processed_topups          TopUpRequest[] @relation("TopUpProcessor")
+  processed_topups          TopUpRequest[]            @relation("TopUpProcessor")
   profile                   UserProfile?
   tenant                    Tenant?                   @relation(fields: [tenant_id], references: [tenant_id])
 
@@ -118,39 +168,46 @@ model User {
 }
 
 model UserProfile {
-  profile_id          Int            @id @default(autoincrement())
-  user_id             Int            @unique
-  first_name          String         @db.VarChar(100)
-  middle_name         String?        @db.VarChar(100)
-  last_name           String         @db.VarChar(100)
-  gender              String?        @db.VarChar(20)
-  birthdate           DateTime?      @db.Date
-  address             String?
-  business_name       String?        @db.VarChar(150)
-  marital_status      MaritalStatus? @default(single)
-  occupation          String?        @db.VarChar(150)
-  place_of_birth      String?        @db.VarChar(150)
-  tin                 String?        @db.VarChar(20)
-  region              String?        @db.VarChar(255)
-  province            String?        @db.VarChar(255)
-  city                String?        @db.VarChar(255)
-  barangay            String?        @db.VarChar(255)
-  photo_url           String?        @db.Text
-  user                User           @relation(fields: [user_id], references: [user_id], onDelete: Cascade)
+  profile_id     Int            @id @default(autoincrement())
+  user_id        Int            @unique
+  tenant_id      Int // Mandatory for RLS
+  first_name     String         @db.VarChar(100)
+  middle_name    String?        @db.VarChar(100)
+  last_name      String         @db.VarChar(100)
+  gender         String?        @db.VarChar(20)
+  birthdate      DateTime?      @db.Date
+  address        String?
+  business_name  String?        @db.VarChar(150)
+  marital_status MaritalStatus? @default(single)
+  occupation     String?        @db.VarChar(150)
+  place_of_birth String?        @db.VarChar(150)
+  tin            String?        @db.VarChar(20)
+  region         String?        @db.VarChar(255)
+  province       String?        @db.VarChar(255)
+  city           String?        @db.VarChar(255)
+  barangay       String?        @db.VarChar(255)
+  photo_url      String?        @db.Text
+  user           User           @relation(fields: [user_id], references: [user_id], onDelete: Cascade)
+  tenant         Tenant         @relation(fields: [tenant_id], references: [tenant_id])
 
+  @@index([tenant_id])
   @@map("user_profiles")
 }
 
 model UserDocument {
   document_id         Int                @id @default(autoincrement())
   user_id             Int
+  tenant_id           Int // Mandatory for RLS
   document_type       DocumentType
+
   id_type_name        String?            @db.VarChar(100)
   file_url            String             @db.Text
   verification_status VerificationStatus @default(pending)
   uploaded_at         DateTime           @default(now())
   user                User               @relation(fields: [user_id], references: [user_id], onDelete: Cascade)
+  tenant              Tenant             @relation(fields: [tenant_id], references: [tenant_id])
 
+  @@index([tenant_id])
   @@map("user_documents")
 }
 
@@ -224,7 +281,9 @@ model Loan {
 model LoanSchedule {
   schedule_id        Int            @id @default(autoincrement())
   loan_id            Int
+  tenant_id          Int // Mandatory for RLS
   installment_number Int
+
   due_date           DateTime       @db.Date
   principal_amount   Decimal        @db.Decimal(15, 2)
   interest_amount    Decimal        @db.Decimal(15, 2)
@@ -234,7 +293,9 @@ model LoanSchedule {
   days_late          Int            @default(0)
   penalty_applied    Decimal        @default(0) @db.Decimal(15, 2)
   loan               Loan           @relation(fields: [loan_id], references: [loan_id], onDelete: Cascade)
+  tenant             Tenant         @relation(fields: [tenant_id], references: [tenant_id])
 
+  @@index([tenant_id])
   @@map("loan_schedules")
 }
 
@@ -253,6 +314,7 @@ model PaymentMethod {
 model Payment {
   payment_id        Int           @id @default(autoincrement())
   loan_id           Int
+  tenant_id         Int // Mandatory for RLS
   method_id         Int
   payment_reference String        @unique @db.VarChar(100)
   amount_paid       Decimal       @db.Decimal(15, 2)
@@ -265,7 +327,9 @@ model Payment {
   loan              Loan          @relation(fields: [loan_id], references: [loan_id])
   payment_method    PaymentMethod @relation(fields: [method_id], references: [method_id])
   verifier          User?         @relation("VerifiedPayments", fields: [verified_by], references: [user_id])
+  tenant            Tenant        @relation(fields: [tenant_id], references: [tenant_id])
 
+  @@index([tenant_id])
   @@map("payments")
 }
 
@@ -291,26 +355,29 @@ model SavingsAccount {
 }
 
 model SavingsTransaction {
-  transaction_id            Int             @id @default(autoincrement())
-  account_id                Int
-  transaction_type          TransactionType
-  amount                    Decimal         @db.Decimal(15, 2)
-  fee_amount                Decimal         @default(0) @db.Decimal(15, 2)
-  net_amount                Decimal?        @db.Decimal(15, 2)
-  status                    PaymentStatus   @default(verified)
-  method_label              String?         @db.VarChar(80)
-  external_reference        String?         @db.VarChar(120)
-  reference                 String?         @db.VarChar(100)
-  reconciliation_reference  String?         @db.VarChar(120)
-  ledger_transaction_id     String?
-  issue_status              String          @default("none") @db.VarChar(50)
-  issue_reported_at         DateTime?
-  issue_notes               String?
-  processed_at              DateTime        @default(now())
-  processed_by              Int?
-  account                   SavingsAccount  @relation(fields: [account_id], references: [account_id])
-  processor                 User?           @relation("ProcessedSavings", fields: [processed_by], references: [user_id])
+  transaction_id           Int             @id @default(autoincrement())
+  account_id               Int
+  tenant_id                Int // Mandatory for RLS
+  transaction_type         TransactionType
+  amount                   Decimal         @db.Decimal(15, 2)
+  fee_amount               Decimal         @default(0) @db.Decimal(15, 2)
+  net_amount               Decimal?        @db.Decimal(15, 2)
+  status                   PaymentStatus   @default(verified)
+  method_label             String?         @db.VarChar(80)
+  external_reference       String?         @db.VarChar(120)
+  reference                String?         @db.VarChar(100)
+  reconciliation_reference String?         @db.VarChar(120)
+  ledger_transaction_id    String?
+  issue_status             String          @default("none") @db.VarChar(50)
+  issue_reported_at        DateTime?
+  issue_notes              String?
+  processed_at             DateTime        @default(now())
+  processed_by             Int?
+  account                  SavingsAccount  @relation(fields: [account_id], references: [account_id])
+  processor                User?           @relation("ProcessedSavings", fields: [processed_by], references: [user_id])
+  tenant                   Tenant          @relation(fields: [tenant_id], references: [tenant_id])
 
+  @@index([tenant_id])
   @@index([account_id, status, processed_at])
   @@index([reconciliation_reference])
   @@index([ledger_transaction_id])
@@ -319,57 +386,78 @@ model SavingsTransaction {
 }
 
 model AuditLog {
-  log_id      Int      @id @default(autoincrement())
-  tenant_id   Int?
-  user_id     Int?
-  action      String   @db.VarChar(100)
-  entity_type String   @db.VarChar(50)
-  entity_id   Int?
-  old_values  Json?
-  new_values  Json?
-  ip_address  String?  @db.VarChar(45)
-  user_agent  String?
-  created_at  DateTime @default(now())
-  city        String?  @db.VarChar(100)
-  region      String?  @db.VarChar(100)
-  tenant      Tenant?  @relation(fields: [tenant_id], references: [tenant_id])
-  user        User?    @relation(fields: [user_id], references: [user_id])
+  log_id                  Int                 @id @default(autoincrement())
+  tenant_id               Int?
+  user_id                 Int?
+  actor_role              Role?
+  actor_label             String?             @db.VarChar(150)
+  module                  AuditModule         @default(system)
+  action                  String              @db.VarChar(100)
+  action_category         AuditActionCategory @default(other)
+  severity                AuditSeverity       @default(info)
+  entity_type             String              @db.VarChar(80)
+  entity_id               Int?
+  entity_ref              String?             @db.VarChar(120)
+  request_id              String?             @db.VarChar(120)
+  session_id              String?             @db.VarChar(120)
+  old_values              Json?
+  new_values              Json?
+  changed_fields          Json?
+  ip_address              String?             @db.VarChar(45)
+  user_agent              String?
+  route                   String?             @db.VarChar(255)
+  http_method             String?             @db.VarChar(12)
+  city                    String?             @db.VarChar(100)
+  region                  String?             @db.VarChar(100)
+  is_cross_tenant_visible Boolean             @default(false)
+  metadata                Json?
+  created_at              DateTime            @default(now())
+  tenant                  Tenant?             @relation(fields: [tenant_id], references: [tenant_id])
+  user                    User?               @relation(fields: [user_id], references: [user_id])
 
+  @@index([tenant_id, module, created_at])
+  @@index([user_id, created_at])
+  @@index([entity_type, entity_id])
+  @@index([entity_ref])
+  @@index([action_category, severity])
+  @@index([request_id])
+  @@index([session_id])
+  @@index([is_cross_tenant_visible, created_at])
   @@map("audit_logs")
 }
 
 model ImbalanceInvestigation {
-  id                            Int                         @id @default(autoincrement())
-  tenant_id                     Int?
-  source_module                 ImbalanceSourceModule
-  source_entity_type            String?                     @db.VarChar(80)
-  source_entity_id              String?                     @db.VarChar(120)
-  expected_amount               Decimal                     @db.Decimal(15, 2)
-  actual_amount                 Decimal                     @db.Decimal(15, 2)
-  difference_amount             Decimal                     @db.Decimal(15, 2)
-  status                        ImbalanceInvestigationStatus @default(detected)
-  priority                      String                      @default("normal") @db.VarChar(30)
-  reconciliation_reference      String?                     @db.VarChar(120)
-  related_ledger_transaction_id String?
-  related_wallet_transaction_id Int?
-  related_topup_request_id      Int?
-  related_loan_id               Int?
-  related_payment_id            Int?
-  assigned_to                   Int?
-  assigned_at                   DateTime?
-  detected_at                   DateTime                    @default(now())
-  investigated_at               DateTime?
-  resolved_at                   DateTime?
-  resolved_by                   Int?
-  resolution_action             ImbalanceResolutionAction?
-  adjustment_ledger_transaction_id String?
+  id                                Int                          @id @default(autoincrement())
+  tenant_id                         Int?
+  source_module                     ImbalanceSourceModule
+  source_entity_type                String?                      @db.VarChar(80)
+  source_entity_id                  String?                      @db.VarChar(120)
+  expected_amount                   Decimal                      @db.Decimal(15, 2)
+  actual_amount                     Decimal                      @db.Decimal(15, 2)
+  difference_amount                 Decimal                      @db.Decimal(15, 2)
+  status                            ImbalanceInvestigationStatus @default(detected)
+  priority                          String                       @default("normal") @db.VarChar(30)
+  reconciliation_reference          String?                      @db.VarChar(120)
+  related_ledger_transaction_id     String?
+  related_wallet_transaction_id     Int?
+  related_topup_request_id          Int?
+  related_loan_id                   Int?
+  related_payment_id                Int?
+  assigned_to                       Int?
+  assigned_at                       DateTime?
+  detected_at                       DateTime                     @default(now())
+  investigated_at                   DateTime?
+  resolved_at                       DateTime?
+  resolved_by                       Int?
+  resolution_action                 ImbalanceResolutionAction?
+  adjustment_ledger_transaction_id  String?
   adjustment_savings_transaction_id Int?
-  audit_log_id                  Int?
-  notes                         String?
-  resolution_notes              String?
-  metadata                      Json?
-  created_at                    DateTime                    @default(now())
-  updated_at                    DateTime                    @updatedAt
+  audit_log_id                      Int?
+  notes                             String?
+  resolution_notes                  String?
+  metadata                          Json?
+  created_at                        DateTime                     @default(now())
+  updated_at                        DateTime                     @updatedAt
 
   @@index([tenant_id, status, detected_at])
   @@index([source_module, source_entity_id])
@@ -385,40 +473,40 @@ model ImbalanceInvestigation {
 }
 
 model DailyReconciliation {
-  id                              Int                        @id @default(autoincrement())
-  tenant_id                       Int
-  business_date                   DateTime                   @db.Date
-  status                          DailyReconciliationStatus  @default(draft)
-  total_disbursed                 Decimal                    @default(0) @db.Decimal(15, 2)
-  disbursed_count                 Int                        @default(0)
-  total_collected                 Decimal                    @default(0) @db.Decimal(15, 2)
-  collected_count                 Int                        @default(0)
-  total_ledger_debits             Decimal                    @default(0) @db.Decimal(15, 2)
-  total_ledger_credits            Decimal                    @default(0) @db.Decimal(15, 2)
-  is_ledger_balanced              Boolean                    @default(false)
-  total_branch_savings            Decimal                    @default(0) @db.Decimal(15, 2)
-  total_treasury_balance          Decimal                    @default(0) @db.Decimal(15, 2)
-  imbalance_amount                Decimal                    @default(0) @db.Decimal(15, 2)
-  has_discrepancy                 Boolean                    @default(false)
-  signoff_blocked                 Boolean                    @default(false)
-  block_reason                    String?
-  reconciliation_reference        String                     @unique @db.VarChar(120)
-  imbalance_investigation_id      Int?
-  resolution_action               ImbalanceResolutionAction?
-  resolution_reference            String?                    @db.VarChar(120)
+  id                               Int                        @id @default(autoincrement())
+  tenant_id                        Int
+  business_date                    DateTime                   @db.Date
+  status                           DailyReconciliationStatus  @default(draft)
+  total_disbursed                  Decimal                    @default(0) @db.Decimal(15, 2)
+  disbursed_count                  Int                        @default(0)
+  total_collected                  Decimal                    @default(0) @db.Decimal(15, 2)
+  collected_count                  Int                        @default(0)
+  total_ledger_debits              Decimal                    @default(0) @db.Decimal(15, 2)
+  total_ledger_credits             Decimal                    @default(0) @db.Decimal(15, 2)
+  is_ledger_balanced               Boolean                    @default(false)
+  total_branch_savings             Decimal                    @default(0) @db.Decimal(15, 2)
+  total_treasury_balance           Decimal                    @default(0) @db.Decimal(15, 2)
+  imbalance_amount                 Decimal                    @default(0) @db.Decimal(15, 2)
+  has_discrepancy                  Boolean                    @default(false)
+  signoff_blocked                  Boolean                    @default(false)
+  block_reason                     String?
+  reconciliation_reference         String                     @unique @db.VarChar(120)
+  imbalance_investigation_id       Int?
+  resolution_action                ImbalanceResolutionAction?
+  resolution_reference             String?                    @db.VarChar(120)
   adjustment_ledger_transaction_id String?
-  audit_log_id                    Int?
-  prepared_by                     Int?
-  prepared_at                     DateTime                   @default(now())
-  signed_off_by                   Int?
-  signed_off_at                   DateTime?
-  approved_by                     Int?
-  approved_at                     DateTime?
-  approval_notes                  String?
-  notes                           String?
-  metadata                        Json?
-  created_at                      DateTime                   @default(now())
-  updated_at                      DateTime                   @updatedAt
+  audit_log_id                     Int?
+  prepared_by                      Int?
+  prepared_at                      DateTime                   @default(now())
+  signed_off_by                    Int?
+  signed_off_at                    DateTime?
+  approved_by                      Int?
+  approved_at                      DateTime?
+  approval_notes                   String?
+  notes                            String?
+  metadata                         Json?
+  created_at                       DateTime                   @default(now())
+  updated_at                       DateTime                   @updatedAt
 
   @@unique([tenant_id, business_date])
   @@index([tenant_id, status, business_date])
@@ -478,6 +566,8 @@ model HomepageFaq {
   submitted_by_user_id Int?
   reviewed_by_user_id  Int?
   tenant               Tenant?  @relation(fields: [tenant_id], references: [tenant_id], onDelete: Cascade)
+  submitted_by_user    User?    @relation("FaqSubmitter", fields: [submitted_by_user_id], references: [user_id])
+  reviewed_by_user     User?    @relation("FaqReviewer", fields: [reviewed_by_user_id], references: [user_id])
 
   @@index([tenant_id, workflow_status, is_active, sort_order])
   @@map("homepage_faqs")
@@ -500,30 +590,105 @@ model HomepageTestimonial {
   submitted_by_user_id Int?
   reviewed_by_user_id  Int?
   tenant               Tenant?  @relation(fields: [tenant_id], references: [tenant_id], onDelete: Cascade)
+  submitted_by_user    User?    @relation("TestimonialSubmitter", fields: [submitted_by_user_id], references: [user_id])
+  reviewed_by_user     User?    @relation("TestimonialReviewer", fields: [reviewed_by_user_id], references: [user_id])
 
   @@index([tenant_id, workflow_status, is_active, sort_order])
   @@map("homepage_testimonials")
 }
 
 model FeedbackEntry {
-  id         Int      @id @default(autoincrement())
-  tenant_id  Int?
-  user_id    Int?
-  name       String   @db.VarChar(150)
-  email      String?  @db.VarChar(150)
-  category   String   @db.VarChar(100)
-  page_path  String?  @db.VarChar(255)
-  subject    String?  @db.VarChar(255)
-  message    String
-  status     String   @default("open") @db.VarChar(50)
-  created_at DateTime @default(now())
-  updated_at DateTime @updatedAt
-  tenant     Tenant?  @relation(fields: [tenant_id], references: [tenant_id])
-  user       User?    @relation(fields: [user_id], references: [user_id])
+  id                    Int             @id @default(autoincrement())
+  tenant_id             Int?
+  user_id               Int?
+  name                  String          @db.VarChar(150)
+  email                 String?         @db.VarChar(150)
+  category              String          @db.VarChar(100)
+  feedback_type         FeedbackType    @default(general)
+  module_context        FeedbackModule  @default(general)
+  related_entity_type   String?         @db.VarChar(80)
+  related_entity_id     String?         @db.VarChar(120)
+  wallet_transaction_id Int?
+  loan_id               Int?
+  payment_id            Int?
+  topup_request_id      Int?
+  support_ticket_id     Int?
+  page_path             String?         @db.VarChar(255)
+  subject               String?         @db.VarChar(255)
+  message               String
+  status                String          @default("open") @db.VarChar(50)
+  priority              SupportPriority @default(normal)
+  assigned_to           Int?
+  assigned_at           DateTime?
+  resolved_by           Int?
+  resolved_at           DateTime?
+  resolution_notes      String?
+  audit_log_id          Int?
+  metadata              Json?
+  created_at            DateTime        @default(now())
+  updated_at            DateTime        @updatedAt
+  tenant                Tenant?         @relation(fields: [tenant_id], references: [tenant_id])
+  user                  User?           @relation(fields: [user_id], references: [user_id])
 
   @@index([tenant_id, status, created_at])
   @@index([user_id, created_at])
+  @@index([feedback_type, module_context])
+  @@index([related_entity_type, related_entity_id])
+  @@index([wallet_transaction_id])
+  @@index([loan_id])
+  @@index([payment_id])
+  @@index([topup_request_id])
+  @@index([support_ticket_id])
+  @@index([assigned_to, status])
+  @@index([priority, status])
+  @@index([audit_log_id])
   @@map("feedback_entries")
+}
+
+model SupportTicket {
+  id                    Int                   @id @default(autoincrement())
+  ticket_number         String                @unique @db.VarChar(50)
+  tenant_id             Int?
+  requester_id          Int?
+  feedback_entry_id     Int?
+  category              SupportTicketCategory
+  module_context        FeedbackModule        @default(general)
+  status                SupportTicketStatus   @default(open)
+  priority              SupportPriority       @default(normal)
+  subject               String                @db.VarChar(255)
+  description           String
+  related_entity_type   String?               @db.VarChar(80)
+  related_entity_id     String?               @db.VarChar(120)
+  wallet_transaction_id Int?
+  loan_id               Int?
+  payment_id            Int?
+  topup_request_id      Int?
+  assigned_to           Int?
+  assigned_at           DateTime?
+  first_response_at     DateTime?
+  resolved_by           Int?
+  resolved_at           DateTime?
+  closed_at             DateTime?
+  resolution_summary    String?
+  escalation_level      Int                   @default(0)
+  audit_log_id          Int?
+  metadata              Json?
+  created_at            DateTime              @default(now())
+  updated_at            DateTime              @updatedAt
+
+  @@index([tenant_id, status, priority, created_at])
+  @@index([requester_id, created_at])
+  @@index([feedback_entry_id])
+  @@index([category, status])
+  @@index([module_context, status])
+  @@index([related_entity_type, related_entity_id])
+  @@index([wallet_transaction_id])
+  @@index([loan_id])
+  @@index([payment_id])
+  @@index([topup_request_id])
+  @@index([assigned_to, status])
+  @@index([audit_log_id])
+  @@map("support_tickets")
 }
 
 model VerificationToken {
@@ -607,12 +772,16 @@ model ConversationParticipant {
   id              String       @id @default(cuid())
   conversation_id String
   user_id         Int
+  tenant_id       Int // Mandatory for RLS
   joined_at       DateTime     @default(now())
+
   last_read_at    DateTime?
   conversation    Conversation @relation(fields: [conversation_id], references: [id], onDelete: Cascade)
   user            User         @relation(fields: [user_id], references: [user_id], onDelete: Cascade)
+  tenant          Tenant       @relation(fields: [tenant_id], references: [tenant_id])
 
   @@unique([conversation_id, user_id])
+  @@index([tenant_id])
   @@index([user_id, last_read_at])
   @@map("conversation_participants")
 }
@@ -641,13 +810,17 @@ model MentorshipConnection {
 model MessageAttachment {
   id         String   @id @default(cuid())
   message_id String
+  tenant_id  Int // Mandatory for RLS
   file_name  String   @db.VarChar(255)
+
   file_url   String   @db.VarChar(255)
   mime_type  String   @db.VarChar(100)
   size_bytes Int
   created_at DateTime @default(now())
   message    Message  @relation(fields: [message_id], references: [id], onDelete: Cascade)
+  tenant     Tenant   @relation(fields: [tenant_id], references: [tenant_id])
 
+  @@index([tenant_id])
   @@index([message_id, created_at])
   @@map("message_attachments")
 }
@@ -656,12 +829,16 @@ model MessageReaction {
   id         String   @id @default(cuid())
   message_id String
   user_id    Int
+  tenant_id  Int // Mandatory for RLS
   emoji      String   @db.VarChar(24)
+
   created_at DateTime @default(now())
   message    Message  @relation(fields: [message_id], references: [id], onDelete: Cascade)
   user       User     @relation(fields: [user_id], references: [user_id], onDelete: Cascade)
+  tenant     Tenant   @relation(fields: [tenant_id], references: [tenant_id])
 
   @@unique([message_id, user_id, emoji])
+  @@index([tenant_id])
   @@index([user_id, created_at])
   @@map("message_reactions")
 }
@@ -718,7 +895,9 @@ model DecommissionedBackup {
 model LoanGuarantee {
   id                         Int             @id @default(autoincrement())
   loan_id                    Int
+  tenant_id                  Int // Mandatory for RLS
   guarantor_id               Int
+
   status                     GuaranteeStatus @default(pending)
   liability_percentage       Decimal         @default(25.00) @db.Decimal(5, 2)
   liability_amount           Decimal?        @db.Decimal(15, 2)
@@ -737,7 +916,9 @@ model LoanGuarantee {
   updated_at                 DateTime        @updatedAt
   guarantor                  User            @relation("Guarantor", fields: [guarantor_id], references: [user_id])
   loan                       Loan            @relation(fields: [loan_id], references: [loan_id], onDelete: Cascade)
+  tenant                     Tenant          @relation(fields: [tenant_id], references: [tenant_id])
 
+  @@index([tenant_id])
   @@index([loan_id, status])
   @@index([guarantor_id, status])
   @@index([notification_id])
@@ -747,20 +928,53 @@ model LoanGuarantee {
 }
 
 model CompassionAction {
-  action_id    Int                  @id @default(autoincrement())
-  loan_id      Int
-  action_type  CompassionActionType
-  reason       String
-  status       CompassionStatus     @default(pending)
-  requested_by Int
-  requested_at DateTime             @default(now())
-  approved_by  Int?
-  approved_at  DateTime?
-  admin_notes  String?
-  approver     User?                @relation("ApprovedCompassion", fields: [approved_by], references: [user_id])
-  loan         Loan                 @relation(fields: [loan_id], references: [loan_id], onDelete: Cascade)
-  requester    User                 @relation("RequestedCompassion", fields: [requested_by], references: [user_id])
+  action_id                   Int                      @id @default(autoincrement())
+  loan_id                     Int
+  tenant_id                   Int // Mandatory for RLS
+  action_type                 CompassionActionType
+  reason                      String
+  status                      CompassionStatus         @default(pending)
+  requested_by                Int
+  requested_at                DateTime                 @default(now())
+  approved_by                 Int?
+  approved_at                 DateTime?
+  effective_at                DateTime?
+  expires_at                  DateTime?
+  grace_period_days           Int?
+  restructured_term_months    Int?
+  restructured_payment_amount Decimal?                 @db.Decimal(15, 2)
+  penalty_waived_amount       Decimal                  @default(0) @db.Decimal(15, 2)
+  penalties_frozen_until      DateTime?
+  freeze_status               CompassionFreezeStatus   @default(none)
+  reminder_state              CompassionReminderState  @default(not_started)
+  reminder_sent_at            DateTime?
+  restructuring_offer_status  RestructuringOfferStatus @default(not_offered)
+  restructuring_offer_at      DateTime?
+  final_write_off_at          DateTime?
+  write_off_amount            Decimal?                 @db.Decimal(15, 2)
+  guarantor_charge_status     GuarantorChargeStatus    @default(not_applicable)
+  guarantor_charged_at        DateTime?
+  trust_score_impact_points   Int                      @default(0)
+  trust_score_impact_reason   String?                  @db.VarChar(255)
+  audit_log_id                Int?
+  admin_notes                 String?
+  metadata                    Json?
+  created_at                  DateTime                 @default(now())
+  updated_at                  DateTime                 @updatedAt
+  approver                    User?                    @relation("ApprovedCompassion", fields: [approved_by], references: [user_id])
+  loan                        Loan                     @relation(fields: [loan_id], references: [loan_id], onDelete: Cascade)
+  requester                   User                     @relation("RequestedCompassion", fields: [requested_by], references: [user_id])
+  tenant                      Tenant                   @relation(fields: [tenant_id], references: [tenant_id])
 
+  @@index([tenant_id])
+  @@index([loan_id, status])
+  @@index([requested_by, status])
+  @@index([approved_by])
+  @@index([freeze_status])
+  @@index([reminder_state])
+  @@index([restructuring_offer_status])
+  @@index([guarantor_charge_status])
+  @@index([audit_log_id])
   @@map("compassion_actions")
 }
 
@@ -768,7 +982,9 @@ model BusinessLedger {
   id                       Int           @id @default(autoincrement())
   transaction_id           String        @default(cuid())
   account_id               Int
+  tenant_id                Int // Mandatory for RLS
   debit                    Decimal       @default(0) @db.Decimal(15, 2)
+
   credit                   Decimal       @default(0) @db.Decimal(15, 2)
   description              String
   source_module            String?       @db.VarChar(80)
@@ -784,7 +1000,9 @@ model BusinessLedger {
   metadata                 Json?
   account                  LedgerAccount @relation(fields: [account_id], references: [id])
   loan                     Loan?         @relation(fields: [loan_id], references: [loan_id])
+  tenant                   Tenant        @relation(fields: [tenant_id], references: [tenant_id])
 
+  @@index([tenant_id])
   @@index([transaction_id])
   @@index([source_module, source_reference])
   @@index([reconciliation_reference])
@@ -808,26 +1026,183 @@ model LedgerAccount {
 }
 
 model SocialVouch {
-  id         Int      @id @default(autoincrement())
-  voucher_id Int
-  vouchee_id Int
-  score      Int      @default(5)
-  comment    String?
-  created_at DateTime @default(now())
-  vouchee    User     @relation("Vouchee", fields: [vouchee_id], references: [user_id])
-  voucher    User     @relation("Voucher", fields: [voucher_id], references: [user_id])
+  id                         Int                           @id @default(autoincrement())
+  tenant_id                  Int?
+  voucher_id                 Int
+  vouchee_id                 Int
+  requester_id               Int?
+  relationship_type          VouchRelationshipType         @default(peer)
+  score                      Int                           @default(5)
+  score_scale                Int                           @default(10)
+  score_base                 Int                           @default(10)
+  status                     VouchStatus                   @default(active)
+  discount_eligibility_state VouchDiscountEligibilityState @default(not_evaluated)
+  discount_eligible          Boolean                       @default(false)
+  trust_network_visibility   TrustNetworkVisibility        @default(tenant_network)
+  visibility_metadata        Json?
+  comment                    String?
+  expires_at                 DateTime?
+  revoked_at                 DateTime?
+  audit_log_id               Int?
+  created_at                 DateTime                      @default(now())
+  updated_at                 DateTime                      @updatedAt
+  vouchee                    User                          @relation("Vouchee", fields: [vouchee_id], references: [user_id])
+  voucher                    User                          @relation("Voucher", fields: [voucher_id], references: [user_id])
 
+  @@index([tenant_id, status, created_at])
+  @@index([voucher_id, status])
+  @@index([vouchee_id, status])
+  @@index([requester_id])
+  @@index([discount_eligibility_state])
+  @@index([trust_network_visibility])
+  @@index([audit_log_id])
   @@map("social_vouches")
+}
+
+model VouchScoreSnapshot {
+  id                         Int                           @id @default(autoincrement())
+  tenant_id                  Int?
+  user_id                    Int
+  average_score              Decimal                       @db.Decimal(5, 2)
+  score_scale                Int                           @default(10)
+  score_base                 Int                           @default(10)
+  vouch_count                Int                           @default(0)
+  active_vouch_count         Int                           @default(0)
+  discount_eligibility_state VouchDiscountEligibilityState @default(not_evaluated)
+  discount_eligible          Boolean                       @default(false)
+  calculated_at              DateTime                      @default(now())
+  metadata                   Json?
+
+  @@index([tenant_id, user_id, calculated_at])
+  @@index([discount_eligibility_state])
+  @@map("vouch_score_snapshots")
+}
+
+model TenantTrustPolicy {
+  id                       Int      @id @default(autoincrement())
+  tenant_id                Int      @unique
+  payment_weight           Decimal  @default(40.00) @db.Decimal(5, 2)
+  business_weight          Decimal  @default(20.00) @db.Decimal(5, 2)
+  peer_weight              Decimal  @default(20.00) @db.Decimal(5, 2)
+  guarantor_weight         Decimal  @default(20.00) @db.Decimal(5, 2)
+  minimum_voting_quota     Int      @default(3)
+  randomized_sample_size   Int      @default(10)
+  missed_vote_lockout_days Int      @default(7)
+  low_rating_threshold     Int      @default(55)
+  tier_review_day          Int      @default(1)
+  is_active                Boolean  @default(true)
+  created_at               DateTime @default(now())
+  updated_at               DateTime @updatedAt
+
+  @@index([tenant_id, is_active])
+  @@map("tenant_trust_policies")
+}
+
+model TrustRatingPeriod {
+  id                     Int                     @id @default(autoincrement())
+  tenant_id              Int
+  period_start           DateTime                @db.Date
+  period_end             DateTime                @db.Date
+  status                 TrustRatingPeriodStatus @default(planned)
+  minimum_voting_quota   Int                     @default(3)
+  randomized_sample_size Int                     @default(10)
+  generated_at           DateTime?
+  closed_at              DateTime?
+  metadata               Json?
+  created_at             DateTime                @default(now())
+  updated_at             DateTime                @updatedAt
+
+  @@unique([tenant_id, period_start, period_end])
+  @@index([tenant_id, status, period_start])
+  @@map("trust_rating_periods")
+}
+
+model TrustRatingAssignment {
+  id                 Int                         @id @default(autoincrement())
+  tenant_id          Int
+  period_id          Int
+  rater_id           Int
+  ratee_id           Int
+  rating_source_role Role
+  status             TrustRatingAssignmentStatus @default(assigned)
+  score              Int?
+  comment            String?
+  sampled_at         DateTime                    @default(now())
+  due_at             DateTime?
+  completed_at       DateTime?
+  missed_at          DateTime?
+  lockout_until      DateTime?
+  metadata           Json?
+  created_at         DateTime                    @default(now())
+  updated_at         DateTime                    @updatedAt
+
+  @@unique([period_id, rater_id, ratee_id, rating_source_role])
+  @@index([tenant_id, status, due_at])
+  @@index([rater_id, status])
+  @@index([ratee_id, status])
+  @@index([lockout_until])
+  @@map("trust_rating_assignments")
+}
+
+model TrustScoreSnapshot {
+  id                      Int                  @id @default(autoincrement())
+  tenant_id               Int
+  user_id                 Int
+  period_id               Int?
+  score                   Int
+  payment_score           Int
+  business_score          Int
+  peer_score              Int
+  guarantor_score         Int
+  payment_weight          Decimal              @db.Decimal(5, 2)
+  business_weight         Decimal              @db.Decimal(5, 2)
+  peer_weight             Decimal              @db.Decimal(5, 2)
+  guarantor_weight        Decimal              @db.Decimal(5, 2)
+  tier_before             InterestTier?
+  tier_after              InterestTier
+  low_rating_action_state LowRatingActionState @default(none)
+  low_rating_reason       String?              @db.VarChar(255)
+  calculated_at           DateTime             @default(now())
+  metadata                Json?
+
+  @@index([tenant_id, user_id, calculated_at])
+  @@index([period_id])
+  @@index([tier_after])
+  @@index([low_rating_action_state])
+  @@map("trust_score_snapshots")
+}
+
+model TrustTierAudit {
+  id            Int           @id @default(autoincrement())
+  tenant_id     Int
+  user_id       Int
+  snapshot_id   Int?
+  previous_tier InterestTier?
+  new_tier      InterestTier
+  score         Int
+  change_reason String        @db.VarChar(255)
+  changed_by    Int?
+  changed_at    DateTime      @default(now())
+  metadata      Json?
+
+  @@index([tenant_id, user_id, changed_at])
+  @@index([snapshot_id])
+  @@index([previous_tier, new_tier])
+  @@map("trust_tier_audits")
 }
 
 model InterestAudit {
   id               Int      @id @default(autoincrement())
   loan_id          Int      @unique
+  tenant_id        Int // Mandatory for RLS
   formula_snapshot Json
+
   rate_applied     Decimal  @db.Decimal(5, 2)
   created_at       DateTime @default(now())
   loan             Loan     @relation(fields: [loan_id], references: [loan_id], onDelete: Cascade)
+  tenant           Tenant   @relation(fields: [tenant_id], references: [tenant_id])
 
+  @@index([tenant_id])
   @@map("interest_audit")
 }
 
@@ -852,9 +1227,9 @@ model TopUpRequest {
   processed_at             DateTime?
   processed_by             Int?
 
-  user                     User              @relation(fields: [user_id], references: [user_id])
-  processor                User?             @relation("TopUpProcessor", fields: [processed_by], references: [user_id])
-  tenant                   Tenant            @relation(fields: [tenant_id], references: [tenant_id])
+  user      User   @relation(fields: [user_id], references: [user_id])
+  processor User?  @relation("TopUpProcessor", fields: [processed_by], references: [user_id])
+  tenant    Tenant @relation(fields: [tenant_id], references: [tenant_id])
 
   @@index([tenant_id, request_type, status])
   @@index([user_id, request_type, created_at])
@@ -928,6 +1303,98 @@ enum PaymentStatus {
   pending
   verified
   rejected
+}
+
+enum FeedbackType {
+  general
+  transaction
+  complaint
+  system_issue
+  feature_request
+  homepage_concern
+}
+
+enum FeedbackModule {
+  general
+  wallet
+  loan
+  repayment
+  payment
+  homepage
+  system
+  chat
+  reports
+}
+
+enum SupportTicketCategory {
+  wallet_issue
+  loan_issue
+  payment_issue
+  member_complaint
+  system_issue
+  feature_request
+  homepage_concern
+  general_support
+}
+
+enum SupportTicketStatus {
+  open
+  in_review
+  waiting_on_member
+  waiting_on_admin
+  resolved
+  closed
+  escalated
+}
+
+enum SupportPriority {
+  low
+  normal
+  high
+  urgent
+}
+
+enum AuditModule {
+  tenant
+  identity
+  wallet
+  loan
+  repayment
+  guarantorship
+  compassion
+  trust
+  feedback
+  support
+  content
+  chat
+  reports
+  reconciliation
+  billing
+  system
+}
+
+enum AuditActionCategory {
+  create
+  update
+  delete
+  approve
+  reject
+  release
+  payment
+  status_change
+  signoff
+  login
+  security
+  export
+  system
+  other
+}
+
+enum AuditSeverity {
+  debug
+  info
+  warning
+  critical
 }
 
 enum ImbalanceSourceModule {
@@ -1024,18 +1491,101 @@ enum CompassionStatus {
   rejected
 }
 
+enum CompassionFreezeStatus {
+  none
+  active
+  expired
+  lifted
+}
+
+enum CompassionReminderState {
+  not_started
+  scheduled
+  sent
+  completed
+  cancelled
+}
+
+enum RestructuringOfferStatus {
+  not_offered
+  offered
+  accepted
+  rejected
+  expired
+}
+
+enum GuarantorChargeStatus {
+  not_applicable
+  pending
+  charged
+  waived
+}
+
+enum TrustRatingPeriodStatus {
+  planned
+  active
+  closed
+  cancelled
+}
+
+enum TrustRatingAssignmentStatus {
+  assigned
+  completed
+  missed
+  excused
+  locked_out
+}
+
+enum LowRatingActionState {
+  none
+  warning
+  review_required
+  restricted
+  tier_downgraded
+}
+
+enum VouchRelationshipType {
+  peer
+  family
+  business_partner
+  guarantor
+  mentor
+  admin_observed
+}
+
+enum VouchStatus {
+  active
+  revoked
+  expired
+  disputed
+}
+
+enum VouchDiscountEligibilityState {
+  not_evaluated
+  eligible
+  ineligible
+  suspended
+}
+
+enum TrustNetworkVisibility {
+  private_record
+  tenant_network
+  admin_only
+  cross_tenant_risk
+}
+
 model SystemFile {
-  id              String   @id @default(cuid())
-  tenant_id       Int?
-  uploader_id     Int
-  file_name       String   @db.VarChar(255)
-  content_base64  String   @db.Text
-  mime_type       String   @db.VarChar(100)
-  size            Int
-  created_at      DateTime @default(now())
-  
-  tenant          Tenant?  @relation(fields: [tenant_id], references: [tenant_id])
-  uploader        User     @relation("FileUploader", fields: [uploader_id], references: [user_id])
+  id             String   @id @default(cuid())
+  tenant_id      Int?
+  uploader_id    Int
+  file_name      String   @db.VarChar(255)
+  content_base64 String   @db.Text
+  mime_type      String   @db.VarChar(100)
+  size           Int
+  created_at     DateTime @default(now())
+
+  tenant   Tenant? @relation(fields: [tenant_id], references: [tenant_id])
+  uploader User    @relation("FileUploader", fields: [uploader_id], references: [user_id])
 
   @@index([tenant_id])
   @@index([uploader_id])
@@ -1055,13 +1605,68 @@ enum MentorshipStatus {
 }
 
 enum NotificationType {
+  // Verification
+  email_verification
+  identity_verified
+  identity_rejected
+  // Tenant
+  tenant_application_received
+  tenant_approved
+  tenant_suspended
+  // Wallet
+  wallet_deposit_pending
+  wallet_deposit_approved
+  wallet_deposit_rejected
+  wallet_withdrawal_pending
+  wallet_withdrawal_approved
+  wallet_withdrawal_rejected
+  wallet_issue_reported
+  // Loan
+  loan_application_received
+  loan_approved
+  loan_rejected
+  loan_disbursed
+  loan_defaulted
+  // Repayment
+  repayment_reminder
+  repayment_received
+  repayment_overdue
+  // Guarantorship
+  guarantor_request
+  guarantor_accepted
+  guarantor_rejected
+  guarantor_charged
+  // Voting
+  trust_voting_assigned
+  trust_voting_due_soon
+  trust_voting_missed
+  // Default
+  compassion_requested
+  compassion_approved
+  compassion_rejected
+  // Feedback & Support
+  feedback_received
+  support_ticket_opened
+  support_ticket_updated
+  support_ticket_resolved
+  // Reports
+  report_ready
+  report_failed
+  // Communication
   mentorship_request
   mentorship_endorsed
   mentorship_rejected
   direct_message
   branch_announcement
-  repayment_reminder
+  // Security
+  login_new_device
+  password_changed
+  two_fa_enabled
+  two_fa_disabled
+  // System
   system_alert
+  system_maintenance
+  platform_announcement
 }
 
 enum NotificationChannel {
@@ -1084,13 +1689,16 @@ enum BillingCycle {
 
 model SubscriptionPlan {
   id             Int                  @id @default(autoincrement())
-  tier_name      String               @unique @db.VarChar(50) // "Basic", "Pro", "Enterprise"
+  tier_name      String               @unique @db.VarChar(50) // "Core", "Pro", "Enterprise", "Sangay"
   price_monthly  Decimal              @db.Decimal(10, 2)
   price_annually Decimal              @db.Decimal(10, 2)
   max_members    Int
   max_storage_mb Int
   features       String[]
   is_active      Boolean              @default(true)
+  is_addon       Boolean              @default(false) // Sangay is an add-on to Enterprise
+  branch_price   Int?                 @default(3000) // Per-branch price for Sangay
+  branch_storage Int?                 @default(10000) // Per-branch storage for Sangay
   created_at     DateTime             @default(now())
   updated_at     DateTime             @updatedAt
   subscriptions  TenantSubscription[]
@@ -1114,4 +1722,540 @@ model TenantSubscription {
 
   @@index([tenant_id])
   @@map("tenant_subscriptions")
+}
+
+// ============================================================
+// DM-27: Email Templates
+// ============================================================
+
+enum EmailTemplateCategory {
+  verification
+  security
+  loan
+  repayment
+  wallet
+  support
+  report
+  announcement
+  onboarding
+  system
+}
+
+model EmailTemplate {
+  id         Int                   @id @default(autoincrement())
+  tenant_id  Int? // null = platform-wide
+  category   EmailTemplateCategory
+  slug       String                @db.VarChar(80) // e.g. "loan_approved"
+  subject    String                @db.VarChar(255)
+  html_body  String                @db.Text
+  text_body  String?               @db.Text
+  variables  String[] // documented placeholders e.g. {{member_name}}
+  is_active  Boolean               @default(true)
+  created_at DateTime              @default(now())
+  updated_at DateTime              @updatedAt
+
+  @@unique([tenant_id, slug])
+  @@index([tenant_id, category])
+  @@index([category, is_active])
+  @@map("email_templates")
+}
+
+// ============================================================
+// DM-29: Reports
+// ============================================================
+
+enum ReportType {
+  cross_tenant_financial
+  tenant_performance
+  lender_summary
+  member_summary
+  loan_portfolio
+  repayment_summary
+  wallet_activity
+  reconciliation_summary
+  trust_analysis
+  audit_export
+}
+
+enum ReportFormat {
+  csv
+  pdf
+  json
+}
+
+enum ReportStatus {
+  queued
+  processing
+  ready
+  failed
+  expired
+}
+
+enum ReportScheduleFrequency {
+  daily
+  weekly
+  monthly
+  one_time
+}
+
+model ReportDefinition {
+  id                Int                      @id @default(autoincrement())
+  tenant_id         Int?
+  created_by        Int
+  name              String                   @db.VarChar(150)
+  report_type       ReportType
+  format            ReportFormat             @default(csv)
+  filters           Json?
+  is_scheduled      Boolean                  @default(false)
+  schedule_freq     ReportScheduleFrequency?
+  schedule_day      Int?
+  next_run_at       DateTime?
+  recipients        String[]
+  is_active         Boolean                  @default(true)
+  created_at        DateTime                 @default(now())
+  updated_at        DateTime                 @updatedAt
+  generated_reports GeneratedReport[]
+
+  @@index([tenant_id, report_type])
+  @@index([is_scheduled, next_run_at])
+  @@map("report_definitions")
+}
+
+model GeneratedReport {
+  id                  Int               @id @default(autoincrement())
+  definition_id       Int?
+  tenant_id           Int?
+  requested_by        Int?
+  report_type         ReportType
+  format              ReportFormat
+  status              ReportStatus      @default(queued)
+  file_url            String?           @db.VarChar(512)
+  file_size_bytes     Int?
+  row_count           Int?
+  error_message       String?
+  period_start        DateTime?
+  period_end          DateTime?
+  dispatched_at       DateTime?
+  dispatch_recipients String[]
+  dispatch_status     String?           @db.VarChar(50)
+  expires_at          DateTime?
+  audit_log_id        Int?
+  created_at          DateTime          @default(now())
+  updated_at          DateTime          @updatedAt
+  definition          ReportDefinition? @relation(fields: [definition_id], references: [id])
+
+  @@index([tenant_id, report_type, created_at])
+  @@index([status, created_at])
+  @@index([definition_id])
+  @@map("generated_reports")
+}
+
+// ============================================================
+// DM-30: Receipts
+// ============================================================
+
+enum ReceiptType {
+  wallet_deposit
+  wallet_withdrawal
+  loan_disbursement
+  loan_repayment
+  loan_fee
+  fund_release
+  top_up
+  admin_adjustment
+}
+
+enum ReceiptStatus {
+  generated
+  voided
+  reissued
+}
+
+model Receipt {
+  id                     Int           @id @default(autoincrement())
+  tenant_id              Int
+  user_id                Int?
+  receipt_number         String        @unique @db.VarChar(60)
+  receipt_type           ReceiptType
+  status                 ReceiptStatus @default(generated)
+  amount                 Decimal       @db.Decimal(15, 2)
+  currency               String        @default("PHP") @db.VarChar(10)
+  description            String?
+  savings_transaction_id Int?
+  loan_id                Int?
+  payment_id             Int?
+  topup_request_id       Int?
+  file_url               String?       @db.VarChar(512)
+  voided_by              Int?
+  voided_at              DateTime?
+  void_reason            String?
+  reissued_receipt_id    Int?
+  audit_log_id           Int?
+  issued_at              DateTime      @default(now())
+  created_at             DateTime      @default(now())
+  updated_at             DateTime      @updatedAt
+
+  @@index([tenant_id, receipt_type, issued_at])
+  @@index([user_id, issued_at])
+  @@index([receipt_number])
+  @@index([loan_id])
+  @@index([payment_id])
+  @@index([topup_request_id])
+  @@index([savings_transaction_id])
+  @@map("receipts")
+}
+
+// ============================================================
+// DM-31: Backup and Recovery
+// ============================================================
+
+enum BackupStatus {
+  scheduled
+  running
+  completed
+  failed
+  expired
+}
+
+enum RestoreStatus {
+  requested
+  validating
+  restoring
+  completed
+  failed
+  cancelled
+}
+
+model BackupSchedule {
+  id             Int                     @id @default(autoincrement())
+  tenant_id      Int?
+  frequency      ReportScheduleFrequency
+  retention_days Int                     @default(30)
+  last_run_at    DateTime?
+  next_run_at    DateTime?
+  storage_path   String?                 @db.VarChar(512)
+  is_active      Boolean                 @default(true)
+  created_by     Int?
+  created_at     DateTime                @default(now())
+  updated_at     DateTime                @updatedAt
+
+  @@index([tenant_id, is_active])
+  @@index([next_run_at])
+  @@map("backup_schedules")
+}
+
+model BackupRecord {
+  id               Int              @id @default(autoincrement())
+  tenant_id        Int?
+  schedule_id      Int?
+  status           BackupStatus     @default(scheduled)
+  storage_path     String?          @db.VarChar(512)
+  file_size_bytes  BigInt?
+  checksum         String?          @db.VarChar(128)
+  affected_schemas String[]
+  error_message    String?
+  started_at       DateTime?
+  completed_at     DateTime?
+  expires_at       DateTime?
+  created_by       Int?
+  created_at       DateTime         @default(now())
+  updated_at       DateTime         @updatedAt
+  restore_requests RestoreRequest[]
+
+  @@index([tenant_id, status, created_at])
+  @@index([schedule_id])
+  @@map("backup_records")
+}
+
+model RestoreRequest {
+  id             Int           @id @default(autoincrement())
+  tenant_id      Int?
+  backup_id      Int
+  requested_by   Int
+  status         RestoreStatus @default(requested)
+  target_schemas String[]
+  notes          String?
+  error_message  String?
+  approved_by    Int?
+  approved_at    DateTime?
+  started_at     DateTime?
+  completed_at   DateTime?
+  audit_log_id   Int?
+  created_at     DateTime      @default(now())
+  updated_at     DateTime      @updatedAt
+  backup         BackupRecord  @relation(fields: [backup_id], references: [id])
+
+  @@index([tenant_id, status])
+  @@index([backup_id])
+  @@index([requested_by])
+  @@map("restore_requests")
+}
+
+// ============================================================
+// DM-32: AI Analytics
+// ============================================================
+
+enum AiUseCase {
+  portfolio_summary
+  risk_detection
+  repayment_forecast
+  member_financial_tip
+  anomaly_alert
+  support_draft
+}
+
+enum AiProcessingStatus {
+  queued
+  processing
+  completed
+  failed
+  skipped
+}
+
+model AiConfig {
+  id                  Int          @id @default(autoincrement())
+  tenant_id           Int?
+  use_case            AiUseCase
+  is_enabled          Boolean      @default(true)
+  risk_sensitivity    String       @default("medium") @db.VarChar(20)
+  prompt_template     String?      @db.Text
+  max_tokens          Int          @default(512)
+  temperature         Decimal      @default(0.3) @db.Decimal(3, 2)
+  allowed_data_scopes String[]
+  created_at          DateTime     @default(now())
+  updated_at          DateTime     @updatedAt
+  snapshots           AiSnapshot[]
+
+  @@unique([tenant_id, use_case])
+  @@index([tenant_id, is_enabled])
+  @@map("ai_configs")
+}
+
+model AiSnapshot {
+  id               Int                @id @default(autoincrement())
+  config_id        Int?
+  tenant_id        Int?
+  use_case         AiUseCase
+  status           AiProcessingStatus @default(queued)
+  input_summary    Json?
+  output_text      String?            @db.Text
+  risk_level       String?            @db.VarChar(20)
+  confidence_score Decimal?           @db.Decimal(5, 2)
+  requires_review  Boolean            @default(false)
+  reviewed_by      Int?
+  reviewed_at      DateTime?
+  review_notes     String?
+  error_message    String?
+  processing_ms    Int?
+  period_start     DateTime?
+  period_end       DateTime?
+  metadata         Json?
+  created_at       DateTime           @default(now())
+  updated_at       DateTime           @updatedAt
+  config           AiConfig?          @relation(fields: [config_id], references: [id])
+
+  @@index([tenant_id, use_case, created_at])
+  @@index([status])
+  @@index([requires_review, reviewed_at])
+  @@map("ai_snapshots")
+}
+
+// ============================================================
+// DM-33: Fraud and Risk Monitoring
+// ============================================================
+
+enum FraudSignalType {
+  duplicate_identity
+  suspicious_transaction_pattern
+  rapid_loan_cycling
+  cross_tenant_default_risk
+  velocity_breach
+  device_anomaly
+  manual_flag
+}
+
+enum FraudSignalStatus {
+  detected
+  under_review
+  confirmed
+  false_positive
+  resolved
+  escalated
+}
+
+model FraudSignal {
+  id                 Int               @id @default(autoincrement())
+  tenant_id          Int?
+  signal_type        FraudSignalType
+  status             FraudSignalStatus @default(detected)
+  severity           AuditSeverity     @default(warning)
+  linked_user_id     Int?
+  linked_loan_id     Int?
+  linked_payment_id  Int?
+  linked_topup_id    Int?
+  duplicate_user_id  Int?
+  risk_score         Int?
+  threshold_breached String?           @db.VarChar(120)
+  signal_metadata    Json?
+  assigned_to        Int?
+  assigned_at        DateTime?
+  reviewed_by        Int?
+  reviewed_at        DateTime?
+  resolution_notes   String?
+  audit_log_id       Int?
+  detected_at        DateTime          @default(now())
+  resolved_at        DateTime?
+  created_at         DateTime          @default(now())
+  updated_at         DateTime          @updatedAt
+
+  @@index([tenant_id, signal_type, status, detected_at])
+  @@index([linked_user_id, status])
+  @@index([linked_loan_id])
+  @@index([severity, status])
+  @@index([assigned_to, status])
+  @@map("fraud_signals")
+}
+
+// ============================================================
+// DM-34: System Health Monitoring
+// ============================================================
+
+enum HealthAlertState {
+  ok
+  degraded
+  critical
+}
+
+model SystemHealthSnapshot {
+  id                  Int              @id @default(autoincrement())
+  snapshot_at         DateTime         @default(now())
+  api_uptime_percent  Decimal?         @db.Decimal(5, 2)
+  avg_response_ms     Int?
+  error_rate_percent  Decimal?         @db.Decimal(5, 2)
+  active_connections  Int?
+  queue_depth         Int?
+  ai_queue_depth      Int?
+  ai_processing_ok    Boolean          @default(true)
+  db_size_bytes       BigInt?
+  tenant_schema_sizes Json?
+  alert_state         HealthAlertState @default(ok)
+  alert_details       String?
+  metadata            Json?
+  created_by          Int?
+
+  @@index([snapshot_at])
+  @@index([alert_state, snapshot_at])
+  @@map("system_health_snapshots")
+}
+
+// ============================================================
+// Platform Configuration (SA-21)
+// ============================================================
+
+model PlatformConfig {
+  id                  Int       @id @default(autoincrement())
+  scoring_weights     Json?     // Member trust score weights
+  risk_thresholds     Json?     // Risk detection thresholds
+  default_loan_config Json?     // Default loan calculator config
+  platform_settings  Json?     // Platform-wide settings
+  created_at         DateTime  @default(now())
+  updated_at         DateTime  @updatedAt
+
+  @@map("platform_config")
+}
+
+// ============================================================
+// AI Configuration (SA-23)
+// ============================================================
+
+model AIConfig {
+  id                    Int       @id @default(autoincrement())
+  snapshot_prompts       Json?     // AI snapshot prompt templates
+  risk_sensitivity      String?   @default("medium") // low, medium, high
+  notification_settings Json?     // Alert and report settings
+  analysis_config     Json?     // Analysis parameters
+  created_at           DateTime  @default(now())
+  updated_at           DateTime  @updatedAt
+
+  @@map("ai_config")
+}
+
+// ============================================================
+// Security Settings (SA-25)
+// ============================================================
+
+model SecuritySettings {
+  id                  Int       @id @default(autoincrement())
+  password_policy     Json?     // Password requirements
+  session_settings   Json?     // Session configuration
+  two_factor_required Boolean   @default(false)
+  two_factor_roles   String[]  // Roles requiring 2FA
+  ip_whitelist       String[]  // Allowed IP addresses
+  allowed_domains    String[]  // Email domains for registration
+  created_at         DateTime  @default(now())
+  updated_at         DateTime  @updatedAt
+
+  @@map("security_settings")
+}
+
+// ============================================================
+// Platform Announcements (SA-20)
+// ============================================================
+
+model PlatformAnnouncement {
+  id               Int       @id @default(autoincrement())
+  title            String    @db.VarChar(255)
+  content          String    @db.Text
+  target_audience  String    @default("all") // all, admins, lenders, members
+  priority         String    @default("normal") // low, normal, high, urgent
+  is_published    Boolean   @default(false)
+  created_by       Int
+  created_at       DateTime  @default(now())
+  published_at    DateTime?
+
+  @@index([target_audience, is_published])
+  @@map("platform_announcements")
+}
+
+// ============================================================
+// Notification Templates (SA-24)
+// ============================================================
+
+model NotificationTemplate {
+  id          Int       @id @default(autoincrement())
+  name        String    @db.VarChar(100)
+  type        String    // email, sms, push
+  subject     String?   @db.VarChar(255)
+  body        String    @db.Text
+  variables   String[]
+  category    String
+  is_active   Boolean   @default(true)
+  created_at  DateTime  @default(now())
+  updated_at  DateTime  @updatedAt
+
+  @@index([type, category])
+  @@map("notification_templates")
+}
+
+// ============================================================
+// Billing Invoices (SA-22)
+// ============================================================
+
+model BillingInvoice {
+  id             Int       @id @default(autoincrement())
+  tenant_id      Int
+  invoice_number String   @unique @db.VarChar(50)
+  amount        Decimal   @db.Decimal(12, 2)
+  status        String    @default("pending") // pending, paid, overdue, canceled
+  due_date      DateTime
+  paid_at       DateTime?
+  payment_method String?
+  reference    String?
+  items         Json?    // Invoice line items
+  created_at   DateTime  @default(now())
+  updated_at   DateTime  @updatedAt
+
+  @@index([tenant_id, status])
+  @@index([due_date])
+  @@map("billing_invoices")
 }

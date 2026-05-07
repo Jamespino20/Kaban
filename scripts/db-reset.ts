@@ -15,26 +15,13 @@ async function main() {
   console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
   console.log("⚠️  This will DROP all data. No undo.\n");
 
-  // Step 1: Drop all non-public schemas (branch schemas)
-  console.log("📦 Step 1: Dropping all branch schemas...");
-  const { rows: schemaRows } = await pool.query<{ schema_name: string }>(
-    `SELECT schema_name FROM information_schema.schemata
-     WHERE schema_name NOT IN ('public', 'information_schema', 'pg_catalog', 'pg_toast', 'pg_temp_1', 'pg_toast_temp_1')
-       AND schema_name NOT LIKE 'pg_%'`,
-  );
-
-  for (const { schema_name } of schemaRows) {
-    console.log(`   🗑️  Dropping schema [${schema_name}]...`);
-    await pool.query(`DROP SCHEMA IF EXISTS "${schema_name}" CASCADE`);
-  }
-  console.log(`   ✅ Dropped ${schemaRows.length} branch schema(s)\n`);
-
   await pool.end();
 
   // Step 2: Prisma migrate reset (handles public schema)
   console.log("📦 Step 2: Running prisma migrate reset --force...");
+
   try {
-    execSync("npx prisma migrate reset --force", {
+    execSync("npx prisma generate && npx prisma migrate reset --force", {
       stdio: "inherit",
       env: { ...process.env },
     });
@@ -56,6 +43,19 @@ async function main() {
     console.log("\n   ✅ Seed complete\n");
   } catch (err: any) {
     console.error("   ❌ Seeding failed. Check prisma/seed.ts for errors.");
+    throw err;
+  }
+
+  // Step 4: DB RLS
+  console.log("📦 Step 4: Enabling database RLS...");
+  try {
+    execSync("npx prisma db execute --file prisma/rls_setup.sql", {
+      stdio: "inherit",
+      env: { ...process.env },
+    });
+    console.log("\n   ✅ RLS complete\n");
+  } catch (err: any) {
+    console.error("   ❌ RLS failed. Check prisma/rls_setup.sql for errors.");
     throw err;
   }
 

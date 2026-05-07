@@ -1,6 +1,6 @@
 "use server";
 
-import prisma, { getBranchPrisma } from "@/lib/prisma";
+import prisma from "@/lib/prisma";
 import { requireAuthenticatedSession } from "@/lib/authorization";
 import { subDays, startOfDay, format } from "date-fns";
 
@@ -38,85 +38,95 @@ export async function getTenantAnalytics(
   days: number = 7,
 ): Promise<AnalyticsData | null> {
   const session = await requireAuthenticatedSession();
-  const tenantId = session.user.tenantId || null;
+  const tenantId = session.user.tenantId;
+
+  if (!tenantId && session.user.role !== "superadmin") {
+    return null;
+  }
+
   const startDate = startOfDay(subDays(new Date(), days));
 
   try {
-    const db = getBranchPrisma(session.user.tenantSlug);
-    // 1. Traffic Trends
-    const traffic = await db.trafficLog.findMany({
-      where: {
-        tenant_id: tenantId,
-        created_at: { gte: startDate },
-      },
-      orderBy: { created_at: "asc" },
-    });
+    const query = async (db: any) => {
+      // 1. Traffic Trends
+      const traffic = await db.trafficLog.findMany({
+        where: {
+          created_at: { gte: startDate },
+        },
+        orderBy: { created_at: "asc" },
+      });
 
-    const trafficByDay = traffic.reduce(
-      (acc: Record<string, number>, log: any) => {
-        const date = format(log.created_at, "MMM dd");
-        acc[date] = (acc[date] || 0) + 1;
-        return acc;
-      },
-      {},
-    );
+      const trafficByDay = traffic.reduce(
+        (acc: Record<string, number>, log: any) => {
+          const date = format(log.created_at, "MMM dd");
+          acc[date] = (acc[date] || 0) + 1;
+          return acc;
+        },
+        {},
+      );
 
-    // 2. Behavioral Heatmap
-    const interactions = await db.interactionLog.groupBy({
-      by: ["event_type"],
-      where: {
-        tenant_id: tenantId,
-        created_at: { gte: startDate },
-      },
-      _count: { id: true },
-      orderBy: { _count: { id: "desc" } },
-      take: 10,
-    });
+      // 2. Behavioral Heatmap
+      const interactions = await db.interactionLog.groupBy({
+        by: ["event_type"],
+        where: {
+          created_at: { gte: startDate },
+        },
+        _count: { id: true },
+        orderBy: { _count: { id: "desc" } },
+        take: 10,
+      });
 
-    // 3. Geo Distribution
-    const geoDistribution = await db.trafficLog.groupBy({
-      by: ["region", "city"],
-      where: {
-        tenant_id: tenantId,
-        created_at: { gte: startDate },
-      },
-      _count: { id: true },
-      orderBy: { _count: { id: "desc" } },
-      take: 20,
-    });
+      // 3. Geo Distribution
+      const geoDistribution = await db.trafficLog.groupBy({
+        by: ["region", "city"],
+        where: {
+          created_at: { gte: startDate },
+        },
+        _count: { id: true },
+        orderBy: { _count: { id: "desc" } },
+        take: 20,
+      });
 
-    // 4. User Interaction Density
-    const activeUsers = await db.interactionLog.groupBy({
-      by: ["user_id"],
-      where: {
-        tenant_id: tenantId,
-        user_id: { not: null },
-        created_at: { gte: startDate },
-      },
-      _count: { id: true },
-      orderBy: { _count: { id: "desc" } },
-      take: 5,
-    });
+      // 4. User Interaction Density
+      const activeUsers = await db.interactionLog.groupBy({
+        by: ["user_id"],
+        where: {
+          user_id: { not: null },
+          created_at: { gte: startDate },
+        },
+        _count: { id: true },
+        orderBy: { _count: { id: "desc" } },
+        take: 5,
+      });
 
-    return {
-      trafficTrends: Object.entries(trafficByDay).map(([date, count]) => ({
-        date,
-        count: count as number,
-      })),
-      interactionHeatmap: interactions.map((i: any) => ({
-        type: i.event_type as string,
-        count: i._count.id as number,
-      })),
-      geoData: geoDistribution.map((g: any) => ({
-        region: (g.region as string) || "Unknown",
-        city: (g.city as string) || "Unknown",
-        count: g._count.id as number,
-      })),
-      activeUserDensity: activeUsers.map((u: any) => ({
-        userId: u.user_id as number,
-        count: u._count.id as number,
-      })),
+      return {
+        trafficTrends: Object.entries(trafficByDay).map(([date, count]) => ({
+          date,
+          count: count as number,
+        })),
+        interactionHeatmap: interactions.map((i: any) => ({
+          type: i.event_type as string,
+          count: i._count.id as number,
+        })),
+        geoData: geoDistribution.map((g: any) => ({
+          region: (g.region as string) || "Unknown",
+          city: (g.city as string) || "Unknown",
+          count: g._count.id as number,
+        })),
+        activeUserDensity: activeUsers.map((u: any) => ({
+          userId: u.user_id as number,
+          count: u._count.id as number,
+        })),
+      };
     };
+
+    if (!tenantId) {
+      return await query(prisma);
+    }
+
+    return await prisma.$withTenant(tenantId, async (tx) => {
+      return await query(tx);
+    });
   } catch (error) {
     console.error("[ANALYTICS] Failed to fetch metrics:", error);
     return null;
@@ -130,89 +140,99 @@ export async function getOperationalInsights(
   days: number = 30,
 ): Promise<OperationalInsights | null> {
   const session = await requireAuthenticatedSession();
-  const tenantId = session.user.tenantId || null;
+  const tenantId = session.user.tenantId;
+
+  if (!tenantId && session.user.role !== "superadmin") {
+    return null;
+  }
+
   const startDate = startOfDay(subDays(new Date(), days));
 
   try {
-    const db = getBranchPrisma(session.user.tenantSlug);
-    // 1. Repayment Velocity
-    const payments = await db.payment.findMany({
-      where: {
-        loan: { tenant_id: tenantId ?? undefined },
-        status: "verified",
-        verified_at: { gte: startDate },
-      },
-      orderBy: { verified_at: "asc" },
-    });
+    const query = async (db: any) => {
+      // 1. Repayment Velocity
+      const payments = await db.payment.findMany({
+        where: {
+          status: "verified",
+          verified_at: { gte: startDate },
+        },
+        orderBy: { verified_at: "asc" },
+      });
 
-    const repaymentsByDay = payments.reduce(
-      (acc: Record<string, number>, p: any) => {
-        const date = format(p.verified_at || p.submitted_at, "MMM dd");
-        acc[date] = (acc[date] || 0) + Number(p.amount_paid);
+      const repaymentsByDay = payments.reduce(
+        (acc: Record<string, number>, p: any) => {
+          const date = format(p.verified_at || p.submitted_at, "MMM dd");
+          acc[date] = (acc[date] || 0) + Number(p.amount_paid);
+          return acc;
+        },
+        {},
+      );
+
+      // 2. Trust Tier Distribution
+      const migration = await db.user.groupBy({
+        by: ["interest_tier"],
+        where: {
+          role: "member",
+        },
+        _count: { user_id: true },
+      });
+
+      const tierCounts: any = migration.reduce((acc: any, m: any) => {
+        const key = m.interest_tier.toLowerCase().split("_")[0]; // t1, t2...
+        acc[key] = m._count.user_id;
         return acc;
-      },
-      {},
-    );
+      }, {});
 
-    // 2. Trust Tier Distribution
-    const migration = await db.user.groupBy({
-      by: ["interest_tier"],
-      where: {
-        tenant_id: tenantId ?? undefined,
-        role: "member",
-      },
-      _count: { user_id: true },
-    });
+      // 3. Risk Concentration
+      const concentration = await db.loan.groupBy({
+        by: ["product_id"],
+        where: {
+          status: { in: ["active", "defaulted"] },
+        },
+        _sum: { balance_remaining: true },
+        _count: { loan_id: true },
+      });
 
-    const tierCounts: any = migration.reduce((acc: any, m: any) => {
-      const key = m.interest_tier.toLowerCase().split("_")[0]; // t1, t2...
-      acc[key] = m._count.user_id;
-      return acc;
-    }, {});
+      const productNames = await db.loanProduct.findMany({
+        select: { product_id: true, name: true },
+      });
 
-    // 3. Risk Concentration
-    const concentration = await db.loan.groupBy({
-      by: ["product_id"],
-      where: {
-        tenant_id: tenantId ?? undefined,
-        status: { in: ["active", "defaulted"] },
-      },
-      _sum: { balance_remaining: true },
-      _count: { loan_id: true },
-    });
+      const riskByProduct = concentration.map((c: any) => {
+        const pName =
+          productNames.find((p: any) => p.product_id === c.product_id)?.name ||
+          "Unknown";
+        return {
+          label: pName,
+          amount: Number(c._sum.balance_remaining || 0),
+          count: c._count.loan_id,
+        };
+      });
 
-    const productNames = await db.loanProduct.findMany({
-      where: { tenant_id: tenantId ?? undefined },
-      select: { product_id: true, name: true },
-    });
-
-    const riskByProduct = concentration.map((c: any) => {
-      const pName =
-        productNames.find((p) => p.product_id === c.product_id)?.name ||
-        "Unknown";
       return {
-        label: pName,
-        amount: Number(c._sum.balance_remaining || 0),
-        count: c._count.loan_id,
+        repaymentVelocity: Object.entries(repaymentsByDay).map(
+          ([date, amount]) => ({
+            date,
+            amount: amount as number,
+          }),
+        ),
+        delinquencyMigration: {
+          t1: tierCounts.t1 || 0,
+          t2: tierCounts.t2 || 0,
+          t3: tierCounts.t3 || 0,
+          t4: tierCounts.t4 || 0,
+          t5: tierCounts.t5 || 0,
+        },
+        riskConcentration: riskByProduct,
       };
-    });
-
-    return {
-      repaymentVelocity: Object.entries(repaymentsByDay).map(
-        ([date, amount]) => ({
-          date,
-          amount: amount as number,
-        }),
-      ),
-      delinquencyMigration: {
-        t1: tierCounts.t1 || 0,
-        t2: tierCounts.t2 || 0,
-        t3: tierCounts.t3 || 0,
-        t4: tierCounts.t4 || 0,
-        t5: tierCounts.t5 || 0,
-      },
-      riskConcentration: riskByProduct,
     };
+
+    if (!tenantId) {
+      return await query(prisma);
+    }
+
+    return await prisma.$withTenant(tenantId, async (tx) => {
+      return await query(tx);
+    });
   } catch (error) {
     console.error("[ANALYTICS] Operational insights failed:", error);
     return null;
@@ -224,48 +244,57 @@ export async function getOperationalInsights(
  */
 export async function getFinancialIntegrityCheck(): Promise<FinancialIntegrity | null> {
   const session = await requireAuthenticatedSession();
-  const tenantId = session.user.tenantId || null;
+  const tenantId = session.user.tenantId;
+
+  if (!tenantId && session.user.role !== "superadmin") {
+    return null;
+  }
 
   try {
-    const db = getBranchPrisma(session.user.tenantSlug);
-    // 1. Treasury Ledger Balance (Asset)
-    const treasuryLedger = await db.businessLedger.aggregate({
-      where: {
-        account: {
-          tenant_id: tenantId,
-          code: "TREASURY_VAULT",
+    const query = async (db: any) => {
+      // 1. Treasury Ledger Balance (Asset)
+      const treasuryLedger = await db.businessLedger.aggregate({
+        where: {
+          account: {
+            code: "TREASURY_VAULT",
+          },
         },
-      },
-      _sum: {
-        debit: true,
-        credit: true,
-      },
-    });
+        _sum: {
+          debit: true,
+          credit: true,
+        },
+      });
 
-    const treasuryBalance =
-      Number(treasuryLedger._sum.debit || 0) -
-      Number(treasuryLedger._sum.credit || 0);
+      const treasuryBalance =
+        Number(treasuryLedger._sum.debit || 0) -
+        Number(treasuryLedger._sum.credit || 0);
 
-    // 2. Member Savings Pool (Liability)
-    const savingsPool = await db.savingsAccount.aggregate({
-      where: {
-        tenant_id: tenantId ?? undefined,
-      },
-      _sum: {
-        balance: true,
-      },
-    });
+      // 2. Member Savings Pool (Liability)
+      const savingsPool = await db.savingsAccount.aggregate({
+        _sum: {
+          balance: true,
+        },
+      });
 
-    const poolTotal = Number(savingsPool?._sum?.balance || 0);
-    const variance = treasuryBalance - poolTotal;
+      const poolTotal = Number(savingsPool?._sum?.balance || 0);
+      const variance = treasuryBalance - poolTotal;
 
-    return {
-      isBalanced: Math.abs(variance) < 0.01,
-      variance,
-      treasuryBalance,
-      savingsPoolTotal: poolTotal,
-      lastChecked: new Date(),
+      return {
+        isBalanced: Math.abs(variance) < 0.01,
+        variance,
+        treasuryBalance,
+        savingsPoolTotal: poolTotal,
+        lastChecked: new Date(),
+      };
     };
+
+    if (!tenantId) {
+      return await query(prisma);
+    }
+
+    return await prisma.$withTenant(tenantId, async (tx) => {
+      return await query(tx);
+    });
   } catch (error) {
     console.error("[ANALYTICS] Integrity check failed:", error);
     return null;

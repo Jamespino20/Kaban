@@ -1,6 +1,6 @@
 "use server";
 
-import prisma, { getBranchPrisma } from "@/lib/prisma";
+import prisma from "@/lib/prisma";
 import { requireTanawSession } from "@/lib/authorization";
 
 export async function getEndOfDayReconciliation(
@@ -22,127 +22,116 @@ export async function getEndOfDayReconciliation(
   const endOfDay = new Date(targetDate);
   endOfDay.setHours(23, 59, 59, 999);
 
-  const tenantFilter = tenantId ? { tenant_id: tenantId } : {};
-  const ledgerTenantFilter = tenantId
-    ? { account: { tenant_id: tenantId } }
-    : {};
-
-  const db = getBranchPrisma(session.user.tenantSlug);
-
-  // 1. Gather all Disbursed Loans today
-  const loansDisbursed = await db.loan.findMany({
-    where: {
-      ...tenantFilter,
-      status: "active",
-      approved_at: {
-        gte: startOfDay,
-        lte: endOfDay,
+  const queryFn = async (db: any) => {
+    // 1. Gather all Disbursed Loans today
+    const loansDisbursed = await db.loan.findMany({
+      where: {
+        status: "active",
+        approved_at: {
+          gte: startOfDay,
+          lte: endOfDay,
+        },
       },
-    },
-    select: { principal_amount: true, loan_reference: true },
-  });
+      select: { principal_amount: true, loan_reference: true },
+    });
 
-  const totalDisbursed = loansDisbursed.reduce(
-    (sum, loan) => sum + Number(loan.principal_amount),
-    0,
-  );
+    const totalDisbursed = loansDisbursed.reduce(
+      (sum: number, loan: any) => sum + Number(loan.principal_amount),
+      0,
+    );
 
-  // 2. Gather all Verified Payments today
-  const paymentsVerified = await db.payment.findMany({
-    where: {
-      loan: tenantFilter,
-      status: "verified",
-      verified_at: {
-        gte: startOfDay,
-        lte: endOfDay,
+    // 2. Gather all Verified Payments today
+    const paymentsVerified = await db.payment.findMany({
+      where: {
+        status: "verified",
+        verified_at: {
+          gte: startOfDay,
+          lte: endOfDay,
+        },
       },
-    },
-    select: { amount_paid: true, payment_reference: true },
-  });
+      select: { amount_paid: true, payment_reference: true },
+    });
 
-  const totalCollected = paymentsVerified.reduce(
-    (sum, payment) => sum + Number(payment.amount_paid),
-    0,
-  );
+    const totalCollected = paymentsVerified.reduce(
+      (sum: number, payment: any) => sum + Number(payment.amount_paid),
+      0,
+    );
 
-  // 3. Ledger Sanity Check (Debits vs Credits today for the branch)
-  const ledgerEntries = await db.businessLedger.findMany({
-    where: {
-      ...ledgerTenantFilter,
-      created_at: {
-        gte: startOfDay,
-        lte: endOfDay,
+    // 3. Ledger Sanity Check (Debits vs Credits today for the branch)
+    const ledgerEntries = await db.businessLedger.findMany({
+      where: {
+        created_at: {
+          gte: startOfDay,
+          lte: endOfDay,
+        },
       },
-    },
-    select: { debit: true, credit: true },
-  });
+      select: { debit: true, credit: true },
+    });
 
-  const totalLedgerDebits = ledgerEntries.reduce(
-    (sum, entry) => sum + Number(entry.debit),
-    0,
-  );
-  const totalLedgerCredits = ledgerEntries.reduce(
-    (sum, entry) => sum + Number(entry.credit),
-    0,
-  );
+    const totalLedgerDebits = ledgerEntries.reduce(
+      (sum: number, entry: any) => sum + Number(entry.debit),
+      0,
+    );
+    const totalLedgerCredits = ledgerEntries.reduce(
+      (sum: number, entry: any) => sum + Number(entry.credit),
+      0,
+    );
 
-  // They should roughly balance if double-entry is strict, but since some accounts might be omitted
-  // from our query depending on setup, we just return the raw totals.
-  const isLedgerBalanced =
-    totalLedgerDebits === totalLedgerCredits && totalLedgerDebits > 0;
+    const isLedgerBalanced =
+      totalLedgerDebits === totalLedgerCredits && totalLedgerDebits > 0;
 
-  // 4. Branch Wallet Checks (Total Active Savings Accounts)
-  const branchSavings = await db.savingsAccount.findMany({
-    where: {
-      ...tenantFilter,
-    },
-    select: { balance: true },
-  });
+    // 4. Branch Wallet Checks (Total Active Savings Accounts)
+    const branchSavings = await db.savingsAccount.findMany({
+      select: { balance: true },
+    });
 
-  const totalBranchSavings = branchSavings.reduce(
-    (sum, savings) => sum + Number(savings.balance),
-    0,
-  );
+    const totalBranchSavings = branchSavings.reduce(
+      (sum: number, savings: any) => sum + Number(savings.balance),
+      0,
+    );
 
-  // 5. Master Pulse Check: Treasury (Asset) vs. User Wallets (Liability)
-  // Sum of all CASH_EQUIVALENTS for this branch/tenant
-  const treasuryAccount = await db.ledgerAccount.findFirst({
-    where: { code: "CASH_EQUIVALENTS", tenant_id: tenantId },
-  });
+    // 5. Master Pulse Check: Treasury (Asset) vs. User Wallets (Liability)
+    const treasuryAccount = await db.ledgerAccount.findFirst({
+      where: { code: "CASH_EQUIVALENTS" },
+    });
 
-  const treasuryEntries = treasuryAccount
-    ? await db.businessLedger.findMany({
-        where: { account_id: treasuryAccount.id },
-        select: { debit: true, credit: true },
-      })
-    : [];
+    const treasuryEntries = treasuryAccount
+      ? await db.businessLedger.findMany({
+          where: { account_id: treasuryAccount.id },
+          select: { debit: true, credit: true },
+        })
+      : [];
 
-  const totalTreasuryBalance = treasuryEntries.reduce(
-    (sum, e) => sum + Number(e.debit) - Number(e.credit),
-    0,
-  );
+    const totalTreasuryBalance = treasuryEntries.reduce(
+      (sum: number, e: any) => sum + Number(e.debit) - Number(e.credit),
+      0,
+    );
 
-  const imbalance = Math.abs(totalTreasuryBalance - totalBranchSavings);
-  const isTreasuryHealthy = imbalance <= 0.01;
+    const imbalance = Math.abs(totalTreasuryBalance - totalBranchSavings);
+    const isTreasuryHealthy = imbalance <= 0.01;
 
-  return {
-    targetDate,
-    totalDisbursed,
-    disbursedCount: loansDisbursed.length,
-    totalCollected,
-    collectedCount: paymentsVerified.length,
-    ledger: {
-      totalDebits: totalLedgerDebits,
-      totalCredits: totalLedgerCredits,
-      isBalanced: isLedgerBalanced,
-    },
-    holdings: {
-      totalBranchSavings,
-      totalTreasuryBalance,
-      imbalance,
-      isTreasuryHealthy,
-    },
+    return {
+      targetDate,
+      totalDisbursed,
+      disbursedCount: loansDisbursed.length,
+      totalCollected,
+      collectedCount: paymentsVerified.length,
+      ledger: {
+        totalDebits: totalLedgerDebits,
+        totalCredits: totalLedgerCredits,
+        isBalanced: isLedgerBalanced,
+      },
+      holdings: {
+        totalBranchSavings,
+        totalTreasuryBalance,
+        imbalance,
+        isTreasuryHealthy,
+      },
+    };
   };
+  return await prisma.$withTenant(tenantId!, async (tx) => {
+    return await queryFn(tx);
+  });
 }
 
 export async function resolveAndSignEndOfDay(reason?: string) {
@@ -153,110 +142,114 @@ export async function resolveAndSignEndOfDay(reason?: string) {
     throw new Error("EOD sign-off requires a branch context.");
   }
 
-  const eodData = await getEndOfDayReconciliation(undefined, tenantId);
+  return await prisma.$withTenant(tenantId, async (tx) => {
+    const eodData = await getEndOfDayReconciliation(undefined, tenantId);
 
-  const db = getBranchPrisma(session.user.tenantSlug);
+    // If healthy and balanced, we just sign off.
+    if (eodData.holdings.isTreasuryHealthy && eodData.ledger.isBalanced) {
+      await tx.auditLog.create({
+        data: {
+          tenant_id: tenantId,
+          user_id: Number(session.user.id),
+          action: "EOD_SIGN_OFF",
+          entity_type: "RECONCILIATION",
+          new_values: { status: "BALANCED" } as any,
+        },
+      });
+      return { success: true, adjusted: false };
+    }
 
-  // If healthy and balanced, we just sign off.
-  if (eodData.holdings.isTreasuryHealthy && eodData.ledger.isBalanced) {
-    await db.auditLog.create({
+    // Imbalance scenario
+    if (!reason || reason.trim() === "") {
+      throw new Error(
+        "An imbalance was detected. You must provide a reason for the discrepancy to generate an adjusting entry.",
+      );
+    }
+
+    if (!eodData.holdings.isTreasuryHealthy) {
+      const treasuryAccount = await tx.ledgerAccount.findFirst({
+        where: { code: "CASH_EQUIVALENTS" },
+      });
+
+      if (!treasuryAccount) throw new Error("Missing treasury account.");
+
+      let discrepancyAccount = await tx.ledgerAccount.findFirst({
+        where: { code: "RECONC_DISCREPANCY" },
+      });
+
+      if (!discrepancyAccount) {
+        discrepancyAccount = await tx.ledgerAccount.create({
+          data: {
+            name: "Reconciliation Discrepancy",
+            code: "RECONC_DISCREPANCY",
+            type: "EXPENSE",
+            tenant_id: tenantId,
+          },
+        });
+      }
+
+      const diff =
+        Number(eodData.holdings.totalBranchSavings) -
+        Number(eodData.holdings.totalTreasuryBalance);
+      const transactionId = crypto.randomUUID();
+
+      const entries = [];
+      if (diff > 0) {
+        entries.push({
+          transaction_id: transactionId,
+          account_id: treasuryAccount.id,
+          tenant_id: tenantId,
+          debit: diff,
+          credit: 0,
+          description: `EOD Adjustment: ${reason}`,
+          created_by: Number(session.user.id),
+        });
+        entries.push({
+          transaction_id: transactionId,
+          account_id: discrepancyAccount.id,
+          tenant_id: tenantId,
+          debit: 0,
+          credit: diff,
+          description: `EOD Adjustment: ${reason}`,
+          created_by: Number(session.user.id),
+        });
+      } else if (diff < 0) {
+        const absDiff = Math.abs(diff);
+        entries.push({
+          transaction_id: transactionId,
+          account_id: treasuryAccount.id,
+          tenant_id: tenantId,
+          debit: 0,
+          credit: absDiff,
+          description: `EOD Adjustment: ${reason}`,
+          created_by: Number(session.user.id),
+        });
+        entries.push({
+          transaction_id: transactionId,
+          account_id: discrepancyAccount.id,
+          tenant_id: tenantId,
+          debit: absDiff,
+          credit: 0,
+          description: `EOD Adjustment: ${reason}`,
+          created_by: Number(session.user.id),
+        });
+      }
+
+      if (entries.length > 0) {
+        await tx.businessLedger.createMany({ data: entries });
+      }
+    }
+
+    await tx.auditLog.create({
       data: {
         tenant_id: tenantId,
         user_id: Number(session.user.id),
-        action: "EOD_SIGN_OFF",
+        action: "EOD_SIGN_OFF_WITH_ADJUSTMENT",
         entity_type: "RECONCILIATION",
-        new_values: { status: "BALANCED" } as any,
+        new_values: { status: "ADJUSTED", reason: reason } as any,
       },
     });
-    return { success: true, adjusted: false };
-  }
 
-  // Imbalance scenario
-  if (!reason || reason.trim() === "") {
-    throw new Error(
-      "An imbalance was detected. You must provide a reason for the discrepancy to generate an adjusting entry.",
-    );
-  }
-
-  if (!eodData.holdings.isTreasuryHealthy) {
-    const treasuryAccount = await db.ledgerAccount.findFirst({
-      where: { code: "CASH_EQUIVALENTS", tenant_id: tenantId },
-    });
-
-    if (!treasuryAccount) throw new Error("Missing treasury account.");
-
-    let discrepancyAccount = await db.ledgerAccount.findFirst({
-      where: { code: "RECONC_DISCREPANCY", tenant_id: tenantId },
-    });
-
-    if (!discrepancyAccount) {
-      discrepancyAccount = await db.ledgerAccount.create({
-        data: {
-          name: "Reconciliation Discrepancy",
-          code: "RECONC_DISCREPANCY",
-          type: "EXPENSE",
-          tenant_id: tenantId,
-        },
-      });
-    }
-
-    const diff =
-      Number(eodData.holdings.totalBranchSavings) -
-      Number(eodData.holdings.totalTreasuryBalance);
-    const transactionId = crypto.randomUUID();
-
-    const entries = [];
-    if (diff > 0) {
-      entries.push({
-        transaction_id: transactionId,
-        account_id: treasuryAccount.id,
-        debit: diff,
-        credit: 0,
-        description: `EOD Adjustment: ${reason}`,
-        created_by: Number(session.user.id),
-      });
-      entries.push({
-        transaction_id: transactionId,
-        account_id: discrepancyAccount.id,
-        debit: 0,
-        credit: diff,
-        description: `EOD Adjustment: ${reason}`,
-        created_by: Number(session.user.id),
-      });
-    } else if (diff < 0) {
-      const absDiff = Math.abs(diff);
-      entries.push({
-        transaction_id: transactionId,
-        account_id: treasuryAccount.id,
-        debit: 0,
-        credit: absDiff,
-        description: `EOD Adjustment: ${reason}`,
-        created_by: Number(session.user.id),
-      });
-      entries.push({
-        transaction_id: transactionId,
-        account_id: discrepancyAccount.id,
-        debit: absDiff,
-        credit: 0,
-        description: `EOD Adjustment: ${reason}`,
-        created_by: Number(session.user.id),
-      });
-    }
-
-    if (entries.length > 0) {
-      await db.businessLedger.createMany({ data: entries });
-    }
-  }
-
-  await db.auditLog.create({
-    data: {
-      tenant_id: tenantId,
-      user_id: Number(session.user.id),
-      action: "EOD_SIGN_OFF_WITH_ADJUSTMENT",
-      entity_type: "RECONCILIATION",
-      new_values: { status: "ADJUSTED", reason: reason } as any,
-    },
+    return { success: true, adjusted: true };
   });
-
-  return { success: true, adjusted: true };
 }

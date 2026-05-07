@@ -1,4 +1,4 @@
-import prisma, { getBranchPrisma } from "@/lib/prisma";
+import prisma from "@/lib/prisma";
 import { InterestTier } from "@prisma/client";
 import { determineInterestTierFromScore } from "@/lib/microfinance-policy";
 
@@ -24,8 +24,10 @@ export async function calculateTrustScore(
   userId: number,
   tenantId?: number | null,
   tenantSlug?: string | null,
+  dbClient?: any,
 ): Promise<TrustScoreBreakdown> {
-  const db = getBranchPrisma(tenantSlug || null);
+  const db = dbClient || prisma;
+
   const user = await db.user.findUnique({
     where: { user_id: userId },
     include: {
@@ -131,9 +133,16 @@ export async function syncUserTier(
   userId: number,
   tenantId?: number | null,
   tenantSlug?: string | null,
+  dbClient?: any,
 ) {
-  const breakdown = await calculateTrustScore(userId, tenantId, tenantSlug);
-  const db = getBranchPrisma(tenantSlug || null);
+  const breakdown = await calculateTrustScore(
+    userId,
+    tenantId,
+    tenantSlug,
+    dbClient,
+  );
+  const db = dbClient || prisma;
+
   return await db.user.update({
     where: { user_id: userId },
     data: {

@@ -1,7 +1,7 @@
 "use server";
 
 import * as z from "zod";
-import prisma, { getBranchPrisma } from "@/lib/prisma";
+import prisma from "@/lib/prisma";
 import { Prisma, RepaymentFrequency } from "@prisma/client";
 import {
   requireAdminSession,
@@ -74,26 +74,32 @@ export const createLoanProduct = async (
   }
 
   try {
-    const db = getBranchPrisma(session.user.tenantSlug ?? null);
-    await db.loanProduct.create({
-      data: {
-        name,
-        description,
-        min_amount,
-        max_amount,
-        interest_rate_percent,
-        guarantor_liability_rate,
-        allowed_frequencies,
-        max_term_months,
-        is_active: true,
-        tenant_id: session.user.tenantId,
-      },
+    const queryFn = async (db: any) => {
+      await db.loanProduct.create({
+        data: {
+          name,
+          description,
+          min_amount,
+          max_amount,
+          interest_rate_percent,
+          guarantor_liability_rate,
+          allowed_frequencies,
+          max_term_months,
+          is_active: true,
+          tenant_id: session.user.tenantId,
+        },
+      });
+    };
+
+    await prisma.$withTenant(session.user.tenantId, async (tx) => {
+      await queryFn(tx);
     });
 
     revalidatePath("/agapay-pintig");
     revalidatePath("/agapay-tanaw");
     return { success: "Loan product created!" };
-  } catch {
+  } catch (error) {
+    console.error("Create loan product fail:", error);
     return { error: "Something went wrong!" };
   }
 };
@@ -110,13 +116,22 @@ export const getLoanProducts = async () => {
   }
 
   try {
-    const db = getBranchPrisma(session.user.tenantSlug ?? null);
-    const products = await db.loanProduct.findMany({
-      orderBy: {
-        product_id: "desc",
+    const queryFn = async (db: any) => {
+      return await db.loanProduct.findMany({
+        orderBy: {
+          product_id: "desc",
+        },
+      });
+    };
+
+    const products = await prisma.$withTenant(
+      session.user.tenantId,
+      async (tx) => {
+        return await queryFn(tx);
       },
-    });
-    return products.map((product) => ({
+    );
+
+    return products.map((product: any) => ({
       product_id: product.product_id,
       name: product.name,
       description: product.description,

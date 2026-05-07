@@ -22,16 +22,17 @@ type LoanProductCard = {
 
 export const LoanApplicationTab = () => {
   const [products, setProducts] = useState<LoanProductCard[]>([]);
-  const [selectedProduct, setSelectedProduct] = useState<LoanProductCard | null>(
-    null,
-  );
+  const [selectedProduct, setSelectedProduct] =
+    useState<LoanProductCard | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetch = async () => {
       try {
         const data = await getLoanProducts();
-        setProducts(data.filter((product) => product.is_active) as LoanProductCard[]);
+        setProducts(
+          data.filter((product: LoanProductCard) => product.is_active),
+        );
       } catch {
         toast.error("Failed to load loan products.");
       } finally {

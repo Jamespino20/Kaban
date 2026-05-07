@@ -1,6 +1,6 @@
 "use server";
 
-import prisma, { getBranchPrisma } from "@/lib/prisma";
+import prisma from "@/lib/prisma";
 
 const normalizeEmail = (email: string) => email.trim().toLowerCase();
 
@@ -75,14 +75,14 @@ export const newVerification = async (token: string) => {
     if (tenant?.slug) tenantSlug = tenant.slug;
   }
 
-  const db = getBranchPrisma(tenantSlug);
-
-  await db.user.update({
-    where: { user_id: existingUser.user_id },
-    data: {
-      status: "active",
-      email: normalizeEmail(existingToken.email),
-    },
+  await prisma.$withTenant(existingToken.tenant_id ?? 0, async (tx) => {
+    await tx.user.update({
+      where: { user_id: existingUser.user_id },
+      data: {
+        status: "active",
+        email: normalizeEmail(existingToken.email),
+      },
+    });
   });
 
   await prisma.verificationToken.delete({

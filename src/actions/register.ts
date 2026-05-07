@@ -2,7 +2,7 @@
 
 import * as z from "zod";
 import bcrypt from "bcryptjs";
-import prisma, { getBranchPrisma } from "@/lib/prisma";
+import prisma from "@/lib/prisma";
 import { Prisma } from "@prisma/client";
 import { generateVerificationToken } from "@/lib/tokens";
 import { sendVerificationEmail, verifyEmailExists } from "@/lib/mail";
@@ -101,75 +101,86 @@ export const register = async (values: z.infer<typeof RegisterSchema>) => {
     return { error: "Branch not found." };
   }
 
-  const db = getBranchPrisma(tenant.slug);
-
   try {
-    const user = await db.user.create({
-      data: {
-        email,
-        username,
-        password_hash: hashedPassword,
-        tenant_id: tenantId,
-        role: "member",
-        profile: {
-          create: {
-            first_name: firstName,
-            last_name: lastName,
-            middle_name: middleName,
-            birthdate: new Date(birthdate),
-            gender,
-            marital_status: maritalStatus as any,
-            business_name: businessName,
-            address: streetAddress,
-            region,
-            province,
-            city,
-            barangay,
-            place_of_birth: placeOfBirth,
-            tin,
-            photo_url: idPicture,
+    const queryFn = async (db: any) => {
+      const user = await db.user.create({
+        data: {
+          email,
+          username,
+          password_hash: hashedPassword,
+          tenant_id: tenantId,
+          role: "member",
+          profile: {
+            create: {
+              first_name: firstName,
+              last_name: lastName,
+              middle_name: middleName,
+              birthdate: new Date(birthdate),
+              gender,
+              marital_status: maritalStatus as any,
+              business_name: businessName,
+              address: streetAddress,
+              region,
+              province,
+              city,
+              barangay,
+              place_of_birth: placeOfBirth,
+              tin,
+              photo_url: idPicture,
+              tenant_id: tenantId,
+            },
+          },
+          documents: {
+            create: [
+              {
+                document_type: "valid_id",
+                file_url: idPicture,
+                tenant_id: tenantId,
+              },
+              ...(brgyCertUrl
+                ? [
+                    {
+                      document_type: "brgy_cert" as any,
+                      file_url: brgyCertUrl,
+                      tenant_id: tenantId,
+                    },
+                  ]
+                : []),
+              ...(businessPermitUrl
+                ? [
+                    {
+                      document_type: "business_permit" as any,
+                      file_url: businessPermitUrl,
+                      tenant_id: tenantId,
+                    },
+                  ]
+                : []),
+            ],
           },
         },
-        documents: {
-          create: [
-            {
-              document_type: "valid_id",
-              file_url: idPicture,
-            },
-            ...(brgyCertUrl
-              ? [
-                  {
-                    document_type: "brgy_cert" as any,
-                    file_url: brgyCertUrl,
-                  },
-                ]
-              : []),
-            ...(businessPermitUrl
-              ? [
-                  {
-                    document_type: "business_permit" as any,
-                    file_url: businessPermitUrl,
-                  },
-                ]
-              : []),
-          ],
-        },
-      },
-    });
+      });
 
-    const memberCode = `AGP-${user.user_id.toString().padStart(12, "0")}`;
+      const memberCode = `AGP-${user.user_id.toString().padStart(12, "0")}`;
 
-    const verificationToken = await generateVerificationToken(email, tenantId);
-    await sendVerificationEmail(
-      verificationToken.email,
-      verificationToken.token,
-    );
+      const verificationToken = await generateVerificationToken(
+        email,
+        tenantId,
+      );
+      await sendVerificationEmail(
+        verificationToken.email,
+        verificationToken.token,
+      );
 
-    return {
-      success:
-        "Confirmation email sent! Please verify your email to activate your account.",
-      memberCode,
+      return {
+        success:
+          "Confirmation email sent! Please verify your email to activate your account.",
+        memberCode,
+      };
     };
+
+    return await prisma.$withTenant(tenantId, async (tx) => {
+      return await queryFn(tx);
+    });
   } catch (error) {
     console.error("Registration error:", error);
     return { error: "An unexpected error occurred. Please try again." };

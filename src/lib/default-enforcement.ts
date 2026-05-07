@@ -124,7 +124,7 @@ async function createRecoveryLoan(
       totalInterest: 0,
       processingFee: 0,
       frequency: sourceLoan.repayment_frequency,
-    }),
+    }).map((row) => ({ ...row, tenant_id: sourceLoan.tenant_id })),
   });
 
   return recoveryLoan;
@@ -223,6 +223,7 @@ export async function enforceLoanDefault(
     await tx.savingsTransaction.create({
       data: {
         account_id: wallet.account_id,
+        tenant_id: loan.tenant_id,
         transaction_type: DEFAULT_RECOVERY_DEBIT as never,
         amount: deductedAmount,
         reference: `DEFAULT-${loan.loan_reference}`,
@@ -328,7 +329,11 @@ export async function runAutomatedDefaultEnforcement(params: {
   const affectedUsers = new Set<number>();
   for (const loan of loans) {
     const userIds = await prisma.$transaction((tx) =>
-      enforceLoanDefault(tx, loan.loan_id, params.actorUserId),
+      enforceLoanDefault(
+        tx as unknown as Prisma.TransactionClient,
+        loan.loan_id,
+        params.actorUserId,
+      ),
     );
 
     for (const userId of userIds) {

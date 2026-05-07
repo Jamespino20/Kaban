@@ -1,6 +1,6 @@
 "use server";
 
-import prisma, { getBranchPrisma } from "@/lib/prisma";
+import prisma from "@/lib/prisma";
 import { auth } from "@/lib/auth";
 import { Role } from "@prisma/client";
 
@@ -9,13 +9,20 @@ export const acceptConsent = async (version: string) => {
   if (!session?.user?.id) return { error: "Not authenticated" };
 
   try {
-    const db = getBranchPrisma(session.user.tenantSlug);
-    await db.user.update({
-      where: { user_id: parseInt(session.user.id) },
-      data: {
-        consent_accepted_at: new Date(),
-        consent_version: version,
-      },
+    if (!session.user.tenantId) return { error: "Tenant not found" };
+
+    const queryFn = async (db: any) => {
+      await db.user.update({
+        where: { user_id: parseInt(session.user.id!) },
+        data: {
+          consent_accepted_at: new Date(),
+          consent_version: version,
+        },
+      });
+    };
+
+    await prisma.$withTenant(session.user.tenantId, async (tx) => {
+      await queryFn(tx);
     });
 
     return { success: "Consent recorded" };

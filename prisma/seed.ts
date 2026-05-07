@@ -1,7 +1,7 @@
 import "dotenv/config";
 import { PrismaClient, Role, InterestTier } from "@prisma/client";
 import { PrismaNeon } from "@prisma/adapter-neon";
-import { neonConfig } from "@neondatabase/serverless";
+import { neonConfig, Pool } from "@neondatabase/serverless";
 import bcrypt from "bcryptjs";
 import ws from "ws";
 import fs from "fs";
@@ -41,127 +41,17 @@ const buildMemberIdentity = (
   };
 };
 
-// ── MULTI-SCHEMA PROVISIONER ──
-async function provisionBranchSchema(client: any, tenant: any) {
-  const slug = tenant.slug;
-  console.log(`🏗️  Provisioning isolated schema: [${slug}]`);
-
-  await client.$executeRawUnsafe(`DROP SCHEMA IF EXISTS "${slug}" CASCADE`);
-  await client.$executeRawUnsafe(`CREATE SCHEMA "${slug}"`);
-  await client.$executeRawUnsafe(`SET search_path TO "${slug}", public`);
-
-  const initSqlPath = path.join(process.cwd(), "prisma/init.sql");
-  const initSqlRaw = fs.readFileSync(initSqlPath, "utf8");
-
-  const GLOBAL_TABLES = [
-    "tenants",
-    "tenant_groups",
-    "subscription_plans",
-    "tenant_subscriptions",
-  ];
-
-  const statements = initSqlRaw.split(";").filter((s) => s.trim().length > 0);
-
-  for (let sql of statements) {
-    const trimmed = sql.trim();
-    if (!trimmed) continue;
-
-    try {
-      if (trimmed.includes('CREATE SCHEMA IF NOT EXISTS "public"')) continue;
-
-      const isGlobalAction = GLOBAL_TABLES.some(
-        (t) =>
-          trimmed.includes(`TABLE "${t}"`) ||
-          trimmed.includes(`INDEX "${t}_`) ||
-          trimmed.includes(`ON "${t}"`),
-      );
-      if (isGlobalAction) continue;
-
-      if (trimmed.includes("CREATE TYPE")) {
-        const qualifiedEnum = trimmed.replace(
-          /CREATE TYPE "([^"]+)"/g,
-          `CREATE TYPE "${slug}"."$1"`,
-        );
-        await client.$executeRawUnsafe(qualifiedEnum);
-        continue;
-      }
-
-      if (
-        trimmed.includes("CREATE TABLE") ||
-        trimmed.includes("ALTER TABLE") ||
-        trimmed.includes("CREATE UNIQUE INDEX") ||
-        trimmed.includes("CREATE INDEX")
-      ) {
-        let qualified = trimmed;
-        qualified = qualified.replace(
-          /CREATE TABLE "([^"]+)"/g,
-          `CREATE TABLE "${slug}"."$1"`,
-        );
-        qualified = qualified.replace(
-          /ALTER TABLE "([^"]+)"/g,
-          `ALTER TABLE "${slug}"."$1"`,
-        );
-        qualified = qualified.replace(
-          /CREATE (UNIQUE )?INDEX "([^"]+)" ON "([^"]+)"/g,
-          `CREATE $1 INDEX "$2" ON "${slug}"."$3"`,
-        );
-
-        for (const gt of GLOBAL_TABLES) {
-          const regex = new RegExp(`REFERENCES "${gt}"`, "g");
-          qualified = qualified.replace(regex, `REFERENCES public."${gt}"`);
-        }
-
-        const enumNames = [
-          "Role",
-          "MaritalStatus",
-          "InterestTier",
-          "UserStatus",
-          "DocumentType",
-          "VerificationStatus",
-          "LoanStatus",
-          "ScheduleStatus",
-          "PaymentStatus",
-          "GuaranteeStatus",
-          "LedgerAccountType",
-          "AccountType",
-          "TransactionType",
-          "RepaymentFrequency",
-          "CompassionActionType",
-          "CompassionStatus",
-          "ConversationType",
-          "MentorshipStatus",
-          "NotificationType",
-          "NotificationChannel",
-          "TenantEntitlementStatus",
-          "BillingCycle",
-        ];
-        for (const enm of enumNames) {
-          const regex = new RegExp(`"${enm}"`, "g");
-          qualified = qualified.replace(regex, `"${slug}"."${enm}"`);
-        }
-
-        await client.$executeRawUnsafe(qualified);
-      }
-    } catch (err: any) {
-      console.error(`      ❌ DDL Error in [${slug}]: ${err.message}`);
-      throw err;
-    }
-  }
-
-  for (const table of GLOBAL_TABLES) {
-    await client.$executeRawUnsafe(
-      `CREATE OR REPLACE VIEW "${slug}"."${table}" AS SELECT * FROM public."${table}"`,
-    );
-  }
-}
+// ── SINGLE-SCHEMA SEEDER ──
+// All data will be seeded into the public schema.
+// Isolation is handled via tenant_id and RLS.
 
 // ═══════════════════════════════════════════════
 // CONSTANTS
 // ═══════════════════════════════════════════════
 const REGIONS = [
-  { name: "NCR Sector", reg_code: "AGP-NCR" },
-  { name: "Central Luzon Sector", reg_code: "AGP-CL" },
-  { name: "Southern Tagalog Sector", reg_code: "AGP-ST" },
+  { name: "NCR Sector", reg_code: "AGP_NCR" },
+  { name: "Central Luzon Sector", reg_code: "AGP_CL" },
+  { name: "Southern Tagalog Sector", reg_code: "AGP_ST" },
 ];
 
 const COOPERATIVES = [
@@ -173,25 +63,25 @@ const COOPERATIVES = [
   },
   {
     name: "San Jose Rural Workers Coop",
-    slug: "san-jose",
+    slug: "san_jose",
     groupIdx: 1,
     color: "#059669",
   },
   {
     name: "Quezon City Vendors Trust",
-    slug: "qc-vendors",
+    slug: "qc_vendors",
     groupIdx: 0,
     color: "#d97706",
   },
   {
     name: "Makati Business Sari-Sari Coop",
-    slug: "makati-business",
+    slug: "makati_business",
     groupIdx: 0,
     color: "#dc2626",
   },
   {
     name: "Calamba Agricultural Cooperative",
-    slug: "calamba-agri",
+    slug: "calamba_agri",
     groupIdx: 2,
     color: "#7c3aed",
   },
@@ -299,7 +189,7 @@ const OCCUPATIONS = [
   "Laundry Service",
   "Freelancer",
   "Farmer",
-  "Carenderia Owner",
+  "Carinderia Owner",
   "Ukay-Ukay Vendor",
   "Rice Trader",
   "Water Refilling Operator",
@@ -332,7 +222,7 @@ async function seedTenantData(client: any, tenant: any, ctx: any) {
     const isMale = Math.random() > 0.5;
     const first = pick(isMale ? NAMES_M : NAMES_F);
     const last = pick(SURNAMES);
-    const code = `AGP${year}${role === Role.admin ? "A" : "L"}${String(i + 1).padStart(3, "0")}`;
+    const code = `AGP${year}${role === Role.admin ? "A" : "L"}${String(i + 1).padStart(12, "0")}`;
     const identity = buildMemberIdentity(first, last, code, tenant.slug);
 
     const user = await client.user.create({
@@ -351,6 +241,7 @@ async function seedTenantData(client: any, tenant: any, ctx: any) {
             gender: isMale ? "male" : "female",
             address: `${pick(BARANGAYS)}, ${tenant.name}`,
             occupation: role === Role.admin ? "Branch Manager" : "Loan Officer",
+            tenant_id: tenant.tenant_id,
           },
         },
       },
@@ -365,7 +256,7 @@ async function seedTenantData(client: any, tenant: any, ctx: any) {
     const isMale = Math.random() > 0.5;
     const first = pick(isMale ? NAMES_M : NAMES_F);
     const last = pick(SURNAMES);
-    const code = `AGP${year}M${String(i + 1).padStart(4, "0")}`;
+    const code = `AGP${year}M${String(i + 1).padStart(12, "0")}`;
     const identity = buildMemberIdentity(first, last, code, tenant.slug);
 
     const user = await client.user.create({
@@ -391,6 +282,7 @@ async function seedTenantData(client: any, tenant: any, ctx: any) {
             business_name: pick(BUSINESSES),
             occupation: pick(OCCUPATIONS),
             tin: `${rand(100, 999)}-${rand(100, 999)}-${rand(0, 999)}`,
+            tenant_id: tenant.tenant_id,
           },
         },
       },
@@ -410,6 +302,7 @@ async function seedTenantData(client: any, tenant: any, ctx: any) {
       data: {
         voucher_id: voucher.user_id,
         vouchee_id: vouchee.user_id,
+        tenant_id: tenant.tenant_id,
         score: rand(7, 10),
         comment: "Maaasahan at matapat na miyembro.",
       },
@@ -442,10 +335,10 @@ async function main() {
       members: 500,
       storageMb: 5000,
       features: [
-        "basic_admin_dashboard",
-        "standard_microfinance_policy_access",
-        "audit_logs",
-        "email_support",
+        "Basic Admin Dashboard",
+        "Standard Microfinancing Policy Access",
+        "Audit Logs",
+        "Email Support",
       ],
     },
     {
@@ -454,10 +347,10 @@ async function main() {
       members: 2500,
       storageMb: 25000,
       features: [
-        "custom_tenant_branding",
-        "mentorship_community_tools",
-        "chat_priority_email_support",
-        "automated_compassion_workflow",
+        "Custom Tenant Branding",
+        "Mentorship Community Tools",
+        "Chat/Priority Email Support",
+        "Automated Compassion Workflow",
       ],
     },
     {
@@ -466,24 +359,27 @@ async function main() {
       members: 1000000,
       storageMb: 100000,
       features: [
-        "analytics_module",
-        "priority_support",
-        "data_export_reporting_tools",
-        "system_configuration_controls",
+        "Analytics Module",
+        "Priority Technical Support",
+        "Data Exporting/Reporting Tools",
+        "System Configuration Controls",
       ],
     },
     {
       name: "Agapay Sangay",
-      price: 3000,
-      members: 0,
-      storageMb: 10000,
+      price: 0, // Free add-on if on Enterprise
+      isAddon: true,
+      branchPrice: 3000, // +₱3,000 per branch
+      branchStorage: 10000, // +10GB per branch
+      members: 1000000,
+      storageMb: 100000,
       features: [
-        "enterprise_addon_only",
-        "multi_branch_management",
-        "branch_level_roles_permissions",
-        "consolidated_branch_analytics",
-        "inter_branch_monitoring_reporting",
-        "branch_configuration_controls",
+        "Free add-on if on Enterprise Plan (+3,000/month per branch)",
+        "Multi-Branch (Sangay) Management",
+        "Branch-Level Role Permissions",
+        "Consolidated Branch Analytics",
+        "Inter-Branch Monitoring/Reporting",
+        "Branch Configuration Controls",
       ],
     },
   ];
@@ -495,8 +391,11 @@ async function main() {
         price_monthly: p.price,
         price_annually: p.price * 12,
         max_members: p.members,
-        max_storage_mb: p.storageMb,
+        max_storage_mb: (p as any).storageMb ?? 0,
         features: p.features,
+        is_addon: p.isAddon === true,
+        branch_price: p.branchPrice ?? null,
+        branch_storage: p.branchStorage ?? null,
       },
     });
     seededPlans.push(plan);
@@ -511,16 +410,32 @@ async function main() {
     seededGroups.push(group);
   }
 
+  // 3.5 System Tenant (for Superadmins)
+  const apexTenant = await prisma.tenant.create({
+    data: {
+      name: "Agapay System",
+      slug: "apex",
+      brand_color: "#1e293b",
+    },
+  });
+
   // 4. Superadmins
   await prisma.user.create({
     data: {
-      username: "agapay-admin",
-      email: "admin@agapay.ph",
+      username: "superadmin",
+      email: "agapay.saas@gmail.com",
       password_hash: hashedAdmin,
       role: Role.superadmin,
       status: "active",
       member_code: "SUPER-001",
-      profile: { create: { first_name: "James", last_name: "Bryant" } },
+      tenant_id: apexTenant.tenant_id,
+      profile: {
+        create: {
+          first_name: "James",
+          last_name: "Bryant",
+          tenant_id: apexTenant.tenant_id,
+        },
+      },
     },
   });
 
@@ -545,20 +460,8 @@ async function main() {
       },
     });
 
-    const isMain = coop.slug === "malolos";
-    const branchAdapter = isMain
-      ? new PrismaNeon({ connectionString } as any)
-      : new PrismaNeon(
-          { connectionString } as any,
-          { schema: coop.slug } as any,
-        );
-    const branchPrisma = new PrismaClient({ adapter: branchAdapter });
-
     try {
-      if (!isMain) {
-        await provisionBranchSchema(branchPrisma, tenant);
-      }
-      await branchPrisma.$transaction(
+      await prisma.$transaction(
         async (tx) => {
           await seedTenantData(tx, tenant, {
             hashedPassword,
@@ -566,12 +469,10 @@ async function main() {
             year,
           });
         },
-        { timeout: 60000 },
+        { timeout: 120000 },
       );
     } catch (err) {
       console.error(`❌ Failed to seed ${coop.name}:`, err);
-    } finally {
-      await branchPrisma.$disconnect();
     }
   }
 

@@ -17,6 +17,22 @@ type CommunitySummary = Awaited<
   ReturnType<typeof import("@/actions/community-actions").getCommunityStaffSummary>
 >;
 
+type PendingMentorshipRequest = {
+  id: number;
+  requesterName: string;
+  mentorName: string;
+  focusArea: string | null;
+  createdAt: Date;
+};
+
+type RecentMessage = {
+  id: number;
+  content: string;
+  createdAt: Date;
+  conversationTitle: string;
+  senderName: string;
+};
+
 export function CommunityOperationsTab({
   summary,
 }: {
@@ -31,7 +47,7 @@ export function CommunityOperationsTab({
               Community Operations
             </h2>
             <p className="text-sm text-slate-500">
-              Compact na view para sa mentorship endorsements at branch message
+              Compact view for mentorship endorsements and branch message
               activity.
             </p>
           </div>
@@ -75,7 +91,7 @@ export function CommunityOperationsTab({
                 Walang naghihintay na mentorship endorsements.
               </p>
             ) : (
-              summary.pendingMentorships.map((request) => (
+              summary.pendingMentorships.map((request: any) => (
                 <MentorshipReviewCard key={request.id} request={request} />
               ))
             )}
@@ -88,17 +104,18 @@ export function CommunityOperationsTab({
               Recent Community Activity
             </h3>
             <p className="text-xs text-slate-500">
-              Quick pulse ng branch rooms, direct chats, at active support flows.
+              Quick pulse ng branch rooms, direct chats, at active support
+              flows.
             </p>
           </div>
 
           <div className="space-y-2">
             {summary.recentMessages.length === 0 ? (
               <p className="rounded-2xl border border-dashed border-slate-200 bg-slate-50 px-4 py-4 text-sm text-slate-500">
-                Wala pang recent community messages sa scope na ito.
+                No recent community messages in this scope.
               </p>
             ) : (
-              summary.recentMessages.map((message) => (
+              summary.recentMessages.map((message: RecentMessage) => (
                 <div
                   key={message.id}
                   className="rounded-2xl border border-slate-100 bg-slate-50 px-4 py-3"
@@ -244,7 +261,9 @@ function CompactStatCard({
   }[accent];
 
   return (
-    <div className={`rounded-[1.5rem] border px-4 py-4 shadow-sm ${accentClasses}`}>
+    <div
+      className={`rounded-[1.5rem] border px-4 py-4 shadow-sm ${accentClasses}`}
+    >
       <div className="flex items-center gap-2">
         {icon}
         <p className="text-[11px] font-black uppercase tracking-[0.18em]">

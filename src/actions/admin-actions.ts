@@ -1,6 +1,6 @@
 "use server";
 
-import prisma, { getBranchPrisma } from "@/lib/prisma";
+import prisma from "@/lib/prisma";
 import { requireTanawSession } from "@/lib/authorization";
 import { Role, UserStatus } from "@prisma/client";
 import {
@@ -12,281 +12,275 @@ import { determineInterestTierFromScore } from "@/lib/microfinance-policy";
 
 export async function getTenantMembers() {
   const session = await requireTanawSession();
-  const db = getBranchPrisma(session.user.tenantSlug);
-  const tenantId = session.user.tenantId ?? undefined;
-  const tenantFilter =
-    session.user.role === "superadmin" && !tenantId
-      ? {}
-      : { tenant_id: tenantId };
+  const tenantId = session.user.tenantId;
 
-  const members = await db.user.findMany({
-    where: {
-      ...tenantFilter,
-    },
-    include: {
-      profile: true,
-      tenant: {
-        select: {
-          name: true,
+  const query = (db: any) =>
+    db.user.findMany({
+      include: {
+        profile: true,
+        tenant: {
+          select: {
+            name: true,
+          },
+        },
+        savings_accounts: {
+          select: {
+            account_type: true,
+            balance: true,
+          },
+        },
+        loans: {
+          select: {
+            loan_id: true,
+            status: true,
+            is_recovery_loan: true,
+            balance_remaining: true,
+          },
+        },
+        guarantees: {
+          select: {
+            id: true,
+            status: true,
+          },
         },
       },
-      savings_accounts: {
-        select: {
-          account_type: true,
-          balance: true,
-        },
+      orderBy: {
+        created_at: "desc",
       },
-      loans: {
-        select: {
-          loan_id: true,
-          status: true,
-          is_recovery_loan: true,
-          balance_remaining: true,
-        },
-      },
-      guarantees: {
-        select: {
-          id: true,
-          status: true,
-        },
-      },
-    },
-    orderBy: {
-      created_at: "desc",
-    },
+    });
+
+  if (!tenantId) {
+    return await query(prisma);
+  }
+
+  return await prisma.$withTenant(tenantId, async (tx) => {
+    return await query(tx);
   });
-
-  return members;
 }
 
 export async function getPendingApprovals() {
   const session = await requireTanawSession();
-  const db = getBranchPrisma(session.user.tenantSlug);
-  const tenantId = session.user.tenantId ?? undefined;
-  const tenantFilter =
-    session.user.role === "superadmin" && !tenantId
-      ? {}
-      : { tenant_id: tenantId };
-  const loanTenantFilter =
-    session.user.role === "superadmin" && !tenantId
-      ? {}
-      : { tenant_id: tenantId };
+  const tenantId = session.user.tenantId;
 
-  // Fetch pending loans
-  const pendingLoans = await db.loan.findMany({
-    where: {
-      ...loanTenantFilter,
-      status: "pending",
-    },
-    include: {
-      user: {
-        include: {
-          profile: true,
-        },
+  const query = async (db: any) => {
+    // Fetch pending loans
+    const loans = await db.loan.findMany({
+      where: {
+        status: "pending",
       },
-      product: true,
-    },
-    orderBy: {
-      applied_at: "asc",
-    },
-  });
+      include: {
+        user: {
+          include: {
+            profile: true,
+          },
+        },
+        product: true,
+      },
+      orderBy: {
+        applied_at: "asc",
+      },
+    });
 
-  // Fetch users with pending verification documents
-  const pendingVerifications = await db.user.findMany({
-    where: {
-      ...tenantFilter,
-      status: UserStatus.pending,
-      documents: {
-        some: {
-          verification_status: "pending",
-        },
-      },
-    },
-    include: {
-      profile: true,
-      documents: true,
-    },
-  });
-
-  const approvedLoans = await db.loan.findMany({
-    where: {
-      ...loanTenantFilter,
-      status: "approved",
-    },
-    include: {
-      user: {
-        include: {
-          profile: true,
-        },
-      },
-      product: true,
-      tenant: {
-        include: {
-          payment_methods: {
-            where: { is_active: true },
-            orderBy: { provider_name: "asc" },
+    // Fetch users with pending verification documents
+    const verifications = await db.user.findMany({
+      where: {
+        status: UserStatus.pending,
+        documents: {
+          some: {
+            verification_status: "pending",
           },
         },
       },
-    },
-    orderBy: {
-      approved_at: "asc",
-    },
-  });
+      include: {
+        profile: true,
+        documents: true,
+      },
+    });
 
-  const pendingPayments = await db.payment.findMany({
-    where: {
-      status: "pending",
-      loan: loanTenantFilter,
-    },
-    include: {
-      loan: {
-        include: {
-          user: {
-            include: {
-              profile: true,
+    const approvedLoans = await db.loan.findMany({
+      where: {
+        status: "approved",
+      },
+      include: {
+        user: {
+          include: {
+            profile: true,
+          },
+        },
+        product: true,
+        tenant: {
+          include: {
+            payment_methods: {
+              where: { is_active: true },
+              orderBy: { provider_name: "asc" },
             },
           },
-          product: true,
         },
       },
-      payment_method: true,
-    },
-    orderBy: {
-      submitted_at: "asc",
-    },
-  });
-
-  // CompassionAction is accessed via Prisma client directly as it is a known model
-  const pendingCompassionActions = await db.compassionAction.findMany({
-    where: {
-      status: "pending",
-      loan: loanTenantFilter,
-    },
-    include: {
-      loan: {
-        include: {
-          user: { include: { profile: true } },
-          product: true,
-        },
+      orderBy: {
+        approved_at: "asc",
       },
-      requester: { include: { profile: true } },
-    },
-    orderBy: { requested_at: "asc" },
-  });
+    });
 
-  const recoveryLoans = await db.loan.findMany({
-    where: {
-      ...loanTenantFilter,
-      is_recovery_loan: true,
-      status: { in: ["active", "defaulted"] },
-    },
-    include: {
-      user: { include: { profile: true } },
-      recovery_parent: { include: { user: { include: { profile: true } } } },
-    },
-    orderBy: { applied_at: "desc" },
-  });
+    const pendingPayments = await db.payment.findMany({
+      where: {
+        status: "pending",
+      },
+      include: {
+        loan: {
+          include: {
+            user: {
+              include: {
+                profile: true,
+              },
+            },
+            product: true,
+          },
+        },
+        payment_method: true,
+      },
+      orderBy: {
+        submitted_at: "asc",
+      },
+    });
 
-  const overdueLoans = await db.loan.findMany({
-    where: {
-      ...loanTenantFilter,
-      status: "active",
-      schedules: {
-        some: {
-          status: "overdue" as any,
-          due_date: {
-            lte: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000), // 7+ days overdue
+    const compassion = await db.compassionAction.findMany({
+      where: {
+        status: "pending",
+      },
+      include: {
+        loan: {
+          include: {
+            user: { include: { profile: true } },
+            product: true,
+          },
+        },
+        requester: { include: { profile: true } },
+      },
+      orderBy: { requested_at: "asc" },
+    });
+
+    const recoveryLoans = await db.loan.findMany({
+      where: {
+        is_recovery_loan: true,
+        status: { in: ["active", "defaulted"] },
+      },
+      include: {
+        user: { include: { profile: true } },
+        recovery_parent: { include: { user: { include: { profile: true } } } },
+      },
+      orderBy: { applied_at: "desc" },
+    });
+
+    const overdueLoans = await db.loan.findMany({
+      where: {
+        status: "active",
+        schedules: {
+          some: {
+            status: "overdue" as any,
+            due_date: {
+              lte: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000), // 7+ days overdue
+            },
           },
         },
       },
-    },
-    include: {
-      user: { include: { profile: true } },
-      product: true,
-    },
-    orderBy: { applied_at: "asc" },
-  });
+      include: {
+        user: { include: { profile: true } },
+        product: true,
+      },
+      orderBy: { applied_at: "asc" },
+    });
 
-  return {
-    loans: pendingLoans,
-    verifications: pendingVerifications,
-    approvedLoans,
-    pendingPayments,
-    recoveryLoans,
-    overdueLoans,
-    compassion: pendingCompassionActions,
+    return {
+      loans,
+      verifications,
+      approvedLoans,
+      pendingPayments,
+      recoveryLoans,
+      overdueLoans,
+      compassion,
+    };
   };
+
+  if (!tenantId) {
+    return await query(prisma);
+  }
+
+  return await prisma.$withTenant(tenantId, async (tx) => {
+    return await query(tx);
+  });
 }
 
 export async function getDashboardMetrics() {
   const session = await requireTanawSession();
-  const db = getBranchPrisma(session.user.tenantSlug);
+  const tenantId = session.user.tenantId;
 
-  const tenantId = session.user.tenantId ?? undefined;
-  const tenantFilter = tenantId ? { tenant_id: tenantId } : {};
-  const loanRelationFilter = tenantId ? { loan: { tenant_id: tenantId } } : {};
+  const query = async (db: any) => {
+    await runAutomatedDefaultEnforcement({
+      tenantId: tenantId ?? undefined,
+      actorUserId: session.user.user_id,
+    });
 
-  await runAutomatedDefaultEnforcement({
-    tenantId,
-    actorUserId: session.user.user_id,
-  });
-
-  // 1. Total Liquidity (Total Savings Pool)
-  const liquidity = await db.savingsAccount.aggregate({
-    where: {
-      ...tenantFilter,
-      account_type: {
-        in: ["regular_savings", "share_capital"],
+    // 1. Total Liquidity (Total Savings Pool)
+    const liquidity = await db.savingsAccount.aggregate({
+      where: {
+        account_type: {
+          in: ["regular_savings", "share_capital"],
+        },
       },
-    },
-    _sum: { balance: true },
-  });
+      _sum: { balance: true },
+    });
 
-  // 2. Active Loans Count
-  const activeLoansCount = await db.loan.count({
-    where: { ...tenantFilter, status: "active" },
-  });
+    // 2. Active Loans Count
+    const activeLoansCount = await db.loan.count({
+      where: { status: "active" },
+    });
 
-  // 3. Repayment Rate (Verified Payments vs Total Due)
-  const totalPaid = await db.payment.aggregate({
-    where: {
-      ...loanRelationFilter,
-      status: "verified",
-    },
-    _sum: { amount_paid: true },
-  });
+    // 3. Repayment Rate (Verified Payments vs Total Due)
+    const totalPaid = await db.payment.aggregate({
+      where: {
+        status: "verified",
+      },
+      _sum: { amount_paid: true },
+    });
 
-  const totalDue = await db.loanSchedule.aggregate({
-    where: {
-      ...loanRelationFilter,
-      due_date: { lte: new Date() },
-    },
-    _sum: { total_due: true },
-  });
+    const totalDue = await db.loanSchedule.aggregate({
+      where: {
+        due_date: { lte: new Date() },
+      },
+      _sum: { total_due: true },
+    });
 
-  const paidVal = Number(totalPaid._sum.amount_paid || 0);
-  const dueVal = Number(totalDue._sum.total_due || 0);
-  const repaymentRate = dueVal > 0 ? (paidVal / dueVal) * 100 : 100;
+    const paidVal = Number(totalPaid._sum.amount_paid || 0);
+    const dueVal = Number(totalDue._sum.total_due || 0);
+    const repaymentRate = dueVal > 0 ? (paidVal / dueVal) * 100 : 100;
 
-  // 4. Risk Exposure (Sum of remaining balance on past-due/defaulted loans)
-  const riskExposure = await db.loan.aggregate({
-    where: {
-      ...tenantFilter,
-      OR: [
-        { schedules: { some: { status: "overdue" } } },
-        { status: "defaulted" },
-      ],
-    },
-    _sum: { balance_remaining: true },
-  });
+    // 4. Risk Exposure (Sum of remaining balance on past-due/defaulted loans)
+    const riskExposure = await db.loan.aggregate({
+      where: {
+        OR: [
+          { schedules: { some: { status: "overdue" } } },
+          { status: "defaulted" },
+        ],
+      },
+      _sum: { balance_remaining: true },
+    });
 
-  return {
-    totalLiquidity: Number(liquidity._sum.balance || 0),
-    activeLoans: activeLoansCount,
-    repaymentRate: Math.min(100, repaymentRate),
-    riskExposure: Number(riskExposure._sum.balance_remaining || 0),
+    return {
+      totalLiquidity: Number(liquidity._sum.balance || 0),
+      activeLoans: activeLoansCount,
+      repaymentRate: Math.min(100, repaymentRate),
+      riskExposure: Number(riskExposure._sum.balance_remaining || 0),
+    };
   };
+
+  if (!tenantId) {
+    return await query(prisma);
+  }
+
+  return await prisma.$withTenant(tenantId, async (tx) => {
+    return await query(tx);
+  });
 }
 
 /**
@@ -294,84 +288,91 @@ export async function getDashboardMetrics() {
  */
 export async function getTenantTrustMetrics() {
   const session = await requireTanawSession();
-  const db = getBranchPrisma(session.user.tenantSlug);
-  const tenantId = session.user.tenantId ?? undefined;
-  const tenantFilter = tenantId ? { tenant_id: tenantId } : {};
+  const tenantId = session.user.tenantId;
 
-  const memberWhere = {
-    ...tenantFilter,
-    role: Role.member,
+  const query = async (db: any) => {
+    const memberWhere = {
+      role: Role.member,
+    };
+
+    const [t1Count, t2Count, t3Count, t4Count, t5Count, overdueCount] =
+      await Promise.all([
+        db.user.count({
+          where: {
+            ...memberWhere,
+            interest_tier: "T1_5_PERCENT",
+          },
+        }),
+        db.user.count({
+          where: {
+            ...memberWhere,
+            interest_tier: "T2_4_5_PERCENT",
+          },
+        }),
+        db.user.count({
+          where: {
+            ...memberWhere,
+            interest_tier: "T3_4_PERCENT",
+          },
+        }),
+        db.user.count({
+          where: {
+            ...memberWhere,
+            interest_tier: "T4_3_5_PERCENT",
+          },
+        }),
+        db.user.count({
+          where: {
+            ...memberWhere,
+            interest_tier: "T5_3_PERCENT",
+          },
+        }),
+        db.user.count({
+          where: {
+            ...memberWhere,
+            loans: { some: { schedules: { some: { status: "overdue" } } } },
+          },
+        }),
+      ]);
+
+    const totalMembers = t1Count + t2Count + t3Count + t4Count + t5Count;
+    const weightedSum =
+      t1Count * 40 + t2Count * 60 + t3Count * 70 + t4Count * 80 + t5Count * 92;
+    const avgScore = totalMembers > 0 ? weightedSum / totalMembers : 75;
+
+    return {
+      distribution: {
+        t1_5Percent: t1Count,
+        t2_4_5Percent: t2Count,
+        t3_4Percent: t3Count,
+        t4_3_5Percent: t4Count,
+        t5_3Percent: t5Count,
+        overdueMembers: overdueCount,
+      },
+      aggregateTrust: {
+        score: Math.round(avgScore),
+        paymentScore: 80,
+        businessScore: 70,
+        peerScore: 75,
+        guarantorScore: 80,
+        tier: determineInterestTierFromScore(avgScore),
+      },
+    };
   };
 
-  const [t1Count, t2Count, t3Count, t4Count, t5Count, overdueCount] =
-    await Promise.all([
-      db.user.count({
-        where: {
-          ...memberWhere,
-          interest_tier: "T1_5_PERCENT",
-        },
-      }),
-      db.user.count({
-        where: {
-          ...memberWhere,
-          interest_tier: "T2_4_5_PERCENT",
-        },
-      }),
-      db.user.count({
-        where: {
-          ...memberWhere,
-          interest_tier: "T3_4_PERCENT",
-        },
-      }),
-      db.user.count({
-        where: {
-          ...memberWhere,
-          interest_tier: "T4_3_5_PERCENT",
-        },
-      }),
-      db.user.count({
-        where: {
-          ...memberWhere,
-          interest_tier: "T5_3_PERCENT",
-        },
-      }),
-      db.user.count({
-        where: {
-          ...memberWhere,
-          loans: { some: { schedules: { some: { status: "overdue" } } } },
-        },
-      }),
-    ]);
+  if (!tenantId) {
+    return await query(prisma);
+  }
 
-  const totalMembers = t1Count + t2Count + t3Count + t4Count + t5Count;
-  const weightedSum =
-    t1Count * 40 + t2Count * 60 + t3Count * 70 + t4Count * 80 + t5Count * 92;
-  const avgScore = totalMembers > 0 ? weightedSum / totalMembers : 75;
-
-  return {
-    distribution: {
-      t1_5Percent: t1Count,
-      t2_4_5Percent: t2Count,
-      t3_4Percent: t3Count,
-      t4_3_5Percent: t4Count,
-      t5_3Percent: t5Count,
-      overdueMembers: overdueCount,
-    },
-    aggregateTrust: {
-      score: Math.round(avgScore),
-      paymentScore: 80,
-      businessScore: 70,
-      peerScore: 75,
-      guarantorScore: 80,
-      tier: determineInterestTierFromScore(avgScore),
-    },
-  };
+  return await prisma.$withTenant(tenantId, async (tx) => {
+    return await query(tx);
+  });
 }
 
 export async function createStaffAccount(values: {
   username: string;
   email: string;
-  passwordHash: string; // pre-hashed client/intermediate, actually we should hash it server side. Let's accept plain password here.
+  passwordHash: string;
   plainPassword?: string;
   firstName: string;
   lastName: string;
@@ -387,30 +388,31 @@ export async function createStaffAccount(values: {
   }
 
   try {
-    const db = getBranchPrisma(session.user.tenantSlug);
     const bcrypt = await import("bcryptjs");
     const hashedPassword = await bcrypt.hash(
       values.plainPassword || values.passwordHash,
       10,
     );
 
-    const existingUser = await db.user.findFirst({
-      where: { email: values.email.toLowerCase() },
-    });
-    if (existingUser)
-      return { success: false, error: "Email already exists in the system." };
+    const result = await prisma.$withTenant(values.tenantId, async (tx) => {
+      const existingUser = await tx.user.findFirst({
+        where: { email: values.email.toLowerCase() },
+      });
+      if (existingUser) {
+        throw new Error("Email already exists in the system.");
+      }
 
-    const existingUsername = await db.user.findFirst({
-      where: { username: values.username, tenant_id: values.tenantId },
-    });
-    if (existingUsername)
-      return { success: false, error: "Username taken in this branch." };
+      const existingUsername = await tx.user.findFirst({
+        where: { username: values.username },
+      });
+      if (existingUsername) {
+        throw new Error("Username taken in this branch.");
+      }
 
-    const result = await db.$transaction(async (tx: any) => {
       // 1. Generate Member Code for Staff (AGP-YYYY-[ROLE]-SERIAL)
       const year = new Date().getFullYear();
       const count = await tx.user.count({
-        where: { tenant_id: values.tenantId, role: values.role },
+        where: { role: values.role },
       });
       const serial = (count + 1).toString().padStart(3, "0");
       const roleSub = values.role === "admin" ? "ADM" : "LND";
@@ -442,6 +444,7 @@ export async function createStaffAccount(values: {
           city: "N/A",
           barangay: "N/A",
           address: "N/A",
+          tenant_id: values.tenantId,
         },
       });
 
@@ -477,10 +480,14 @@ export async function createStaffAccount(values: {
 
 export async function manuallyDeclareDefault(loanId: number) {
   const session = await requireTanawSession();
+  const tenantId = session.user.tenantId;
+
+  if (!tenantId) {
+    return { error: "Tenant context required." };
+  }
 
   try {
-    const db = getBranchPrisma(session.user.tenantSlug);
-    await db.$transaction(async (tx: any) => {
+    await prisma.$withTenant(tenantId, async (tx) => {
       return await enforceLoanDefault(tx, loanId, session.user.user_id);
     });
 

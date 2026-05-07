@@ -1,6 +1,6 @@
 "use server";
 
-import prisma, { getBranchPrisma } from "@/lib/prisma";
+import prisma from "@/lib/prisma";
 import { requireAuthenticatedSession } from "@/lib/authorization";
 import { Role, UserStatus } from "@prisma/client";
 
@@ -21,41 +21,48 @@ export async function searchEligibleGuarantors(query: string) {
   }
 
   try {
-    const db = getBranchPrisma(session.user.tenantSlug);
-    const users = await db.user.findMany({
-      where: {
-        tenant_id: session.user.tenantId,
-        user_id: { not: session.user.user_id },
-        role: Role.member,
-        status: UserStatus.active,
-        OR: [
-          { username: { contains: query, mode: "insensitive" } },
-          { email: { contains: query, mode: "insensitive" } },
-          {
-            profile: {
-              first_name: { contains: query, mode: "insensitive" },
+    const queryFn = async (db: any) => {
+      return await db.user.findMany({
+        where: {
+          user_id: { not: session.user.user_id },
+          role: Role.member,
+          status: UserStatus.active,
+          OR: [
+            { username: { contains: query, mode: "insensitive" } },
+            { email: { contains: query, mode: "insensitive" } },
+            {
+              profile: {
+                first_name: { contains: query, mode: "insensitive" },
+              },
             },
-          },
-          {
-            profile: {
-              last_name: { contains: query, mode: "insensitive" },
+            {
+              profile: {
+                last_name: { contains: query, mode: "insensitive" },
+              },
             },
-          },
-        ],
-      },
-      select: {
-        user_id: true,
-        username: true,
-        email: true,
-        profile: {
-          select: {
-            first_name: true,
-            last_name: true,
+          ],
+        },
+        select: {
+          user_id: true,
+          username: true,
+          email: true,
+          profile: {
+            select: {
+              first_name: true,
+              last_name: true,
+            },
           },
         },
+        take: 5, // Limit results
+      });
+    };
+
+    const users = await prisma.$withTenant(
+      session.user.tenantId,
+      async (tx) => {
+        return await queryFn(tx);
       },
-      take: 5, // Limit results
-    });
+    );
 
     return { data: users };
   } catch (error) {

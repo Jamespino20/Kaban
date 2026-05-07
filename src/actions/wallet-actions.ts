@@ -1,6 +1,6 @@
 "use server";
 
-import prisma, { getBranchPrisma } from "@/lib/prisma";
+import prisma from "@/lib/prisma";
 import { requireAuthenticatedSession } from "@/lib/authorization";
 import { revalidatePath } from "next/cache";
 import {
@@ -19,12 +19,13 @@ export async function approveWalletTopUp(requestId: number) {
   const adminId = session.user.user_id;
   const tenantId = session.user.tenantId;
 
+  if (!tenantId) return { error: "Tenant context required." };
+
   try {
-    const db = getBranchPrisma(session.user.tenantSlug);
-    const result = await db.$transaction(async (tx) => {
+    return await prisma.$withTenant(tenantId, async (tx) => {
       // 1. Get request
       const request = await tx.topUpRequest.findUnique({
-        where: { id: requestId, tenant_id: tenantId || undefined },
+        where: { id: requestId },
       });
 
       if (!request) return { error: "Request not found." };
@@ -45,7 +46,6 @@ export async function approveWalletTopUp(requestId: number) {
       let wallet = await tx.savingsAccount.findFirst({
         where: {
           user_id: request.user_id,
-          tenant_id: tenantId || undefined,
           account_type: AccountType.personal_wallet,
         },
       });
@@ -54,7 +54,7 @@ export async function approveWalletTopUp(requestId: number) {
         wallet = await tx.savingsAccount.create({
           data: {
             user_id: request.user_id,
-            tenant_id: tenantId!,
+            tenant_id: tenantId,
             account_type: AccountType.personal_wallet,
             balance: request.amount,
           },
@@ -70,6 +70,7 @@ export async function approveWalletTopUp(requestId: number) {
       const trans = await tx.savingsTransaction.create({
         data: {
           account_id: wallet.account_id,
+          tenant_id: tenantId,
           transaction_type: TransactionType.deposit,
           amount: request.amount,
           reference: `TOPUP-${requestId}`,
@@ -96,11 +97,9 @@ export async function approveWalletTopUp(requestId: number) {
         ],
       });
 
+      revalidatePath("/agapay-tanaw");
       return { success: "Top-up request successfully approved." };
     });
-
-    revalidatePath("/agapay-tanaw");
-    return { success: "Top-up request successfully approved." };
   } catch (error) {
     console.error("approveWalletTopUp failed:", error);
     return { error: "Failed to approve top up." };
@@ -110,16 +109,20 @@ export async function approveWalletTopUp(requestId: number) {
 export async function rejectWalletTopUp(requestId: number) {
   const session = await requireAuthenticatedSession();
   const adminId = session.user.user_id;
+  const tenantId = session.user.tenantId;
+
+  if (!tenantId) return { error: "Tenant context required." };
 
   try {
-    const db = getBranchPrisma(session.user.tenantSlug);
-    await db.topUpRequest.update({
-      where: { id: requestId },
-      data: {
-        status: "rejected",
-        processed_at: new Date(),
-        processed_by: adminId,
-      },
+    await prisma.$withTenant(tenantId, async (tx) => {
+      await tx.topUpRequest.update({
+        where: { id: requestId },
+        data: {
+          status: "rejected",
+          processed_at: new Date(),
+          processed_by: adminId,
+        },
+      });
     });
     revalidatePath("/agapay-tanaw");
     return { success: "Top-up request successfully rejected." };
@@ -135,32 +138,32 @@ export async function getPendingTopUps() {
 
   if (!tenantId) return [];
 
-  const db = getBranchPrisma(session.user.tenantSlug);
-  const requests = await db.topUpRequest.findMany({
-    where: { tenant_id: tenantId, status: "pending" },
-    include: { user: { include: { profile: true } } },
-    orderBy: { created_at: "asc" },
+  return await prisma.$withTenant(tenantId, async (tx) => {
+    return await tx.topUpRequest.findMany({
+      where: { status: "pending" },
+      include: { user: { include: { profile: true } } },
+      orderBy: { created_at: "asc" },
+    });
   });
-
-  return requests;
 }
 
 export async function getMemberWallets() {
   const session = await requireAuthenticatedSession();
   const userId = session.user.user_id;
+  const tenantId = session.user.tenantId;
 
-  const db = getBranchPrisma(session.user.tenantSlug);
-  const accounts = await db.savingsAccount.findMany({
-    where: {
-      user_id: userId,
-      tenant_id: session.user.tenantId || undefined,
-    },
-    orderBy: {
-      account_type: "asc",
-    },
+  if (!tenantId) return [];
+
+  return await prisma.$withTenant(tenantId, async (tx) => {
+    return await tx.savingsAccount.findMany({
+      where: {
+        user_id: userId,
+      },
+      orderBy: {
+        account_type: "asc",
+      },
+    });
   });
-
-  return accounts;
 }
 
 export async function requestWalletTopUp(amount: number, receiptUrl?: string) {
@@ -168,19 +171,21 @@ export async function requestWalletTopUp(amount: number, receiptUrl?: string) {
   const userId = session.user.user_id;
   const tenantId = session.user.tenantId;
 
+  if (!tenantId) return { error: "Tenant context required." };
   if (amount <= 0)
     return { error: "Deposit amount must be greater than zero." };
 
   try {
-    const db = getBranchPrisma(session.user.tenantSlug);
-    await db.topUpRequest.create({
-      data: {
-        tenant_id: tenantId!,
-        user_id: userId,
-        amount: new Prisma.Decimal(amount),
-        receipt_url: receiptUrl || null,
-        status: "pending",
-      },
+    await prisma.$withTenant(tenantId, async (tx) => {
+      await tx.topUpRequest.create({
+        data: {
+          tenant_id: tenantId,
+          user_id: userId,
+          amount: new Prisma.Decimal(amount),
+          receipt_url: receiptUrl || null,
+          status: "pending",
+        },
+      });
     });
 
     return {
@@ -198,103 +203,98 @@ export async function payLoanWithWallet(loanId: number, amount: number) {
   const userId = session.user.user_id;
   const tenantId = session.user.tenantId;
 
+  if (!tenantId) return { error: "Tenant context required." };
   if (amount <= 0)
     return { error: "Payment amount must be greater than zero." };
 
   try {
-    const db = getBranchPrisma(session.user.tenantSlug);
-    await db.$transaction(
-      async (tx) => {
-        // 1. Get wallet
-        const wallet = await tx.savingsAccount.findFirst({
-          where: {
-            user_id: userId,
-            tenant_id: tenantId || undefined,
-            account_type: AccountType.personal_wallet,
-          },
-        });
+    await prisma.$withTenant(tenantId, async (tx) => {
+      // 1. Get wallet
+      const wallet = await tx.savingsAccount.findFirst({
+        where: {
+          user_id: userId,
+          account_type: AccountType.personal_wallet,
+        },
+      });
 
-        if (!wallet || Number(wallet.balance) < amount) {
-          throw new Error("Kulang ang pondo sa iyong wallet.");
-        }
+      if (!wallet || Number(wallet.balance) < amount) {
+        throw new Error("Kulang ang pondo sa iyong wallet.");
+      }
 
-        // 2. Deduct from wallet
-        await tx.savingsAccount.update({
-          where: { account_id: wallet.account_id },
+      // 2. Deduct from wallet
+      await tx.savingsAccount.update({
+        where: { account_id: wallet.account_id },
+        data: {
+          balance: { decrement: new Prisma.Decimal(amount) },
+        },
+      });
+
+      // 3. Create wallet debit transaction
+      await tx.savingsTransaction.create({
+        data: {
+          account_id: wallet.account_id,
+          tenant_id: tenantId,
+          transaction_type: TransactionType.withdrawal,
+          amount: new Prisma.Decimal(amount),
+          reference: `LOAN-PAY-${loanId}-${Date.now()}`,
+          processed_by: userId,
+        },
+      });
+
+      // 4. Update Loan Schedules (Atomic payment)
+      const schedules = await tx.loanSchedule.findMany({
+        where: {
+          loan_id: loanId,
+          status: { in: [ScheduleStatus.pending, ScheduleStatus.overdue] },
+        },
+        orderBy: { installment_number: "asc" },
+      });
+
+      let remaining = amount;
+      for (const schedule of schedules) {
+        const scheduleDue = Number(schedule.total_due);
+        if (remaining + 0.01 < scheduleDue) break;
+
+        await tx.loanSchedule.update({
+          where: { schedule_id: schedule.schedule_id },
           data: {
-            balance: { decrement: new Prisma.Decimal(amount) },
+            status: ScheduleStatus.paid,
+            paid_at: new Date(),
           },
         });
+        remaining -= scheduleDue;
+      }
 
-        // 3. Create wallet debit transaction
-        await tx.savingsTransaction.create({
-          data: {
-            account_id: wallet.account_id,
-            transaction_type: TransactionType.withdrawal,
-            amount: new Prisma.Decimal(amount),
-            reference: `LOAN-PAY-${loanId}-${Date.now()}`,
-            processed_by: userId,
+      // 5. Update loan balance
+      await tx.loan.update({
+        where: { loan_id: loanId },
+        data: {
+          balance_remaining: {
+            decrement: new Prisma.Decimal(amount - remaining),
           },
-        });
+        },
+      });
 
-        // 4. Update Loan Schedules (Atomic payment)
-        const schedules = await tx.loanSchedule.findMany({
-          where: {
-            loan_id: loanId,
-            status: { in: [ScheduleStatus.pending, ScheduleStatus.overdue] },
+      // 6. Post Ledger Entry (Double-Entry truth)
+      await postLedgerEntry(tx, {
+        description: `Loan Repayment via Wallet: Loan #${loanId}`,
+        createdBy: userId,
+        loanId: loanId,
+        metadata: { source: "wallet", walletId: wallet.account_id },
+        entries: [
+          {
+            accountCode: "MEMBER_SAVINGS",
+            debit: amount - remaining,
+            credit: 0,
           },
-          orderBy: { installment_number: "asc" },
-        });
-
-        let remaining = amount;
-        for (const schedule of schedules) {
-          const scheduleDue = Number(schedule.total_due);
-          if (remaining + 0.01 < scheduleDue) break;
-
-          await tx.loanSchedule.update({
-            where: { schedule_id: schedule.schedule_id },
-            data: {
-              status: ScheduleStatus.paid,
-              paid_at: new Date(),
-            },
-          });
-          remaining -= scheduleDue;
-        }
-
-        // 5. Update loan balance
-        await tx.loan.update({
-          where: { loan_id: loanId },
-          data: {
-            balance_remaining: {
-              decrement: new Prisma.Decimal(amount - remaining),
-            },
+          {
+            accountCode: "LOAN_RECEIVABLES",
+            debit: 0,
+            credit: amount - remaining,
           },
-        });
-
-        // 6. Post Ledger Entry (Double-Entry truth)
-        await postLedgerEntry(tx, {
-          description: `Loan Repayment via Wallet: Loan #${loanId}`,
-          createdBy: userId,
-          loanId: loanId,
-          metadata: { source: "wallet", walletId: wallet.account_id },
-          entries: [
-            {
-              accountCode: "MEMBER_SAVINGS",
-              debit: amount - remaining,
-              credit: 0,
-            },
-            {
-              accountCode: "LOAN_RECEIVABLES",
-              debit: 0,
-              credit: amount - remaining,
-            },
-          ],
-        });
-
-        return { success: true };
-      },
-      { timeout: 10000 },
-    );
+        ],
+      });
+    });
 
     await logInteraction({
       eventType: "LOAN_PAYMENT_VIA_WALLET",
@@ -320,28 +320,30 @@ export async function payLoanWithWallet(loanId: number, amount: number) {
 export async function getWalletTransactions() {
   const session = await requireAuthenticatedSession();
   const userId = session.user.user_id;
-  const tenantSlug = session.user.tenantSlug;
+  const tenantId = session.user.tenantId;
 
-  const db = getBranchPrisma(tenantSlug ?? null);
+  if (!tenantId) return [];
 
-  const savingsAccount = await db.savingsAccount.findFirst({
-    where: {
-      user_id: userId,
-      account_type: AccountType.personal_wallet,
-    },
-    include: {
-      transactions: {
-        orderBy: { processed_at: "desc" },
-        take: 50,
+  const savingsAccount = await prisma.$withTenant(tenantId, async (tx) => {
+    return await tx.savingsAccount.findFirst({
+      where: {
+        user_id: userId,
+        account_type: AccountType.personal_wallet,
       },
-    },
+      include: {
+        transactions: {
+          orderBy: { processed_at: "desc" },
+          take: 50,
+        },
+      },
+    });
   });
 
   if (!savingsAccount) {
     return [];
   }
 
-  return savingsAccount.transactions.map((tx) => ({
+  return savingsAccount.transactions.map((tx: any) => ({
     id: tx.transaction_id,
     type: tx.transaction_type,
     amount: tx.amount.toNumber(),

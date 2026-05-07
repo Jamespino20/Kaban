@@ -6,16 +6,25 @@ import {
   LucideIcon,
   Wallet,
   Activity,
+  Users,
   CheckCircle2,
   AlertTriangle,
   TrendingUp,
+  PiggyBank,
 } from "lucide-react";
 
 interface KPIMetricCardProps {
   label: string;
   value: string | number;
   description?: string;
-  iconName?: "wallet" | "activity" | "check" | "alert" | "trending";
+  iconName?:
+    | "wallet"
+    | "activity"
+    | "check"
+    | "alert"
+    | "trending"
+    | "users"
+    | "piggy-bank";
   trend?: {
     value: number;
     isPositive: boolean;
@@ -39,6 +48,8 @@ export function KPIMetricCard({
     check: CheckCircle2,
     alert: AlertTriangle,
     trending: TrendingUp,
+    users: Users,
+    "piggy-bank": PiggyBank,
   };
 
   const Icon = iconName ? IconMap[iconName] : null;
