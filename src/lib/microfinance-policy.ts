@@ -58,6 +58,14 @@ export interface TierPolicy {
   recommendedMaxTermMonths: number;
 }
 
+export interface LoanProductTemplate {
+  key: string;
+  name: string;
+  minAmount: number;
+  maxAmount: number | null;
+  description: string;
+}
+
 export const TIER_POLICIES: Record<InterestTier, TierPolicy> = {
   [InterestTier.T1_5_PERCENT]: {
     tier: InterestTier.T1_5_PERCENT,
@@ -110,6 +118,37 @@ export const TIER_POLICIES: Record<InterestTier, TierPolicy> = {
     recommendedMaxTermMonths: 12,
   },
 };
+
+export const SAMPLE_LOAN_PRODUCT_TEMPLATES: readonly LoanProductTemplate[] = [
+  {
+    key: "agapay-sari-sari",
+    name: "Agapay Sari-Sari",
+    minAmount: 2_000,
+    maxAmount: 5_000,
+    description: "Small working-capital loans for micro-retail needs.",
+  },
+  {
+    key: "agapay-negosyo",
+    name: "Agapay Negosyo",
+    minAmount: 6_000,
+    maxAmount: 29_000,
+    description: "Business support loans for early expansion needs.",
+  },
+  {
+    key: "agapay-paluwagan",
+    name: "Agapay Paluwagan",
+    minAmount: 30_000,
+    maxAmount: 59_000,
+    description: "Larger cooperative loans for planned member growth.",
+  },
+  {
+    key: "agapay-angat",
+    name: "Agapay Angat",
+    minAmount: 60_000,
+    maxAmount: null,
+    description: "Higher-value loans for strong borrowers and special cases.",
+  },
+] as const;
 
 export type LoanQuote = {
   principalAmount: number;

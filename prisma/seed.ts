@@ -1,21 +1,8 @@
 import "dotenv/config";
-import {
-  PrismaClient,
-  Role,
-  InterestTier,
-  LoanStatus,
-  ScheduleStatus,
-  GuaranteeStatus,
-  MaritalStatus,
-  AccountType,
-  DocumentType,
-  VerificationStatus,
-  PaymentStatus,
-} from "@prisma/client";
+import { PrismaClient, Role, InterestTier } from "@prisma/client";
 import { PrismaNeon } from "@prisma/adapter-neon";
 import { neonConfig } from "@neondatabase/serverless";
 import bcrypt from "bcryptjs";
-import { faker } from "@faker-js/faker";
 import ws from "ws";
 import fs from "fs";
 import path from "path";
@@ -32,9 +19,6 @@ const prisma = new PrismaClient({ adapter });
 const pick = <T>(arr: T[]): T => arr[Math.floor(Math.random() * arr.length)];
 const rand = (min: number, max: number) =>
   Math.floor(Math.random() * (max - min + 1)) + min;
-const pesos = (min: number, max: number) =>
-  parseFloat((Math.random() * (max - min) + min).toFixed(2));
-
 const normalizeNamePart = (value: string) =>
   value.toLowerCase().replace(/[^a-z0-9]+/g, "");
 
@@ -55,16 +39,6 @@ const buildMemberIdentity = (
     username,
     email: `${firstPart}.${lastPart}.${memberCode}@gmail.com`,
   };
-};
-
-const correlatedDate = (
-  anchor: Date,
-  daysOffset: number,
-  jitterDays: number = 2,
-): Date => {
-  const d = new Date(anchor);
-  d.setDate(d.getDate() + daysOffset + rand(-jitterDays, jitterDays));
-  return d;
 };
 
 // ── MULTI-SCHEMA PROVISIONER ──
@@ -342,41 +316,6 @@ const BARANGAYS = [
   "Brgy. Mandurriao",
 ];
 
-const PRODUCTS = [
-  {
-    name: "Starter Loan",
-    desc: "Entry-level for new members",
-    min: 5000,
-    max: 10000,
-    rate: 5.0,
-    term: 3,
-  },
-  {
-    name: "Growth Loan",
-    desc: "Expansion for established businesses",
-    min: 10000,
-    max: 25000,
-    rate: 4.5,
-    term: 6,
-  },
-  {
-    name: "Trusted Loan",
-    desc: "High-trust members only",
-    min: 25000,
-    max: 50000,
-    rate: 4.0,
-    term: 12,
-  },
-  {
-    name: "Elite Loan",
-    desc: "Cooperative elite members",
-    min: 50000,
-    max: 150000,
-    rate: 3.5,
-    term: 12,
-  },
-];
-
 // ═══════════════════════════════════════════════
 // MODULAR SEEDERS
 // ═══════════════════════════════════════════════
@@ -459,69 +398,11 @@ async function seedTenantData(client: any, tenant: any, ctx: any) {
     members.push(user);
   }
 
-  // 3. Loan Products
-  const products = [];
-  for (const p of PRODUCTS) {
-    const prod = await client.loanProduct.create({
-      data: {
-        name: p.name,
-        description: p.desc,
-        min_amount: p.min,
-        max_amount: p.max,
-        interest_rate_percent: p.rate,
-        max_term_months: p.term,
-        tenant_id: tenant.tenant_id,
-      },
-    });
-    products.push(prod);
-  }
+  console.log(
+    `  Loan products intentionally left empty for ${tenant.name}; PRD sample products are optional templates, not automatic tenant seeds.`,
+  );
 
-  // 4. Loans & Transactions
-  console.log(`  📄 Generating loans for ${tenant.name}...`);
-  for (let i = 0; i < rand(15, 25); i++) {
-    const borrower = pick(members);
-    const product = pick(products);
-    const amount = pesos(
-      Number(product.min_amount),
-      Number(product.max_amount),
-    );
-    const term = rand(3, product.max_term_months);
-    const rate = Number(product.interest_rate_percent) / 100;
-    const interest = amount * rate * term;
-    const total = amount + interest;
-
-    const status = pick([
-      LoanStatus.active,
-      LoanStatus.paid,
-      LoanStatus.pending,
-      LoanStatus.defaulted,
-    ]);
-    const appliedAt = faker.date.between({
-      from: new Date("2025-01-01"),
-      to: new Date(),
-    });
-
-    const loan = await client.loan.create({
-      data: {
-        tenant_id: tenant.tenant_id,
-        user_id: borrower.user_id,
-        product_id: product.product_id,
-        loan_reference: `LN-${tenant.tenant_id}-${appliedAt.getTime()}-${i}`,
-        principal_amount: amount,
-        purpose: "Business Expansion",
-        term_months: term,
-        interest_applied: interest,
-        total_payable: total,
-        balance_remaining: status === LoanStatus.paid ? 0 : total * 0.5,
-        status,
-        applied_at: appliedAt,
-        approved_at:
-          status !== LoanStatus.pending ? correlatedDate(appliedAt, 2) : null,
-      },
-    });
-  }
-
-  // 5. Social Vouches
+  // 3. Social Vouches
   for (let i = 0; i < 15; i++) {
     const voucher = pick(members);
     const vouchee = pick(members.filter((m) => m.user_id !== voucher.user_id));
@@ -555,9 +436,56 @@ async function main() {
 
   // 2. Subscription Plans
   const plans = [
-    { name: "Core", price: 1999, members: 100 },
-    { name: "Pro", price: 4999, members: 500 },
-    { name: "Enterprise", price: 12999, members: 5000 },
+    {
+      name: "Agapay Core",
+      price: 3500,
+      members: 500,
+      storageMb: 5000,
+      features: [
+        "basic_admin_dashboard",
+        "standard_microfinance_policy_access",
+        "audit_logs",
+        "email_support",
+      ],
+    },
+    {
+      name: "Agapay Pro",
+      price: 6500,
+      members: 2500,
+      storageMb: 25000,
+      features: [
+        "custom_tenant_branding",
+        "mentorship_community_tools",
+        "chat_priority_email_support",
+        "automated_compassion_workflow",
+      ],
+    },
+    {
+      name: "Agapay Enterprise",
+      price: 12000,
+      members: 1000000,
+      storageMb: 100000,
+      features: [
+        "analytics_module",
+        "priority_support",
+        "data_export_reporting_tools",
+        "system_configuration_controls",
+      ],
+    },
+    {
+      name: "Agapay Sangay",
+      price: 3000,
+      members: 0,
+      storageMb: 10000,
+      features: [
+        "enterprise_addon_only",
+        "multi_branch_management",
+        "branch_level_roles_permissions",
+        "consolidated_branch_analytics",
+        "inter_branch_monitoring_reporting",
+        "branch_configuration_controls",
+      ],
+    },
   ];
   const seededPlans = [];
   for (const p of plans) {
@@ -565,10 +493,10 @@ async function main() {
       data: {
         tier_name: p.name,
         price_monthly: p.price,
-        price_annually: p.price * 10,
+        price_annually: p.price * 12,
         max_members: p.members,
-        max_storage_mb: p.members * 10,
-        features: ["Ledger", "Loans", "Members"],
+        max_storage_mb: p.storageMb,
+        features: p.features,
       },
     });
     seededPlans.push(plan);

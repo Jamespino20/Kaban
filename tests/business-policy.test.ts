@@ -7,6 +7,7 @@ import {
   determineInterestTierFromScore,
   evaluateOverindebtedness,
   getAvailableCreditForTier,
+  SAMPLE_LOAN_PRODUCT_TEMPLATES,
   validateBranchMembershipLimit,
   validateLoanRequestAgainstPolicy,
 } from "@/lib/microfinance-policy";
@@ -46,6 +47,31 @@ test("loan request validation blocks excess cap and invalid guarantor count", ()
       tier: InterestTier.T1_5_PERCENT,
     }) || "",
     /require 1 to 2 guarantors/i,
+  );
+});
+
+test("sample loan products are optional PRD templates", () => {
+  assert.deepEqual(
+    SAMPLE_LOAN_PRODUCT_TEMPLATES.map((template) => template.name),
+    [
+      "Agapay Sari-Sari",
+      "Agapay Negosyo",
+      "Agapay Paluwagan",
+      "Agapay Angat",
+    ],
+  );
+
+  assert.deepEqual(
+    SAMPLE_LOAN_PRODUCT_TEMPLATES.map((template) => [
+      template.minAmount,
+      template.maxAmount,
+    ]),
+    [
+      [2_000, 5_000],
+      [6_000, 29_000],
+      [30_000, 59_000],
+      [60_000, null],
+    ],
   );
 });
 

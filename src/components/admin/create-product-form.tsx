@@ -16,11 +16,15 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { createLoanProduct } from "@/actions/loan-product";
-import { MICROFINANCE_POLICY } from "@/lib/microfinance-policy";
+import {
+  MICROFINANCE_POLICY,
+  SAMPLE_LOAN_PRODUCT_TEMPLATES,
+  type LoanProductTemplate,
+} from "@/lib/microfinance-policy";
 
 const FREQUENCY_OPTIONS = [
   { value: "weekly", label: "Lingguhán (Weekly)" },
-  { value: "biweekly", label: "Dalawang Linggo (Bi-weekly)" },
+  { value: "bi_weekly", label: "Dalawang Linggo (Bi-weekly)" },
   { value: "monthly", label: "Buwanán (Monthly)" },
 ];
 
@@ -64,6 +68,21 @@ export const CreateProductForm = ({ onSuccess }: CreateProductFormProps) => {
 
   const selectedFrequencies = form.watch("allowed_frequencies");
 
+  const applyTemplate = (template: LoanProductTemplate) => {
+    form.setValue("name", template.name, { shouldValidate: true });
+    form.setValue("description", template.description, {
+      shouldValidate: true,
+    });
+    form.setValue("min_amount", template.minAmount, {
+      shouldValidate: true,
+    });
+    form.setValue(
+      "max_amount",
+      template.maxAmount ?? MICROFINANCE_POLICY.maxAmount,
+      { shouldValidate: true },
+    );
+  };
+
   const toggleFrequency = (value: string) => {
     const current = form.getValues("allowed_frequencies");
     if (current.includes(value)) {
@@ -104,6 +123,39 @@ export const CreateProductForm = ({ onSuccess }: CreateProductFormProps) => {
           PHP {MICROFINANCE_POLICY.maxAmount.toLocaleString()}, 3%–5% monthly,{" "}
           {MICROFINANCE_POLICY.minTermMonths}–
           {MICROFINANCE_POLICY.maxTermMonths} months.
+        </div>
+
+        <div className="rounded-2xl border border-slate-200 bg-white p-4">
+          <div className="mb-3">
+            <p className="text-sm font-bold text-slate-900">
+              Optional PRD templates
+            </p>
+            <p className="text-xs text-slate-500">
+              Apply a template to prefill this form. It will not create a
+              product until saved.
+            </p>
+          </div>
+          <div className="grid gap-2 sm:grid-cols-2">
+            {SAMPLE_LOAN_PRODUCT_TEMPLATES.map((template) => (
+              <button
+                key={template.key}
+                type="button"
+                disabled={isPending}
+                onClick={() => applyTemplate(template)}
+                className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-left transition-colors hover:border-emerald-200 hover:bg-emerald-50 disabled:opacity-50"
+              >
+                <span className="block text-xs font-bold text-slate-900">
+                  {template.name}
+                </span>
+                <span className="block text-[11px] text-slate-500">
+                  PHP {template.minAmount.toLocaleString()} -{" "}
+                  {template.maxAmount
+                    ? `PHP ${template.maxAmount.toLocaleString()}`
+                    : "Special case"}
+                </span>
+              </button>
+            ))}
+          </div>
         </div>
 
         <FormField
