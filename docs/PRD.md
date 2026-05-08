@@ -96,6 +96,10 @@ Alright, let's have a complete revamp for Agapay, we'll redo everything from scr
 ## Superadmin
 
 - Overview [Contains KPIs of global numbers (funds, active loans, portfolio growth, repayment rates, risks), recent logs, total trust score of Agapay itself, and recent snapshot summaries (AI-generated)
+- Community
+  - Internal messaging / bulletin
+  - Global announcements
+  - Individual chats/group chats [with admins only]
 - Approvals [has grid of cards that expands upon clicking, has searchbar, inside scrolling, appropriately sized elements, and filters]
   - Documents Verification (Tenant Application)
     For Tenant Application, each card contains:
@@ -111,14 +115,13 @@ Alright, let's have a complete revamp for Agapay, we'll redo everything from scr
   - Sorts all tenants according to regions
   - Each card shows member counts, current paid plan, portfolio, tenant score, and last availment date, with buttons to edit, mark availed/suspended, and decommission/restore
   - Add Tenant should show a two-pane dialog. Left pane is the homepage and dashboard builder. Homepage builder contains parent region, tenant name, URL slug, brand color, main color, accent color, branch logo, primary contents, starter testimonials and FAQs, hero section content, and calculator configs. Dashboard builder should show the entire functions for each role (Superadmin can toggle enabled functions of the tenant dashboard depending on the current plan). Right pane is the landscape live preview with a button to access the actual tenant homepage.
-  - Once new tenants are created, it should create a new schema in the DB.
+  - Once new tenants are created, it should create a new tenant record in the DB
+  - There should be a lease according to the tenant's purchased plan, and it should warn tenants 2 weeks before access suspension so they can pay
 - Homepage Content (for Platform Dashboard) contains FAQ Moderation (General-Scoped) and Testimonial Moderation (Uses Tenants' Testimonials)
   - In FAQ Moderation, the superadmin can input a question, the parent season (superadmin can create parent seasons so the superadmin can tick seasons in one go), and the question's answer. Superadmin can hide/show seasons and tick all of the contents or tick individually. All custom FAQs override the constants.
   - Testimonial Moderation should allow superadmin to choose from other tenants' testimonies. Hide/show tenants, all custom testimonies (Testimonee Name, Occupation,
 - Feedback
   - This is received from the platform homepage or system concerns
-- Audit Logs
-  - Audit Logs across all tenants
 - Reports
   - Cross-Tenant Financial Reports
     - Total disbursed vs repaid
@@ -139,10 +142,8 @@ Alright, let's have a complete revamp for Agapay, we'll redo everything from scr
   - Cross-tenant fraud detection signals
   - Duplicate identities across tenants
   - Suspicious transaction patterns
-- Community
-  - Internal messaging / bulletin
-  - Global announcements
-  - Individual chats/group chats [with admins only]
+- Audit Logs
+  - Audit Logs across all tenants
 - Settings
   - Platform Config
     - Global scoring weights (Trust Score, Vouch Score logic)
@@ -162,172 +163,48 @@ Alright, let's have a complete revamp for Agapay, we'll redo everything from scr
     - Role-based access control (RBAC) templates
     - 2FA enforcement rules
 
-## Tenant Admin
+## Tenant Operator (Unified Admin & Lender)
 
-- Overview [Contains KPIs of global numbers (funds, active loans, portfolio growth, repayment rates, risks), recent logs, total trust score of Agapay itself, and recent snapshot summaries (AI-generated)
-- Approvals [has grid of cards that expands upon clicking, has searchbar, inside scrolling, appropriately sized elements, and filters]
-  - Loan Applications [Status: Rejected, Pending, Approved]
-    Each card contains:
-    - Applicant Name
-    - Vouch Score
-    - Trust Score
-    - Applied Loan Product
-    - Requested Value
-    - Payment Cadence
-    - Payment Term
-    - Application Date
-    - Purpose of Loan
-    - Reference Number
+- Overview [Contains combined KPIs of branch health: Funds, Active Loans, Portfolio Growth, Repayment Rates, ROI/Earnings (Personal & Branch), Risk Exposure, and Portfolio Diversification; includes Recent Interaction Logs, Total Trust Score of the Branch, and AI-generated Snapshots/Summaries]
+- Approvals & Queue [Unified grid of cards with search, filters, and inside-scrolling]
+  -Loan Applications [Status: Rejected, Pending, Approved]
+  -Card contains: Applicant Name, Vouch Score, Trust Score, Loan Product, Requested Value, Cadence/Term, Purpose, Reference Number
   - Fund Releases [Status: Not Released, Released]
-    Each card contains:
-    - Applicant Name
-    - Vouch Score
-    - Trust Score
-    - Applied Loan Product
-    - Requested Value
-    - Payment Cadence
-    - Payment Term
-    - Application Date
-    - Purpose of Loan
-    - Reference Number
-  - Pending Payments [Status: Rejected, Pending, Approved]
-    Each card contains:
-    - Applicant Name
-    - Vouch Score
-    - Trust Score
-    - Applied Loan Product
-    - Installment Count
-    - Payments List
-    - Reference Number
-  - Documents Verification (Identity Verification)
-    For Identity Verification, each card contains:
-    - Applicant Name
-    - Tenant Name
-    - Tenant Region
-    - Selected Plan
-    - Attached Documents
-  - Delinquent / Compassion
-    Each card contains:
-    - Applicant Name
-    - Vouch Score
-    - Trust Score
-    - Applied Loan Product
-    - Installment Count
-    - Payments List
-    - Type (for Compassion)
-    - Penalty Count (for Delinquent)
-    - Reference Number
-- Members
-  - Member Directory (grid/cards)
-  - Member Profiles
-    - Personal info
-    - Loan history
-    - Trust & Vouch scores
-    - Uploaded documents
-  - Member Status Controls
-    - Active / Suspended / Blacklisted
-- Documents
-  - Repository (all uploaded files)
-  - Categorized by: Identity, Loan attachments, Payment proofs, Bulk verification tools
-- Top-Up Queue
-  - Incoming capital requests from lenders
-  - Status: Pending, Approved, Rejected
-  - Each card: Lender Name, Amount, Payment method, Reference number
-- Loan Products
-  - Create/Edit Loan Products
-    - Interest model (flat, diminishing)
-    - Payment cadence
-    - Term limits
-  - Assign eligibility rules
-  - Attach risk scoring modifiers
-- Global Management (Tenant-Level)
-  - Manage branches (if Sangay plan)
-  - Staff roles & permissions (RBAC)
-  - Assign admins, officers, collectors
-  - Homepage Content (Tenant-Controlled)
-- Tenant Homepage Content (Tenant-Scoped)
-  - Hero Section Editor
-  - Loan Calculator Config
-  - Testimonials
-  - FAQs (tenant-scoped override)
-  - Branding (Logo, Brand/Main/Accent Colors, Typography)
-  - Announcements Banner
-- Feedback
-  - Member complaints
-  - System issues
-  - Feature requests
+    - Card contains: Applicant Name, Loan Product, Approved Value, Release Method, Scheduled Date, Reference Number
+  - Payment Verification [Status: Rejected, Pending, Approved]
+    - Card contains: Applicant Name, Installment #, Payment Reference, Receipt Attachment, Amount, Verification Action
+  - Capital Top-Up Queue [Incoming funding requests from operators/lenders]
+    - Card contains: Lender Name, Amount, Method (E-wallet/Bank), Status, Reference Number
+  - Identity Verification [Document review for new members]
+    - Card contains: Applicant Name, Membership Code, Attached IDs, Verification Status
+- Capital & Investments (The Vault) [Personal and Branch-level funding management]
+  - My Investment Portfolio [Active investments in loans, ROI breakdown, Earnings history, Defaulted loan exposure]
+  - Wallet & Top-Ups [Add/Withdraw funds, Transaction History, Linked Bank/E-wallet accounts]
+  - Risk & Diversification [AI-driven suggested investments and risk alerts across the branch portfolio]
+- Member Management
+  - Member Directory [Grid/cards view of the community]
+  - Member Profiles [Personal info, full Loan History, Trust/Vouch scores, Uploaded Documents]
+  - Status Controls [Active / Suspended / Blacklisted toggles]
+- Loan Products & Policy
+  - Product Studio [Create/Edit products: Interest models (Flat/Diminishing), Cadence, Term Limits, Penalty rules]
+  - Logic Config [Assigning eligibility rules and risk scoring modifiers]
+- Treasury & Reconciliation [Strict daily financial integrity]
+  - EOD Reconciliation (Critical) [Daily sign-off: Payments received vs. Loans released, Treasury balance, Flagging discrepancies]
+  - Compassion Actions [Loan restructuring/Grace periods/Penalty waivers with approval trails and notes]
+- Content & Branding [Branding and Member-facing UI control]
+  - Tenant Homepage Editor [Hero Section, Calculator Config, Testimonials, FAQs, Announcements Banner]
+  - Branch Identity [Logo, Brand/Accent Colors, Typography selection]
 - Community
-  - Internal messaging / bulletin
-  - Group announcements
-  - Member engagement posts
-  - Individual chats/group chats
-- EOD Reconciliation (Critical)
-  - Daily financial reconciliation
-  - Breakdown: Payments received, Loans released, Outstanding balances, Flag discrepancies
-- Compassion Actions
-  - Loan restructuring
-  - Grace periods
-  - Penalty waivers
-  - Notes + approval trail
-- Analytics
-  - Portfolio growth
-  - Repayment rates
-  - Default trends
-  - Member behavior insights
-- Audit Logs
-  - All admin + staff actions
-  - Filter by: User, Module, Date
+  - Intercom / Bulletin [Branch-wide announcements, internal messaging, member engagement posts]
+  - Chat Hub [Individual and Group chats with members and staff]
+- Support & Analytics
+  - Feedback Registry [Member complaints, system issues, and feature requests]
+  - Growth Analytics [Portfolio trends, behavior insights, default forecasts]
+  - Security & Audit Logs [All Operator + Staff actions; filter by User, Module, and Date]
 - Settings
-  - Tenant Config
-    - Loan rules
-    - Scoring tweaks (within limits)
-  - Notifications
-    - Email triggers
-  - Payment Integrations - e-wallets, banks
-  - Security
-    - 2FA
-    - Session control
-
-## Tenant Lender
-
-- Overview
-  - Total funds invested
-  - Active loans funded
-  - ROI / earnings
-  - Risk exposure
-  - AI-generated portfolio summary
-- Funding Marketplace
-  - Browse loan requests
-  - Filters: Risk level, Loan type, Duration
-  - Each card: Borrower profile, Trust/Vouch score, Expected return, Risk rating
-- My Investments
-  - Active investments
-  - Completed loans
-  - Defaulted loans
-  - Earnings breakdown
-- Top-Up / Wallet
-  - Add funds
-  - Withdraw funds
-  - Transaction history
-- Risk & Insights
-  - Portfolio diversification
-  - Risk alerts
-  - Suggested investments (AI-driven)
-- Agreements & Documents
-  - Contracts
-  - Disclosures
-  - Downloadable reports
-- Community
-  - Internal messaging / bulletin
-  - Group announcements
-  - Member engagement posts
-  - Individual chats/group chats
-- Settings
-  - Profile [Editable with username, address, profile picture, light/dark theme]
-  - Security (password, 2FA)
-  - Linked accounts
-  - Bank / wallet accounts
-  - Notification preferences
+  - Tenant Config [Strict loan rules, scoring tweaks, email/system notification triggers]
+  - Operator Profile [Personal info, profile picture, Theme selection (Light/Dark)]
+  - Security Matrix [2FA config, password management, session controls, linked banking/wallet accounts]
 
 ## Tenant Member
 
@@ -349,18 +226,15 @@ Alright, let's have a complete revamp for Agapay, we'll redo everything from scr
   - Pay installments
   - Upload proof (if manual)
   - Payment status tracking
-- Vouch System
-  - Request vouches
-  - Give vouches
-  - View trust network
-- Documents
-  - Upload IDs
-  - Track verification status
 - Community
   - Internal messaging / bulletin
   - Group announcements
   - Member engagement posts
   - Individual chats/group chats
+- Vouch System
+  - Request vouches
+  - Give vouches
+  - View trust network
 - Support / Feedback
   - Submit concerns
   - Track ticket status
@@ -401,10 +275,9 @@ Alright, let's have a complete revamp for Agapay, we'll redo everything from scr
 
 ## Agapay Tenant Subscription Plans:
 
-- Agapay Core (P3,500/mo) [Benefits: Up to 500 members, Basic Admin Dashboard, Standard Microfinance Policy Access, Audit Logs, Email Support]
-- Agapay Pro (P6,500/mo) [Benefits: All in Core + Up to 2500 members, Custom Tenant Branding, Mentorship & Community Tools, Chat/Priority Email Support, Automated Compassion Workflow]
-- Agapay Enterprise (P12,000/mo) [Benefits: All in Pro + Unlimited Members, Analytics Module, Priority Support (faster SLA), Data Export & Reporting Tools, System Configuration Controls]
-- Agapay Sangay (+P3,000 Per Branch/mo, Available for Enterprise plan only) [Benefits: All in Enterprise + Multi-Branch (Sangay) Management, Branch-Level Roles & Permissions (Central Admin vs Branch Admin controls), Consolidated & Per-Branch Analytics, Inter-Branch Monitoring & Reporting, Branch Configuration Controls, Scalable infrastructure for high-volume operations]
+- Agapay Core — P3,500/3-months [Benefits: Up to 500 members, Basic Admin Dashboard, Standard Microfinance Policy Access, Audit Logs, Email Support
+- Agapay Pro — P6,500/6-months [Benefits: Everything in Core, plus: Up to 2,500 members, Custom Tenant Branding, Mentorship & Community Tools, Chat/Priority Email Support, Automated Compassion Workflow, Basic Data Export Tools]
+- Agapay Enterprise — P12,000/12-months [Benefits: Everything in Pro, plus: Unlimited Members, Analytics Module, Priority Support (faster SLA), Advanced Data Export & Reporting Tools, System Configuration Controls]
 
 ## Agapay Tenant Interest Rate Tiers
 

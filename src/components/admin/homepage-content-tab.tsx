@@ -99,7 +99,7 @@ export function HomepageContentTab({
             title={role === "superadmin" ? "FAQ Moderation" : "FAQ Proposals"}
             description={
               role === "superadmin"
-                ? "I-review at i-publish ang mga FAQ na isinumite ng admins."
+                ? "Review and publish FAQs submitted by operators."
                 : "Magpasa ng seasonal at relevant na FAQs para sa homepage."
             }
           >

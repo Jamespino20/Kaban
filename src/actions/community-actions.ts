@@ -17,7 +17,7 @@ import {
 import { revalidatePath } from "next/cache";
 import { createNotification } from "@/lib/notifications";
 
-const DEFAULT_BRANCH_ROOMS = [
+const DEFAULT_OPERATOR_ROOMS = [
   {
     slug: "ka-agapay-community",
     title: "Ka-Agapay Community",
@@ -54,12 +54,12 @@ async function ensureBranchRooms(
   }
 
   await Promise.all(
-    DEFAULT_BRANCH_ROOMS.map((room) =>
+    DEFAULT_OPERATOR_ROOMS.map((room) =>
       database.conversation.upsert({
         where: {
           tenant_id_type_slug: {
             tenant_id: tenantId,
-            type: ConversationType.branch_room,
+            type: ConversationType.operator_room,
             slug: room.slug,
           },
         },
@@ -68,7 +68,7 @@ async function ensureBranchRooms(
         },
         create: {
           tenant_id: tenantId,
-          type: ConversationType.branch_room,
+          type: ConversationType.operator_room,
           slug: room.slug,
           title: room.title,
           created_by: actorUserId ? Number(actorUserId) : undefined,
@@ -137,7 +137,7 @@ export async function getCommunityDashboardData() {
   if (!tenantId) {
     return {
       requiresTenantContext: true,
-      branchRooms: [],
+      operatorRooms: [],
       directConversations: [],
       groupChats: [],
       discoverableUsers: [],
@@ -149,7 +149,7 @@ export async function getCommunityDashboardData() {
     await ensureBranchRooms(tenantId, session.user.user_id, tx);
 
     const [
-      branchRooms,
+      operatorRooms,
       directConversations,
       groupChats,
       discoverableUsers,
@@ -157,7 +157,7 @@ export async function getCommunityDashboardData() {
     ] = await Promise.all([
       tx.conversation.findMany({
         where: {
-          type: ConversationType.branch_room,
+          type: ConversationType.operator_room,
         },
         include: {
           messages: {
@@ -239,7 +239,7 @@ export async function getCommunityDashboardData() {
           user_id: { not: session.user.user_id },
           status: UserStatus.active,
           role: {
-            in: [Role.member, Role.admin, Role.lender],
+            in: [Role.member, Role.operator],
           },
         },
         include: {
@@ -277,7 +277,7 @@ export async function getCommunityDashboardData() {
 
     return {
       requiresTenantContext: false,
-      branchRooms: branchRooms.map((room: any) => {
+      operatorRooms: operatorRooms.map((room: any) => {
         const lastReadAt = room.participants[0]?.last_read_at;
         const lastMessage = room.messages[0];
 
@@ -458,8 +458,8 @@ export async function getCommunityStaffSummary() {
         createdAt: message.created_at,
         conversationTitle:
           message.conversation.title ||
-          (message.conversation.type === ConversationType.branch_room
-            ? "Branch Room"
+          (message.conversation.type === ConversationType.operator_room
+            ? "Operator Room"
             : "Direct Message"),
         senderName:
           message.sender.profile?.first_name &&
@@ -483,7 +483,7 @@ export async function getConversationThread(
   const conversation = await assertConversationAccess(session, conversationId);
 
   const query = async (db: any) => {
-    if (conversation.type === ConversationType.branch_room && tenantId) {
+    if (conversation.type === ConversationType.operator_room && tenantId) {
       await db.conversationParticipant.upsert({
         where: {
           conversation_id_user_id: {

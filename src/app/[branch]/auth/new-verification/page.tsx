@@ -68,7 +68,7 @@ function NewVerificationForm() {
           ? "Naverify na ang iyong account. Maaaccess mo na ngayon ang iyong Agapay Pintig."
           : error
             ? error
-            : "Maghintay habang sinisiguro ang iyong mga credentials."}
+            : "Please wait while verifying your credentials."}
       </p>
 
       {(success || error) && (

@@ -256,7 +256,7 @@ export function WalletTab({ savings, transactions }: WalletTabProps) {
               </DialogHeader>
               <div className="space-y-5 pt-4">
                 <div className="rounded-2xl border border-slate-100 bg-slate-50 px-4 py-3 text-sm text-slate-600">
-                  Ang action na ito ay gagawa ng top-up request sa mga Admin.
+                  This action will create a top-up request to the Operator.
                   Hintayin ang kanilang approval bago pumasok ang pondo sa iyong
                   wallet.
                 </div>

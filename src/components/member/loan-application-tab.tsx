@@ -46,7 +46,7 @@ export const LoanApplicationTab = () => {
   if (loading) {
     return (
       <div className="rounded-[1.75rem] border border-slate-100 bg-white p-10 text-center text-slate-400">
-        Kinukuha ang mga produkto...
+        Fetching products...
       </div>
     );
   }
@@ -58,7 +58,7 @@ export const LoanApplicationTab = () => {
           onClick={() => setSelectedProduct(null)}
           className="flex items-center gap-2 text-sm font-bold text-emerald-600 transition-all hover:translate-x-[-3px]"
         >
-          ← Bumalik sa mga Produkto
+          &larr; Back to Products
         </button>
 
         <div className="grid grid-cols-1 overflow-hidden rounded-[1.75rem] border border-emerald-100 bg-white shadow-xl md:grid-cols-2">

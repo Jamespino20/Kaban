@@ -635,7 +635,7 @@ function LoanServicingCard({
         <Dialog open={feedbackOpen} onOpenChange={setFeedbackOpen}>
           <DialogContent className="sm:max-w-md">
             <DialogHeader>
-              <DialogTitle>Kumusta ang iyong pagbabayad?</DialogTitle>
+              <DialogTitle>How is your repayment?</DialogTitle>
               <DialogDescription>
                 Bilang bahagi ng Ka-Agapay system, ang iyong feedback ay
                 mahalaga sa pagbuti ng ating community lending.

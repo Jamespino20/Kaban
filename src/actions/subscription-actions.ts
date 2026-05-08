@@ -122,3 +122,54 @@ export async function availLifetimeFranchise(
     return { success: false, error: "Failed to process lifetime purchase." };
   }
 }
+export async function approveSubscriptionUpgrade(tenantId: number) {
+  try {
+    const session = await requireTanawSession();
+    if (session.user.role !== "superadmin") {
+      return { success: false, error: "Unauthorized. Superadmin only." };
+    }
+
+    const result = await prisma.$transaction(async (tx) => {
+      // 1. Update subscription status
+      const sub = await tx.tenantSubscription.update({
+        where: { tenant_id: tenantId },
+        data: { status: "active" }, // Change from verified/pending to active
+        include: { plan: true },
+      });
+
+      // 2. Update tenant entitlement
+      const tenant = await tx.tenant.update({
+        where: { tenant_id: tenantId },
+        data: {
+          entitlement_status: "active",
+          lifetime_availed_at: new Date(),
+        },
+      });
+
+      // 3. Log Audit
+      await tx.auditLog.create({
+        data: {
+          action: "APPROVE_SUBSCRIPTION",
+          entity_type: "Tenant",
+          entity_id: tenantId,
+          user_id: session.user.user_id,
+          new_values: {
+            plan: sub.plan.tier_name,
+            status: "active",
+          } as any,
+        },
+      });
+
+      return { sub, tenant };
+    });
+
+    revalidatePath("/agapay-tanaw");
+    return {
+      success: true,
+      message: `Subscription approved. Tenant "${result.tenant.name}" is now active.`,
+    };
+  } catch (error) {
+    console.error("Failed to approve subscription:", error);
+    return { success: false, error: "Failed to approve subscription." };
+  }
+}

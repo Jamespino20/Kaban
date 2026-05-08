@@ -99,10 +99,10 @@ export function BranchSwitcher() {
           </div>
           <div className="flex flex-col items-start text-left hidden sm:flex">
             <span className="mb-0.5 text-[10px] font-bold uppercase tracking-widest leading-none text-primary">
-              Sanga
+              Cooperative
             </span>
             <span className="text-xs font-black text-slate-900 truncate max-w-[120px]">
-              {currentTenant?.name || "Pumili ng Sanga"}
+              {currentTenant?.name || "Pumili ng Coop"}
             </span>
           </div>
           <ChevronDown className="w-3 h-3 text-slate-400" />
@@ -113,7 +113,7 @@ export function BranchSwitcher() {
         className="w-[240px] p-2 rounded-2xl shadow-xl border-slate-100"
       >
         <DropdownMenuLabel className="px-3 py-2 text-xs font-bold text-slate-400 uppercase tracking-widest">
-          Iyong mga Cooperatives
+          Your Cooperatives
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
         {loading ? (

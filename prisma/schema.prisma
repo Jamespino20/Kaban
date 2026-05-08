@@ -39,8 +39,6 @@ model Tenant {
   entitlement_notes        String?
   entitled_by_user_id      Int?
   audit_logs               AuditLog[]
-  transfers_out            BranchTransferRequest[]   @relation("TransferOut")
-  transfers_in             BranchTransferRequest[]   @relation("TransferIn")
   conversations            Conversation[]
   decommissioned_backups   DecommissionedBackup[]
   feedbackEntries          FeedbackEntry[]
@@ -128,7 +126,6 @@ model User {
   consent_accepted_at       DateTime?
   consent_version           String?                   @db.VarChar(20)
   audit_logs                AuditLog[]
-  transfer_requests         BranchTransferRequest[]
   approved_compassions      CompassionAction[]        @relation("ApprovedCompassion")
   requested_compassions     CompassionAction[]        @relation("RequestedCompassion")
   conversation_participants ConversationParticipant[]
@@ -863,22 +860,6 @@ model Notification {
   @@map("notifications")
 }
 
-model BranchTransferRequest {
-  id             String   @id @default(cuid())
-  user_id        Int
-  from_tenant_id Int
-  to_tenant_id   Int
-  status         String   @default("PENDING")
-  reason         String?
-  created_at     DateTime @default(now())
-  updated_at     DateTime @updatedAt
-  from_tenant    Tenant   @relation("TransferOut", fields: [from_tenant_id], references: [tenant_id], onDelete: Cascade)
-  to_tenant      Tenant   @relation("TransferIn", fields: [to_tenant_id], references: [tenant_id], onDelete: Cascade)
-  user           User     @relation(fields: [user_id], references: [user_id], onDelete: Cascade)
-
-  @@index([status])
-  @@map("branch_transfer_requests")
-}
 
 model DecommissionedBackup {
   id               String   @id @default(cuid())
@@ -1241,8 +1222,7 @@ model TopUpRequest {
 
 enum Role {
   superadmin
-  admin
-  lender
+  operator
   member
 }
 
@@ -1594,7 +1574,7 @@ model SystemFile {
 
 enum ConversationType {
   direct
-  branch_room
+  operator_room
   group_chat
 }
 

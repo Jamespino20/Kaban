@@ -10,6 +10,7 @@ import { LoanServicingTab } from "@/components/member/loan-servicing-tab";
 import prisma from "@/lib/prisma";
 import { redirect } from "next/navigation";
 import { type ShellNavItem } from "@/components/layout/authenticated-shell";
+import { Badge } from "@/components/ui/badge";
 import { DashboardTabsShell } from "@/components/layout/dashboard-tabs-shell";
 import { WalletTab } from "@/components/member/wallet-tab";
 import { getWalletTransactions } from "@/actions/wallet-actions";
@@ -153,15 +154,14 @@ export default async function AgapayPintigPage({
   );
   const memberTierLabel = formatTierLabel(member?.interest_tier);
   const navItems: ShellNavItem[] = [
-    { value: "overview", label: "Pangkalahatan", icon: "overview" },
-    { value: "wallet", label: "Wallet & Ipon", icon: "wallet" },
-    { value: "apply", label: "Mag-loan", icon: "apply" },
-    { value: "loans", label: "Aking mga Loan", icon: "repayment" }, // TM-03
-    { value: "payments", label: "Pagbabayad", icon: "wallet" }, // TM-04
-    { value: "vouch", label: "Vouch System", icon: "members" }, // TM-05
-    { value: "documents", label: "Mga Dokumento", icon: "approvals" }, // TM-06
-    { value: "community", label: "Ka-Agapay", icon: "community" },
-    { value: "support", label: "Suporta at Feedback", icon: "feedback" }, // TM-08
+    { value: "overview", label: "Overview", icon: "overview" },
+    { value: "wallet", label: "Wallet", icon: "wallet" },
+    { value: "apply", label: "Loan Application", icon: "apply" },
+    { value: "loans", label: "My Loans", icon: "repayment" },
+    { value: "payments", label: "Repayment", icon: "wallet" },
+    { value: "vouch", label: "Vouch System", icon: "members" },
+    { value: "community", label: "Community", icon: "community" },
+    { value: "support", label: "Support & Feedback", icon: "feedback" },
     { value: "settings", label: "Settings", icon: "settings" },
   ];
 
@@ -173,19 +173,19 @@ export default async function AgapayPintigPage({
 
   const memberCards = [
     {
-      label: "Aking Ipon",
+      label: "My Savings",
       value: formatCurrency(totalSavings),
       color: "text-emerald-600",
       bg: "bg-emerald-50",
     },
     {
-      label: "Pansariling Wallet",
+      label: "My Wallet",
       value: formatCurrency(totalWalletBalance),
       color: "text-amber-600",
       bg: "bg-amber-50",
     },
     {
-      label: "Aktibong Loan",
+      label: "Active Loan",
       value: formatCurrency(totalLoanBalance),
       color: "text-slate-900",
       bg: "bg-slate-50",
@@ -218,37 +218,75 @@ export default async function AgapayPintigPage({
           value="overview"
           className="space-y-6 outline-none animate-in fade-in slide-in-from-bottom-4 duration-500"
         >
-          <div className="grid grid-cols-1 gap-4 lg:grid-cols-[0.95fr_1.05fr]">
-            <div className="flex items-center gap-4 rounded-[1.75rem] border border-emerald-100 bg-white/80 p-4 shadow-sm backdrop-blur-xl">
-              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-100 text-emerald-600">
-                <Wallet className="h-6 w-6" />
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+            <div className="rounded-[2rem] border border-slate-100 bg-white p-8 shadow-sm space-y-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="font-display font-bold text-slate-900 italic text-xl">
+                    Loan Capability Meter
+                  </h3>
+                  <p className="text-sm text-slate-500">
+                    Your potential borrowing power based on trust.
+                  </p>
+                </div>
+                <div className="w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center">
+                  <HeartPulse className="w-6 h-6" />
+                </div>
               </div>
-              <div>
-                <p className="text-xs font-bold uppercase tracking-widest text-slate-400">
-                  Nagagamit na Credit
-                </p>
-                <p className="text-2xl font-display font-bold text-slate-900">
-                  {formatCurrency(availableCredit)}
-                </p>
-                <p className="mt-1 text-sm text-slate-500">
-                  Batay sa iyong kasalukuyang tier:{" "}
-                  <span className="font-semibold text-slate-700">
+
+              <div className="relative pt-4">
+                <div className="flex items-end justify-between mb-2">
+                  <p className="text-4xl font-display font-bold text-slate-900">
+                    {formatCurrency(availableCredit)}
+                  </p>
+                  <Badge
+                    variant="secondary"
+                    className="bg-emerald-50 text-emerald-700 border-none font-black text-[10px] uppercase tracking-widest px-3 py-1.5 h-auto"
+                  >
                     {memberTierLabel}
-                  </span>
-                </p>
+                  </Badge>
+                </div>
+                <div className="h-3 w-full bg-slate-100 rounded-full overflow-hidden">
+                  <div
+                    className="h-full bg-emerald-500 rounded-full shadow-[0_0_15px_rgba(16,185,129,0.4)] transition-all duration-1000"
+                    style={{
+                      width: `${Math.min(100, (availableCredit / 1000000) * 100)}%`,
+                    }}
+                  />
+                </div>
+                <div className="flex justify-between mt-2 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                  <span>Starter</span>
+                  <span>Max Limit (₱1M)</span>
+                </div>
               </div>
             </div>
 
-            <div className="flex justify-start lg:justify-end">
-              <a
-                href={`/${branch}/api/reports/soa?userId=${userId}&tenantId=${tenantId}`}
-                target="_blank"
-                className="group relative flex items-center gap-3 rounded-[1.5rem] bg-emerald-600 px-6 py-3 font-black text-white shadow-xl shadow-emerald-900/20 transition-all hover:scale-[1.02] hover:bg-emerald-700 active:scale-95"
-              >
-                <div className="absolute inset-0 rounded-3xl bg-white/20 opacity-0 transition-opacity group-hover:opacity-100" />
-                <ArrowUpRight className="h-5 w-5" />
-                <span>Ulat ng Pagbabayad (SOA)</span>
-              </a>
+            <div className="bg-slate-900 rounded-[2rem] p-8 text-white relative overflow-hidden group flex flex-col justify-between">
+              <div className="relative z-10">
+                <div className="w-12 h-12 rounded-2xl bg-emerald-500 flex items-center justify-center mb-6 shadow-lg shadow-emerald-500/20">
+                  <Wallet className="w-6 h-6" />
+                </div>
+                <h3 className="text-2xl font-display font-medium leading-tight">
+                  Repayment <br /> Report
+                </h3>
+                <p className="text-slate-400 text-xs mt-2 max-w-[180px]">
+                  I-download ang iyong Statement of Account para sa buong
+                  detalye.
+                </p>
+              </div>
+
+              <div className="relative z-10 mt-8">
+                <a
+                  href={`/${branch}/api/reports/soa?userId=${userId}&tenantId=${tenantId}`}
+                  target="_blank"
+                  className="inline-flex items-center gap-2 text-sm font-bold text-emerald-400 hover:text-emerald-300 transition-colors"
+                >
+                  <span>IDOWNLOAD ANG SOA</span>
+                  <ArrowUpRight className="w-4 h-4" />
+                </a>
+              </div>
+
+              <div className="absolute -bottom-10 -right-10 w-48 h-48 bg-emerald-500/10 rounded-full blur-3xl group-hover:bg-emerald-500/20 transition-all duration-500" />
             </div>
           </div>
 
@@ -357,13 +395,12 @@ export default async function AgapayPintigPage({
             </div>
             <div className="space-y-2">
               <h3 className="text-2xl font-display font-bold text-slate-900">
-                Ulat ng mga Bayad
+                Repayment Report
               </h3>
               <p className="text-slate-500 max-w-md mx-auto">
                 Ang detalyadong listahan ng lahat ng iyong payment history ay
                 kasalukuyang pinapaganda. Pansamantala, makikita ang iyong
-                payments sa ilalim ng bawat loan sa &quot;Aking mga Loan&quot;
-                tab.
+                payments under each loan in &quot;My Loans&quot; tab.
               </p>
             </div>
           </div>
@@ -399,7 +436,7 @@ export default async function AgapayPintigPage({
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             <div className="col-span-full bg-white rounded-[2rem] border border-slate-100 p-8 shadow-sm">
               <h2 className="text-2xl font-display font-bold text-slate-900 italic mb-2">
-                Aking mga Dokumento
+                My Documents
               </h2>
               <p className="text-slate-500">
                 Pamahalaan ang iyong mga ID, sertipiko, at iba pang kailangang

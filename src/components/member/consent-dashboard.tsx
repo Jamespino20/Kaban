@@ -74,7 +74,7 @@ export const ConsentDashboard = ({
             <ul className="space-y-3">
               {[
                 "Pangalan, Profile Photo, at Kasarian",
-                "Kasaysayan ng mga Loan at Bayad",
+                "Loan and Payment History",
                 "Trust Score at Vouch History",
                 "Business Performance Metrics",
               ].map((item, i) => (
@@ -186,7 +186,7 @@ export const ConsentDashboard = ({
         <p className="text-xs text-slate-400 leading-relaxed">
           Ang Agapay ay sumusunod sa **Republic Act No. 10173 (Data Privacy Act
           of 2012)**. Ang iyong data ay ligtas at ginagamit lamang para sa iyong
-          mga transaksyon sa microfinance.
+          microfinance transactions.
         </p>
       </div>
     </div>

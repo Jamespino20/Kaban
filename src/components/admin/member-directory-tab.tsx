@@ -177,7 +177,7 @@ export function MemberDirectoryTab({
                   Katayuan
                 </th>
                 <th className="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
-                  Mga Loan
+                  Loans
                 </th>
                 <th className="px-6 py-4 text-right"></th>
               </tr>
@@ -268,7 +268,7 @@ export function MemberDirectoryTab({
                         <div className="space-y-1">
                           <p>
                             {member.loans.length}{" "}
-                            {member.loans.length === 1 ? "Loan" : "mga Loan"}
+                            {member.loans.length === 1 ? "Loan" : "Loans"}
                           </p>
                           <p className="text-[10px] uppercase tracking-widest text-slate-400">
                             Wallet: ₱

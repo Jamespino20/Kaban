@@ -92,7 +92,7 @@ export default async function SOAPage({
         </div>
         <div className="text-right">
           <h2 className="text-xl font-semibold italic text-slate-800">
-            Ulat ng Pagbabayad (SOA)
+            Statement of Account (SOA)
           </h2>
           <p className="text-sm text-slate-500">
             Petsa: {format(new Date(), "MMMM d, yyyy")}
@@ -130,7 +130,7 @@ export default async function SOAPage({
           <div className="mb-6">
             <h3 className="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">
               <span className="w-2 h-6 bg-emerald-500 rounded-full"></span>
-              Detalye ng Aktibong Utang
+              Active Loan Details
             </h3>
             <table className="w-full text-left border-collapse">
               <thead>
@@ -226,9 +226,7 @@ export default async function SOAPage({
         </>
       ) : (
         <div className="text-center p-12 bg-slate-50 rounded-2xl">
-          <p className="text-slate-500 italic">
-            Walang aktibong utang na nahanap.
-          </p>
+          <p className="text-slate-500 italic">No active loan found.</p>
         </div>
       )}
 

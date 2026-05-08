@@ -136,7 +136,7 @@ export function GlobalFileView({ tenantId }: { tenantId?: number }) {
                   colSpan={6}
                   className="h-32 text-center text-slate-400"
                 >
-                  Naglo-load ng mga files...
+                  Loading files...
                 </TableCell>
               </TableRow>
             ) : filteredFiles.length === 0 ? (

@@ -18,8 +18,7 @@ export type AuthorizedSession = {
 };
 
 export const isSuperadminRole = (role?: string | null) => role === "superadmin";
-export const isTenantStaffRole = (role?: string | null) =>
-  role === "admin" || role === "lender";
+export const isTenantStaffRole = (role?: string | null) => role === "operator";
 export const isTanawRole = (role?: string | null) =>
   isSuperadminRole(role) || isTenantStaffRole(role);
 
@@ -73,11 +72,11 @@ export async function requireTanawSession(): Promise<AuthorizedSession> {
 
 export async function requireAdminSession(): Promise<AuthorizedSession> {
   const session = await requireAuthenticatedSession();
-  if (session.user.role !== "admin" && session.user.role !== "superadmin") {
+  if (session.user.role !== "operator" && session.user.role !== "superadmin") {
     throw new Error("Unauthorized");
   }
 
-  if (session.user.role === "admin" && !session.user.tenantId) {
+  if (session.user.role === "operator" && !session.user.tenantId) {
     throw new Error("Unauthorized");
   }
 

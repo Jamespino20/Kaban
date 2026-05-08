@@ -215,21 +215,21 @@ async function seedTenantData(client: any, tenant: any, ctx: any) {
 
   console.log(`\n🌱 Seeding Cooperative: ${tenant.name}`);
 
-  // 1. Admin & Lenders
+  // 1. Operators (Staff)
   const staff = [];
-  for (let i = 0; i < 6; i++) {
-    const role = i < 2 ? Role.admin : Role.lender;
+  for (let i = 0; i < 1; i++) {
+    const role = Role.operator;
     const isMale = Math.random() > 0.5;
     const first = pick(isMale ? NAMES_M : NAMES_F);
     const last = pick(SURNAMES);
-    const code = `AGP${year}${role === Role.admin ? "A" : "L"}${String(i + 1).padStart(12, "0")}`;
+    const code = `AGP${year}O${String(i + 1).padStart(12, "0")}`;
     const identity = buildMemberIdentity(first, last, code, tenant.slug);
 
     const user = await client.user.create({
       data: {
         username: identity.username,
         email: identity.email,
-        password_hash: role === Role.admin ? hashedAdmin : hashedPassword,
+        password_hash: hashedAdmin,
         role,
         tenant_id: tenant.tenant_id,
         status: "active",
@@ -240,7 +240,7 @@ async function seedTenantData(client: any, tenant: any, ctx: any) {
             last_name: last,
             gender: isMale ? "male" : "female",
             address: `${pick(BARANGAYS)}, ${tenant.name}`,
-            occupation: role === Role.admin ? "Branch Manager" : "Loan Officer",
+            occupation: "Cooperative Operator",
             tenant_id: tenant.tenant_id,
           },
         },
@@ -321,11 +321,13 @@ async function main() {
 
   // 1. Clear Global Tables
   console.log("🧹 Clearing global tables...");
+  await prisma.socialVouch.deleteMany();
+  await prisma.userProfile.deleteMany();
   await prisma.tenantSubscription.deleteMany();
+  await prisma.user.deleteMany();
   await prisma.tenant.deleteMany();
   await prisma.tenantGroup.deleteMany();
   await prisma.subscriptionPlan.deleteMany();
-  await prisma.user.deleteMany({ where: { tenant_id: null } });
 
   // 2. Subscription Plans
   const plans = [
@@ -365,23 +367,6 @@ async function main() {
         "System Configuration Controls",
       ],
     },
-    {
-      name: "Agapay Sangay",
-      price: 0, // Free add-on if on Enterprise
-      isAddon: true,
-      branchPrice: 3000, // +₱3,000 per branch
-      branchStorage: 10000, // +10GB per branch
-      members: 1000000,
-      storageMb: 100000,
-      features: [
-        "Free add-on if on Enterprise Plan (+3,000/month per branch)",
-        "Multi-Branch (Sangay) Management",
-        "Branch-Level Role Permissions",
-        "Consolidated Branch Analytics",
-        "Inter-Branch Monitoring/Reporting",
-        "Branch Configuration Controls",
-      ],
-    },
   ];
   const seededPlans = [];
   for (const p of plans) {
@@ -393,9 +378,6 @@ async function main() {
         max_members: p.members,
         max_storage_mb: (p as any).storageMb ?? 0,
         features: p.features,
-        is_addon: p.isAddon === true,
-        branch_price: p.branchPrice ?? null,
-        branch_storage: p.branchStorage ?? null,
       },
     });
     seededPlans.push(plan);
@@ -415,7 +397,7 @@ async function main() {
     data: {
       name: "Agapay System",
       slug: "apex",
-      brand_color: "#1e293b",
+      brand_color: "#009966",
     },
   });
 

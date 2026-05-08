@@ -351,3 +351,164 @@ export async function getWalletTransactions() {
     date: tx.processed_at,
   }));
 }
+export async function processPosTransaction(data: {
+  targetUserId: number;
+  type: "deposit" | "repayment";
+  amount: number;
+  reference: string;
+  notes?: string;
+}) {
+  const session = await requireAuthenticatedSession();
+  const operatorId = session.user.user_id;
+  const tenantId = session.user.tenantId;
+
+  if (!tenantId) return { error: "Tenant context required." };
+  if (data.amount <= 0)
+    return { error: "Transaction amount must be greater than zero." };
+
+  try {
+    return await prisma.$withTenant(tenantId, async (tx) => {
+      if (data.type === "deposit") {
+        // 1. Update or create wallet
+        let wallet = await tx.savingsAccount.findFirst({
+          where: {
+            user_id: data.targetUserId,
+            account_type: AccountType.personal_wallet,
+          },
+        });
+
+        if (!wallet) {
+          wallet = await tx.savingsAccount.create({
+            data: {
+              user_id: data.targetUserId,
+              tenant_id: tenantId,
+              account_type: AccountType.personal_wallet,
+              balance: new Prisma.Decimal(data.amount),
+            },
+          });
+        } else {
+          wallet = await tx.savingsAccount.update({
+            where: { account_id: wallet.account_id },
+            data: { balance: { increment: new Prisma.Decimal(data.amount) } },
+          });
+        }
+
+        // 2. Log savings transaction
+        const trans = await tx.savingsTransaction.create({
+          data: {
+            account_id: wallet.account_id,
+            tenant_id: tenantId,
+            transaction_type: TransactionType.deposit,
+            amount: new Prisma.Decimal(data.amount),
+            reference: data.reference,
+            processed_by: operatorId,
+            notes: data.notes || "POS Cash Deposit",
+          },
+        });
+
+        // 3. Ledger: DR Cash, CR Savings
+        await postLedgerEntry(tx, {
+          description: `POS Cash Deposit: ${data.reference}`,
+          createdBy: operatorId,
+          metadata: {
+            source: "pos_deposit",
+            transactionId: trans.transaction_id,
+          },
+          entries: [
+            {
+              accountCode: "CASH_EQUIVALENTS",
+              debit: data.amount,
+              credit: 0,
+            },
+            {
+              accountCode: "MEMBER_SAVINGS",
+              debit: 0,
+              credit: data.amount,
+            },
+          ],
+        });
+      } else {
+        // REPAYMENT LOGIC (Simplified for POS)
+        const loan = await tx.loan.findFirst({
+          where: {
+            user_id: data.targetUserId,
+            status: "active",
+          },
+          orderBy: { created_at: "desc" },
+        });
+
+        if (!loan) throw new Error("Walang active na loan ang member na ito.");
+
+        const amountToApply = Math.min(
+          data.amount,
+          Number(loan.balance_remaining),
+        );
+
+        // Update Loan Schedules
+        const schedules = await tx.loanSchedule.findMany({
+          where: {
+            loan_id: loan.loan_id,
+            status: { in: [ScheduleStatus.pending, ScheduleStatus.overdue] },
+          },
+          orderBy: { installment_number: "asc" },
+        });
+
+        let remaining = amountToApply;
+        for (const schedule of schedules) {
+          const scheduleDue = Number(schedule.total_due);
+          if (remaining + 0.01 < scheduleDue) break;
+
+          await tx.loanSchedule.update({
+            where: { schedule_id: schedule.schedule_id },
+            data: {
+              status: ScheduleStatus.paid,
+              paid_at: new Date(),
+            },
+          });
+          remaining -= scheduleDue;
+        }
+
+        // Update loan balance
+        await tx.loan.update({
+          where: { loan_id: loan.loan_id },
+          data: {
+            balance_remaining: {
+              decrement: new Prisma.Decimal(amountToApply - remaining),
+            },
+          },
+        });
+
+        // Ledger: DR Cash, CR Loan Receivables
+        await postLedgerEntry(tx, {
+          description: `POS Cash Repayment: ${data.reference}`,
+          createdBy: operatorId,
+          loanId: loan.loan_id,
+          metadata: { source: "pos_repayment", reference: data.reference },
+          entries: [
+            {
+              accountCode: "CASH_EQUIVALENTS",
+              debit: amountToApply - remaining,
+              credit: 0,
+            },
+            {
+              accountCode: "LOAN_RECEIVABLES",
+              debit: 0,
+              credit: amountToApply - remaining,
+            },
+          ],
+        });
+      }
+
+      revalidatePath("/agapay-tanaw");
+      return { success: "POS Transaction successfully processed." };
+    });
+  } catch (error) {
+    console.error("processPosTransaction failed:", error);
+    return {
+      error:
+        error instanceof Error
+          ? error.message
+          : "Failed to process POS transaction.",
+    };
+  }
+}

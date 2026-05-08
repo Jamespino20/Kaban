@@ -38,7 +38,7 @@ export function CreateStaffModal({ branches }: Props) {
     username: "",
     email: "",
     plainPassword: "",
-    role: "admin",
+    role: "operator",
     tenantId: branches.length > 0 ? branches[0].id.toString() : "",
   });
 
@@ -63,7 +63,7 @@ export function CreateStaffModal({ branches }: Props) {
         email: formData.email,
         plainPassword: formData.plainPassword,
         passwordHash: "",
-        role: formData.role as "admin" | "lender",
+        role: formData.role as "operator",
         tenantId: parseInt(formData.tenantId),
       });
 
@@ -76,7 +76,7 @@ export function CreateStaffModal({ branches }: Props) {
           username: "",
           email: "",
           plainPassword: "",
-          role: "admin",
+          role: "operator",
           tenantId: branches.length > 0 ? branches[0].id.toString() : "",
         });
       } else {
@@ -102,7 +102,7 @@ export function CreateStaffModal({ branches }: Props) {
           <DialogHeader>
             <DialogTitle>Create Staff Account</DialogTitle>
             <DialogDescription>
-              Assign new admins or lenders directly to a specific branch.
+              Assign new operations staff directly to a specific branch.
             </DialogDescription>
           </DialogHeader>
 
@@ -178,8 +178,7 @@ export function CreateStaffModal({ branches }: Props) {
                     <SelectValue placeholder="Select a role" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="admin">Admin</SelectItem>
-                    <SelectItem value="lender">Lender</SelectItem>
+                    <SelectItem value="operator">Operator</SelectItem>
                   </SelectContent>
                 </Select>
               </div>

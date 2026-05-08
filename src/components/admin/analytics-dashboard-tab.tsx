@@ -84,8 +84,8 @@ export async function AnalyticsDashboardTab() {
               </h3>
               <p className="text-sm opacity-70 max-w-xl">
                 {integrity.isBalanced
-                  ? "Ang iyong Treasury Vault ay tumutugma sa kabuuang ipon ng mga miyembro. Walang nakitang variance."
-                  : `May nakitang variance na ₱${Math.abs(integrity.variance).toLocaleString()} sa pagitan ng Treasury at Savings Pool. Reconcile agad.`}
+                  ? "Your Treasury Vault matches the total member savings. No variance found."
+                  : `A variance of ₱${Math.abs(integrity.variance).toLocaleString()} has been detected between the Treasury and Savings Pool. Reconcile immediately.`}
               </p>
             </div>
           </div>
@@ -304,8 +304,7 @@ export async function AnalyticsDashboardTab() {
             ))}
           </div>
           <p className="text-xs text-slate-500 italic bg-emerald-50 p-4 rounded-2xl border border-emerald-100/50">
-            "Mataas ang engagement sa mga urban areas. Isaalang-alang ang
-            expansion sa mga karatig-pook."
+            "Placeholder"
           </p>
         </div>
       </div>

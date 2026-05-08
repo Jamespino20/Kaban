@@ -47,6 +47,8 @@ import { SystemFileManagement } from "@/components/admin/system-file-management"
 import { TopUpQueueTab } from "@/components/admin/topup-queue-tab";
 import { getPendingTopUps } from "@/actions/wallet-actions";
 import { SystemHealthTab } from "@/components/admin/system-health-tab";
+import { POSSystemTab } from "@/components/admin/pos-system-tab";
+
 function SystemFileManagementSkeleton() {
   return (
     <div className="rounded-[1.75rem] border border-slate-100 bg-white p-6 shadow-sm space-y-6">
@@ -72,21 +74,20 @@ export default async function AgapayTanawPage({
     redirect(`/${branch}/agapay-pintig`);
   }
 
-  const userName = session?.user?.username || "Admin";
-  const userRole = session?.user?.role || "lender";
+  const userName = session?.user?.username || "Operator";
+  const userRole = session?.user?.role || "operator";
   const isSuperAdmin = userRole === "superadmin";
-  const isAdmin = userRole === "admin";
-  const isLender = userRole === "lender";
+  const isOperator = userRole === "operator";
   const tenantContextId = session.user.tenantId ?? null;
   const isGlobalSuperadminView = isSuperAdmin && tenantContextId === null;
-  const canViewProducts = isAdmin || isSuperAdmin;
+  const canViewProducts = isOperator || isSuperAdmin;
   const hasTenantScopedProductAccess =
-    isAdmin || (isSuperAdmin && !!tenantContextId);
-  const canViewBranchOps = isSuperAdmin;
-  const canViewAuditLogs = isAdmin || isSuperAdmin;
-  const canManageHomepageContent = isAdmin || isSuperAdmin;
-  const canViewFeedback = isAdmin || isSuperAdmin;
-  const canViewAnalytics = (isAdmin || isSuperAdmin) && !isLender;
+    isOperator || (isSuperAdmin && !!tenantContextId);
+  const canViewBranchOps = isSuperAdmin && !tenantContextId; // Only global SA looks at multiple tenants
+  const canViewAuditLogs = isOperator || isSuperAdmin;
+  const canManageHomepageContent = isOperator || isSuperAdmin;
+  const canViewFeedback = isOperator || isSuperAdmin;
+  const canViewAnalytics = isOperator || isSuperAdmin;
 
   const reconciliation =
     tenantContextId !== null
@@ -108,7 +109,8 @@ export default async function AgapayTanawPage({
   const pendingData = await getPendingApprovals();
   const metrics = await getDashboardMetrics();
   const trustData = await getTenantTrustMetrics();
-  const pendingTopUps = isAdmin || isSuperAdmin ? await getPendingTopUps() : [];
+  const pendingTopUps =
+    isOperator || isSuperAdmin ? await getPendingTopUps() : [];
 
   const homepageContent = canManageHomepageContent
     ? await getHomepageContentAdmin()
@@ -147,89 +149,177 @@ export default async function AgapayTanawPage({
 
   // Define role-specific navigation based on PRD
   const superadminNav: ShellNavItem[] = [
-    { value: "overview", label: "Overview", icon: "overview" },
+    {
+      value: "overview",
+      label: "Overview",
+      icon: "overview",
+      category: "Operations",
+    },
     {
       value: "approvals",
       label: "Approvals",
       icon: "approvals",
-      badge: pendingData.verifications.length || undefined, // SA specifically looks at tenant doc verifications (SA-03)
+      badge: pendingData.verifications.length || undefined,
+      category: "Operations",
     },
     {
       value: "branches",
       label: "Global Management",
       icon: "branches",
+      category: "Governance",
     },
-    { value: "content", label: "Homepage Content", icon: "content" },
-    { value: "feedback", label: "Feedback", icon: "feedback" },
-    { value: "audit", label: "Audit Logs", icon: "audit" },
-    { value: "reports", label: "Reports", icon: "reconciliation" }, // SA-15/16/17 placeholder
-    { value: "health", label: "System Health", icon: "activity" }, // SA-18
-    { value: "risk", label: "Fraud & Risk", icon: "shield" }, // SA-19 placeholder
-    { value: "community", label: "Community", icon: "community" },
-    { value: "settings", label: "Settings", icon: "settings" },
+    {
+      value: "content",
+      label: "Homepage Content",
+      icon: "content",
+      category: "Governance",
+    },
+    {
+      value: "feedback",
+      label: "Feedback",
+      icon: "feedback",
+      category: "Support",
+    },
+    {
+      value: "audit",
+      label: "Audit Logs",
+      icon: "audit",
+      category: "Governance",
+    },
+    {
+      value: "reports",
+      label: "Reports",
+      icon: "reconciliation",
+      category: "Finance",
+    },
+    {
+      value: "health",
+      label: "System Health",
+      icon: "activity",
+      category: "Governance",
+    },
+    {
+      value: "risk",
+      label: "Fraud & Risk",
+      icon: "shield",
+      category: "Governance",
+    },
+    {
+      value: "community",
+      label: "Community",
+      icon: "community",
+      category: "Support",
+    },
+    {
+      value: "settings",
+      label: "Settings",
+      icon: "settings",
+      category: "Governance",
+    },
   ];
 
-  const adminNav: ShellNavItem[] = [
-    { value: "overview", label: "Overview", icon: "overview" },
+  const operatorNav: ShellNavItem[] = [
+    {
+      value: "overview",
+      label: "Overview",
+      icon: "overview",
+      category: "Operations",
+    },
     {
       value: "approvals",
       label: "Approvals",
       icon: "approvals",
       badge: pendingData.loans.length + pendingData.verifications.length,
+      category: "Operations",
     },
-    { value: "members", label: "Member Directory", icon: "members" },
-    { value: "files", label: "Documents", icon: "audit" },
+    {
+      value: "members",
+      label: "Member Directory",
+      icon: "members",
+      category: "Operations",
+    },
+    {
+      value: "pos",
+      label: "POS System",
+      icon: "reconciliation",
+      category: "Operations",
+    },
+    { value: "files", label: "Documents", icon: "audit", category: "Support" },
     {
       value: "topup",
       label: "Top-Up Queue",
       icon: "wallet",
       badge: pendingTopUps.length || undefined,
+      category: "Finance",
     },
-    { value: "products", label: "Loan Products", icon: "products" },
-    { value: "branches", label: "Branch Operations", icon: "branches" }, // TA-13
-    { value: "content", label: "Homepage Content", icon: "content" },
-    { value: "feedback", label: "Feedback", icon: "feedback" },
-    { value: "community", label: "Community", icon: "community" },
+    {
+      value: "products",
+      label: "Loan Products",
+      icon: "products",
+      category: "Finance",
+    },
+    {
+      value: "content",
+      label: "Homepage Content",
+      icon: "content",
+      category: "Governance",
+    },
+    {
+      value: "feedback",
+      label: "Feedback",
+      icon: "feedback",
+      category: "Support",
+    },
+    {
+      value: "community",
+      label: "Community",
+      icon: "community",
+      category: "Support",
+    },
     {
       value: "reconciliation",
       label: "EOD Reconciliation",
       icon: "reconciliation",
+      category: "Finance",
     },
-    { value: "compassion", label: "Compassion Actions", icon: "compassion" },
-    { value: "analytics", label: "Analytics", icon: "analytics" },
-    { value: "audit", label: "Audit Logs", icon: "audit" },
-    { value: "settings", label: "Settings", icon: "settings" },
+    {
+      value: "compassion",
+      label: "Compassion Actions",
+      icon: "compassion",
+      category: "Operations",
+    },
+    {
+      value: "analytics",
+      label: "Analytics",
+      icon: "analytics",
+      category: "Governance",
+    },
+    {
+      value: "audit",
+      label: "Audit Logs",
+      icon: "audit",
+      category: "Governance",
+    },
+    {
+      value: "settings",
+      label: "Settings",
+      icon: "settings",
+      category: "Governance",
+    },
   ];
 
-  const lenderNav: ShellNavItem[] = [
-    { value: "overview", label: "Overview", icon: "overview" },
-    { value: "marketplace", label: "Funding Marketplace", icon: "products" }, // TL-02 placeholder
-    { value: "investments", label: "My Investments", icon: "reconciliation" }, // TL-04 placeholder
-    { value: "topup", label: "Top-Up / Wallet", icon: "wallet" }, // TL-05
-    { value: "risk_insights", label: "Risk & Insights", icon: "activity" }, // TL-06 placeholder
-    { value: "ledger_docs", label: "Agreements & Docs", icon: "audit" }, // TL-07 placeholder
-    { value: "community", label: "Community", icon: "community" },
-    { value: "settings", label: "Settings", icon: "settings" },
-  ];
-
-  const navItems = isSuperAdmin
-    ? superadminNav
-    : isAdmin
-      ? adminNav
-      : lenderNav;
+  const navItems = isSuperAdmin ? superadminNav : operatorNav;
 
   return (
     <DashboardTabsShell
       defaultValue="overview"
       title="Agapay Tanaw"
       subtitle={
-        isLender
-          ? "Lender dashboard — manage your assigned member accounts."
-          : isAdmin
-            ? "Admin dashboard — full oversight of your cooperative."
-            : isGlobalSuperadminView
-              ? "Global Superadmin view — system-wide oversight."
-              : "Branch Superadmin view — manage this cooperative branch."
+        isOperator
+          ? "Operator dashboard — complete oversight of your cooperative."
+          : isGlobalSuperadminView
+            ? "Global Superadmin view — system-wide infrastructure and monitor."
+            : "Cooperative Superadmin view — manage this specific cooperative."
       }
       portalLabel={`${userRole} portal`}
       accountName={userName}
@@ -305,36 +395,7 @@ export default async function AgapayTanawPage({
                 <p className="text-slate-500 text-sm mt-1 mb-6">
                   Current status of the trust network
                 </p>
-                {isAdmin || isSuperAdmin ? (
-                  <TrustDistributionChart
-                    distribution={trustData.distribution}
-                  />
-                ) : (
-                  <div className="space-y-4">
-                    <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100 italic text-slate-500 text-xs">
-                      &ldquo;Grow your investment portfolio by endorsing trusted
-                      members.&rdquo;
-                    </div>
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="p-4 bg-emerald-50 rounded-2xl border border-emerald-100">
-                        <p className="text-[10px] font-bold text-emerald-600 uppercase text-center">
-                          My Share
-                        </p>
-                        <p className="text-lg font-bold text-slate-900 text-center">
-                          ₱{(metrics.totalLiquidity * 0.15).toLocaleString()}
-                        </p>
-                      </div>
-                      <div className="p-4 bg-indigo-50 rounded-2xl border border-indigo-100">
-                        <p className="text-[10px] font-bold text-indigo-600 uppercase text-center">
-                          Yield
-                        </p>
-                        <p className="text-lg font-bold text-slate-900 text-center">
-                          +5.2%
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                )}
+                <TrustDistributionChart distribution={trustData.distribution} />
               </div>
               <div className="flex-shrink-0 scale-110 md:scale-125">
                 <TrustMeter data={trustData.aggregateTrust} />
@@ -351,20 +412,19 @@ export default async function AgapayTanawPage({
                   Status
                 </h3>
                 <p className="text-slate-400 text-xs leading-relaxed font-sans">
-                  {isLender
-                    ? "Your investments are performing well. 98% of your endorsed loans are on track."
-                    : "This month's collection increased 12% due to implementation of Trust-Based Incentives."}
+                  Ang iyong portfolyo at koleksyon dashboard para sa tenant
+                  operations.
                 </p>
               </div>
 
               <div className="relative z-10 pt-8 border-t border-white/10 mt-8">
                 <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2">
-                  {isLender ? "Trust Level" : "Platform Health"}
+                  Platform Health
                 </p>
                 <div className="h-1.5 w-full bg-white/10 rounded-full overflow-hidden">
                   <div
                     className="h-full bg-emerald-500 rounded-full shadow-[0_0_10px_rgba(16,185,129,0.5)] transition-all duration-1000"
-                    style={{ width: isLender ? "92%" : "88%" }}
+                    style={{ width: "88%" }}
                   />
                 </div>
               </div>
@@ -374,16 +434,19 @@ export default async function AgapayTanawPage({
           </div>
         </TabsContent>
 
-        {/* Superadmin & Admin Shared Approvals (But separate badging in nav) */}
-        {(isAdmin || isSuperAdmin) && (
+        {/* Superadmin & Operator Shared Approvals */}
+        {(isOperator || isSuperAdmin) && (
           <TabsContent value="approvals" className="outline-none">
             <VerificationQueueTab data={pendingData} />
           </TabsContent>
         )}
 
-        {/* Tenant Admin Only Modules */}
-        {isAdmin && (
+        {/* Tenant Operator Modules */}
+        {isOperator && (
           <>
+            <TabsContent value="pos" className="outline-none">
+              <POSSystemTab members={members} />
+            </TabsContent>
             <TabsContent value="topup" className="outline-none">
               <TopUpQueueTab requests={pendingTopUps as any} />
             </TabsContent>
@@ -477,69 +540,6 @@ export default async function AgapayTanawPage({
           </>
         )}
 
-        {/* Lender Only Modules */}
-        {isLender && (
-          <>
-            <TabsContent value="marketplace" className="outline-none">
-              <div className="flex flex-col items-center justify-center py-20 text-center space-y-4">
-                <div className="w-16 h-16 rounded-3xl bg-emerald-100 text-emerald-600 flex items-center justify-center mb-4">
-                  <TrendingUp className="w-8 h-8" />
-                </div>
-                <h3 className="text-2xl font-display font-bold text-slate-900">
-                  Funding Marketplace (TL-02)
-                </h3>
-                <p className="text-slate-500 max-w-sm">
-                  Browse loan applications from trusted co-op members and choose
-                  where to allocate your capital.
-                </p>
-              </div>
-            </TabsContent>
-            <TabsContent value="investments" className="outline-none">
-              <div className="flex flex-col items-center justify-center py-20 text-center space-y-4">
-                <div className="w-16 h-16 rounded-3xl bg-indigo-100 text-indigo-600 flex items-center justify-center mb-4">
-                  <HeartPulse className="w-8 h-8" />
-                </div>
-                <h3 className="text-2xl font-display font-bold text-slate-900">
-                  My Investments (TL-04)
-                </h3>
-                <p className="text-slate-500 max-w-sm">
-                  Track your portfolio performance, yield rates, and repayment
-                  statuses in real-time.
-                </p>
-              </div>
-            </TabsContent>
-            <TabsContent value="topup" className="outline-none">
-              <div className="p-8 text-center bg-white rounded-[2rem] border border-slate-200">
-                <h3 className="text-xl font-bold">Lender Wallet / Top-Up</h3>
-                <p className="text-slate-500 mt-2">
-                  Wallet features for Lenders are currently using the standard
-                  Top-Up system.
-                </p>
-              </div>
-            </TabsContent>
-            <TabsContent value="risk_insights" className="outline-none">
-              <div className="py-20 text-center">
-                <h3 className="text-2xl font-display font-bold">
-                  Risk & Insights (TL-06)
-                </h3>
-                <p className="text-slate-500">
-                  Analyze the risk scores of potential borrowers before funding.
-                </p>
-              </div>
-            </TabsContent>
-            <TabsContent value="ledger_docs" className="outline-none">
-              <div className="py-20 text-center">
-                <h3 className="text-2xl font-display font-bold">
-                  Agreements & Docs (TL-07)
-                </h3>
-                <p className="text-slate-500">
-                  Access your digital contracts and investment agreements here.
-                </p>
-              </div>
-            </TabsContent>
-          </>
-        )}
-
         {/* Shared Management Modules */}
         <TabsContent value="community" className="outline-none">
           <CommunityOperationsTab summary={communitySummary} />
@@ -590,7 +590,7 @@ export default async function AgapayTanawPage({
                 </div>
               ) : null}
 
-              {currentTenantIdentity && (isAdmin || isSuperAdmin) && (
+              {currentTenantIdentity && (isOperator || isSuperAdmin) && (
                 <BrandingTabWrapper
                   tenantId={
                     isSuperAdmin ? currentTenantIdentity.tenant_id : undefined
@@ -605,11 +605,11 @@ export default async function AgapayTanawPage({
                 />
               )}
 
-              {tenantContextId && (isAdmin || isSuperAdmin) && (
+              {tenantContextId && (isOperator || isSuperAdmin) && (
                 <div className="flex justify-center -mx-4 md:mx-0">
                   <SubscriptionSettings
                     tenantId={tenantContextId}
-                    isAdmin={isAdmin || isSuperAdmin}
+                    isAdmin={isOperator || isSuperAdmin}
                     branchSlug={branch}
                   />
                 </div>

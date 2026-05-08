@@ -61,6 +61,7 @@ export type ShellNavItem = {
   label: string;
   icon: ShellIconName;
   badge?: number;
+  category?: string;
 };
 
 export type ShellIconName =
@@ -192,8 +193,8 @@ export function AuthenticatedShell({
 
   const sidebarStyle = {
     backgroundImage: normalizedTenantColor
-      ? `radial-gradient(circle at top left, ${rgba(normalizedTenantColor, 0.35)}, transparent 40%), linear-gradient(180deg, ${rgba(normalizedTenantColor, 0.15)}, #020617 100%)`
-      : "linear-gradient(180deg, #0f172a 0%, #020617 100%)",
+      ? `linear-gradient(180deg, ${rgba(normalizedTenantColor, 0.08)}, #f8fafc 100%)`
+      : "linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%)",
   } as React.CSSProperties;
   const mainPaneStyle = {
     backgroundImage: normalizedTenantColor
@@ -238,7 +239,7 @@ export function AuthenticatedShell({
 
   const renderSidebar = () => (
     <div
-      className={`flex h-full flex-col border-r ${dynamicStyles.surface} text-white`}
+      className={`flex h-full flex-col border-r border-slate-200 bg-white text-slate-900`}
       style={sidebarStyle}
     >
       <div
@@ -246,174 +247,194 @@ export function AuthenticatedShell({
         style={
           normalizedTenantColor
             ? {
-                background: `linear-gradient(90deg, ${rgba(normalizedTenantColor, 0.95)}, ${rgba(normalizedTenantColor, 0.4)})`,
+                background: `linear-gradient(90deg, ${rgba(normalizedTenantColor, 0.95)}, ${rgba(normalizedTenantColor, 0.6)})`,
               }
             : undefined
         }
       />
-      <div className="flex items-center justify-between border-b border-white/10 px-4 py-5">
-        <div
-          className={`flex min-w-0 flex-col gap-1 transition-all ${
-            collapsed ? "xl:w-0 xl:opacity-0" : "xl:w-auto xl:opacity-100"
-          }`}
-        >
-          <div className="flex items-center gap-3">
-            <div
-              className={`flex h-11 w-11 flex-shrink-0 items-center justify-center overflow-hidden border border-white/10 bg-white shadow-[0_10px_30px_rgba(15,23,42,0.35)] ${
-                tenantName ? "rounded-2xl" : "rounded-full"
-              }`}
-            >
-              {tenantLogoUrl ? (
-                <img
-                  src={tenantLogoUrl}
-                  alt={tenantName || "Logo"}
-                  className="h-full w-full object-cover"
-                />
-              ) : tenantName ? (
-                <span className="text-xl font-black text-slate-900">
-                  {tenantName.charAt(0).toUpperCase()}
-                </span>
-              ) : (
-                <img
-                  src="/images/agapay_solo.png"
-                  alt="Agapay Symbol"
-                  className="h-[22px] w-[22px] object-contain"
-                />
-              )}
-            </div>
-            <div className="min-w-0">
-              <p className="truncate text-lg font-black tracking-tight text-white">
-                {tenantName || "Agapay"}
-              </p>
-              <div className="flex items-center gap-1.5 opacity-60">
-                <span className="text-[9px] font-bold uppercase tracking-wider text-slate-300">
-                  Powered by
-                </span>
-                <img
-                  src="/images/agapay_titled.png"
-                  alt="Agapay"
-                  className="h-[18px] object-contain opacity-90 filter brightness-200"
-                />
+      <div className="flex flex-col border-b border-slate-100 p-4 space-y-4">
+        <div className="flex items-center justify-between">
+          <div
+            className={`flex min-w-0 flex-col gap-1 transition-all ${
+              collapsed ? "xl:w-0 xl:opacity-0" : "xl:w-auto xl:opacity-100"
+            }`}
+          >
+            <div className="flex items-center gap-3">
+              <div
+                className={`flex h-11 w-11 flex-shrink-0 items-center justify-center overflow-hidden border border-slate-100 bg-white shadow-sm ${
+                  tenantName ? "rounded-2xl" : "rounded-full"
+                }`}
+              >
+                {tenantLogoUrl ? (
+                  <img
+                    src={tenantLogoUrl}
+                    alt={tenantName || "Logo"}
+                    className="h-full w-full object-cover"
+                  />
+                ) : tenantName ? (
+                  <span className="text-xl font-black text-slate-900">
+                    {tenantName.charAt(0).toUpperCase()}
+                  </span>
+                ) : (
+                  <img
+                    src="/images/agapay_solo.png"
+                    alt="Agapay Symbol"
+                    className="h-[22px] w-[22px] object-contain"
+                  />
+                )}
+              </div>
+              <div className="min-w-0">
+                <p className="truncate text-lg font-black tracking-tight text-slate-900">
+                  {tenantName || "Agapay"}
+                </p>
+                <div className="flex items-center gap-1.5 opacity-60">
+                  <span className="text-[9px] font-bold uppercase tracking-wider text-slate-400">
+                    Powered by
+                  </span>
+                  <img
+                    src="/images/agapay_titled.png"
+                    alt="Agapay"
+                    className="h-[18px] object-contain opacity-90"
+                  />
+                </div>
               </div>
             </div>
           </div>
+
+          <div className="flex items-center gap-2">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setMobileOpen(false)}
+              className="rounded-2xl text-slate-500 hover:bg-slate-100 lg:hidden"
+              title="Close navigation"
+            >
+              <X className="h-5 w-5" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setCollapsed((value) => !value)}
+              className="hidden rounded-2xl text-slate-500 hover:bg-slate-100 xl:flex"
+              title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+            >
+              {collapsed ? (
+                <ChevronRight className="h-5 w-5" />
+              ) : (
+                <ChevronLeft className="h-5 w-5" />
+              )}
+            </Button>
+          </div>
         </div>
 
-        <div className="flex items-center gap-2">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => setMobileOpen(false)}
-            className="rounded-2xl text-slate-300 hover:bg-white/10 hover:text-white lg:hidden"
-            title="Close navigation"
-          >
-            <X className="h-5 w-5" />
-          </Button>
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => setCollapsed((value) => !value)}
-            className="hidden rounded-2xl text-slate-300 hover:bg-white/10 hover:text-white xl:flex"
-            title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
-          >
-            {collapsed ? (
-              <ChevronRight className="h-5 w-5" />
-            ) : (
-              <ChevronLeft className="h-5 w-5" />
-            )}
-          </Button>
+        {/* Profile & Signout at the top */}
+        <div
+          className={`space-y-3 rounded-2xl border border-slate-100 bg-slate-50 p-3 transition-opacity ${collapsed ? "xl:opacity-0 xl:pointer-events-none" : "opacity-100"}`}
+        >
+          <div className="flex items-center gap-3">
+            <div
+              className={`flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-2xl font-black bg-white border border-slate-100 text-slate-900 shadow-sm`}
+            >
+              {accountName.slice(0, 2).toUpperCase()}
+            </div>
+            <div className={`min-w-0 flex-1`}>
+              <p className="truncate text-sm font-bold text-slate-900">
+                {accountName}
+              </p>
+              <p className="text-[10px] uppercase tracking-[0.2em] text-slate-500">
+                {accountRole}
+              </p>
+            </div>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => signOut({ callbackUrl: "/" })}
+              className="rounded-xl text-slate-400 hover:text-red-500 hover:bg-red-50"
+              title="Sign Out"
+            >
+              <LogOut className="h-4 w-4" />
+            </Button>
+          </div>
         </div>
       </div>
 
       <div
         ref={navScrollRef}
-        className={`flex-1 px-3 pt-3 pb-3 ${navReady ? "overflow-y-auto" : "overflow-y-hidden"}`}
+        className={`flex-1 px-3 pt-4 pb-3 ${navReady ? "overflow-y-auto" : "overflow-y-hidden"}`}
       >
         <TabsList className="flex h-auto w-full flex-col justify-start gap-1 bg-transparent p-0">
-          {navItems.map((item) => {
-            const Icon = ICON_MAP[item.icon];
-            return (
-              <TabsTrigger
-                key={item.value}
-                value={item.value}
-                onClick={() => {
-                  setMobileOpen(false);
-                  window.history.pushState(
-                    null,
-                    "",
-                    `/${branchSlug}/${accountRole === "member" ? "agapay-pintig" : "agapay-tanaw"}?tab=${item.value}`,
-                  );
-                  const event = new PopStateEvent("popstate");
-                  window.dispatchEvent(event);
-                }}
-                className={`group h-auto w-full justify-start rounded-2xl border px-3 py-2 text-left text-slate-300 transition-all hover:border-white/12 hover:bg-white/6 hover:text-white ${dynamicStyles.active} ${
-                  collapsed ? "xl:px-2.5" : ""
-                }`}
-              >
-                <div className="flex w-full items-center gap-3">
-                  <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-[10px] border border-white/8 bg-white/5 transition-colors group-data-[state=active]:border-white/15 group-data-[state=active]:bg-white/10">
-                    <Icon className="h-4 w-4" />
-                  </div>
-                  <div
-                    className={`min-w-0 flex-1 transition-all ${
-                      collapsed ? "xl:hidden" : ""
-                    }`}
-                  >
-                    <p className="truncate text-[13px] font-bold">
-                      {item.label}
-                    </p>
-                  </div>
-                  {typeof item.badge === "number" && item.badge > 0 ? (
-                    <span
-                      className={`rounded-full border border-white/10 px-2 py-1 text-[10px] font-black ${
-                        collapsed ? "xl:hidden" : ""
-                      } ${dynamicStyles.badge}`}
+          {(() => {
+            const grouped: Record<string, ShellNavItem[]> = {};
+            navItems.forEach((item) => {
+              const cat = item.category || "General";
+              if (!grouped[cat]) grouped[cat] = [];
+              grouped[cat].push(item);
+            });
+
+            return Object.entries(grouped).map(([category, items]) => (
+              <div key={category} className="space-y-1 mb-6">
+                {!collapsed && (
+                  <h3 className="px-3 mb-2 text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">
+                    {category}
+                  </h3>
+                )}
+                {items.map((item) => {
+                  const Icon = ICON_MAP[item.icon];
+                  return (
+                    <TabsTrigger
+                      key={item.value}
+                      value={item.value}
+                      onClick={() => {
+                        setMobileOpen(false);
+                        window.history.pushState(
+                          null,
+                          "",
+                          `/${branchSlug}/${accountRole === "member" ? "agapay-pintig" : "agapay-tanaw"}?tab=${item.value}`,
+                        );
+                        const event = new PopStateEvent("popstate");
+                        window.dispatchEvent(event);
+                      }}
+                      className={`group h-auto w-full justify-start rounded-2xl border border-transparent px-3 py-2.5 text-left text-slate-600 transition-all hover:bg-slate-100 hover:text-slate-900 data-[state=active]:bg-primary/10 data-[state=active]:text-primary data-[state=active]:border-primary/10 ${
+                        collapsed ? "xl:px-2.5" : ""
+                      }`}
                     >
-                      {item.badge}
-                    </span>
-                  ) : null}
-                </div>
-              </TabsTrigger>
-            );
-          })}
+                      <div className="flex w-full items-center gap-3">
+                        <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-[10px] border border-slate-100 bg-white transition-colors group-data-[state=active]:border-primary/20 group-data-[state=active]:bg-primary group-data-[state=active]:text-white">
+                          <Icon className="h-4 w-4" />
+                        </div>
+                        <div
+                          className={`min-w-0 flex-1 transition-all ${
+                            collapsed ? "xl:hidden" : ""
+                          }`}
+                        >
+                          <p className="truncate text-[13px] font-bold">
+                            {item.label}
+                          </p>
+                        </div>
+                        {typeof item.badge === "number" && item.badge > 0 ? (
+                          <span
+                            className={`rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-black text-primary ${
+                              collapsed ? "xl:hidden" : ""
+                            }`}
+                          >
+                            {item.badge}
+                          </span>
+                        ) : null}
+                      </div>
+                    </TabsTrigger>
+                  );
+                })}
+              </div>
+            ));
+          })()}
         </TabsList>
       </div>
 
-      <div className="border-t border-white/10 p-3">
-        <div
-          className="space-y-3 rounded-[1.75rem] border border-white/8 bg-white/5 p-3"
-          style={accountPanelStyle}
-        >
-          <div
-            className={`flex items-center gap-2 ${collapsed ? "xl:hidden" : ""}`}
-          ></div>
-
-          <div className="flex items-center gap-3">
-            <div
-              className={`flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-2xl font-black ${dynamicStyles.panel} ${dynamicStyles.icon}`}
-              style={accountBadgeStyle}
-            >
-              {accountName.slice(0, 2).toUpperCase()}
-            </div>
-            <div className={`min-w-0 flex-1 ${collapsed ? "xl:hidden" : ""}`}>
-              <p className="truncate text-sm font-bold text-white">
-                {accountName}
-              </p>
-              <p className="text-[10px] uppercase tracking-[0.2em] text-slate-400">
-                {accountRole}
-              </p>
-            </div>
-          </div>
-
-          <Button
-            variant="ghost"
-            onClick={() => signOut({ callbackUrl: "/" })}
-            className={`w-full justify-start rounded-2xl border px-4 py-3 text-slate-100 ${dynamicStyles.highlight}`}
-            style={logoutButtonStyle}
-          >
-            <LogOut className="mr-3 h-4 w-4" />
-            <span className={collapsed ? "xl:hidden" : ""}>Sign Out</span>
-          </Button>
+      <div className="border-t border-slate-100 p-3">
+        <div className="px-4 py-2 text-center">
+          <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400">
+            © 2026 Agapay System
+          </p>
         </div>
       </div>
     </div>

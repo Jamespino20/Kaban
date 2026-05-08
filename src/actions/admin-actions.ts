@@ -376,7 +376,7 @@ export async function createStaffAccount(values: {
   plainPassword?: string;
   firstName: string;
   lastName: string;
-  role: "admin" | "lender";
+  role: "operator";
   tenantId: number;
 }) {
   const session = await requireTanawSession();
@@ -415,7 +415,7 @@ export async function createStaffAccount(values: {
         where: { role: values.role },
       });
       const serial = (count + 1).toString().padStart(3, "0");
-      const roleSub = values.role === "admin" ? "ADM" : "LND";
+      const roleSub = "OPT";
       const member_code = `AGP-${year}-${roleSub}-${serial}`;
 
       const user = await tx.user.create({

@@ -50,12 +50,7 @@ interface VerificationQueueTabProps {
   };
 }
 
-type QueueKey =
-  | "loans"
-  | "release"
-  | "payments"
-  | "identity"
-  | "delinquent";
+type QueueKey = "loans" | "release" | "payments" | "identity" | "delinquent";
 
 const QUEUE_TABS: Array<{
   key: QueueKey;
@@ -120,7 +115,7 @@ export function VerificationQueueTab({ data }: VerificationQueueTabProps) {
               Verification Queue
             </p>
             <h2 className="text-xl font-display font-bold italic text-slate-950">
-              Mga aksyong naghihintay ng review
+              Pending actions for review
             </h2>
             <p className="text-sm text-slate-500">
               Isang compact na view para sa approvals, releases, payments, at
@@ -225,8 +220,8 @@ function PendingLoansSection({ loans }: { loans: any[] }) {
   return (
     <QueueSection
       icon={<Wallet className="h-5 w-5" />}
-      title="Mga Loan Application"
-      description="Mga bagong aplikasyon na naghihintay ng initial decision."
+      title="Loan Applications"
+      description="New applications waiting for an initial decision."
       count={loans.length}
       accent="indigo"
       emptyMessage="Walang nakabinbing loan applications."
@@ -286,7 +281,7 @@ function ReleaseQueueSection({ loans }: { loans: any[] }) {
     <QueueSection
       icon={<Send className="h-5 w-5" />}
       title="Mock Fund Release"
-      description="Mga approved loan na kailangan nang maitala bilang released."
+      description="Approved loans that need to be recorded as released."
       count={loans.length}
       accent="emerald"
       emptyMessage="Walang approved loans na handa para i-release."
@@ -303,7 +298,7 @@ function PendingPaymentsSection({ payments }: { payments: any[] }) {
     <QueueSection
       icon={<BadgeCheck className="h-5 w-5" />}
       title="Repayment Verification"
-      description="Mga repayment proof na naghihintay ng verification o rejection."
+      description="Repayment proofs waiting for verification or rejection."
       count={payments.length}
       accent="amber"
       emptyMessage="Walang repayment submissions na naghihintay ng verification."
@@ -320,7 +315,7 @@ function RecoveryLoansSection({ loans }: { loans: any[] }) {
     <QueueSection
       icon={<ShieldAlert className="h-5 w-5" />}
       title="Recovery Loans"
-      description="Mga loan na galing sa recovery/default handling."
+      description="Loans from recovery/default handling."
       count={loans.length}
       accent="rose"
       emptyMessage="Walang aktibong recovery loans sa kasalukuyan."
@@ -365,7 +360,7 @@ function IdentityVerificationSection({
     <QueueSection
       icon={<Fingerprint className="h-5 w-5" />}
       title="Identity Verification"
-      description="Mga profile at document bundle na kailangan ng manual check."
+      description="Profile and document bundles that require manual check."
       count={verifications.length}
       accent="slate"
       emptyMessage="Walang nakabinbing identity checks."
@@ -628,7 +623,7 @@ function OverdueLoansSection({ loans }: { loans: any[] }) {
     if (
       typeof window !== "undefined" &&
       !window.confirm(
-        "Sigurado ka bang i-enforce ang default? Kakaltasan ang mga guarantors.",
+        "Are you sure you want to enforce default? Guarantors will be penalized.",
       )
     ) {
       return;
@@ -649,7 +644,7 @@ function OverdueLoansSection({ loans }: { loans: any[] }) {
     <QueueSection
       icon={<ShieldAlert className="h-5 w-5" />}
       title="Overdue (At Risk)"
-      description="Mga loan na lampas due at handa para sa default protocol."
+      description="Loans that are overdue and ready for the default protocol."
       count={loans.length}
       accent="rose"
       emptyMessage="Walang overdue loans na naghihintay ng enforcement."
@@ -755,7 +750,9 @@ function QueueCard({
   }[accent];
 
   return (
-    <div className={`rounded-[1.5rem] border ${borderClass} bg-white p-4 shadow-sm`}>
+    <div
+      className={`rounded-[1.5rem] border ${borderClass} bg-white p-4 shadow-sm`}
+    >
       <div className="mb-4 flex items-start justify-between gap-4">
         <div className="min-w-0 flex-1">{summary}</div>
         {amount ? <div className="shrink-0">{amount}</div> : null}
@@ -845,7 +842,9 @@ function CompactMetaGrid({
           <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-slate-400">
             {item.label}
           </p>
-          <p className="line-clamp-2 font-medium text-slate-700">{item.value}</p>
+          <p className="line-clamp-2 font-medium text-slate-700">
+            {item.value}
+          </p>
         </div>
       ))}
     </div>

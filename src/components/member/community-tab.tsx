@@ -61,7 +61,7 @@ export function CommunityTab({
   >(
     initialData.directConversations[0]?.id ||
       initialData.groupChats?.[0]?.id ||
-      initialData.branchRooms[0]?.id ||
+      initialData.operatorRooms[0]?.id ||
       null,
   );
   const [thread, setThread] = useState<any | null>(null);
@@ -97,7 +97,7 @@ export function CommunityTab({
     initialData.directConversations.length +
     (initialData.groupChats?.length || 0);
   const unreadCount =
-    initialData.branchRooms.filter((room: any) => room.hasUnread).length +
+    initialData.operatorRooms.filter((room: any) => room.hasUnread).length +
     initialData.directConversations.filter(
       (conversation: any) => conversation.hasUnread,
     ).length +
@@ -343,7 +343,7 @@ export function CommunityTab({
           Branch Context Needed
         </p>
         <h2 className="mt-2 text-xl font-display font-bold text-slate-900">
-          Pumili muna ng branch bago gamitin ang community tools
+          Pumili muna ng cooperative branch bago gamitin ang community tools
         </h2>
         <p className="mt-2 text-sm leading-6 text-slate-600">
           Ang messaging, mentorship, at guarantor discovery ay tenant-scoped
@@ -379,23 +379,23 @@ export function CommunityTab({
             <Users className="h-4 w-4 text-emerald-600" />
             <div>
               <h2 className="text-sm font-black uppercase tracking-[0.18em] text-slate-500">
-                Branch Rooms
+                Support Rooms
               </h2>
               <p className="text-xs text-slate-500">
-                Tulong, announcements, at guarantor discussions.
+                Tulong, announcements, at operator support.
               </p>
             </div>
           </div>
           <div className="space-y-2">
-            {initialData.branchRooms.map((room: any) => (
+            {initialData.operatorRooms.map((room: any) => (
               <ConversationButton
                 key={room.id}
-                title={room.title || "Branch Room"}
+                title={room.title || "Support Room"}
                 subtitle={room.lastMessagePreview || "Wala pang bagong usapan."}
                 meta={
                   room.lastMessageSender
                     ? `Huli: ${room.lastMessageSender}`
-                    : "Branch room"
+                    : "Support room"
                 }
                 active={room.id === selectedConversationId}
                 unread={room.hasUnread}

@@ -117,7 +117,7 @@ export function FeedbackTab({
             <p className="text-sm text-slate-500">
               {role === "superadmin"
                 ? "Cross-tenant feedback, concerns, at testimonial leads sa isang compact triage view."
-                : "Feedback mula sa inyong tenant at mga puwedeng iangat bilang homepage stories."}
+                : "Feedback from your tenant and potential homepage stories."}
             </p>
           </div>
 
@@ -191,9 +191,10 @@ export function FeedbackTab({
           <p className="text-sm text-slate-500">
             Ipinapakita ang{" "}
             <span className="font-bold text-slate-700">
-              {filteredEntries.length === 0 ? 0 : (currentPage - 1) * pageSize + 1}
-              -
-              {Math.min(currentPage * pageSize, filteredEntries.length)}
+              {filteredEntries.length === 0
+                ? 0
+                : (currentPage - 1) * pageSize + 1}
+              -{Math.min(currentPage * pageSize, filteredEntries.length)}
             </span>{" "}
             ng{" "}
             <span className="font-bold text-slate-700">
@@ -282,10 +283,14 @@ function FeedbackRow({ entry }: { entry: FeedbackItem }) {
         <div className="min-w-0 flex-1 space-y-2">
           <div className="flex flex-wrap items-center gap-2">
             <BadgePill>{entry.category}</BadgePill>
-            <BadgePill tone={entry.status === "resolved" ? "neutral" : "active"}>
+            <BadgePill
+              tone={entry.status === "resolved" ? "neutral" : "active"}
+            >
               {entry.status}
             </BadgePill>
-            {entry.tenant?.name ? <BadgePill>{entry.tenant.name}</BadgePill> : null}
+            {entry.tenant?.name ? (
+              <BadgePill>{entry.tenant.name}</BadgePill>
+            ) : null}
           </div>
           <p className="line-clamp-2 font-black text-slate-900">
             {entry.subject || "Walang subject"}

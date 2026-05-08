@@ -86,7 +86,7 @@ export function TopUpQueueTab({ requests }: TopUpQueueTabProps) {
               Pending Top-Up Requests
             </h2>
             <p className="mt-0.5 text-sm text-slate-500">
-              Mga deposito ng miyembro na naghihintay ng inyong pag-apruba.
+              Member deposits awaiting your approval.
             </p>
           </div>
           <div className="ml-auto rounded-2xl border border-amber-200 bg-amber-50 px-3 py-1.5 text-center">
