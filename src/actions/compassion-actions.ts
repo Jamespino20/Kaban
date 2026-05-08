@@ -159,7 +159,8 @@ export const processCompassionAction = async (
       }
 
       // Ensure tenant bounds unless superadmin
-      if (role === "admin" && action.loan.tenant_id !== tenantId) {
+      const isOperator = role === "operator" || role === "admin";
+      if (isOperator && action.loan.tenant_id !== tenantId) {
         return { error: "Unauthorized tenant boundary violation!" };
       }
 

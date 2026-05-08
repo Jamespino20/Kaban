@@ -72,11 +72,12 @@ export async function requireTanawSession(): Promise<AuthorizedSession> {
 
 export async function requireAdminSession(): Promise<AuthorizedSession> {
   const session = await requireAuthenticatedSession();
-  if (session.user.role !== "operator" && session.user.role !== "superadmin") {
+  const isOperatorRole = session.user.role === "operator";
+  if (!isOperatorRole && session.user.role !== "superadmin") {
     throw new Error("Unauthorized");
   }
 
-  if (session.user.role === "operator" && !session.user.tenantId) {
+  if (isOperatorRole && !session.user.tenantId) {
     throw new Error("Unauthorized");
   }
 

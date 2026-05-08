@@ -96,13 +96,15 @@ export default async function middleware(req: NextRequest) {
     // 2.2 Portal Correction (Member vs Staff)
     const isTanawRoute = nextUrl.pathname.includes("/agapay-tanaw");
     const isPintigRoute = nextUrl.pathname.includes("/agapay-pintig");
+    // Accept both new 'operator' role and legacy 'admin'/'lender' roles for tanaw access
+    const isStaffRole = role === "operator";
 
     if (role === "member" && isTanawRoute) {
       return NextResponse.redirect(
         new URL(`/${urlBranchSlug}/agapay-pintig`, nextUrl),
       );
     }
-    if (role !== "member" && isPintigRoute && !isSuperadmin) {
+    if (!isStaffRole && isPintigRoute && !isSuperadmin) {
       return NextResponse.redirect(
         new URL(`/${urlBranchSlug}/agapay-tanaw`, nextUrl),
       );

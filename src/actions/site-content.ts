@@ -81,7 +81,8 @@ function revalidateContentPaths() {
 }
 
 function ensureHomepageEditorRole(role?: string | null) {
-  if (role !== "admin" && role !== "superadmin") {
+  const isOperator = role === "operator";
+  if (!isOperator && role !== "superadmin") {
     throw new Error("Unauthorized");
   }
 }
@@ -189,38 +190,58 @@ export async function getPlatformContentModeration() {
       }),
     ]);
 
-    const faqUserIds = [...new Set([
-      ...platformFaqs.map(f => f.submitted_by_user_id).filter(Boolean),
-      ...platformFaqs.map(f => f.reviewed_by_user_id).filter(Boolean),
-    ])].filter((id): id is number => typeof id === 'number');
-    
-    const testimonialUserIds = [...new Set([
-      ...platformTestimonials.map(t => t.submitted_by_user_id).filter(Boolean),
-      ...platformTestimonials.map(t => t.reviewed_by_user_id).filter(Boolean),
-    ])].filter((id): id is number => typeof id === 'number');
-    
+    const faqUserIds = [
+      ...new Set([
+        ...platformFaqs.map((f) => f.submitted_by_user_id).filter(Boolean),
+        ...platformFaqs.map((f) => f.reviewed_by_user_id).filter(Boolean),
+      ]),
+    ].filter((id): id is number => typeof id === "number");
+
+    const testimonialUserIds = [
+      ...new Set([
+        ...platformTestimonials
+          .map((t) => t.submitted_by_user_id)
+          .filter(Boolean),
+        ...platformTestimonials
+          .map((t) => t.reviewed_by_user_id)
+          .filter(Boolean),
+      ]),
+    ].filter((id): id is number => typeof id === "number");
+
     const allUserIds = [...new Set([...faqUserIds, ...testimonialUserIds])];
-    
+
     const users = await prisma.user.findMany({
       where: { user_id: { in: allUserIds } },
       select: { user_id: true, username: true, email: true },
     });
-    
-    const userMap = new Map(users.map(u => [u.user_id, u]));
-    
-    const enrichedFaqs = platformFaqs.map(f => ({
+
+    const userMap = new Map(users.map((u) => [u.user_id, u]));
+
+    const enrichedFaqs = platformFaqs.map((f) => ({
       ...f,
-      submitted_by_user: f.submitted_by_user_id ? userMap.get(f.submitted_by_user_id) : null,
-      reviewed_by_user: f.reviewed_by_user_id ? userMap.get(f.reviewed_by_user_id) : null,
-    }));
-    
-    const enrichedTestimonials = platformTestimonials.map(t => ({
-      ...t,
-      submitted_by_user: t.submitted_by_user_id ? userMap.get(t.submitted_by_user_id) : null,
-      reviewed_by_user: t.reviewed_by_user_id ? userMap.get(t.reviewed_by_user_id) : null,
+      submitted_by_user: f.submitted_by_user_id
+        ? userMap.get(f.submitted_by_user_id)
+        : null,
+      reviewed_by_user: f.reviewed_by_user_id
+        ? userMap.get(f.reviewed_by_user_id)
+        : null,
     }));
 
-return { success: true, faqs: enrichedFaqs, testimonials: enrichedTestimonials };
+    const enrichedTestimonials = platformTestimonials.map((t) => ({
+      ...t,
+      submitted_by_user: t.submitted_by_user_id
+        ? userMap.get(t.submitted_by_user_id)
+        : null,
+      reviewed_by_user: t.reviewed_by_user_id
+        ? userMap.get(t.reviewed_by_user_id)
+        : null,
+    }));
+
+    return {
+      success: true,
+      faqs: enrichedFaqs,
+      testimonials: enrichedTestimonials,
+    };
   } catch (error) {
     console.error("Failed to fetch platform content:", error);
     return { success: false, error: "Failed to load content" };
@@ -300,7 +321,8 @@ export async function submitHomepageFaqProposal(
     const tenantId = session.user.tenantId;
     const data = faqProposalSchema.parse(input);
 
-    if (session.user.role === "admin" && !tenantId) {
+    const isOperator = session.user.role === "operator";
+    if (isOperator && !tenantId) {
       return {
         error: "Admin branch context not found. Please log in as an admin.",
       };
@@ -396,7 +418,8 @@ export async function submitHomepageTestimonialProposal(
     const tenantId = session.user.tenantId;
     const data = testimonialProposalSchema.parse(input);
 
-    if (session.user.role === "admin" && !tenantId) {
+    const isOperator = session.user.role === "operator";
+    if (isOperator && !tenantId) {
       return { error: "Walang tenant context ang admin account na ito." };
     }
 

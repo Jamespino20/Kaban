@@ -41,10 +41,11 @@ export async function requestSubscriptionUpgrade(
   try {
     const session = await requireTanawSession();
 
-    if (session.user.role !== "admin" && session.user.role !== "superadmin") {
+    const isOperator = session.user.role === "operator";
+    if (!isOperator && session.user.role !== "superadmin") {
       return {
         success: false,
-        error: "Only admins can request a subscription upgrade.",
+        error: "Only tenant operators can request a subscription upgrade.",
       };
     }
 
