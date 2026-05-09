@@ -1,0 +1,13 @@
+src/actions/superadmin-actions.ts(1582,34): error TS2322: Type '"delinquent"' is not assignable to type 'Exact<LoanStatus, LoanStatus>'.
+src/actions/superadmin-actions.ts(1596,39): error TS18048: 'totalLoansRes._sum' is possibly 'undefined'.
+src/actions/superadmin-actions.ts(1596,58): error TS2339: Property 'principal_amount' does not exist on type '{}'.
+src/actions/superadmin-actions.ts(1598,11): error TS18048: 'totalLoansRes._sum' is possibly 'undefined'.
+src/actions/superadmin-actions.ts(1598,30): error TS2339: Property 'balance_remaining' does not exist on type '{}'.
+src/actions/superadmin-actions.ts(1616,16): error TS2322: Type '"delinquent"' is not assignable to type 'Exact<EnumLoanStatusFilter<"Loan"> | LoanStatus | undefined, EnumLoanStatusFilter<"Loan"> | LoanStatus | undefined>'.
+src/actions/superadmin-actions.ts(1641,47): error TS2339: Property 'documentVerification' does not exist on type 'DynamicClientExtensionThis<TypeMap<InternalArgs & { result: {}; model: {}; query: {}; client: { $withTenant: () => <T>(tenantId: string | number, callback: (tx: any) => Promise<T>) => Promise<any>; }; }, {}>, TypeMapCb<...>, { ...; }>'.
+src/actions/superadmin-actions.ts(1645,48): error TS2339: Property 'documentVerification' does not exist on type 'DynamicClientExtensionThis<TypeMap<InternalArgs & { result: {}; model: {}; query: {}; client: { $withTenant: () => <T>(tenantId: string | number, callback: (tx: any) => Promise<T>) => Promise<any>; }; }, {}>, TypeMapCb<...>, { ...; }>'.
+src/actions/superadmin-actions.ts(1652,34): error TS18048: 'delinquentLoans._sum' is possibly 'undefined'.
+src/actions/superadmin-actions.ts(1652,55): error TS2339: Property 'balance_remaining' does not exist on type '{}'.
+src/actions/superadmin-actions.ts(1653,26): error TS18048: 'delinquentLoans._count' is possibly 'undefined'.
+src/actions/superadmin-actions.ts(1653,49): error TS2339: Property 'loan_id' does not exist on type 'true | { loan_id?: number | undefined; tenant_id?: number | undefined; user_id?: number | undefined; product_id?: number | undefined; loan_reference?: number | undefined; principal_amount?: number | undefined; ... 15 more ...; _all?: number | undefined; }'.
+  Property 'loan_id' does not exist on type 'true'.

@@ -39,6 +39,26 @@ export function TenantManagementTab({
   const [tenants, setTenants] = useState(initialTenants);
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
+
+  const filteredTenants = tenants.filter((t: any) => {
+    const searchString =
+      `${t.name} ${t.tenant_group?.name || ""}`.toLowerCase();
+    const matchesSearch = searchString.includes(searchQuery.toLowerCase());
+
+    if (statusFilter === "all") return matchesSearch;
+    if (statusFilter === "active")
+      return matchesSearch && t.is_active && t.entitlement_status === "active";
+    if (statusFilter === "suspended")
+      return (
+        matchesSearch && (!t.is_active || t.entitlement_status === "suspended")
+      );
+    if (statusFilter === "prospect")
+      return matchesSearch && t.entitlement_status === "prospect";
+
+    return matchesSearch;
+  });
 
   const handleDecommission = (tenantId: number, tenantName: string) => {
     if (
@@ -202,149 +222,198 @@ export function TenantManagementTab({
         </div>
       )}
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {tenants.map((t: any) => (
-          <Card
-            key={t.tenant_id}
-            className={`overflow-hidden transition-all ${!t.is_active ? "border-red-200 bg-red-50/30" : "border-slate-200"}`}
+      {/* Global Management Search & Filters */}
+      <div className="flex flex-col sm:flex-row gap-4 bg-white/70 backdrop-blur-md p-4 rounded-[1.25rem] border border-slate-200 shadow-sm animate-in fade-in slide-in-from-top-4 duration-500">
+        <div className="flex-1 relative">
+          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+            <svg
+              className="h-5 w-5 text-slate-400"
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 20 20"
+              fill="currentColor"
+              aria-hidden="true"
+            >
+              <path
+                fillRule="evenodd"
+                d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z"
+                clipRule="evenodd"
+              />
+            </svg>
+          </div>
+          <input
+            type="text"
+            placeholder="Search tenant by company name or region..."
+            className="w-full pl-10 pr-4 py-2.5 bg-slate-50/50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-slate-900 transition-all font-medium text-slate-900"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+          />
+        </div>
+        <div className="sm:w-64">
+          <select
+            className="w-full px-4 py-2.5 bg-slate-50/50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-slate-900 font-bold text-slate-700 transition-all cursor-pointer"
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value)}
           >
-            <CardHeader className="pb-2 border-b border-slate-100 bg-slate-50/50">
-              <div className="flex justify-between items-start">
-                <div>
-                  <CardTitle className="text-lg font-bold text-slate-900">
-                    {t.name}
-                  </CardTitle>
-                  <span className="text-xs font-semibold text-slate-500 uppercase tracking-widest mt-1 block">
-                    {t.tenant_group?.name || "Unassigned Region"}
-                  </span>
-                  <span className="mt-2 inline-flex rounded-full border border-slate-200 bg-white px-2 py-1 text-[10px] font-bold uppercase tracking-widest text-slate-600">
-                    Access: {t.entitlement_status}
-                  </span>
-                </div>
-                {t.is_active ? (
-                  <span className="px-2 py-1 bg-emerald-100 text-emerald-700 text-[10px] font-bold rounded-full uppercase flex items-center gap-1">
-                    <CheckCircle className="w-3 h-3" /> Active
-                  </span>
-                ) : (
-                  <span className="px-2 py-1 bg-red-100 text-red-700 text-[10px] font-bold rounded-full uppercase">
-                    Suspended
-                  </span>
-                )}
-              </div>
-            </CardHeader>
-            <CardContent className="pt-4">
-              <div className="grid grid-cols-3 gap-2 mb-6 text-center">
-                <div className="bg-slate-100 rounded-lg p-2">
-                  <span className="block text-xl font-black text-slate-800">
-                    {t._count.users}
-                  </span>
-                  <span className="text-[10px] uppercase text-slate-500 font-bold">
-                    Members
-                  </span>
-                </div>
-                <div className="bg-slate-100 rounded-lg p-2">
-                  <span className="block text-xl font-black text-slate-800">
-                    {t._count.loans}
-                  </span>
-                  <span className="text-[10px] uppercase text-slate-500 font-bold">
-                    Loans
-                  </span>
-                </div>
-                <div className="bg-slate-100 rounded-lg p-2">
-                  <span className="block text-xl font-black text-slate-800">
-                    {t._count.savings}
-                  </span>
-                  <span className="text-[10px] uppercase text-slate-500 font-bold">
-                    Savings
-                  </span>
-                </div>
-              </div>
+            <option value="all">🌐 All Operations</option>
+            <option value="active">🟢 Active Tokens</option>
+            <option value="suspended">🔴 Locked / Suspended</option>
+            <option value="prospect">🟡 Prospects (In-Review)</option>
+          </select>
+        </div>
+      </div>
 
-              <div className="mb-4 space-y-2 text-xs text-slate-500">
-                {t.lifetime_availed_at ? (
-                  <p>
-                    Lifetime availed:{" "}
-                    <span className="font-semibold text-slate-700">
-                      {new Date(t.lifetime_availed_at).toLocaleDateString(
-                        "en-PH",
-                      )}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {filteredTenants.length === 0 ? (
+          <div className="col-span-full py-12 text-center bg-slate-50/50 border border-slate-100 rounded-3xl">
+            <p className="text-slate-500 font-medium">
+              No tenants found matching your criteria.
+            </p>
+          </div>
+        ) : (
+          filteredTenants.map((t: any) => (
+            <Card
+              key={t.tenant_id}
+              className={`overflow-hidden transition-all ${!t.is_active ? "border-red-200 bg-red-50/30" : "border-slate-200"}`}
+            >
+              <CardHeader className="pb-2 border-b border-slate-100 bg-slate-50/50">
+                <div className="flex justify-between items-start">
+                  <div>
+                    <CardTitle className="text-lg font-bold text-slate-900">
+                      {t.name}
+                    </CardTitle>
+                    <span className="text-xs font-semibold text-slate-500 uppercase tracking-widest mt-1 block">
+                      {t.tenant_group?.name || "Unassigned Region"}
                     </span>
-                  </p>
-                ) : (
-                  <p className="text-amber-700">
-                    Wala pang recorded lifetime availing.
-                  </p>
-                )}
-                {t.entitlement_reference ? (
-                  <p>
-                    Reference:{" "}
-                    <span className="font-semibold text-slate-700">
-                      {t.entitlement_reference}
+                    <span className="mt-2 inline-flex rounded-full border border-slate-200 bg-white px-2 py-1 text-[10px] font-bold uppercase tracking-widest text-slate-600">
+                      Access: {t.entitlement_status}
                     </span>
-                  </p>
-                ) : null}
-              </div>
-
-              {t.is_active ? (
-                <div className="space-y-2">
-                  {role === "superadmin" && (
-                    <div className="grid grid-cols-2 gap-2">
-                      <Button
-                        variant="outline"
-                        className="text-xs font-bold"
-                        onClick={() => handleRename(t.tenant_id, t.name)}
-                        disabled={isPending}
-                      >
-                        Rename
-                      </Button>
-                      <Button
-                        className="text-xs font-bold bg-emerald-600 text-white hover:bg-emerald-700"
-                        onClick={() =>
-                          handleEntitlementUpdate(
-                            t.tenant_id,
-                            t.entitlement_status,
-                          )
-                        }
-                        disabled={isPending}
-                      >
-                        {t.entitlement_status === "active"
-                          ? "Suspend Access"
-                          : "Mark Availed"}
-                      </Button>
-                    </div>
-                  )}
-                  <Button
-                    variant="destructive"
-                    className="w-full text-xs font-bold"
-                    onClick={() => handleDecommission(t.tenant_id, t.name)}
-                    disabled={isPending || t.slug === "main-tenant"}
-                  >
-                    <PowerOff className="w-4 h-4 mr-2" />
-                    {t.slug === "main-tenant"
-                      ? "Cannot Suspend HQ"
-                      : "Decommission Tenant"}
-                  </Button>
-                </div>
-              ) : (
-                <div className="space-y-3">
-                  <div className="p-3 bg-slate-100 rounded-xl text-sm text-slate-600 font-medium">
-                    This tenant was decommissioned due to emergency protocols.
-                    Operations are locked.
                   </div>
-                  {t.decommissioned_backups &&
-                    t.decommissioned_backups.length > 0 && (
-                      <a
-                        href={`/api/admin/backups/${t.decommissioned_backups[0].id}`}
-                        className="flex items-center justify-center w-full py-2.5 px-4 bg-slate-900 text-white rounded-xl text-sm font-bold hover:bg-slate-800 transition-colors"
-                      >
-                        <Download className="w-4 h-4 mr-2" /> Download Snapshot
-                      </a>
-                    )}
+                  {t.is_active ? (
+                    <span className="px-2 py-1 bg-emerald-100 text-emerald-700 text-[10px] font-bold rounded-full uppercase flex items-center gap-1">
+                      <CheckCircle className="w-3 h-3" /> Active
+                    </span>
+                  ) : (
+                    <span className="px-2 py-1 bg-red-100 text-red-700 text-[10px] font-bold rounded-full uppercase">
+                      Suspended
+                    </span>
+                  )}
                 </div>
-              )}
-            </CardContent>
-          </Card>
-        ))}
+              </CardHeader>
+              <CardContent className="pt-4">
+                <div className="grid grid-cols-3 gap-2 mb-6 text-center">
+                  <div className="bg-slate-100 rounded-lg p-2">
+                    <span className="block text-xl font-black text-slate-800">
+                      {t._count.users}
+                    </span>
+                    <span className="text-[10px] uppercase text-slate-500 font-bold">
+                      Members
+                    </span>
+                  </div>
+                  <div className="bg-slate-100 rounded-lg p-2">
+                    <span className="block text-xl font-black text-slate-800">
+                      {t._count.loans}
+                    </span>
+                    <span className="text-[10px] uppercase text-slate-500 font-bold">
+                      Loans
+                    </span>
+                  </div>
+                  <div className="bg-slate-100 rounded-lg p-2">
+                    <span className="block text-xl font-black text-slate-800">
+                      {t._count.savings}
+                    </span>
+                    <span className="text-[10px] uppercase text-slate-500 font-bold">
+                      Savings
+                    </span>
+                  </div>
+                </div>
+
+                <div className="mb-4 space-y-2 text-xs text-slate-500">
+                  {t.lifetime_availed_at ? (
+                    <p>
+                      Lifetime availed:{" "}
+                      <span className="font-semibold text-slate-700">
+                        {new Date(t.lifetime_availed_at).toLocaleDateString(
+                          "en-PH",
+                        )}
+                      </span>
+                    </p>
+                  ) : (
+                    <p className="text-amber-700">
+                      Wala pang recorded lifetime availing.
+                    </p>
+                  )}
+                  {t.entitlement_reference ? (
+                    <p>
+                      Reference:{" "}
+                      <span className="font-semibold text-slate-700">
+                        {t.entitlement_reference}
+                      </span>
+                    </p>
+                  ) : null}
+                </div>
+
+                {t.is_active ? (
+                  <div className="space-y-2">
+                    {role === "superadmin" && (
+                      <div className="grid grid-cols-2 gap-2">
+                        <Button
+                          variant="outline"
+                          className="text-xs font-bold"
+                          onClick={() => handleRename(t.tenant_id, t.name)}
+                          disabled={isPending}
+                        >
+                          Rename
+                        </Button>
+                        <Button
+                          className="text-xs font-bold bg-emerald-600 text-white hover:bg-emerald-700"
+                          onClick={() =>
+                            handleEntitlementUpdate(
+                              t.tenant_id,
+                              t.entitlement_status,
+                            )
+                          }
+                          disabled={isPending}
+                        >
+                          {t.entitlement_status === "active"
+                            ? "Suspend Access"
+                            : "Mark Availed"}
+                        </Button>
+                      </div>
+                    )}
+                    <Button
+                      variant="destructive"
+                      className="w-full text-xs font-bold"
+                      onClick={() => handleDecommission(t.tenant_id, t.name)}
+                      disabled={isPending || t.slug === "main-tenant"}
+                    >
+                      <PowerOff className="w-4 h-4 mr-2" />
+                      {t.slug === "main-tenant"
+                        ? "Cannot Suspend HQ"
+                        : "Decommission Tenant"}
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    <div className="p-3 bg-slate-100 rounded-xl text-sm text-slate-600 font-medium">
+                      This tenant was decommissioned due to emergency protocols.
+                      Operations are locked.
+                    </div>
+                    {t.decommissioned_backups &&
+                      t.decommissioned_backups.length > 0 && (
+                        <a
+                          href={`/api/admin/backups/${t.decommissioned_backups[0].id}`}
+                          className="flex items-center justify-center w-full py-2.5 px-4 bg-slate-900 text-white rounded-xl text-sm font-bold hover:bg-slate-800 transition-colors"
+                        >
+                          <Download className="w-4 h-4 mr-2" /> Download
+                          Snapshot
+                        </a>
+                      )}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          ))
+        )}
       </div>
     </div>
   );

@@ -4,9 +4,19 @@ import { TenantNameSettingsCard } from "@/components/admin/tenant-name-settings-
 import { BrandingTabWrapper } from "@/components/admin/tenant-branding-card";
 import { getEndOfDayReconciliation } from "@/actions/reconciliation";
 
+import {
+  FileText,
+  BarChart3,
+  CloudIcon,
+  Server,
+  Database,
+  Activity,
+} from "lucide-react";
 import { LoanProductsTab } from "@/components/admin/loan-products-tab";
 import { TenantManagementTab } from "@/components/admin/tenant-management-tab";
 import { AuditLogViewer } from "@/components/admin/audit-log-viewer";
+import { ReportsTab } from "@/components/admin/reports-tab";
+import { FraudRiskTab } from "@/components/admin/fraud-risk-tab";
 import { getTenants } from "@/actions/tenant-management";
 import { auth } from "@/lib/auth";
 import { TwoFactorSetup } from "@/components/auth/two-factor-setup";
@@ -543,33 +553,17 @@ export default async function AgapayTanawPage({
                 role={session?.user?.role as string}
               />
             </TabsContent>
-            <TabsContent value="reports" className="outline-none">
-              <div className="flex flex-col items-center justify-center py-20 text-center space-y-4">
-                <div className="w-16 h-16 rounded-3xl bg-slate-100 text-slate-400 flex items-center justify-center mb-4">
-                  <TrendingUp className="w-8 h-8" />
-                </div>
-                <h3 className="text-2xl font-display font-bold text-slate-900">
-                  Global Financial Reports (SA-15/16/17)
-                </h3>
-                <p className="text-slate-500 max-w-sm">
-                  This module is currently being finalized. It will provide
-                  consolidated balance sheets for the entire platform.
-                </p>
-              </div>
+            <TabsContent
+              value="reports"
+              className="animate-in fade-in slide-in-from-bottom-4 duration-500"
+            >
+              <ReportsTab />
             </TabsContent>
-            <TabsContent value="risk" className="outline-none">
-              <div className="flex flex-col items-center justify-center py-20 text-center space-y-4">
-                <div className="w-16 h-16 rounded-3xl bg-blue-100 text-blue-600 flex items-center justify-center mb-4">
-                  <ShieldAlert className="w-8 h-8" />
-                </div>
-                <h3 className="text-2xl font-display font-bold text-slate-900">
-                  Fraud & Risk Monitoring (SA-19)
-                </h3>
-                <p className="text-slate-500 max-w-sm">
-                  AI-driven fraud detection and multi-tenant risk assessment is
-                  coming in the next update.
-                </p>
-              </div>
+            <TabsContent
+              value="risk"
+              className="animate-in fade-in slide-in-from-bottom-4 duration-500"
+            >
+              <FraudRiskTab />
             </TabsContent>
           </>
         )}

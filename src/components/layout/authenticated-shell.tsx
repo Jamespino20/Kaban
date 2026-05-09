@@ -202,13 +202,13 @@ export function AuthenticatedShell({
 
   const sidebarStyle = {
     backgroundImage: normalizedTenantColor
-      ? `linear-gradient(180deg, ${rgba(normalizedTenantColor, 0.08)}, #f8fafc 100%)`
-      : "linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%)",
+      ? `linear-gradient(180deg, ${rgba(normalizedTenantColor, 0.08)})`
+      : "linear-gradient(180deg, #f8fafc 0%, #2e353cff 100%)",
   } as React.CSSProperties;
   const mainPaneStyle = {
     backgroundImage: normalizedTenantColor
-      ? `radial-gradient(circle at top, ${rgba(normalizedTenantColor, 0.15)}, transparent 30%), linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%)`
-      : "radial-gradient(circle at top, rgba(16,185,129,0.08), transparent 30%), linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%)",
+      ? `radial-gradient(circle at top, ${rgba(normalizedTenantColor, 0.15)}, transparent 30%), linear-gradient(180deg, #f8fafc 0%, #2c3035ff 100%)`
+      : "radial-gradient(circle at top, rgba(16,185,129,0.08), transparent 30%), linear-gradient(180deg, #f8fafc 0%, #212930ff 100%)",
   } as React.CSSProperties;
   const portalBadgeStyle = normalizedTenantColor
     ? ({
@@ -227,12 +227,12 @@ export function AuthenticatedShell({
     ? ({
         borderColor: rgba(normalizedTenantColor, 0.28),
         backgroundColor: rgba(normalizedTenantColor, 0.12),
-        color: "#f8fafc",
+        color: "#273039ff",
       } as React.CSSProperties)
     : undefined;
   const accountBadgeStyle = normalizedTenantColor
     ? ({
-        backgroundImage: `linear-gradient(135deg, ${rgba(normalizedTenantColor, 0.18)}, rgba(255,255,255,0.95))`,
+        backgroundImage: `linear-gradient(135deg, ${rgba(normalizedTenantColor, 0.18)}, rgba(39, 29, 29, 0.95))`,
         borderColor: rgba(normalizedTenantColor, 0.22),
         color: normalizedTenantColor,
       } as React.CSSProperties)

@@ -1555,3 +1555,111 @@ export async function updateSecuritySettings(data: {
     };
   }
 }
+
+// Superadmin Aggregated Reporting & Risk Module Data
+
+export async function getSuperadminReports() {
+  await requireSuperadminSession();
+
+  try {
+    const totalTenants = await prisma.tenant.count({
+      where: { is_active: true },
+    });
+    const totalUsers = await prisma.user.count({ where: { role: "member" } });
+
+    // Sum of all savings accounts
+    const totalSavingsRes = await prisma.savingsAccount.aggregate({
+      _sum: { balance: true },
+    });
+
+    // Sum of all loan balances
+    const totalLoansRes = await prisma.loan.aggregate({
+      _sum: {
+        principal_amount: true,
+        balance_remaining: true,
+      },
+      where: {
+        status: { in: ["active", "defaulted"] },
+      },
+    });
+
+    const activeLoans = await prisma.loan.count({
+      where: { status: "active" },
+    });
+
+    return {
+      success: true,
+      data: {
+        totalTenants,
+        totalUsers,
+        totalSavingsVolume: Number(totalSavingsRes._sum?.balance || 0),
+        totalActiveLoanVolume: Number(
+          totalLoansRes._sum?.principal_amount || 0,
+        ),
+        totalOutstandingBalance: Number(
+          totalLoansRes._sum?.balance_remaining || 0,
+        ),
+        activeLoansCount: activeLoans,
+      },
+    };
+  } catch (error) {
+    console.error("Failed to load superadmin reports:", error);
+    return { success: false, error: "Failed to load superadmin reports." };
+  }
+}
+
+export async function getSuperadminFraudMetrics() {
+  await requireSuperadminSession();
+
+  try {
+    const delinquentLoans = await prisma.loan.aggregate({
+      _sum: { balance_remaining: true },
+      _count: true,
+      where: { status: "defaulted" },
+    });
+
+    // Recent critical audit logs
+    const suspiciousActivities = await prisma.auditLog.findMany({
+      where: {
+        action: {
+          in: [
+            "DECOMMISSION_TENANT",
+            "SYSTEM_ERROR",
+            "SUSPICIOUS_LOGIN",
+            "FAILED_LOGIN",
+            "KYC_REJECTED",
+            "FRAUD_FLAGGED",
+          ],
+        },
+      },
+      orderBy: { created_at: "desc" },
+      take: 10,
+      include: {
+        tenant: { select: { name: true } },
+        user: { select: { username: true } },
+      },
+    });
+
+    const pendingVerifications = await prisma.userDocument.count({
+      where: { verification_status: "pending" },
+    });
+
+    const rejectedVerifications = await prisma.userDocument.count({
+      where: { verification_status: "rejected" },
+    });
+
+    return {
+      success: true,
+      data: {
+        delinquentVolume: Number(delinquentLoans._sum?.balance_remaining || 0),
+        delinquentCount: delinquentLoans._count || 0,
+        pendingVerifications,
+        rejectedVerifications,
+        suspiciousActivities,
+      },
+    };
+  } catch (error) {
+    console.error("Failed to load fraud metrics:", error);
+    return { success: false, error: "Failed to load fraud metrics." };
+  }
+}
