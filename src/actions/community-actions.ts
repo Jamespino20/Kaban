@@ -43,14 +43,14 @@ async function requireCommunityTenantContext(): Promise<CommunityTenantContext> 
   };
 }
 
-async function ensureBranchRooms(
+async function ensureTenantRooms(
   tenantId: number,
   actorUserId: number | string | undefined,
   db: any,
 ) {
   const database = db;
   if (!database) {
-    throw new Error("RLS context (tx) required for ensureBranchRooms");
+    throw new Error("RLS context (tx) required for ensureTenantRooms");
   }
 
   await Promise.all(
@@ -146,7 +146,7 @@ export async function getCommunityDashboardData() {
   }
 
   return await prisma.$withTenant(tenantId, async (tx) => {
-    await ensureBranchRooms(tenantId, session.user.user_id, tx);
+    await ensureTenantRooms(tenantId, session.user.user_id, tx);
 
     const [
       operatorRooms,
@@ -596,7 +596,7 @@ export async function openDirectConversation(targetUserId: number) {
   const { session, tenantId } = await requireCommunityTenantContext();
 
   if (!tenantId) {
-    return { error: "Please select a branch before using community tools." };
+    return { error: "Please select a tenant before using community tools." };
   }
 
   if (targetUserId === session.user.user_id) {
@@ -609,7 +609,7 @@ export async function openDirectConversation(targetUserId: number) {
     });
 
     if (!target) {
-      return { error: "The selected member was not found in this branch." };
+      return { error: "The selected member was not found in this tenant." };
     }
 
     const existing = await tx.conversation.findFirst({
@@ -659,7 +659,7 @@ export async function sendConversationMessage(input: {
   const { session, tenantId } = await requireCommunityTenantContext();
 
   if (!tenantId) {
-    return { error: "Please select a branch before sending a message." };
+    return { error: "Please select a tenant before sending a message." };
   }
 
   if (!input.content?.trim() && !input.attachments?.length) {
@@ -707,7 +707,7 @@ export async function createGroupConversation(input: {
   const { session, tenantId } = await requireCommunityTenantContext();
 
   if (!tenantId) {
-    return { error: "Please select a branch before creating a group chat." };
+    return { error: "Please select a tenant before creating a group chat." };
   }
 
   const allParticipantIds = Array.from(
@@ -727,7 +727,7 @@ export async function createGroupConversation(input: {
     if (validMembers.length !== allParticipantIds.length) {
       return {
         error:
-          "One or more selected participants are not valid members of this branch.",
+          "One or more selected participants are not valid members of this tenant.",
       };
     }
 
@@ -759,7 +759,7 @@ export async function requestMentorship(input: {
   const { session, tenantId } = await requireCommunityTenantContext();
 
   if (!tenantId) {
-    return { error: "Please select a branch before requesting mentorship." };
+    return { error: "Please select a tenant before requesting mentorship." };
   }
 
   if (input.mentorUserId === session.user.user_id) {
@@ -773,7 +773,7 @@ export async function requestMentorship(input: {
       });
 
       if (!mentor) {
-        throw new Error("The selected mentor is not available in this branch.");
+        throw new Error("The selected mentor is not available in this tenant.");
       }
 
       await tx.mentorshipConnection.upsert({

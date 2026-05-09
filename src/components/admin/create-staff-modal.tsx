@@ -24,10 +24,10 @@ import { createStaffAccount } from "@/actions/admin-actions";
 import { Loader2, Plus } from "lucide-react";
 
 interface Props {
-  branches: { id: number; name: string }[];
+  tenants: { id: number; name: string }[];
 }
 
-export function CreateStaffModal({ branches }: Props) {
+export function CreateStaffModal({ tenants }: Props) {
   const [isOpen, setIsOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -39,7 +39,7 @@ export function CreateStaffModal({ branches }: Props) {
     email: "",
     plainPassword: "",
     role: "operator",
-    tenantId: branches.length > 0 ? branches[0].id.toString() : "",
+    tenantId: tenants.length > 0 ? tenants[0].id.toString() : "",
   });
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -77,7 +77,7 @@ export function CreateStaffModal({ branches }: Props) {
           email: "",
           plainPassword: "",
           role: "operator",
-          tenantId: branches.length > 0 ? branches[0].id.toString() : "",
+          tenantId: tenants.length > 0 ? tenants[0].id.toString() : "",
         });
       } else {
         setError(resp.error || "Pangkaraniwang error");
@@ -102,7 +102,7 @@ export function CreateStaffModal({ branches }: Props) {
           <DialogHeader>
             <DialogTitle>Create Staff Account</DialogTitle>
             <DialogDescription>
-              Assign new operations staff directly to a specific branch.
+              Assign new operations staff directly to a specific tenant.
             </DialogDescription>
           </DialogHeader>
 
@@ -183,16 +183,16 @@ export function CreateStaffModal({ branches }: Props) {
                 </Select>
               </div>
               <div className="space-y-2">
-                <Label>Branch</Label>
+                <Label>Tenant</Label>
                 <Select
                   value={formData.tenantId}
                   onValueChange={(val) => handleSelectChange("tenantId", val)}
                 >
                   <SelectTrigger className="rounded-xl">
-                    <SelectValue placeholder="Select branch" />
+                    <SelectValue placeholder="Select tenant" />
                   </SelectTrigger>
                   <SelectContent>
-                    {branches.map((b) => (
+                    {tenants.map((b) => (
                       <SelectItem key={b.id} value={b.id.toString()}>
                         {b.name}
                       </SelectItem>

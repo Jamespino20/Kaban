@@ -62,20 +62,27 @@ function SystemFileManagementSkeleton() {
 
 import { requireTanawSession } from "@/lib/authorization";
 
+function getTanawRoleLabel(role: string) {
+  if (role === "superadmin") return "Superadmin";
+  if (role === "operator") return "Tenant Operator";
+  return "Tanaw User";
+}
+
 export default async function AgapayTanawPage({
   params,
 }: {
-  params: { branch: string };
+  params: { tenant: string };
 }) {
-  const { branch } = params;
+  const { tenant } = params;
   const session = await requireTanawSession();
 
   if (session.user.role === "member") {
-    redirect(`/${branch}/agapay-pintig`);
+    redirect(`/${tenant}/agapay-pintig`);
   }
 
   const userName = session?.user?.username || "Operator";
   const userRole = session?.user?.role || "operator";
+  const roleLabel = getTanawRoleLabel(userRole);
   const isSuperAdmin = userRole === "superadmin";
   const isOperator = userRole === "operator";
   const tenantContextId = session.user.tenantId ?? null;
@@ -83,7 +90,7 @@ export default async function AgapayTanawPage({
   const canViewProducts = isOperator || isSuperAdmin;
   const hasTenantScopedProductAccess =
     isOperator || (isSuperAdmin && !!tenantContextId);
-  const canViewBranchOps = isSuperAdmin && !tenantContextId; // Only global SA looks at multiple tenants
+  const canViewTenantOps = isSuperAdmin; // Superadmins always have access to Global Management
   const canViewAuditLogs = isOperator || isSuperAdmin;
   const canManageHomepageContent = isOperator || isSuperAdmin;
   const canViewFeedback = isOperator || isSuperAdmin;
@@ -102,7 +109,7 @@ export default async function AgapayTanawPage({
     include: { two_factor_auth: true },
   });
   const is2FAEnabled = userWith2FA?.two_factor_auth?.is_enabled || false;
-  const tenants = canViewBranchOps ? await getTenants() : [];
+  const tenants = canViewTenantOps ? await getTenants() : [];
 
   // Data fetching for administrative views
   const members = await getTenantMembers();
@@ -147,190 +154,214 @@ export default async function AgapayTanawPage({
     return currentPlanFeatures.includes(feature);
   };
 
-  // Define role-specific navigation based on PRD
+  // Define role-specific navigation based on PRD hierarchy
   const superadminNav: ShellNavItem[] = [
+    // Category: Core Operations
     {
       value: "overview",
       label: "Overview",
       icon: "overview",
-      category: "Operations",
+      category: "Core Operations",
+    },
+    {
+      value: "community",
+      label: "Community",
+      icon: "community",
+      category: "Core Operations",
     },
     {
       value: "approvals",
       label: "Approvals",
       icon: "approvals",
       badge: pendingData.verifications.length || undefined,
-      category: "Operations",
+      category: "Core Operations",
     },
+
+    // Category: Platform Strategy
     {
-      value: "branches",
+      value: "tenants",
       label: "Global Management",
-      icon: "branches",
-      category: "Governance",
+      icon: "tenants",
+      category: "Platform Strategy",
     },
     {
       value: "content",
       label: "Homepage Content",
       icon: "content",
-      category: "Governance",
+      category: "Platform Strategy",
     },
     {
       value: "feedback",
       label: "Feedback",
       icon: "feedback",
-      category: "Support",
+      category: "Platform Strategy",
     },
-    {
-      value: "audit",
-      label: "Audit Logs",
-      icon: "audit",
-      category: "Governance",
-    },
+
+    // Category: System & Audits
     {
       value: "reports",
       label: "Reports",
       icon: "reconciliation",
-      category: "Finance",
+      category: "System & Audits",
     },
     {
       value: "health",
       label: "System Health",
       icon: "activity",
-      category: "Governance",
+      category: "System & Audits",
     },
     {
       value: "risk",
       label: "Fraud & Risk",
       icon: "shield",
-      category: "Governance",
-    },
-    {
-      value: "community",
-      label: "Community",
-      icon: "community",
-      category: "Support",
-    },
-    {
-      value: "settings",
-      label: "Settings",
-      icon: "settings",
-      category: "Governance",
-    },
-  ];
-
-  const operatorNav: ShellNavItem[] = [
-    {
-      value: "overview",
-      label: "Overview",
-      icon: "overview",
-      category: "Operations",
-    },
-    {
-      value: "approvals",
-      label: "Approvals",
-      icon: "approvals",
-      badge: pendingData.loans.length + pendingData.verifications.length,
-      category: "Operations",
-    },
-    {
-      value: "members",
-      label: "Member Directory",
-      icon: "members",
-      category: "Operations",
-    },
-    {
-      value: "pos",
-      label: "POS System",
-      icon: "reconciliation",
-      category: "Operations",
-    },
-    { value: "files", label: "Documents", icon: "audit", category: "Support" },
-    {
-      value: "topup",
-      label: "Top-Up Queue",
-      icon: "wallet",
-      badge: pendingTopUps.length || undefined,
-      category: "Finance",
-    },
-    {
-      value: "products",
-      label: "Loan Products",
-      icon: "products",
-      category: "Finance",
-    },
-    {
-      value: "content",
-      label: "Homepage Content",
-      icon: "content",
-      category: "Governance",
-    },
-    {
-      value: "feedback",
-      label: "Feedback",
-      icon: "feedback",
-      category: "Support",
-    },
-    {
-      value: "community",
-      label: "Community",
-      icon: "community",
-      category: "Support",
-    },
-    {
-      value: "reconciliation",
-      label: "EOD Reconciliation",
-      icon: "reconciliation",
-      category: "Finance",
-    },
-    {
-      value: "compassion",
-      label: "Compassion Actions",
-      icon: "compassion",
-      category: "Operations",
-    },
-    {
-      value: "analytics",
-      label: "Analytics",
-      icon: "analytics",
-      category: "Governance",
+      category: "System & Audits",
     },
     {
       value: "audit",
       label: "Audit Logs",
       icon: "audit",
-      category: "Governance",
+      category: "System & Audits",
     },
+
+    // Category: Settings
     {
       value: "settings",
       label: "Settings",
       icon: "settings",
-      category: "Governance",
+      category: "Settings",
+    },
+  ];
+
+  const operatorNav: ShellNavItem[] = [
+    // Tenant Ops (PRD 1-2)
+    {
+      value: "overview",
+      label: "Overview",
+      icon: "overview",
+      category: "Tenant Ops",
+    },
+    {
+      value: "approvals",
+      label: "Verification Queue",
+      icon: "approvals",
+      badge: pendingData.loans.length + pendingData.verifications.length,
+      category: "Tenant Ops",
+    },
+    {
+      value: "topup",
+      label: "Capital Top-Up Queue",
+      icon: "wallet",
+      badge: pendingTopUps.length || undefined,
+      category: "Tenant Ops",
+    },
+    {
+      value: "pos",
+      label: "Payment Intake",
+      icon: "reconciliation",
+      category: "Tenant Ops",
+    },
+
+    // The Vault & Community (PRD 3-4)
+    {
+      value: "vault",
+      label: "Capital & Investments",
+      icon: "wallet",
+      category: "Capital & Members",
+    },
+    {
+      value: "analytics",
+      label: "Risk & Diversification",
+      icon: "analytics",
+      category: "Capital & Members",
+    },
+    {
+      value: "members",
+      label: "Member Management",
+      icon: "members",
+      category: "Capital & Members",
+    },
+    {
+      value: "files",
+      label: "Documents",
+      icon: "audit",
+      category: "Capital & Members",
+    },
+
+    // Policy & Treasury (PRD 5-6)
+    {
+      value: "products",
+      label: "Loan Products & Policy",
+      icon: "products",
+      category: "Policy & Treasury",
+    },
+    {
+      value: "reconciliation",
+      label: "Treasury & Reconciliation",
+      icon: "reconciliation",
+      category: "Policy & Treasury",
+    },
+    {
+      value: "compassion",
+      label: "Compassion Actions",
+      icon: "compassion",
+      category: "Policy & Treasury",
+    },
+
+    // Storefront & Support (PRD 7-10)
+    {
+      value: "content",
+      label: "Content & Branding",
+      icon: "content",
+      category: "Storefront & Support",
+    },
+    {
+      value: "community",
+      label: "Community",
+      icon: "community",
+      category: "Storefront & Support",
+    },
+    {
+      value: "feedback",
+      label: "Support & Feedback",
+      icon: "feedback",
+      category: "Storefront & Support",
+    },
+    {
+      value: "audit",
+      label: "Security & Audit Logs",
+      icon: "audit",
+      category: "Storefront & Support",
+    },
+    {
+      value: "settings",
+      label: "Tenant Settings",
+      icon: "settings",
+      category: "Storefront & Support",
     },
   ];
 
   const navItems = isSuperAdmin ? superadminNav : operatorNav;
+  const tanawSubtitle = isOperator
+    ? "Tenant Operator dashboard for tenant health, queues, capital, members, treasury, content, support, and settings."
+    : isGlobalSuperadminView
+      ? "Global Superadmin view for system-wide infrastructure and monitoring."
+      : "Cooperative Superadmin view for managing this specific cooperative.";
 
   return (
     <DashboardTabsShell
       defaultValue="overview"
       title="Agapay Tanaw"
-      subtitle={
-        isOperator
-          ? "Operator dashboard — complete oversight of your cooperative."
-          : isGlobalSuperadminView
-            ? "Global Superadmin view — system-wide infrastructure and monitor."
-            : "Cooperative Superadmin view — manage this specific cooperative."
-      }
-      portalLabel={`${userRole} portal`}
+      subtitle={tanawSubtitle}
+      portalLabel={`${roleLabel} Portal`}
       accountName={userName}
-      accountRole={userRole}
+      accountRole={roleLabel}
       tenantName={currentTenantIdentity?.name}
       tenantLogoUrl={currentTenantIdentity?.logo_url || undefined}
       tenantBrandColor={currentTenantIdentity?.brand_color}
       tenantAccentColor={currentTenantIdentity?.accent_color}
       tenantFontPairing={currentTenantIdentity?.font_pairing}
       navItems={navItems}
-      branchSlug={branch}
+      tenantSlug={tenant}
     >
       <div className="space-y-5">
         {reconciliation && !reconciliation.holdings.isTreasuryHealthy && (
@@ -444,6 +475,9 @@ export default async function AgapayTanawPage({
         {/* Tenant Operator Modules */}
         {isOperator && (
           <>
+            <TabsContent value="vault" className="outline-none">
+              <TopUpQueueTab requests={pendingTopUps as any} />
+            </TabsContent>
             <TabsContent value="pos" className="outline-none">
               <POSSystemTab members={members} />
             </TabsContent>
@@ -454,7 +488,7 @@ export default async function AgapayTanawPage({
               <MemberDirectoryTab
                 members={members}
                 userRole={session?.user?.role}
-                branches={tenants.map((t) => ({
+                tenants={tenants.map((t) => ({
                   id: t.tenant_id,
                   name: t.name,
                 }))}
@@ -503,7 +537,7 @@ export default async function AgapayTanawPage({
             <TabsContent value="health" className="outline-none">
               <SystemHealthTab />
             </TabsContent>
-            <TabsContent value="branches" className="outline-none">
+            <TabsContent value="tenants" className="outline-none">
               <TenantManagementTab
                 initialTenants={tenants}
                 role={session?.user?.role as string}
@@ -580,12 +614,12 @@ export default async function AgapayTanawPage({
                   description={
                     isSuperAdmin
                       ? "Update the name for the current tenant context."
-                      : "Update your tenant's company or branch name."
+                      : "Update your tenant's company or tenant name."
                   }
                 />
               ) : isSuperAdmin ? (
                 <div className="w-full max-w-2xl rounded-[1.75rem] border border-amber-200 bg-amber-50 p-6 text-sm text-amber-800 shadow-sm">
-                  Select a branch from the sidebar if you want to change the
+                  Select a tenant from the sidebar if you want to change the
                   tenant name from `Global View`.
                 </div>
               ) : null}
@@ -610,7 +644,7 @@ export default async function AgapayTanawPage({
                   <SubscriptionSettings
                     tenantId={tenantContextId}
                     isAdmin={isOperator || isSuperAdmin}
-                    branchSlug={branch}
+                    tenantSlug={tenant}
                   />
                 </div>
               )}

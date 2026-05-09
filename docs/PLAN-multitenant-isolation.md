@@ -12,8 +12,8 @@ Implement strict multi-tenant data isolation (allowing the same email across dif
    - Remove global `@unique` on `username` and `member_code` if they should also be scoped per tenant.
 2. **Authentication Flow (NextAuth):**
    - Rework the login flow. The user enters their email.
-   - System identifies all linked tenants. If multiple exist, display a "Select your Branch" UI.
-   - Once the branch is selected, prompt for the password specific to that tenant account.
+   - System identifies all linked tenants. If multiple exist, display a "Select your Tenant" UI.
+   - Once the tenant is selected, prompt for the password specific to that tenant account.
 3. **Admin Branding UI:**
    - Create a Settings page under `Agapay Tanaw` allowing Admins to set a custom hex color and upload a logo.
 4. **UI Dynamic Styling:**
@@ -24,6 +24,6 @@ Implement strict multi-tenant data isolation (allowing the same email across dif
 - [ ] Schema: Modify uniqueness constraints and add branding fields in `schema.prisma`.
 - [ ] Database: Run DB push and generate updated client.
 - [ ] API: Update `register` action to respect the new compound unique constraint.
-- [ ] Auth/UI: Rework the `login` flow to accept `tenantId` and handle the "Select Branch" intermediate step.
+- [ ] Auth/UI: Rework the `login` flow to accept `tenantId` and handle the "Select Tenant" intermediate step.
 - [ ] Admin UI: Build the Tenant Branding configuration page in the Command Center.
 - [ ] Frontend: Implement dynamic theme ingestion in the application layout.

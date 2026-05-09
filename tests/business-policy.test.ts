@@ -8,7 +8,7 @@ import {
   evaluateOverindebtedness,
   getAvailableCreditForTier,
   SAMPLE_LOAN_PRODUCT_TEMPLATES,
-  validateBranchMembershipLimit,
+  validateTenantMembershipLimit,
   validateLoanRequestAgainstPolicy,
 } from "@/lib/microfinance-policy";
 
@@ -53,12 +53,7 @@ test("loan request validation blocks excess cap and invalid guarantor count", ()
 test("sample loan products are optional PRD templates", () => {
   assert.deepEqual(
     SAMPLE_LOAN_PRODUCT_TEMPLATES.map((template) => template.name),
-    [
-      "Agapay Sari-Sari",
-      "Agapay Negosyo",
-      "Agapay Paluwagan",
-      "Agapay Angat",
-    ],
+    ["Agapay Sari-Sari", "Agapay Negosyo", "Agapay Paluwagan", "Agapay Angat"],
   );
 
   assert.deepEqual(
@@ -122,11 +117,11 @@ test("repayment schedule uses the chosen cadence instead of staying monthly-only
   );
 });
 
-test("branch membership policy blocks more than two tenant memberships", () => {
-  assert.equal(validateBranchMembershipLimit(2), null);
+test("tenant membership policy blocks more than two tenant memberships", () => {
+  assert.equal(validateTenantMembershipLimit(2), null);
   assert.match(
-    validateBranchMembershipLimit(3) || "",
-    /at most 2 branch memberships/i,
+    validateTenantMembershipLimit(3) || "",
+    /at most 2 tenant memberships/i,
   );
 });
 

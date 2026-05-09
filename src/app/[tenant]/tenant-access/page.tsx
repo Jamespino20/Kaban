@@ -14,31 +14,31 @@ const COPY = {
   },
   inactive: {
     title: "Hindi available ang tenant workspace",
-    body: "Hindi aktibo ang branch o tenant na ito sa kasalukuyan. Makipag-ugnayan sa inyong tenant admin o sa Agapay superadmin.",
+    body: "Hindi aktibo ang tenant o tenant na ito sa kasalukuyan. Makipag-ugnayan sa inyong tenant admin o sa Agapay superadmin.",
   },
 } as const;
 
 export default async function TenantAccessPage({
   params,
 }: {
-  params: { branch: string };
+  params: { tenant: string };
 }) {
-  const { branch } = params;
+  const { tenant } = params;
   const session = await auth();
 
   if (!session?.user) {
-    redirect(`/${branch}/auth/login`);
+    redirect(`/${tenant}/auth/login`);
   }
 
   if (session.user.role === "superadmin") {
-    redirect(`/${branch}/agapay-tanaw`);
+    redirect(`/${tenant}/agapay-tanaw`);
   }
 
   if (!session.user.tenantId) {
-    redirect(`/${branch}/auth/login`);
+    redirect(`/${tenant}/auth/login`);
   }
 
-  const tenant = await prisma.tenant.findUnique({
+  const tenantData = await prisma.tenant.findUnique({
     where: { tenant_id: session.user.tenantId },
     select: {
       name: true,
@@ -48,14 +48,20 @@ export default async function TenantAccessPage({
     },
   });
 
-  if (tenant && tenant.is_active && tenant.entitlement_status === "active") {
+  if (
+    tenantData &&
+    tenantData.is_active &&
+    tenantData.entitlement_status === "active"
+  ) {
     redirect(
-      `/${branch}/${session.user.role === "member" ? "agapay-pintig" : "agapay-tanaw"}`,
+      `/${tenant}/${session.user.role === "member" ? "agapay-pintig" : "agapay-tanaw"}`,
     );
   }
 
   const copyKey =
-    !tenant || !tenant.is_active ? "inactive" : tenant.entitlement_status;
+    !tenantData || !tenantData.is_active
+      ? "inactive"
+      : tenantData.entitlement_status;
   const copy = COPY[copyKey as keyof typeof COPY] ?? COPY.inactive;
 
   return (
@@ -76,21 +82,23 @@ export default async function TenantAccessPage({
             Tenant
           </p>
           <p className="mt-2 text-xl font-bold text-slate-900">
-            {tenant?.name || "Unknown Tenant"}
+            {tenantData?.name || "Unknown Tenant"}
           </p>
           <p className="mt-3 text-sm text-slate-600">
             Status:{" "}
             <span className="font-semibold text-slate-900">
-              {!tenant || !tenant.is_active
+              {!tenantData || !tenantData.is_active
                 ? "inactive"
-                : tenant.entitlement_status}
+                : tenantData.entitlement_status}
             </span>
           </p>
-          {tenant?.lifetime_availed_at ? (
+          {tenantData?.lifetime_availed_at ? (
             <p className="mt-2 text-sm text-slate-600">
               Availed at:{" "}
               <span className="font-semibold text-slate-900">
-                {new Date(tenant.lifetime_availed_at).toLocaleString("en-PH")}
+                {new Date(tenantData.lifetime_availed_at).toLocaleString(
+                  "en-PH",
+                )}
               </span>
             </p>
           ) : null}

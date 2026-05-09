@@ -10,7 +10,7 @@ export function TenantNameSettingsCard({
   tenantId,
   initialName,
   title = "Tenant Identity",
-  description = "I-update ang company o branch name na makikita sa buong workspace.",
+  description = "I-update ang company o tenant name na makikita sa buong workspace.",
 }: {
   tenantId?: number;
   initialName: string;
@@ -49,7 +49,7 @@ export function TenantNameSettingsCard({
           disabled={isPending}
           maxLength={100}
           className="h-11 rounded-xl"
-          placeholder="Ilagay ang bagong company o branch name"
+          placeholder="Ilagay ang bagong company o tenant name"
         />
         <Button
           onClick={handleSubmit}

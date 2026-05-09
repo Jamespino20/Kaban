@@ -40,12 +40,12 @@ type LoginStep = "credentials" | "tenant" | "2fa";
 
 export const LoginForm = ({
   preselectedTenantId,
-  branchName,
-  currentBranch,
+  tenantName,
+  currentTenant,
 }: {
   preselectedTenantId?: string;
-  branchName?: string;
-  currentBranch?: string;
+  tenantName?: string;
+  currentTenant?: string;
 }) => {
   const [step, setStep] = useState<LoginStep>("credentials");
   const [showPassword, setShowPassword] = useState(false);
@@ -67,7 +67,7 @@ export const LoginForm = ({
       const res = (await getAvailableTenants(
         values.username,
         values.password,
-        currentBranch,
+        currentTenant,
       )) as any;
 
       if (res.error) {
@@ -77,7 +77,7 @@ export const LoginForm = ({
 
       if (res.tenants && res.tenants.length > 0) {
         const tenantsList = res.tenants;
-        // If they are on a branch-specific login page, force them to use that branch if it exists in their accounts
+        // If they are on a tenant-specific login page, force them to use that tenant if it exists in their accounts
         if (preselectedTenantId) {
           const hasAccess =
             tenantsList.some(
@@ -85,7 +85,7 @@ export const LoginForm = ({
             ) || tenantsList.some((t: any) => !t.tenant_id);
           if (!hasAccess) {
             toast.error(
-              `You don't have access to ${branchName || "this branch"}`,
+              `You don't have access to ${tenantName || "this tenant"}`,
             );
             return;
           }
@@ -135,11 +135,11 @@ export const LoginForm = ({
           }
         } else {
           toast.success("Welcome! Login successful.");
-          // We navigate to a branch-scoped route that requires authentication.
+          // We navigate to a tenant-scoped route that requires authentication.
           // This forces a server-side request where the proxy middleware will
-          // validate the session and ensure the user is in the correct branch.
-          const targetBranch = currentBranch || "main";
-          window.location.href = `/${targetBranch}/agapay-tanaw`;
+          // validate the session and ensure the user is in the correct tenant.
+          const targetTenant = currentTenant || "main";
+          window.location.href = `/${targetTenant}/agapay-tanaw`;
         }
       } catch (error) {
         toast.error("An error occurred during login.");
@@ -152,7 +152,7 @@ export const LoginForm = ({
       onIdentify(values);
     } else {
       if (!values.tenantId && step === "tenant") {
-        toast.error("Please select a branch.");
+        toast.error("Please select a tenant.");
         return;
       }
       performLogin(values);
@@ -163,12 +163,12 @@ export const LoginForm = ({
     <div className="w-full">
       <div className="flex flex-col space-y-2 text-center mb-8">
         <h1 className="text-3xl font-display font-bold italic tracking-tight text-emerald-900">
-          Sign In to {branchName || "Agapay"}
+          Sign In to {tenantName || "Agapay"}
         </h1>
         <p className="text-sm text-slate-500">
           {step === "credentials" &&
             "Enter your account credentials to continue"}
-          {step === "tenant" && "Select the branch you wish to access"}
+          {step === "tenant" && "Select the tenant you wish to access"}
           {step === "2fa" && "Second-factor authentication is required"}
         </p>
       </div>
@@ -245,7 +245,7 @@ export const LoginForm = ({
           {step === "tenant" && (
             <div className="space-y-4 animate-in fade-in slide-in-from-right-4 duration-300">
               <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">
-                Available Branches
+                Available Tenants
               </p>
               <div className="grid grid-cols-1 gap-3">
                 {availableTenants.map((tenant: any) => (

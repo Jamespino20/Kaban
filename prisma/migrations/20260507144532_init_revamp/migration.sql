@@ -119,13 +119,13 @@ CREATE TYPE "VouchDiscountEligibilityState" AS ENUM ('not_evaluated', 'eligible'
 CREATE TYPE "TrustNetworkVisibility" AS ENUM ('private_record', 'tenant_network', 'admin_only', 'cross_tenant_risk');
 
 -- CreateEnum
-CREATE TYPE "ConversationType" AS ENUM ('direct', 'branch_room', 'group_chat');
+CREATE TYPE "ConversationType" AS ENUM ('direct', 'tenant_room', 'group_chat');
 
 -- CreateEnum
 CREATE TYPE "MentorshipStatus" AS ENUM ('pending_endorsement', 'endorsed', 'rejected');
 
 -- CreateEnum
-CREATE TYPE "NotificationType" AS ENUM ('email_verification', 'identity_verified', 'identity_rejected', 'tenant_application_received', 'tenant_approved', 'tenant_suspended', 'wallet_deposit_pending', 'wallet_deposit_approved', 'wallet_deposit_rejected', 'wallet_withdrawal_pending', 'wallet_withdrawal_approved', 'wallet_withdrawal_rejected', 'wallet_issue_reported', 'loan_application_received', 'loan_approved', 'loan_rejected', 'loan_disbursed', 'loan_defaulted', 'repayment_reminder', 'repayment_received', 'repayment_overdue', 'guarantor_request', 'guarantor_accepted', 'guarantor_rejected', 'guarantor_charged', 'trust_voting_assigned', 'trust_voting_due_soon', 'trust_voting_missed', 'compassion_requested', 'compassion_approved', 'compassion_rejected', 'feedback_received', 'support_ticket_opened', 'support_ticket_updated', 'support_ticket_resolved', 'report_ready', 'report_failed', 'mentorship_request', 'mentorship_endorsed', 'mentorship_rejected', 'direct_message', 'branch_announcement', 'login_new_device', 'password_changed', 'two_fa_enabled', 'two_fa_disabled', 'system_alert', 'system_maintenance', 'platform_announcement');
+CREATE TYPE "NotificationType" AS ENUM ('email_verification', 'identity_verified', 'identity_rejected', 'tenant_application_received', 'tenant_approved', 'tenant_suspended', 'wallet_deposit_pending', 'wallet_deposit_approved', 'wallet_deposit_rejected', 'wallet_withdrawal_pending', 'wallet_withdrawal_approved', 'wallet_withdrawal_rejected', 'wallet_issue_reported', 'loan_application_received', 'loan_approved', 'loan_rejected', 'loan_disbursed', 'loan_defaulted', 'repayment_reminder', 'repayment_received', 'repayment_overdue', 'guarantor_request', 'guarantor_accepted', 'guarantor_rejected', 'guarantor_charged', 'trust_voting_assigned', 'trust_voting_due_soon', 'trust_voting_missed', 'compassion_requested', 'compassion_approved', 'compassion_rejected', 'feedback_received', 'support_ticket_opened', 'support_ticket_updated', 'support_ticket_resolved', 'report_ready', 'report_failed', 'mentorship_request', 'mentorship_endorsed', 'mentorship_rejected', 'direct_message', 'tenant_announcement', 'login_new_device', 'password_changed', 'two_fa_enabled', 'two_fa_disabled', 'system_alert', 'system_maintenance', 'platform_announcement');
 
 -- CreateEnum
 CREATE TYPE "NotificationChannel" AS ENUM ('in_app', 'email', 'both');
@@ -500,7 +500,7 @@ CREATE TABLE "daily_reconciliations" (
     "total_ledger_debits" DECIMAL(15,2) NOT NULL DEFAULT 0,
     "total_ledger_credits" DECIMAL(15,2) NOT NULL DEFAULT 0,
     "is_ledger_balanced" BOOLEAN NOT NULL DEFAULT false,
-    "total_branch_savings" DECIMAL(15,2) NOT NULL DEFAULT 0,
+    "total_tenant_savings" DECIMAL(15,2) NOT NULL DEFAULT 0,
     "total_treasury_balance" DECIMAL(15,2) NOT NULL DEFAULT 0,
     "imbalance_amount" DECIMAL(15,2) NOT NULL DEFAULT 0,
     "has_discrepancy" BOOLEAN NOT NULL DEFAULT false,
@@ -800,7 +800,7 @@ CREATE TABLE "notifications" (
 );
 
 -- CreateTable
-CREATE TABLE "branch_transfer_requests" (
+CREATE TABLE "tenant_transfer_requests" (
     "id" TEXT NOT NULL,
     "user_id" INTEGER NOT NULL,
     "from_tenant_id" INTEGER NOT NULL,
@@ -810,7 +810,7 @@ CREATE TABLE "branch_transfer_requests" (
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMP(3) NOT NULL,
 
-    CONSTRAINT "branch_transfer_requests_pkey" PRIMARY KEY ("id")
+    CONSTRAINT "tenant_transfer_requests_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -1137,8 +1137,8 @@ CREATE TABLE "subscription_plans" (
     "features" TEXT[],
     "is_active" BOOLEAN NOT NULL DEFAULT true,
     "is_addon" BOOLEAN NOT NULL DEFAULT false,
-    "branch_price" INTEGER DEFAULT 3000,
-    "branch_storage" INTEGER DEFAULT 10000,
+    "tenant_price" INTEGER DEFAULT 3000,
+    "tenant_storage" INTEGER DEFAULT 10000,
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMP(3) NOT NULL,
 
@@ -1708,7 +1708,7 @@ CREATE INDEX "notifications_user_id_is_read_created_at_idx" ON "notifications"("
 CREATE INDEX "notifications_tenant_id_type_created_at_idx" ON "notifications"("tenant_id", "type", "created_at");
 
 -- CreateIndex
-CREATE INDEX "branch_transfer_requests_status_idx" ON "branch_transfer_requests"("status");
+CREATE INDEX "tenant_transfer_requests_status_idx" ON "tenant_transfer_requests"("status");
 
 -- CreateIndex
 CREATE INDEX "loan_guarantees_tenant_id_idx" ON "loan_guarantees"("tenant_id");
@@ -2155,13 +2155,13 @@ ALTER TABLE "notifications" ADD CONSTRAINT "notifications_tenant_id_fkey" FOREIG
 ALTER TABLE "notifications" ADD CONSTRAINT "notifications_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "users"("user_id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "branch_transfer_requests" ADD CONSTRAINT "branch_transfer_requests_from_tenant_id_fkey" FOREIGN KEY ("from_tenant_id") REFERENCES "tenants"("tenant_id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "tenant_transfer_requests" ADD CONSTRAINT "tenant_transfer_requests_from_tenant_id_fkey" FOREIGN KEY ("from_tenant_id") REFERENCES "tenants"("tenant_id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "branch_transfer_requests" ADD CONSTRAINT "branch_transfer_requests_to_tenant_id_fkey" FOREIGN KEY ("to_tenant_id") REFERENCES "tenants"("tenant_id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "tenant_transfer_requests" ADD CONSTRAINT "tenant_transfer_requests_to_tenant_id_fkey" FOREIGN KEY ("to_tenant_id") REFERENCES "tenants"("tenant_id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "branch_transfer_requests" ADD CONSTRAINT "branch_transfer_requests_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "users"("user_id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "tenant_transfer_requests" ADD CONSTRAINT "tenant_transfer_requests_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "users"("user_id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "decommissioned_backups" ADD CONSTRAINT "decommissioned_backups_tenant_id_fkey" FOREIGN KEY ("tenant_id") REFERENCES "tenants"("tenant_id") ON DELETE RESTRICT ON UPDATE CASCADE;

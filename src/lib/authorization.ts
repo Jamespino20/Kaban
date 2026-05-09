@@ -59,7 +59,7 @@ export async function requireAuthenticatedSession(): Promise<AuthorizedSession> 
 
 export async function requireTanawSession(): Promise<AuthorizedSession> {
   const session = await requireAuthenticatedSession();
-  if (!isTanawRole(session.user.role)) {
+  if (!isTanawRole(session.user.role) && session.user.role !== "member") {
     throw new Error("Unauthorized");
   }
 

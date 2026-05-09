@@ -13,33 +13,33 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 
-interface Branch {
+interface Tenant {
   id: string;
   name: string;
   slug: string;
   color?: string;
 }
 
-interface PublicBranchSelectorProps {
-  branches?: Branch[];
+interface PublicTenantSelectorProps {
+  tenants?: Tenant[];
   isScrolled?: boolean;
   isMobile?: boolean;
   triggerClassName?: string;
 }
 
-export function PublicBranchSelector({
-  branches: initialBranches = [],
+export function PublicTenantSelector({
+  tenants: initialTenants = [],
   isScrolled,
   isMobile,
   triggerClassName,
-}: PublicBranchSelectorProps) {
+}: PublicTenantSelectorProps) {
   const [searchQuery, setSearchQuery] = useState("");
 
-  const filteredBranches = useMemo(() => {
-    return initialBranches.filter((branch) =>
-      branch.name.toLowerCase().includes(searchQuery.toLowerCase()),
+  const filteredTenants = useMemo(() => {
+    return initialTenants.filter((tenant) =>
+      tenant.name.toLowerCase().includes(searchQuery.toLowerCase()),
     );
-  }, [initialBranches, searchQuery]);
+  }, [initialTenants, searchQuery]);
 
   const triggerClasses = triggerClassName
     ? triggerClassName
@@ -66,12 +66,12 @@ export function PublicBranchSelector({
       >
         <DropdownMenuLabel className="px-3 pt-3 pb-2">
           <p className="text-xs font-black uppercase tracking-widest text-slate-400 mb-3">
-            Active Branches
+            Active Tenants
           </p>
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
             <Input
-              placeholder="Search branch name..."
+              placeholder="Search tenant name..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="pl-10 h-10 bg-slate-50 border-none rounded-2xl focus-visible:ring-emerald-500/20"
@@ -80,18 +80,18 @@ export function PublicBranchSelector({
         </DropdownMenuLabel>
         <DropdownMenuSeparator className="mx-2 bg-slate-100" />
         <div className="max-h-[300px] overflow-y-auto py-1 scrollbar-hide">
-          {filteredBranches.length > 0 ? (
-            filteredBranches.map((branch) => (
-              <DropdownMenuItem key={branch.id} asChild className="p-0">
+          {filteredTenants.length > 0 ? (
+            filteredTenants.map((tenant) => (
+              <DropdownMenuItem key={tenant.id} asChild className="p-0">
                 <Link
-                  href={`/${branch.slug}`}
+                  href={`/${tenant.slug}`}
                   className="w-full flex items-center gap-3 px-3 py-3 hover:bg-emerald-50 rounded-2xl transition-colors group"
                 >
                   <div
                     className="w-10 h-10 rounded-xl flex items-center justify-center text-emerald-600 transition-colors"
                     style={{
-                      backgroundColor: branch.color
-                        ? `${branch.color}15`
+                      backgroundColor: tenant.color
+                        ? `${tenant.color}15`
                         : "#ECFDF5",
                     }}
                   >
@@ -99,10 +99,10 @@ export function PublicBranchSelector({
                   </div>
                   <div className="flex flex-col">
                     <span className="text-sm font-bold text-slate-900 group-hover:text-emerald-700 transition-colors">
-                      {branch.name}
+                      {tenant.name}
                     </span>
                     <span className="text-[10px] font-bold text-slate-400 uppercase tracking-tight">
-                      /{branch.slug}
+                      /{tenant.slug}
                     </span>
                   </div>
                 </Link>
@@ -111,9 +111,9 @@ export function PublicBranchSelector({
           ) : (
             <div className="py-8 text-center">
               <p className="text-xs font-bold text-slate-400 italic">
-                {initialBranches.length === 0
-                  ? "Loading branches..."
-                  : "No branches found"}
+                {initialTenants.length === 0
+                  ? "Loading tenants..."
+                  : "No tenants found"}
               </p>
             </div>
           )}

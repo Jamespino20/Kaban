@@ -14,7 +14,9 @@ import {
 } from "lucide-react";
 
 type CommunitySummary = Awaited<
-  ReturnType<typeof import("@/actions/community-actions").getCommunityStaffSummary>
+  ReturnType<
+    typeof import("@/actions/community-actions").getCommunityStaffSummary
+  >
 >;
 
 type PendingMentorshipRequest = {
@@ -47,7 +49,7 @@ export function CommunityOperationsTab({
               Community Operations
             </h2>
             <p className="text-sm text-slate-500">
-              Compact view for mentorship endorsements and branch message
+              Compact view for mentorship endorsements and tenant message
               activity.
             </p>
           </div>
@@ -104,7 +106,7 @@ export function CommunityOperationsTab({
               Recent Community Activity
             </h3>
             <p className="text-xs text-slate-500">
-              Quick pulse ng branch rooms, direct chats, at active support
+              Quick pulse ng tenant rooms, direct chats, at active support
               flows.
             </p>
           </div>

@@ -6,7 +6,7 @@ import bcrypt from "bcryptjs";
 import { neon } from "@neondatabase/serverless";
 import { z } from "zod";
 import { getDbUrl } from "@/lib/db-url";
-import { validateBranchMembershipLimit } from "@/lib/microfinance-policy";
+import { validateTenantMembershipLimit } from "@/lib/microfinance-policy";
 
 class TwoFactorRequiredError extends CredentialsSignin {
   code = "2fa_required";
@@ -97,11 +97,11 @@ const getNextAuth = () => {
               }
 
               if (user.role !== "superadmin") {
-                const branchMembershipError = validateBranchMembershipLimit(
+                const tenantMembershipError = validateTenantMembershipLimit(
                   accessibleTenantIds.length,
                 );
 
-                if (branchMembershipError) {
+                if (tenantMembershipError) {
                   return null;
                 }
               }

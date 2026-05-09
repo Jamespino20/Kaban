@@ -57,7 +57,7 @@ export async function getEndOfDayReconciliation(
       0,
     );
 
-    // 3. Ledger Sanity Check (Debits vs Credits today for the branch)
+    // 3. Ledger Sanity Check (Debits vs Credits today for the tenant)
     const ledgerEntries = await db.businessLedger.findMany({
       where: {
         created_at: {
@@ -80,12 +80,12 @@ export async function getEndOfDayReconciliation(
     const isLedgerBalanced =
       totalLedgerDebits === totalLedgerCredits && totalLedgerDebits > 0;
 
-    // 4. Branch Wallet Checks (Total Active Savings Accounts)
-    const branchSavings = await db.savingsAccount.findMany({
+    // 4. Tenant Wallet Checks (Total Active Savings Accounts)
+    const tenantSavings = await db.savingsAccount.findMany({
       select: { balance: true },
     });
 
-    const totalBranchSavings = branchSavings.reduce(
+    const totalTenantSavings = tenantSavings.reduce(
       (sum: number, savings: any) => sum + Number(savings.balance),
       0,
     );
@@ -107,7 +107,7 @@ export async function getEndOfDayReconciliation(
       0,
     );
 
-    const imbalance = Math.abs(totalTreasuryBalance - totalBranchSavings);
+    const imbalance = Math.abs(totalTreasuryBalance - totalTenantSavings);
     const isTreasuryHealthy = imbalance <= 0.01;
 
     return {
@@ -122,7 +122,7 @@ export async function getEndOfDayReconciliation(
         isBalanced: isLedgerBalanced,
       },
       holdings: {
-        totalBranchSavings,
+        totalTenantSavings,
         totalTreasuryBalance,
         imbalance,
         isTreasuryHealthy,
@@ -139,7 +139,7 @@ export async function resolveAndSignEndOfDay(reason?: string) {
   const tenantId = session.user.tenantId;
 
   if (!tenantId) {
-    throw new Error("EOD sign-off requires a branch context.");
+    throw new Error("EOD sign-off requires a tenant context.");
   }
 
   return await prisma.$withTenant(tenantId, async (tx) => {
@@ -189,7 +189,7 @@ export async function resolveAndSignEndOfDay(reason?: string) {
       }
 
       const diff =
-        Number(eodData.holdings.totalBranchSavings) -
+        Number(eodData.holdings.totalTenantSavings) -
         Number(eodData.holdings.totalTreasuryBalance);
       const transactionId = crypto.randomUUID();
 

@@ -2,6 +2,14 @@
 
 import { NotificationBell } from "@/components/layout/notification-bell";
 import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { signOut } from "next-auth/react";
 import {
@@ -21,10 +29,11 @@ import {
   HeartPulse,
   Wallet,
   MessagesSquare,
+  MoreVertical,
   TrendingUp,
 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
-import { BranchSelector } from "@/components/layout/branch-selector";
+import { TenantSelector } from "@/components/layout/tenant-selector";
 
 function normalizeHexColor(color?: string | null) {
   if (!color) {
@@ -69,7 +78,7 @@ export type ShellIconName =
   | "approvals"
   | "members"
   | "products"
-  | "branches"
+  | "tenants"
   | "content"
   | "feedback"
   | "audit"
@@ -90,7 +99,7 @@ const ICON_MAP = {
   approvals: FileText,
   members: Users2,
   products: Settings2,
-  branches: ShieldAlert,
+  tenants: ShieldAlert,
   content: FileText,
   feedback: AlertTriangle,
   audit: History,
@@ -120,7 +129,7 @@ export function AuthenticatedShell({
   tenantAccentColor,
   tenantFontPairing,
   navItems,
-  branchSlug,
+  tenantSlug,
   children,
 }: {
   title: string;
@@ -135,7 +144,7 @@ export function AuthenticatedShell({
   tenantAccentColor?: string | null;
   tenantFontPairing?: string | null;
   navItems: ShellNavItem[];
-  branchSlug: string;
+  tenantSlug: string;
   children: React.ReactNode;
 }) {
   const [collapsed, setCollapsed] = useState(false);
@@ -239,20 +248,14 @@ export function AuthenticatedShell({
 
   const renderSidebar = () => (
     <div
-      className={`flex h-full flex-col border-r border-slate-200 bg-white text-slate-900`}
-      style={sidebarStyle}
+      className={`flex h-full flex-col text-white`}
+      style={{
+        backgroundColor: normalizedTenantColor || "#0f172a",
+        ...sidebarStyle,
+      }}
     >
-      <div
-        className="h-1 w-full"
-        style={
-          normalizedTenantColor
-            ? {
-                background: `linear-gradient(90deg, ${rgba(normalizedTenantColor, 0.95)}, ${rgba(normalizedTenantColor, 0.6)})`,
-              }
-            : undefined
-        }
-      />
-      <div className="flex flex-col border-b border-slate-100 p-4 space-y-4">
+      <div className="h-1 w-full bg-white/20" />
+      <div className="flex flex-col border-b border-white/10 p-4 space-y-4">
         <div className="flex items-center justify-between">
           <div
             className={`flex min-w-0 flex-col gap-1 transition-all ${
@@ -261,7 +264,7 @@ export function AuthenticatedShell({
           >
             <div className="flex items-center gap-3">
               <div
-                className={`flex h-11 w-11 flex-shrink-0 items-center justify-center overflow-hidden border border-slate-100 bg-white shadow-sm ${
+                className={`flex h-11 w-11 flex-shrink-0 items-center justify-center overflow-hidden bg-white shadow-sm ${
                   tenantName ? "rounded-2xl" : "rounded-full"
                 }`}
               >
@@ -284,18 +287,13 @@ export function AuthenticatedShell({
                 )}
               </div>
               <div className="min-w-0">
-                <p className="truncate text-lg font-black tracking-tight text-slate-900">
+                <p className="truncate text-lg font-black tracking-tight text-white mb-0.5">
                   {tenantName || "Agapay"}
                 </p>
-                <div className="flex items-center gap-1.5 opacity-60">
-                  <span className="text-[9px] font-bold uppercase tracking-wider text-slate-400">
-                    Powered by
+                <div className="flex items-center gap-1.5 opacity-90">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-white">
+                    Powered by Agapay
                   </span>
-                  <img
-                    src="/images/agapay_titled.png"
-                    alt="Agapay"
-                    className="h-[18px] object-contain opacity-90"
-                  />
                 </div>
               </div>
             </div>
@@ -306,7 +304,7 @@ export function AuthenticatedShell({
               variant="ghost"
               size="icon"
               onClick={() => setMobileOpen(false)}
-              className="rounded-2xl text-slate-500 hover:bg-slate-100 lg:hidden"
+              className="rounded-2xl text-white/50 hover:bg-white/10 lg:hidden"
               title="Close navigation"
             >
               <X className="h-5 w-5" />
@@ -315,7 +313,7 @@ export function AuthenticatedShell({
               variant="ghost"
               size="icon"
               onClick={() => setCollapsed((value) => !value)}
-              className="hidden rounded-2xl text-slate-500 hover:bg-slate-100 xl:flex"
+              className="hidden rounded-2xl text-white/50 hover:bg-white/10 xl:flex"
               title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
             >
               {collapsed ? (
@@ -323,36 +321,6 @@ export function AuthenticatedShell({
               ) : (
                 <ChevronLeft className="h-5 w-5" />
               )}
-            </Button>
-          </div>
-        </div>
-
-        {/* Profile & Signout at the top */}
-        <div
-          className={`space-y-3 rounded-2xl border border-slate-100 bg-slate-50 p-3 transition-opacity ${collapsed ? "xl:opacity-0 xl:pointer-events-none" : "opacity-100"}`}
-        >
-          <div className="flex items-center gap-3">
-            <div
-              className={`flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-2xl font-black bg-white border border-slate-100 text-slate-900 shadow-sm`}
-            >
-              {accountName.slice(0, 2).toUpperCase()}
-            </div>
-            <div className={`min-w-0 flex-1`}>
-              <p className="truncate text-sm font-bold text-slate-900">
-                {accountName}
-              </p>
-              <p className="text-[10px] uppercase tracking-[0.2em] text-slate-500">
-                {accountRole}
-              </p>
-            </div>
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => signOut({ callbackUrl: "/" })}
-              className="rounded-xl text-slate-400 hover:text-red-500 hover:bg-red-50"
-              title="Sign Out"
-            >
-              <LogOut className="h-4 w-4" />
             </Button>
           </div>
         </div>
@@ -374,7 +342,7 @@ export function AuthenticatedShell({
             return Object.entries(grouped).map(([category, items]) => (
               <div key={category} className="space-y-1 mb-6">
                 {!collapsed && (
-                  <h3 className="px-3 mb-2 text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">
+                  <h3 className="px-3 mb-2 text-[10px] font-black uppercase tracking-[0.2em] text-white/50">
                     {category}
                   </h3>
                 )}
@@ -389,17 +357,24 @@ export function AuthenticatedShell({
                         window.history.pushState(
                           null,
                           "",
-                          `/${branchSlug}/${accountRole === "member" ? "agapay-pintig" : "agapay-tanaw"}?tab=${item.value}`,
+                          `/${tenantSlug}/${accountRole === "member" ? "agapay-pintig" : "agapay-tanaw"}?tab=${item.value}`,
                         );
                         const event = new PopStateEvent("popstate");
                         window.dispatchEvent(event);
                       }}
-                      className={`group h-auto w-full justify-start rounded-2xl border border-transparent px-3 py-2.5 text-left text-slate-600 transition-all hover:bg-slate-100 hover:text-slate-900 data-[state=active]:bg-primary/10 data-[state=active]:text-primary data-[state=active]:border-primary/10 ${
+                      className={`group h-auto w-full justify-start rounded-2xl border border-transparent px-3 py-2.5 text-left text-white/70 transition-all hover:text-white hover:bg-[var(--accent-custom,rgba(255,255,255,0.1))] data-[state=active]:bg-[var(--accent-custom,rgba(255,255,255,0.15))] data-[state=active]:text-white data-[state=active]:border-[var(--accent-custom,rgba(255,255,255,0.2))] ${
                         collapsed ? "xl:px-2.5" : ""
                       }`}
+                      style={{
+                        backgroundColor:
+                          item.value ===
+                          "" /* Check active state below if needed, but rad tabs handle this using css */
+                            ? ""
+                            : "transparent",
+                      }}
                     >
                       <div className="flex w-full items-center gap-3">
-                        <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-[10px] border border-slate-100 bg-white transition-colors group-data-[state=active]:border-primary/20 group-data-[state=active]:bg-primary group-data-[state=active]:text-white">
+                        <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-[10px] bg-white/5 transition-colors group-data-[state=active]:bg-white group-data-[state=active]:text-slate-900">
                           <Icon className="h-4 w-4" />
                         </div>
                         <div
@@ -413,7 +388,7 @@ export function AuthenticatedShell({
                         </div>
                         {typeof item.badge === "number" && item.badge > 0 ? (
                           <span
-                            className={`rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-black text-primary ${
+                            className={`rounded-full bg-white/20 px-2 py-0.5 text-[10px] font-black text-white ${
                               collapsed ? "xl:hidden" : ""
                             }`}
                           >
@@ -430,9 +405,9 @@ export function AuthenticatedShell({
         </TabsList>
       </div>
 
-      <div className="border-t border-slate-100 p-3">
+      <div className="border-t border-white/10 p-3">
         <div className="px-4 py-2 text-center">
-          <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400">
+          <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/40">
             © 2026 Agapay System
           </p>
         </div>
@@ -512,19 +487,68 @@ export function AuthenticatedShell({
               </div>
             </div>
             <div className="flex items-center gap-3 self-start lg:self-auto">
-              <BranchSelector currentBranch={branchSlug} />
+              <TenantSelector currentTenant={tenantSlug} />
               <NotificationBell />
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    className="rounded-full border-slate-200 bg-white text-slate-500 shadow-sm hover:bg-slate-50 hover:text-slate-900"
+                    title="Module actions"
+                  >
+                    <MoreVertical className="h-5 w-5" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent
+                  align="end"
+                  className="w-56 rounded-2xl border-slate-200 p-2 shadow-xl"
+                >
+                  <DropdownMenuItem
+                    className="rounded-xl px-3 py-2"
+                    onClick={() => {
+                      window.location.href = `/${tenantSlug}`;
+                    }}
+                  >
+                    Open tenant homepage
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem
+                    className="rounded-xl px-3 py-2 text-red-600 focus:text-red-600"
+                    onClick={() => signOut({ callbackUrl: "/" })}
+                  >
+                    Sign out
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
               <div
-                className={`inline-flex items-center gap-2 rounded-full border px-4 py-2 ${dynamicStyles.badge}`}
+                className={`hidden md:inline-flex items-center gap-3 rounded-full border p-1 pr-5 ${dynamicStyles.badge}`}
                 style={portalBadgeStyle}
               >
                 <div
-                  className={`h-2.5 w-2.5 rounded-full ${dynamicStyles.dot}`}
-                />
-                <span className="text-xs font-bold uppercase tracking-[0.2em]">
-                  {portalLabel}
-                </span>
+                  className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full font-black bg-white/90 shadow-sm"
+                  style={{ color: normalizedTenantColor || "#0f172a" }}
+                >
+                  {accountName.slice(0, 2).toUpperCase()}
+                </div>
+                <div className="hidden lg:block text-left text-current">
+                  <p className="text-sm font-bold leading-none">
+                    {accountName}
+                  </p>
+                  <p className="text-[9px] font-black uppercase tracking-[0.2em] opacity-80 leading-tight mt-1">
+                    {accountRole}
+                  </p>
+                </div>
               </div>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => signOut({ callbackUrl: "/" })}
+                className="rounded-full text-slate-400 hover:text-red-500 hover:bg-red-50 ml-1"
+                title="Sign Out"
+              >
+                <LogOut className="h-5 w-5" />
+              </Button>
             </div>
           </div>
         </div>

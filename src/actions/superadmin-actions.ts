@@ -1052,8 +1052,8 @@ export async function createSubscriptionPlan(data: {
   maxStorageMb: number;
   features: string[];
   isAddon?: boolean;
-  branchPrice?: number;
-  branchStorage?: number;
+  tenantPrice?: number;
+  tenantStorage?: number;
   description?: string;
 }) {
   const session = await requireSuperadminSession();
@@ -1068,8 +1068,8 @@ export async function createSubscriptionPlan(data: {
         max_storage_mb: data.maxStorageMb,
         features: data.features,
         is_addon: data.isAddon || false,
-        branch_price: data.branchPrice,
-        branch_storage: data.branchStorage,
+        tenant_price: data.tenantPrice,
+        tenant_storage: data.tenantStorage,
       },
     });
 

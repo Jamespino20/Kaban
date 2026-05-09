@@ -56,7 +56,7 @@ Alright, let's have a complete revamp for Agapay, we'll redo everything from scr
 - Why Agapay section
 - Features section
 - Sample Calculator section
-- Agapay Zoomable Live Branch section-
+- Agapay Zoomable Live Tenant section-
 - Agapay SaaS Pricing
 - Testimonials section
 - FAQs section
@@ -114,7 +114,7 @@ Alright, let's have a complete revamp for Agapay, we'll redo everything from scr
 - Global Management [has grid of cards that expands upon hovering, has searchbar, inside scrolling, appropriately sized elements, and filters]
   - Sorts all tenants according to regions
   - Each card shows member counts, current paid plan, portfolio, tenant score, and last availment date, with buttons to edit, mark availed/suspended, and decommission/restore
-  - Add Tenant should show a two-pane dialog. Left pane is the homepage and dashboard builder. Homepage builder contains parent region, tenant name, URL slug, brand color, main color, accent color, branch logo, primary contents, starter testimonials and FAQs, hero section content, and calculator configs. Dashboard builder should show the entire functions for each role (Superadmin can toggle enabled functions of the tenant dashboard depending on the current plan). Right pane is the landscape live preview with a button to access the actual tenant homepage.
+  - Add Tenant should show a two-pane dialog. Left pane is the homepage and dashboard builder. Homepage builder contains parent region, tenant name, URL slug, brand color, main color, accent color, tenant logo, primary contents, starter testimonials and FAQs, hero section content, and calculator configs. Dashboard builder should show the entire functions for each role (Superadmin can toggle enabled functions of the tenant dashboard depending on the current plan). Right pane is the landscape live preview with a button to access the actual tenant homepage.
   - Once new tenants are created, it should create a new tenant record in the DB
   - There should be a lease according to the tenant's purchased plan, and it should warn tenants 2 weeks before access suspension so they can pay
 - Homepage Content (for Platform Dashboard) contains FAQ Moderation (General-Scoped) and Testimonial Moderation (Uses Tenants' Testimonials)
@@ -165,7 +165,7 @@ Alright, let's have a complete revamp for Agapay, we'll redo everything from scr
 
 ## Tenant Operator (Unified Admin & Lender)
 
-- Overview [Contains combined KPIs of branch health: Funds, Active Loans, Portfolio Growth, Repayment Rates, ROI/Earnings (Personal & Branch), Risk Exposure, and Portfolio Diversification; includes Recent Interaction Logs, Total Trust Score of the Branch, and AI-generated Snapshots/Summaries]
+- Overview [Contains combined KPIs of tenant health: Funds, Active Loans, Portfolio Growth, Repayment Rates, ROI/Earnings (Personal & Tenant), Risk Exposure, and Portfolio Diversification; includes Recent Interaction Logs, Total Trust Score of the Tenant, and AI-generated Snapshots/Summaries]
 - Approvals & Queue [Unified grid of cards with search, filters, and inside-scrolling]
   -Loan Applications [Status: Rejected, Pending, Approved]
   -Card contains: Applicant Name, Vouch Score, Trust Score, Loan Product, Requested Value, Cadence/Term, Purpose, Reference Number
@@ -177,10 +177,10 @@ Alright, let's have a complete revamp for Agapay, we'll redo everything from scr
     - Card contains: Lender Name, Amount, Method (E-wallet/Bank), Status, Reference Number
   - Identity Verification [Document review for new members]
     - Card contains: Applicant Name, Membership Code, Attached IDs, Verification Status
-- Capital & Investments (The Vault) [Personal and Branch-level funding management]
+- Capital & Investments (The Vault) [Personal and Tenant-level funding management]
   - My Investment Portfolio [Active investments in loans, ROI breakdown, Earnings history, Defaulted loan exposure]
   - Wallet & Top-Ups [Add/Withdraw funds, Transaction History, Linked Bank/E-wallet accounts]
-  - Risk & Diversification [AI-driven suggested investments and risk alerts across the branch portfolio]
+  - Risk & Diversification [AI-driven suggested investments and risk alerts across the tenant portfolio]
 - Member Management
   - Member Directory [Grid/cards view of the community]
   - Member Profiles [Personal info, full Loan History, Trust/Vouch scores, Uploaded Documents]
@@ -193,9 +193,9 @@ Alright, let's have a complete revamp for Agapay, we'll redo everything from scr
   - Compassion Actions [Loan restructuring/Grace periods/Penalty waivers with approval trails and notes]
 - Content & Branding [Branding and Member-facing UI control]
   - Tenant Homepage Editor [Hero Section, Calculator Config, Testimonials, FAQs, Announcements Banner]
-  - Branch Identity [Logo, Brand/Accent Colors, Typography selection]
+  - Tenant Identity [Logo, Brand/Accent Colors, Typography selection]
 - Community
-  - Intercom / Bulletin [Branch-wide announcements, internal messaging, member engagement posts]
+  - Intercom / Bulletin [Tenant-wide announcements, internal messaging, member engagement posts]
   - Chat Hub [Individual and Group chats with members and staff]
 - Support & Analytics
   - Feedback Registry [Member complaints, system issues, and feature requests]

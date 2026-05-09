@@ -15,7 +15,7 @@ import { Button } from "@/components/ui/button";
 import { getAvailableTenants } from "@/actions/identity";
 import { toast } from "sonner";
 
-export function BranchSelector({ currentBranch }: { currentBranch: string }) {
+export function TenantSelector({ currentTenant }: { currentTenant: string }) {
   const { data: session, update } = useSession();
   const [tenants, setTenants] = useState<any[]>([]);
   const [isPending, startTransition] = useTransition();
@@ -35,7 +35,7 @@ export function BranchSelector({ currentBranch }: { currentBranch: string }) {
   }, [session?.user?.username]);
 
   const handleSwitch = (tenantId: number | null, slug: string) => {
-    if (slug === currentBranch) return;
+    if (slug === currentTenant) return;
 
     startTransition(async () => {
       try {
@@ -46,20 +46,20 @@ export function BranchSelector({ currentBranch }: { currentBranch: string }) {
 
         if (result) {
           toast.success(`Switched to ${slug}`);
-          // Redirect to the new branch dashboard
+          // Redirect to the new tenant dashboard
           const role = session?.user?.role;
           const targetPath =
             role === "member" ? "agapay-pintig" : "agapay-tanaw";
           window.location.href = `/${slug}/${targetPath}`;
         }
       } catch (error) {
-        toast.error("Failed to switch branch.");
+        toast.error("Failed to switch tenant.");
       }
     });
   };
 
   const currentTenantName =
-    tenants.find((t) => t.slug === currentBranch)?.name || currentBranch;
+    tenants.find((t) => t.slug === currentTenant)?.name || currentTenant;
 
   return (
     <DropdownMenu>
@@ -83,13 +83,13 @@ export function BranchSelector({ currentBranch }: { currentBranch: string }) {
         className="w-[240px] p-2 rounded-2xl shadow-xl border-slate-100"
       >
         <DropdownMenuLabel className="px-3 py-2 text-xs font-black uppercase tracking-widest text-slate-400">
-          Available Branches
+          Available Tenants
         </DropdownMenuLabel>
         <DropdownMenuSeparator className="bg-slate-100" />
         {isLoading ? (
           <div className="py-8 flex flex-col items-center justify-center gap-2 text-slate-400">
             <RefreshCcw className="h-5 w-5 animate-spin opacity-50" />
-            <span className="text-xs font-medium">Loading branches...</span>
+            <span className="text-xs font-medium">Loading tenants...</span>
           </div>
         ) : (
           <div className="max-h-[300px] overflow-y-auto py-1 space-y-1">
@@ -98,7 +98,7 @@ export function BranchSelector({ currentBranch }: { currentBranch: string }) {
                 key={t.tenant_id || "global"}
                 onClick={() => handleSwitch(t.tenant_id, t.slug)}
                 className={`flex items-center justify-between p-3 rounded-xl cursor-pointer transition-all ${
-                  t.slug === currentBranch
+                  t.slug === currentTenant
                     ? "bg-primary/10 text-primary border-primary/20"
                     : "hover:bg-slate-50 text-slate-600"
                 }`}
@@ -111,7 +111,7 @@ export function BranchSelector({ currentBranch }: { currentBranch: string }) {
                     {t.groupName}
                   </span>
                 </div>
-                {t.slug === currentBranch && <Check className="h-4 w-4" />}
+                {t.slug === currentTenant && <Check className="h-4 w-4" />}
               </DropdownMenuItem>
             ))}
           </div>

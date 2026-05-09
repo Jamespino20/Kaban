@@ -1,7 +1,7 @@
 import { Footer } from "@/components/layout/footer";
 import { Navbar } from "@/components/layout/navbar";
 import { ContactContent } from "./contact-content";
-import { getActiveBranchesForNav } from "@/actions/tenant-management";
+import { getActiveTenantsForNav } from "@/actions/tenant-management";
 import {
   BadgeCheck,
   Mail,
@@ -43,11 +43,11 @@ const CONTACT_METHODS = [
 ];
 
 export default async function ContactPage() {
-  const branches = await getActiveBranchesForNav();
+  const tenants = await getActiveTenantsForNav();
 
   return (
     <div className="relative min-h-screen bg-white flex flex-col items-center font-sans overflow-x-hidden text-slate-950">
-      <Navbar forceSolid branches={branches} />
+      <Navbar forceSolid tenants={tenants} />
 
       <main className="w-full pt-32 flex flex-col items-center">
         <section className="w-full py-24 px-6 max-w-7xl text-center">

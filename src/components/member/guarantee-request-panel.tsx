@@ -87,7 +87,7 @@ export const GuaranteeRequestPanel = ({
               Guarantor Support
             </h3>
             <p className="mt-1 text-xs text-emerald-700">
-              Select 1 to 2 fellow members from the same branch.
+              Select 1 to 2 fellow members from the same tenant.
             </p>
           </div>
         </div>
@@ -118,7 +118,7 @@ export const GuaranteeRequestPanel = ({
               {MICROFINANCE_POLICY.defaultGuarantorLiabilityRate}%
             </strong>{" "}
             of the obligation each if the loan defaults. Therefore, only
-            branch-active members are eligible for selection.
+            tenant-active members are eligible for selection.
           </p>
         </div>
 

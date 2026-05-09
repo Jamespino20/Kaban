@@ -1,6 +1,6 @@
 import { Footer } from "@/components/layout/footer";
 import { Navbar } from "@/components/layout/navbar";
-import { getActiveBranchesForNav } from "@/actions/tenant-management";
+import { getActiveTenantsForNav } from "@/actions/tenant-management";
 import {
   BadgeCheck,
   CheckCircle2,
@@ -31,7 +31,7 @@ const CAPABILITIES = [
     points: [
       "Cash release, GCash, bank transfer, and field collection tracking",
       "Repayment submissions with reference and proof",
-      "Digital records for branch verification",
+      "Digital records for tenant verification",
     ],
   },
   {
@@ -59,11 +59,11 @@ const CAPABILITIES = [
 ];
 
 export default async function PlatformPage() {
-  const branches = await getActiveBranchesForNav();
+  const tenants = await getActiveTenantsForNav();
 
   return (
     <div className="relative min-h-screen bg-white flex flex-col items-center font-sans overflow-x-hidden text-slate-950">
-      <Navbar forceSolid branches={branches} />
+      <Navbar forceSolid tenants={tenants} />
 
       <main className="w-full pt-32 flex flex-col items-center">
         <section className="w-full py-24 px-6 max-w-7xl">
@@ -92,7 +92,7 @@ export default async function PlatformPage() {
                   What this prototype covers
                 </h2>
                 <p className="text-emerald-50/85 leading-relaxed text-lg">
-                  This covers member onboarding, branch-scoped lending
+                  This covers member onboarding, tenant-scoped lending
                   operations, 2FA-secured logins, Statements of Account,
                   feedback handling, and seasonal homepage content moderation.
                 </p>
@@ -101,7 +101,7 @@ export default async function PlatformPage() {
                 {[
                   "Not a direct wallet or payment processor",
                   "Records-first and verification-first system",
-                  "Built for cooperative and branch workflows",
+                  "Built for cooperative and tenant workflows",
                 ].map((item) => (
                   <div
                     key={item}
@@ -158,7 +158,7 @@ export default async function PlatformPage() {
               <p className="text-slate-600 leading-relaxed max-w-3xl">
                 Agapay features a multi-tenant design, complete with role-based
                 authorization, 2FA support, and careful access controls for
-                branch reports and admin actions.
+                tenant reports and admin actions.
               </p>
             </div>
           </div>

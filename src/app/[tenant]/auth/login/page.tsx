@@ -5,13 +5,13 @@ import { notFound } from "next/navigation";
 export default async function LoginPage({
   params,
 }: {
-  params: { branch: string };
+  params: { tenant: string };
 }) {
-  const { branch } = params;
+  const { tenant } = params;
 
-  let tenant = null;
-  if (branch && branch !== "auth") {
-    tenant = await prisma.tenant.findUnique({ where: { slug: branch } });
+  let tenantData = null;
+  if (tenant && tenant !== "auth") {
+    tenantData = await prisma.tenant.findUnique({ where: { slug: tenant } });
   }
 
   return (
@@ -21,9 +21,9 @@ export default async function LoginPage({
       </div>
       <div className="w-full max-w-md z-10 animate-in fade-in zoom-in duration-700">
         <LoginForm
-          preselectedTenantId={tenant?.tenant_id?.toString()}
-          branchName={tenant?.name}
-          currentBranch={branch}
+          preselectedTenantId={tenantData?.tenant_id?.toString()}
+          tenantName={tenantData?.name}
+          currentTenant={tenantData?.slug}
         />
       </div>
     </div>

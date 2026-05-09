@@ -12,13 +12,26 @@ import {
 } from "@/components/ui/dialog";
 import { CreateProductForm } from "./create-product-form";
 import { getLoanProducts } from "@/actions/loan-product";
+import { MICROFINANCE_POLICY } from "@/lib/microfinance-policy";
 import { toast } from "sonner";
 
 const FREQ_LABELS: Record<string, string> = {
+  bi_weekly: "Bi-weekly",
   weekly: "Lingguhán",
   biweekly: "Dalawang Linggo",
   monthly: "Buwanán",
 };
+
+function PolicyChip({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3">
+      <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400">
+        {label}
+      </p>
+      <p className="mt-1 text-sm font-black text-slate-900">{value}</p>
+    </div>
+  );
+}
 
 export const LoanProductsTab = () => {
   const [products, setProducts] = useState<any[]>([]);
@@ -39,16 +52,21 @@ export const LoanProductsTab = () => {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col justify-between gap-4 md:flex-row md:items-center">
-        <div className="space-y-1">
-          <h2 className="text-2xl font-display font-bold text-slate-900">
-            Loan Products
-          </h2>
-          <p className="text-sm text-slate-500">
-            Define loan products with payment cadence, guarantor liability, and
-            policy-compliant rates.
+      <div className="rounded-[1.75rem] border border-slate-200/70 bg-white/90 p-5 shadow-sm">
+        <div className="flex flex-col justify-between gap-4 md:flex-row md:items-start">
+          <div className="space-y-1">
+          <p className="text-[11px] font-black uppercase tracking-[0.2em] text-slate-400">
+            Tenant Operator
           </p>
-        </div>
+          <h2 className="text-2xl font-display font-bold text-slate-900">
+            Loan Products & Policy
+          </h2>
+          <p className="max-w-3xl text-sm text-slate-500">
+            Configure tenant loan ranges, monthly flat-rate policy, payment
+            cadence, term limits, and guarantor liability within the Agapay
+            policy band.
+          </p>
+          </div>
 
         <Dialog open={isOpen} onOpenChange={setIsOpen}>
           <DialogTrigger asChild>
@@ -72,6 +90,20 @@ export const LoanProductsTab = () => {
             />
           </DialogContent>
         </Dialog>
+        </div>
+
+        <div className="mt-5 grid gap-3 md:grid-cols-4">
+          <PolicyChip
+            label="Amount Band"
+            value={`PHP ${MICROFINANCE_POLICY.minAmount.toLocaleString()} - ${MICROFINANCE_POLICY.maxAmount.toLocaleString()}`}
+          />
+          <PolicyChip label="Interest Model" value="Flat monthly" />
+          <PolicyChip label="Cadence" value="Weekly / Bi-weekly / Monthly" />
+          <PolicyChip
+            label="Guarantor Liability"
+            value={`${MICROFINANCE_POLICY.defaultGuarantorLiabilityRate}%`}
+          />
+        </div>
       </div>
 
       <div className="overflow-hidden rounded-3xl border border-slate-100 bg-white shadow-xl">
@@ -87,6 +119,9 @@ export const LoanProductsTab = () => {
                 </th>
                 <th className="p-5 text-xs font-bold uppercase tracking-widest text-slate-400">
                   Interest / Mo.
+                </th>
+                <th className="p-5 text-xs font-bold uppercase tracking-widest text-slate-400">
+                  Interest Model
                 </th>
                 <th className="p-5 text-xs font-bold uppercase tracking-widest text-slate-400">
                   <div className="flex items-center gap-1.5">
@@ -112,11 +147,11 @@ export const LoanProductsTab = () => {
               {products.length === 0 ? (
                 <tr>
                   <td
-                    colSpan={7}
+                    colSpan={8}
                     className="p-20 text-center italic text-slate-400"
                   >
-                    No loan products defined yet. Create your first one to start
-                    lending.
+                    This tenant has no loan products yet. Products start empty
+                    by design; use templates only when this branch wants them.
                   </td>
                 </tr>
               ) : (
@@ -154,6 +189,11 @@ export const LoanProductsTab = () => {
                       </span>
                     </td>
                     <td className="p-5">
+                      <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-bold text-slate-600">
+                        Flat
+                      </span>
+                    </td>
+                    <td className="p-5">
                       <div className="flex flex-wrap gap-1">
                         {(
                           (product.allowed_frequencies as string[]) ?? [
@@ -176,19 +216,19 @@ export const LoanProductsTab = () => {
                     </td>
                     <td className="p-5 font-medium text-slate-600">
                       <span className="text-xs">
-                        {product.max_term_months} Buwan
+                        Up to {product.max_term_months} months
                       </span>
                     </td>
                     <td className="p-5">
                       {product.is_active ? (
                         <span className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-tighter text-emerald-600">
                           <div className="h-1.5 w-1.5 rounded-full bg-emerald-600" />
-                          Aktibo
+                          Active
                         </span>
                       ) : (
                         <span className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-tighter text-slate-400">
                           <div className="h-1.5 w-1.5 rounded-full bg-slate-400" />
-                          Hindi Aktibo
+                          Inactive
                         </span>
                       )}
                     </td>

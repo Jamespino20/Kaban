@@ -20,7 +20,7 @@ export function Footer() {
             </span>
           </div>
           <p className="text-slate-500 font-medium leading-relaxed">
-            A cooperative lending platform for Filipino entrepreneurs, branch
+            A cooperative lending platform for Filipino entrepreneurs, tenant
             teams, and lending communities who want clearer, more human, and
             more explainable financial workflows.
           </p>

@@ -65,7 +65,7 @@ export const newVerification = async (token: string) => {
     return { error: "Email does not exist!" };
   }
 
-  // Resolve tenant slug for branch-scoped update
+  // Resolve tenant slug for tenant-scoped update
   let tenantSlug = "malolos";
   if (existingToken.tenant_id) {
     const tenant = await prisma.tenant.findUnique({

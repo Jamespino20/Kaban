@@ -27,7 +27,7 @@ interface Props {
   availablePlans: Plan[];
   currentSubscription: CurrentSub;
   isAdmin: boolean;
-  branchSlug: string;
+  tenantSlug: string;
 }
 
 export function SubscriptionSettingsClient({
@@ -35,7 +35,7 @@ export function SubscriptionSettingsClient({
   availablePlans,
   currentSubscription,
   isAdmin,
-  branchSlug,
+  tenantSlug,
 }: Props) {
   const [isLoading, setIsLoading] = useState<number | null>(null);
 
@@ -45,7 +45,7 @@ export function SubscriptionSettingsClient({
       const res = await requestSubscriptionUpgrade(
         planId,
         "monthly",
-        branchSlug,
+        tenantSlug,
       );
       if (res.success) {
         toast.success(
@@ -55,7 +55,9 @@ export function SubscriptionSettingsClient({
         toast.error("Error: " + (res.error || "Failed to submit request."));
       }
     } catch (err) {
-      toast.error("System Error: Unable to process your request. Please try again.");
+      toast.error(
+        "System Error: Unable to process your request. Please try again.",
+      );
     } finally {
       setIsLoading(null);
     }

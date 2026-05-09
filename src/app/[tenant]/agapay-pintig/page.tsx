@@ -34,13 +34,13 @@ import { requireAuthenticatedSession } from "@/lib/authorization";
 export default async function AgapayPintigPage({
   params,
 }: {
-  params: { branch: string };
+  params: { tenant: string };
 }) {
-  const { branch } = params;
+  const { tenant } = params;
   const session = await requireAuthenticatedSession();
 
   if (session.user.role !== "member" || !session.user.tenantId) {
-    redirect(`/${branch}/agapay-tanaw`);
+    redirect(`/${tenant}/agapay-tanaw`);
   }
 
   const userName = session.user.username || "Miyembro";
@@ -126,8 +126,6 @@ export default async function AgapayPintigPage({
     }),
   ]);
 
-  const tenant = tenantIdentity;
-
   const totalSavings = savings.reduce(
     (acc, curr) =>
       String(curr.account_type) === PERSONAL_WALLET
@@ -154,15 +152,67 @@ export default async function AgapayPintigPage({
   );
   const memberTierLabel = formatTierLabel(member?.interest_tier);
   const navItems: ShellNavItem[] = [
-    { value: "overview", label: "Overview", icon: "overview" },
-    { value: "wallet", label: "Wallet", icon: "wallet" },
-    { value: "apply", label: "Loan Application", icon: "apply" },
-    { value: "loans", label: "My Loans", icon: "repayment" },
-    { value: "payments", label: "Repayment", icon: "wallet" },
-    { value: "vouch", label: "Vouch System", icon: "members" },
-    { value: "community", label: "Community", icon: "community" },
-    { value: "support", label: "Support & Feedback", icon: "feedback" },
-    { value: "settings", label: "Settings", icon: "settings" },
+    // PRD: Overview & Wallet
+    {
+      value: "overview",
+      label: "Overview",
+      icon: "overview",
+      category: "Core Operations",
+    },
+    {
+      value: "wallet",
+      label: "Wallet",
+      icon: "wallet",
+      category: "Core Operations",
+    },
+
+    // PRD: Loans
+    {
+      value: "apply",
+      label: "Loan Application",
+      icon: "apply",
+      category: "Loans & Repayments",
+    },
+    {
+      value: "loans",
+      label: "My Loans",
+      icon: "repayment",
+      category: "Loans & Repayments",
+    },
+    {
+      value: "payments",
+      label: "Repayment",
+      icon: "wallet",
+      category: "Loans & Repayments",
+    },
+
+    // PRD: Social Systems
+    {
+      value: "community",
+      label: "Community",
+      icon: "community",
+      category: "Social Systems",
+    },
+    {
+      value: "vouch",
+      label: "Vouch System",
+      icon: "members",
+      category: "Social Systems",
+    },
+
+    // PRD: Help & Settings
+    {
+      value: "support",
+      label: "Support & Feedback",
+      icon: "feedback",
+      category: "Help & Settings",
+    },
+    {
+      value: "settings",
+      label: "Settings",
+      icon: "settings",
+      category: "Help & Settings",
+    },
   ];
 
   const formatCurrency = (val: number) =>
@@ -196,20 +246,20 @@ export default async function AgapayPintigPage({
     <DashboardTabsShell
       defaultValue="overview"
       title="Pangkalahatan"
-      subtitle="Ang iyong katuwang sa mas malinaw na loan, repayment, at branch support."
+      subtitle="Ang iyong katuwang sa mas malinaw na loan, repayment, at tenant support."
       portalLabel="member portal"
       accountName={userName}
       accountRole="member"
-      tenantName={tenant?.name}
-      tenantLogoUrl={tenant?.logo_url || undefined}
-      tenantBrandColor={tenant?.brand_color}
+      tenantName={tenantIdentity?.name}
+      tenantLogoUrl={tenantIdentity?.logo_url || undefined}
+      tenantBrandColor={tenantIdentity?.brand_color}
       navItems={navItems}
-      branchSlug={branch}
+      tenantSlug={tenant}
     >
       <div className="space-y-6">
         {!member?.consent_accepted_at && (
           <ConsentDashboard
-            tenantName={tenant?.name || "Branch"}
+            tenantName={tenantIdentity?.name || "Tenant"}
             isAccepted={false}
             onAccept={acceptConsent}
           />
@@ -277,7 +327,7 @@ export default async function AgapayPintigPage({
 
               <div className="relative z-10 mt-8">
                 <a
-                  href={`/${branch}/api/reports/soa?userId=${userId}&tenantId=${tenantId}`}
+                  href={`/${tenant}/api/reports/soa?userId=${userId}&tenantId=${tenantId}`}
                   target="_blank"
                   className="inline-flex items-center gap-2 text-sm font-bold text-emerald-400 hover:text-emerald-300 transition-colors"
                 >
@@ -481,7 +531,7 @@ export default async function AgapayPintigPage({
             <div className="bg-white rounded-[2.5rem] border border-slate-100 p-8 shadow-md">
               <p className="text-center text-slate-400 italic py-10">
                 Ang support ticket system ay kasalukuyang ginagawa. Mangyaring
-                makipag-ugnayan sa iyong branch cashier para sa agarang tulong.
+                makipag-ugnayan sa iyong tenant cashier para sa agarang tulong.
               </p>
             </div>
           </div>
@@ -508,7 +558,7 @@ export default async function AgapayPintigPage({
               businessName: member?.profile?.business_name || null,
             }}
             tenant={{
-              name: tenant?.name,
+              name: tenantIdentity?.name,
             }}
             security={{
               is2FAEnabled,

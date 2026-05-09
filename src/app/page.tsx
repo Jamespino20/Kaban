@@ -1,16 +1,16 @@
 import { LandingClient } from "@/components/shared/landing-client";
-import { getActiveBranches } from "@/actions/tenant-management";
+import { getActiveTenants } from "@/actions/tenant-management";
 
 export const dynamic = "force-dynamic";
 
 export const metadata = {
   title: "Agapay | Iyong Agapay, Ating Tagumpay",
   description:
-    "Ang Agapay ay isang cooperative microfinance platform na tumutulong sa branches, lenders, at members.",
+    "Ang Agapay ay isang cooperative microfinance platform na tumutulong sa tenants, lenders, at members.",
 };
 
 export default async function LandingPage() {
-  const branches = await getActiveBranches();
+  const tenants = await getActiveTenants();
 
-  return <LandingClient branches={branches} />;
+  return <LandingClient tenants={tenants} />;
 }

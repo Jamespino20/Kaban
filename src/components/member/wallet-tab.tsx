@@ -182,7 +182,7 @@ export function WalletTab({ savings, transactions }: WalletTabProps) {
           <div className="space-y-1">
             <h2 className="text-xl font-bold text-slate-900">Wallet at Ipon</h2>
             <p className="text-sm text-slate-500">
-              Mas malinaw na tingin sa iyong pansariling wallet, ipon, at branch
+              Mas malinaw na tingin sa iyong pansariling wallet, ipon, at tenant
               records.
             </p>
           </div>
@@ -213,7 +213,7 @@ export function WalletTab({ savings, transactions }: WalletTabProps) {
             </div>
             <p className="text-sm leading-6 text-slate-600">
               Ang wallet sa prototype na ito ay internal record ng personal
-              branch funds. Kapag nagdagdag ka ng pondo, ang ibig sabihin nito
+              tenant funds. Kapag nagdagdag ka ng pondo, ang ibig sabihin nito
               ay may totoong cash o transfer na natanggap sa labas ng app, at
               ang Agapay ang nagtatala ng digital history.
             </p>
@@ -231,7 +231,7 @@ export function WalletTab({ savings, transactions }: WalletTabProps) {
                 1. Magdagdag ng pondo sa wallet kapag may aktwal na cash-in.
               </li>
               <li>2. Gamitin ang wallet para sa mabilis na loan repayment.</li>
-              <li>3. Suriin ang history para sa malinaw na branch record.</li>
+              <li>3. Suriin ang history para sa malinaw na tenant record.</li>
             </ul>
           </div>
         </div>

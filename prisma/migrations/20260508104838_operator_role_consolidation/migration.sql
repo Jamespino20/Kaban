@@ -1,9 +1,9 @@
 /*
   Warnings:
 
-  - The values [branch_room] on the enum `ConversationType` will be removed. If these variants are still used in the database, this will fail.
+  - The values [tenant_room] on the enum `ConversationType` will be removed. If these variants are still used in the database, this will fail.
   - The values [admin,lender] on the enum `Role` will be removed. If these variants are still used in the database, this will fail.
-  - You are about to drop the `branch_transfer_requests` table. If the table is not empty, all the data it contains will be lost.
+  - You are about to drop the `tenant_transfer_requests` table. If the table is not empty, all the data it contains will be lost.
 
 */
 -- CreateEnum
@@ -33,16 +33,16 @@ ALTER TABLE "users" ALTER COLUMN "role" SET DEFAULT 'member';
 COMMIT;
 
 -- DropForeignKey
-ALTER TABLE "branch_transfer_requests" DROP CONSTRAINT "branch_transfer_requests_from_tenant_id_fkey";
+ALTER TABLE "tenant_transfer_requests" DROP CONSTRAINT "tenant_transfer_requests_from_tenant_id_fkey";
 
 -- DropForeignKey
-ALTER TABLE "branch_transfer_requests" DROP CONSTRAINT "branch_transfer_requests_to_tenant_id_fkey";
+ALTER TABLE "tenant_transfer_requests" DROP CONSTRAINT "tenant_transfer_requests_to_tenant_id_fkey";
 
 -- DropForeignKey
-ALTER TABLE "branch_transfer_requests" DROP CONSTRAINT "branch_transfer_requests_user_id_fkey";
+ALTER TABLE "tenant_transfer_requests" DROP CONSTRAINT "tenant_transfer_requests_user_id_fkey";
 
 -- DropTable
-DROP TABLE "branch_transfer_requests";
+DROP TABLE "tenant_transfer_requests";
 
 -- CreateTable
 CREATE TABLE "tenant_applications" (

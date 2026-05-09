@@ -42,7 +42,7 @@ export const authConfig = {
         if (user.id) token.id = user.id;
       }
 
-      // Handle seamless branch switching
+      // Handle seamless tenant switching
       if (
         trigger === "update" &&
         session?.action === "switch_tenant" &&

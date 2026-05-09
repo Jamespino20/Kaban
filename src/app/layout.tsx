@@ -23,7 +23,7 @@ export const metadata: Metadata = {
     template: "%s | Agapay",
   },
   description:
-    "Filipino-first cooperative microfinance software with transparent 3% to 5% monthly rates, guarantor-backed lending, trust scoring, and branch-managed repayment support.",
+    "Filipino-first cooperative microfinance software with transparent 3% to 5% monthly rates, guarantor-backed lending, trust scoring, and tenant-managed repayment support.",
   keywords: [
     "microfinance philippines",
     "cooperative lending software",
@@ -39,14 +39,14 @@ export const metadata: Metadata = {
     url: "https://agapay-iatk.vercel.app",
     title: "Agapay | Cooperative Microfinance SaaS",
     description:
-      "Transparent, cooperative-backed credit flows for Filipino communities, with guarantors, trust scoring, and branch-managed repayment records.",
+      "Transparent, cooperative-backed credit flows for Filipino communities, with guarantors, trust scoring, and tenant-managed repayment records.",
     siteName: "Agapay Microfinance",
   },
   twitter: {
     card: "summary_large_image",
     title: "Agapay | Cooperative Microfinance SaaS",
     description:
-      "Transparent cooperative lending for Filipino members and branch teams.",
+      "Transparent cooperative lending for Filipino members and tenant teams.",
   },
   robots: {
     index: true,

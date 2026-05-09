@@ -120,7 +120,7 @@ export const resetPassword = async (
 
   const hashedPassword = await bcrypt.hash(password, 10);
 
-  // Resolve tenant slug for branch-scoped update
+  // Resolve tenant slug for tenant-scoped update
   let tenantSlug = "malolos";
   if (existingToken.tenant_id) {
     const tenant = await prisma.tenant.findUnique({

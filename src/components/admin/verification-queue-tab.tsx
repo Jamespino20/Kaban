@@ -55,31 +55,40 @@ type QueueKey = "loans" | "release" | "payments" | "identity" | "delinquent";
 const QUEUE_TABS: Array<{
   key: QueueKey;
   label: string;
+  description: string;
   color: string;
 }> = [
   {
     key: "loans",
     label: "Loan Applications",
+    description:
+      "Applicant, scores, product, value, cadence, purpose, and reference.",
     color: "border-indigo-300 text-indigo-700 bg-indigo-50",
   },
   {
     key: "release",
     label: "Fund Releases",
+    description: "Approved loans awaiting release method, date, and reference.",
     color: "border-emerald-300 text-emerald-700 bg-emerald-50",
   },
   {
     key: "payments",
-    label: "Pending Payments",
+    label: "Payment Verification",
+    description:
+      "Installment proofs, references, receipts, and verification actions.",
     color: "border-amber-300 text-amber-700 bg-amber-50",
   },
   {
     key: "identity",
-    label: "ID Verification",
+    label: "Identity Verification",
+    description: "Membership code, uploaded IDs, and verification status.",
     color: "border-sky-300 text-sky-700 bg-sky-50",
   },
   {
     key: "delinquent",
-    label: "Delinquent / Recovery",
+    label: "Delinquent / Compassion",
+    description:
+      "Overdue loans, recovery loans, and default handling readiness.",
     color: "border-rose-300 text-rose-700 bg-rose-50",
   },
 ];
@@ -112,28 +121,33 @@ export function VerificationQueueTab({ data }: VerificationQueueTabProps) {
         <div className="mb-4 flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
           <div className="space-y-1">
             <p className="text-[11px] font-black uppercase tracking-[0.2em] text-slate-400">
-              Verification Queue
+              Tenant Operator
             </p>
             <h2 className="text-xl font-display font-bold italic text-slate-950">
-              Pending actions for review
+              Approvals & Queue
             </h2>
             <p className="text-sm text-slate-500">
-              Isang compact na view para sa approvals, releases, payments, at
-              delinquency handling.
+              Unified review board for loan applications, fund releases, payment
+              verification, identity checks, and compassion handling.
             </p>
           </div>
 
           <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3">
             <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400">
-              Aktibong Queue
+              Active Queue
             </p>
-            <div className="mt-1 flex items-center gap-3">
-              <span className="text-sm font-black text-slate-900">
-                {activeMeta?.label}
-              </span>
-              <span className="rounded-full bg-slate-900 px-2 py-1 text-[10px] font-black text-white">
-                {activeMeta ? counts[activeMeta.key] : 0}
-              </span>
+            <div className="mt-1 space-y-1">
+              <div className="flex items-center gap-3">
+                <span className="text-sm font-black text-slate-900">
+                  {activeMeta?.label}
+                </span>
+                <span className="rounded-full bg-slate-900 px-2 py-1 text-[10px] font-black text-white">
+                  {activeMeta ? counts[activeMeta.key] : 0}
+                </span>
+              </div>
+              <p className="max-w-xs text-xs text-slate-500">
+                {activeMeta?.description}
+              </p>
             </div>
           </div>
         </div>
@@ -221,10 +235,10 @@ function PendingLoansSection({ loans }: { loans: any[] }) {
     <QueueSection
       icon={<Wallet className="h-5 w-5" />}
       title="Loan Applications"
-      description="New applications waiting for an initial decision."
+      description="Rejected, pending, and approved applications with borrower scores and loan intent."
       count={loans.length}
       accent="indigo"
-      emptyMessage="Walang nakabinbing loan applications."
+      emptyMessage="No loan applications are waiting for operator review."
     >
       {loans.map((loan: any) => (
         <QueueCard
@@ -244,6 +258,18 @@ function PendingLoansSection({ loans }: { loans: any[] }) {
             />
           }
           meta={[
+            {
+              label: "Trust Score",
+              value: String(loan.user?.trust_score ?? "Pending"),
+            },
+            {
+              label: "Vouch Score",
+              value: String(loan.user?.vouch_score ?? "Pending"),
+            },
+            {
+              label: "Cadence / Term",
+              value: `${loan.repayment_frequency?.replaceAll("_", " ") || "Not set"} / ${loan.term_months} mo`,
+            },
             {
               label: "Applied",
               value: format(new Date(loan.applied_at), "MMM d, yyyy"),
@@ -280,11 +306,11 @@ function ReleaseQueueSection({ loans }: { loans: any[] }) {
   return (
     <QueueSection
       icon={<Send className="h-5 w-5" />}
-      title="Mock Fund Release"
-      description="Approved loans that need to be recorded as released."
+      title="Fund Releases"
+      description="Approved loans awaiting release method, scheduled release, and reference recording."
       count={loans.length}
       accent="emerald"
-      emptyMessage="Walang approved loans na handa para i-release."
+      emptyMessage="No approved loans are waiting for fund release."
     >
       {loans.map((loan: any) => (
         <ReleaseLoanCard key={loan.loan_id} loan={loan} />
@@ -297,11 +323,11 @@ function PendingPaymentsSection({ payments }: { payments: any[] }) {
   return (
     <QueueSection
       icon={<BadgeCheck className="h-5 w-5" />}
-      title="Repayment Verification"
-      description="Repayment proofs waiting for verification or rejection."
+      title="Payment Verification"
+      description="Submitted installment or full-payment proofs waiting for approval or rejection."
       count={payments.length}
       accent="amber"
-      emptyMessage="Walang repayment submissions na naghihintay ng verification."
+      emptyMessage="No payment proofs are waiting for verification."
     >
       {payments.map((payment: any) => (
         <ReviewPaymentCard key={payment.payment_id} payment={payment} />
@@ -314,11 +340,11 @@ function RecoveryLoansSection({ loans }: { loans: any[] }) {
   return (
     <QueueSection
       icon={<ShieldAlert className="h-5 w-5" />}
-      title="Recovery Loans"
-      description="Loans from recovery/default handling."
+      title="Compassion / Recovery Loans"
+      description="Loans already routed into recovery or compassion handling."
       count={loans.length}
       accent="rose"
-      emptyMessage="Walang aktibong recovery loans sa kasalukuyan."
+      emptyMessage="No recovery loans are active right now."
     >
       {loans.map((loan: any) => (
         <QueueCard
@@ -360,10 +386,10 @@ function IdentityVerificationSection({
     <QueueSection
       icon={<Fingerprint className="h-5 w-5" />}
       title="Identity Verification"
-      description="Profile and document bundles that require manual check."
+      description="New member identity bundles with membership code, uploaded IDs, and review status."
       count={verifications.length}
       accent="slate"
-      emptyMessage="Walang nakabinbing identity checks."
+      emptyMessage="No identity checks are waiting for review."
     >
       {verifications.map((user: any) => (
         <QueueCard
@@ -373,16 +399,19 @@ function IdentityVerificationSection({
             <ApplicantSummary
               firstName={user.profile?.first_name}
               lastName={user.profile?.last_name}
-              subtitle={`${user.documents.length} file(s) uploaded`}
+              subtitle={user.member_code || "Membership code pending"}
             />
           }
           meta={[
             {
+              label: "Uploaded IDs",
+              value: `${user.documents.length} file(s)`,
+            },
+            {
               label: "Status",
               value: user.status?.replaceAll("_", " ") || "pending",
             },
-            { label: "Files", value: String(user.documents.length) },
-            { label: "Tenant", value: user.tenant?.name || "Current branch" },
+            { label: "Tenant", value: user.tenant?.name || "Current tenant" },
           ]}
           sideAction={
             <button className="flex h-10 w-10 items-center justify-center rounded-2xl bg-slate-50 transition-all hover:bg-slate-900 hover:text-white">
@@ -435,12 +464,21 @@ function ReleaseLoanCard({ loan }: { loan: any }) {
       }
       amount={
         <AmountSummary
-          amount={Number(loan.total_payable)}
-          caption="Kabuuang babayaran"
+          amount={Number(loan.principal_amount || loan.total_payable)}
+          caption="Approved value"
         />
       }
       meta={[
-        { label: "Branch", value: loan.tenant?.name || "N/A" },
+        {
+          label: "Release Method",
+          value: loan.release_method || "Not recorded",
+        },
+        {
+          label: "Scheduled",
+          value: loan.release_scheduled_at
+            ? format(new Date(loan.release_scheduled_at), "MMM d, yyyy")
+            : "Not scheduled",
+        },
         { label: "Product", value: loan.product?.name || "N/A" },
         { label: "Reference", value: loan.loan_reference },
       ]}
@@ -498,7 +536,7 @@ function ReleaseLoanCard({ loan }: { loan: any }) {
                 <textarea
                   value={notes}
                   onChange={(e) => setNotes(e.target.value)}
-                  placeholder="Halimbawa: Over-the-counter cash release sa branch."
+                  placeholder="Halimbawa: Over-the-counter cash release sa tenant."
                   className="min-h-24 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm"
                 />
               </div>
@@ -564,10 +602,16 @@ function ReviewPaymentCard({ payment }: { payment: any }) {
       amount={
         <AmountSummary
           amount={Number(payment.amount_paid)}
-          caption={payment.payment_reference}
+          caption={payment.payment_reference || "Reference pending"}
         />
       }
       meta={[
+        {
+          label: "Installment",
+          value: String(
+            payment.schedule?.installment_number ?? "Full / manual",
+          ),
+        },
         {
           label: "Submitted",
           value: format(new Date(payment.submitted_at), "MMM d, yyyy h:mm a"),
@@ -643,11 +687,11 @@ function OverdueLoansSection({ loans }: { loans: any[] }) {
   return (
     <QueueSection
       icon={<ShieldAlert className="h-5 w-5" />}
-      title="Overdue (At Risk)"
-      description="Loans that are overdue and ready for the default protocol."
+      title="Delinquent Loans"
+      description="Overdue loans ready for default handling or compassion review."
       count={loans.length}
       accent="rose"
-      emptyMessage="Walang overdue loans na naghihintay ng enforcement."
+      emptyMessage="No delinquent loans are waiting for enforcement."
     >
       {loans.map((loan: any) => (
         <QueueCard
@@ -667,6 +711,10 @@ function OverdueLoansSection({ loans }: { loans: any[] }) {
             />
           }
           meta={[
+            {
+              label: "Penalty Count",
+              value: String(loan.penalty_count ?? loan.penalties?.length ?? 0),
+            },
             { label: "Product", value: loan.product?.name || "N/A" },
             { label: "Reference", value: loan.loan_reference },
             {

@@ -93,7 +93,7 @@ export function CommunityTab({
   const [isPending, startTransition] = useTransition();
 
   const allConversationCount =
-    initialData.branchRooms.length +
+    initialData.tenantRooms.length +
     initialData.directConversations.length +
     (initialData.groupChats?.length || 0);
   const unreadCount =
@@ -340,10 +340,10 @@ export function CommunityTab({
     return (
       <div className="rounded-[1.75rem] border border-amber-200 bg-amber-50/80 p-5 shadow-sm">
         <p className="text-[11px] font-black uppercase tracking-[0.22em] text-amber-700">
-          Branch Context Needed
+          Tenant Context Needed
         </p>
         <h2 className="mt-2 text-xl font-display font-bold text-slate-900">
-          Pumili muna ng cooperative branch bago gamitin ang community tools
+          Pumili muna ng cooperative tenant bago gamitin ang community tools
         </h2>
         <p className="mt-2 text-sm leading-6 text-slate-600">
           Ang messaging, mentorship, at guarantor discovery ay tenant-scoped
@@ -363,7 +363,7 @@ export function CommunityTab({
                 Community Pulse
               </h2>
               <p className="text-xs text-slate-500">
-                Isang mas compact na view ng usapan, mentorship, at branch
+                Isang mas compact na view ng usapan, mentorship, at tenant
                 support.
               </p>
             </div>
@@ -590,7 +590,7 @@ export function CommunityTab({
             <Input
               value={focusArea}
               onChange={(event) => setFocusArea(event.target.value)}
-              placeholder="Focus area: negosyo, repayment habit, branch onboarding"
+              placeholder="Focus area: negosyo, repayment habit, tenant onboarding"
               className="rounded-xl"
             />
             <textarea
@@ -631,7 +631,7 @@ export function CommunityTab({
               </div>
               {thread && (
                 <span className="rounded-full bg-slate-100 px-3 py-1 text-[10px] font-black uppercase tracking-[0.16em] text-slate-500">
-                  {thread.type === "branch_room"
+                  {thread.type === "tenant_room"
                     ? "room"
                     : thread.type === "group_chat"
                       ? "group"

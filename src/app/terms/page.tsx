@@ -1,6 +1,6 @@
 import { Footer } from "@/components/layout/footer";
 import { Navbar } from "@/components/layout/navbar";
-import { getActiveBranchesForNav } from "@/actions/tenant-management";
+import { getActiveTenantsForNav } from "@/actions/tenant-management";
 
 const TERMS = [
   {
@@ -13,7 +13,7 @@ const TERMS = [
   },
   {
     title: "3. Loan and Repayment Information",
-    body: "Loan approvals, mock releases, and repayment submissions visible in the prototype are part of record-keeping and workflow simulation. Actual branch policy and human review remain the basis for final operational decisions.",
+    body: "Loan approvals, mock releases, and repayment submissions visible in the prototype are part of record-keeping and workflow simulation. Actual tenant policy and human review remain the basis for final operational decisions.",
   },
   {
     title: "4. Feedback and Content Moderation",
@@ -30,11 +30,11 @@ const TERMS = [
 ];
 
 export default async function TermsPage() {
-  const branches = await getActiveBranchesForNav();
+  const tenants = await getActiveTenantsForNav();
 
   return (
     <div className="relative min-h-screen bg-white flex flex-col items-center font-sans overflow-x-hidden text-slate-950">
-      <Navbar forceSolid branches={branches} />
+      <Navbar forceSolid tenants={tenants} />
       <main className="w-full pt-32 flex flex-col items-center">
         <section className="w-full py-24 px-6 max-w-5xl">
           <h1 className="text-4xl md:text-6xl font-black italic mb-6 text-slate-900">

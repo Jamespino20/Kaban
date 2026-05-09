@@ -4,40 +4,40 @@ import prisma from "@/lib/prisma";
 import Link from "next/link";
 import { Building2, ArrowRight } from "lucide-react";
 import { Navbar } from "@/components/layout/navbar";
-import { getActiveBranchesForNav } from "@/actions/tenant-management";
+import { getActiveTenantsForNav } from "@/actions/tenant-management";
 
-export default async function BranchIndexPage({
+export default async function TenantIndexPage({
   params,
 }: {
-  params: { branch: string };
+  params: { tenant: string };
 }) {
-  const { branch } = params;
+  const { tenant } = params;
   const session = await auth();
 
   if (session?.user?.id) {
     // Redirect to the appropriate portal based on role
     if (session.user.role === "member") {
-      redirect(`/${branch}/agapay-pintig`);
+      redirect(`/${tenant}/agapay-pintig`);
     } else {
-      redirect(`/${branch}/agapay-tanaw`);
+      redirect(`/${tenant}/agapay-tanaw`);
     }
   }
 
-  // Not logged in: Show the Branch Homepage
-  const tenant = await prisma.tenant.findUnique({
-    where: { slug: branch },
+  // Not logged in: Show the Tenant Homepage
+  const tenantData = await prisma.tenant.findUnique({
+    where: { slug: tenant },
   });
 
-  if (!tenant || !tenant.is_active) {
-    // Branch not found or inactive
+  if (!tenantData || !tenantData.is_active) {
+    // Tenant not found or inactive
     return (
       <div className="min-h-screen flex items-center justify-center bg-slate-50">
         <div className="text-center">
           <h1 className="text-4xl font-bold text-slate-900 mb-4">
-            Branch Not Found
+            Tenant Not Found
           </h1>
           <p className="text-slate-500 mb-8">
-            The cooperative branch you are looking for does not exist or is
+            The cooperative tenant you are looking for does not exist or is
             currently inactive.
           </p>
           <Link
@@ -51,28 +51,28 @@ export default async function BranchIndexPage({
     );
   }
 
-  const activeBranches = await getActiveBranchesForNav();
+  const activeTenants = await getActiveTenantsForNav();
 
   return (
     <div className="min-h-screen flex flex-col bg-slate-50">
-      <Navbar branches={activeBranches} forceSolid />
+      <Navbar tenants={activeTenants} forceSolid />
       <main className="flex-1 w-full pt-32 pb-24 flex flex-col items-center justify-center px-6">
         <div className="max-w-2xl w-full bg-white rounded-[3rem] p-10 md:p-16 border border-slate-200 shadow-xl text-center">
           <div
             className="w-20 h-20 mx-auto rounded-2xl flex items-center justify-center mb-8"
             style={{
-              backgroundColor: tenant.accent_color
-                ? `${tenant.accent_color}15`
+              backgroundColor: tenantData.accent_color
+                ? `${tenantData.accent_color}15`
                 : "#ecfdf5",
             }}
           >
             <Building2
               className="w-10 h-10"
-              style={{ color: tenant.accent_color || "#059669" }}
+              style={{ color: tenantData.accent_color || "#059669" }}
             />
           </div>
           <h1 className="text-4xl md:text-5xl font-black text-slate-900 mb-4">
-            {tenant.name}
+            {tenantData.name}
           </h1>
           <p className="text-xl text-slate-500 font-medium mb-10">
             Welcome to your cooperative's official portal.
@@ -80,18 +80,18 @@ export default async function BranchIndexPage({
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
             <Link
-              href={`/${branch}/auth/login`}
+              href={`/${tenant}/auth/login`}
               className="w-full sm:w-auto px-8 py-4 bg-emerald-600 text-white rounded-2xl font-bold hover:bg-emerald-700 transition-colors flex items-center justify-center gap-2"
               style={
-                tenant.accent_color
-                  ? { backgroundColor: tenant.accent_color }
+                tenantData.accent_color
+                  ? { backgroundColor: tenantData.accent_color }
                   : {}
               }
             >
               Member Login <ArrowRight className="w-5 h-5" />
             </Link>
             <Link
-              href={`/${branch}/auth/register`}
+              href={`/${tenant}/auth/register`}
               className="w-full sm:w-auto px-8 py-4 bg-white text-slate-700 border-2 border-slate-200 rounded-2xl font-bold hover:bg-slate-50 hover:border-slate-300 transition-colors flex items-center justify-center gap-2"
             >
               Apply for Membership

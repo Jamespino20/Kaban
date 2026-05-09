@@ -4,7 +4,7 @@ import { MapPin, Building2, ExternalLink } from "lucide-react";
 import { useState, useEffect } from "react";
 import Link from "next/link";
 
-export interface Branch {
+export interface Tenant {
   id: string;
   name: string;
   slug: string;
@@ -16,11 +16,11 @@ export interface Branch {
   color?: string;
 }
 
-export function BranchNetworkMap({ branches = [] }: { branches?: Branch[] }) {
-  const [activeBranch, setActiveBranch] = useState<Branch | null>(null);
+export function TenantNetworkMap({ tenants = [] }: { tenants?: Tenant[] }) {
+  const [activeTenant, setActiveTenant] = useState<Tenant | null>(null);
   const [mounted, setMounted] = useState(false);
 
-  const displayBranches = branches.length > 0 ? branches : [];
+  const displayTenants = tenants.length > 0 ? tenants : [];
 
   useEffect(() => {
     setMounted(true);
@@ -92,15 +92,15 @@ export function BranchNetworkMap({ branches = [] }: { branches?: Branch[] }) {
           />
 
           {/* Connectors/Network Lines */}
-          {displayBranches.length > 1 && activeBranch && (
+          {displayTenants.length > 1 && activeTenant && (
             <g className="opacity-40">
-              {displayBranches
-                .filter((b) => b.id !== activeBranch.id)
+              {displayTenants
+                .filter((b) => b.id !== activeTenant.id)
                 .slice(0, 3)
                 .map((b) => (
                   <path
                     key={`line-${b.id}`}
-                    d={`M${activeBranch.x} ${activeBranch.y} Q${(activeBranch.x + b.x) / 2} ${Math.min(activeBranch.y, b.y) - 10} ${b.x} ${b.y}`}
+                    d={`M${activeTenant.x} ${activeTenant.y} Q${(activeTenant.x + b.x) / 2} ${Math.min(activeTenant.y, b.y) - 10} ${b.x} ${b.y}`}
                     stroke="url(#islandGrad)"
                     strokeWidth="0.5"
                     fill="none"
@@ -111,48 +111,48 @@ export function BranchNetworkMap({ branches = [] }: { branches?: Branch[] }) {
             </g>
           )}
 
-          {/* Branch Pins */}
-          {displayBranches.map((branch) => (
+          {/* Tenant Pins */}
+          {displayTenants.map((tenant) => (
             <g
-              key={branch.id}
+              key={tenant.id}
               className="cursor-pointer group/pin"
-              onClick={() => setActiveBranch(branch)}
-              onMouseEnter={() => setActiveBranch(branch)}
+              onClick={() => setActiveTenant(tenant)}
+              onMouseEnter={() => setActiveTenant(tenant)}
             >
               {/* Animation Layer */}
               <circle
-                cx={branch.x}
-                cy={branch.y}
+                cx={tenant.x}
+                cy={tenant.y}
                 r="5"
                 className={`fill-emerald-400/20 transition-all duration-500 ${
-                  activeBranch?.id === branch.id
+                  activeTenant?.id === tenant.id
                     ? "scale-150 opacity-100"
                     : "scale-100 opacity-0 group-hover/pin:opacity-50"
                 }`}
               />
               {/* Outer Ring */}
               <circle
-                cx={branch.x}
-                cy={branch.y}
-                r={activeBranch?.id === branch.id ? "3.5" : "2.5"}
+                cx={tenant.x}
+                cy={tenant.y}
+                r={activeTenant?.id === tenant.id ? "3.5" : "2.5"}
                 className={`transition-all duration-300 ${
-                  activeBranch?.id === branch.id
+                  activeTenant?.id === tenant.id
                     ? "fill-emerald-600"
                     : "fill-emerald-400 group-hover/pin:fill-emerald-500"
                 }`}
               />
               {/* Inner Core */}
               <circle
-                cx={branch.x}
-                cy={branch.y}
+                cx={tenant.x}
+                cy={tenant.y}
                 r="1"
                 className="fill-white shadow-sm"
               />
               {/* Ripple */}
-              {activeBranch?.id === branch.id && (
+              {activeTenant?.id === tenant.id && (
                 <circle
-                  cx={branch.x}
-                  cy={branch.y}
+                  cx={tenant.x}
+                  cy={tenant.y}
                   r="8"
                   className="fill-none stroke-emerald-500/30 stroke-1 animate-ping"
                 />
@@ -178,33 +178,33 @@ export function BranchNetworkMap({ branches = [] }: { branches?: Branch[] }) {
 
         <div className="absolute bottom-10 right-10 flex items-center gap-3 text-[10px] font-black uppercase tracking-widest text-emerald-700 bg-white/80 backdrop-blur-md px-5 py-2.5 rounded-2xl border border-emerald-100 shadow-lg shadow-emerald-900/5 cursor-default group-hover:translate-x-[-10px] transition-transform">
           <MapPin className="w-3.5 h-3.5" />
-          Select a Branch
+          Select a Tenant
         </div>
       </div>
 
       <div className="lg:col-span-2 space-y-6">
-        {activeBranch ? (
+        {activeTenant ? (
           <div className="animate-in fade-in slide-in-from-right-8 duration-500 bg-white p-8 rounded-[2.5rem] border border-slate-200 shadow-xl space-y-6">
             <div className="w-16 h-16 bg-emerald-100 rounded-3xl flex items-center justify-center text-emerald-600">
               <Building2 className="w-8 h-8" />
             </div>
             <div>
               <h4 className="text-3xl font-black italic text-slate-900 tracking-tight leading-tight">
-                {activeBranch.name}
+                {activeTenant.name}
               </h4>
               <p className="text-slate-500 font-bold uppercase tracking-widest text-[10px] mt-2">
-                {activeBranch.city}, {activeBranch.region}
+                {activeTenant.city}, {activeTenant.region}
               </p>
             </div>
             <p className="text-slate-600 leading-relaxed font-medium">
-              Actively serving members in the {activeBranch.region} region.
-              Click below to visit their digital branch dashboard.
+              Actively serving members in the {activeTenant.region} region.
+              Click below to visit their digital tenant dashboard.
             </p>
             <Link
-              href={`/${activeBranch.slug}`}
+              href={`/${activeTenant.slug}`}
               className="flex items-center justify-center gap-2 w-full py-4 bg-slate-900 text-white font-bold rounded-2xl hover:bg-emerald-600 transition-all group"
             >
-              Visit Branch Homepage
+              Visit Tenant Homepage
               <ExternalLink className="w-4 h-4 transition-transform group-hover:translate-x-1" />
             </Link>
           </div>
@@ -214,7 +214,7 @@ export function BranchNetworkMap({ branches = [] }: { branches?: Branch[] }) {
               <MapPin className="w-full h-full" />
             </div>
             <p className="text-slate-400 font-bold italic">
-              Select a branch on the map to see details.
+              Select a tenant on the map to see details.
             </p>
           </div>
         )}

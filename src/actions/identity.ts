@@ -4,7 +4,7 @@ import bcrypt from "bcryptjs";
 import { neon } from "@neondatabase/serverless";
 import { requireAuthenticatedSession } from "@/lib/authorization";
 import { getDbUrl } from "@/lib/db-url";
-import { validateBranchMembershipLimit } from "@/lib/microfinance-policy";
+import { validateTenantMembershipLimit } from "@/lib/microfinance-policy";
 
 interface User {
   id: number;
@@ -27,7 +27,7 @@ interface Tenant {
 export async function getAvailableTenants(
   username: string,
   password?: string,
-  branchSlug?: string,
+  tenantSlug?: string,
 ) {
   try {
     let authenticatedSession = null;
@@ -152,7 +152,7 @@ async function processUsers(users: User[], sql: any, password?: string) {
 
   const primaryRole = dedupedTenants[0]?.role;
   if (primaryRole && primaryRole !== "superadmin") {
-    const membershipError = validateBranchMembershipLimit(
+    const membershipError = validateTenantMembershipLimit(
       dedupedTenants.filter((tenant) => tenant.tenant_id).length,
     );
 

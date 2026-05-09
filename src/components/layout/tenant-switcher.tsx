@@ -14,7 +14,7 @@ import {
   DropdownMenuTrigger,
 } from "../ui/dropdown-menu";
 
-export function BranchSwitcher() {
+export function TenantSwitcher() {
   const { data: session, update } = useSession();
   const [tenants, setTenants] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);

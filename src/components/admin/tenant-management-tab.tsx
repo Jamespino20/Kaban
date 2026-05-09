@@ -14,7 +14,7 @@ import {
 import {
   getRegions,
   getTenantsByRegion,
-  decommissionBranch,
+  decommissionTenant,
   renameTenant,
   updateTenantEntitlement,
 } from "@/actions/tenant-management";
@@ -27,7 +27,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { CreateRegionForm } from "./create-region-form";
-import { CreateBranchForm } from "./create-branch-form";
+import { CreateTenantForm } from "./create-tenant-form";
 
 export function TenantManagementTab({
   initialTenants,
@@ -43,14 +43,14 @@ export function TenantManagementTab({
   const handleDecommission = (tenantId: number, tenantName: string) => {
     if (
       !confirm(
-        `EMERGENCY ACTION:\n\nAre you sure you want to decommission ${tenantName}? This will lock the branch and generate a full data snapshot.`,
+        `EMERGENCY ACTION:\n\nAre you sure you want to decommission ${tenantName}? This will lock the tenant and generate a full data snapshot.`,
       )
     )
       return;
 
     startTransition(async () => {
       setError(null);
-      const res = await decommissionBranch(tenantId);
+      const res = await decommissionTenant(tenantId);
 
       if (res.success && res.data) {
         // Refresh local state
@@ -76,7 +76,7 @@ export function TenantManagementTab({
 
   const handleRename = (tenantId: number, currentName: string) => {
     const nextName = window.prompt(
-      "Ilagay ang bagong company o branch name:",
+      "Ilagay ang bagong company o tenant name:",
       currentName,
     );
 
@@ -181,14 +181,14 @@ export function TenantManagementTab({
             <Dialog>
               <DialogTrigger asChild>
                 <Button className="bg-emerald-600 text-white hover:bg-emerald-700">
-                  <Plus className="w-4 h-4 mr-2" /> Add Branch
+                  <Plus className="w-4 h-4 mr-2" /> Add Tenant
                 </Button>
               </DialogTrigger>
               <DialogContent>
                 <DialogHeader>
-                  <DialogTitle>Create New Branch (Tenant)</DialogTitle>
+                  <DialogTitle>Create New Tenant (Tenant)</DialogTitle>
                 </DialogHeader>
-                <CreateBranchForm onOpenChange={() => {}} />
+                <CreateTenantForm onOpenChange={() => {}} />
               </DialogContent>
             </Dialog>
           </div>
@@ -317,18 +317,18 @@ export function TenantManagementTab({
                     variant="destructive"
                     className="w-full text-xs font-bold"
                     onClick={() => handleDecommission(t.tenant_id, t.name)}
-                    disabled={isPending || t.slug === "main-branch"}
+                    disabled={isPending || t.slug === "main-tenant"}
                   >
                     <PowerOff className="w-4 h-4 mr-2" />
-                    {t.slug === "main-branch"
+                    {t.slug === "main-tenant"
                       ? "Cannot Suspend HQ"
-                      : "Decommission Branch"}
+                      : "Decommission Tenant"}
                   </Button>
                 </div>
               ) : (
                 <div className="space-y-3">
                   <div className="p-3 bg-slate-100 rounded-xl text-sm text-slate-600 font-medium">
-                    This branch was decommissioned due to emergency protocols.
+                    This tenant was decommissioned due to emergency protocols.
                     Operations are locked.
                   </div>
                   {t.decommissioned_backups &&

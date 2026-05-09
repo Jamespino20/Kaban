@@ -292,7 +292,7 @@ CREATE TABLE "malolos"."daily_reconciliations" (
     "total_ledger_debits" DECIMAL(15,2) NOT NULL DEFAULT 0,
     "total_ledger_credits" DECIMAL(15,2) NOT NULL DEFAULT 0,
     "is_ledger_balanced" BOOLEAN NOT NULL DEFAULT false,
-    "total_branch_savings" DECIMAL(15,2) NOT NULL DEFAULT 0,
+    "total_tenant_savings" DECIMAL(15,2) NOT NULL DEFAULT 0,
     "total_treasury_balance" DECIMAL(15,2) NOT NULL DEFAULT 0,
     "imbalance_amount" DECIMAL(15,2) NOT NULL DEFAULT 0,
     "has_discrepancy" BOOLEAN NOT NULL DEFAULT false,
@@ -606,7 +606,7 @@ CREATE TABLE "malolos"."notifications" (
 
 -- SCHEMA: malolos
 -- CreateTable
-CREATE TABLE "malolos"."branch_transfer_requests" (
+CREATE TABLE "malolos"."tenant_transfer_requests" (
     "id" TEXT NOT NULL,
     "user_id" INTEGER NOT NULL,
     "from_tenant_id" INTEGER NOT NULL,
@@ -616,7 +616,7 @@ CREATE TABLE "malolos"."branch_transfer_requests" (
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMP(3) NOT NULL,
 
-    CONSTRAINT "branch_transfer_requests_pkey" PRIMARY KEY ("id")
+    CONSTRAINT "tenant_transfer_requests_pkey" PRIMARY KEY ("id")
 );
 
 -- SCHEMA: malolos
@@ -1335,7 +1335,7 @@ CREATE  INDEX "compassion_actions_audit_log_id_idx" ON "malolos"."compassion_act
 
 -- SCHEMA: malolos
 -- CreateIndex
-CREATE  INDEX "branch_transfer_requests_status_idx" ON "malolos"."branch_transfer_requests"("status");
+CREATE  INDEX "tenant_transfer_requests_status_idx" ON "malolos"."tenant_transfer_requests"("status");
 
 -- SCHEMA: malolos
 -- CreateIndex
@@ -1655,15 +1655,15 @@ ALTER TABLE "malolos"."notifications" ADD CONSTRAINT "notifications_user_id_fkey
 
 -- SCHEMA: malolos
 -- AddForeignKey
-ALTER TABLE "malolos"."branch_transfer_requests" ADD CONSTRAINT "branch_transfer_requests_from_tenant_id_fkey" FOREIGN KEY ("from_tenant_id") REFERENCES public."tenants"("tenant_id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "malolos"."tenant_transfer_requests" ADD CONSTRAINT "tenant_transfer_requests_from_tenant_id_fkey" FOREIGN KEY ("from_tenant_id") REFERENCES public."tenants"("tenant_id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- SCHEMA: malolos
 -- AddForeignKey
-ALTER TABLE "malolos"."branch_transfer_requests" ADD CONSTRAINT "branch_transfer_requests_to_tenant_id_fkey" FOREIGN KEY ("to_tenant_id") REFERENCES public."tenants"("tenant_id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "malolos"."tenant_transfer_requests" ADD CONSTRAINT "tenant_transfer_requests_to_tenant_id_fkey" FOREIGN KEY ("to_tenant_id") REFERENCES public."tenants"("tenant_id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- SCHEMA: malolos
 -- AddForeignKey
-ALTER TABLE "malolos"."branch_transfer_requests" ADD CONSTRAINT "branch_transfer_requests_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "users"("user_id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "malolos"."tenant_transfer_requests" ADD CONSTRAINT "tenant_transfer_requests_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "users"("user_id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- SCHEMA: malolos
 -- AddForeignKey
@@ -2134,7 +2134,7 @@ CREATE TABLE "san_jose"."daily_reconciliations" (
     "total_ledger_debits" DECIMAL(15,2) NOT NULL DEFAULT 0,
     "total_ledger_credits" DECIMAL(15,2) NOT NULL DEFAULT 0,
     "is_ledger_balanced" BOOLEAN NOT NULL DEFAULT false,
-    "total_branch_savings" DECIMAL(15,2) NOT NULL DEFAULT 0,
+    "total_tenant_savings" DECIMAL(15,2) NOT NULL DEFAULT 0,
     "total_treasury_balance" DECIMAL(15,2) NOT NULL DEFAULT 0,
     "imbalance_amount" DECIMAL(15,2) NOT NULL DEFAULT 0,
     "has_discrepancy" BOOLEAN NOT NULL DEFAULT false,
@@ -2448,7 +2448,7 @@ CREATE TABLE "san_jose"."notifications" (
 
 -- SCHEMA: san_jose
 -- CreateTable
-CREATE TABLE "san_jose"."branch_transfer_requests" (
+CREATE TABLE "san_jose"."tenant_transfer_requests" (
     "id" TEXT NOT NULL,
     "user_id" INTEGER NOT NULL,
     "from_tenant_id" INTEGER NOT NULL,
@@ -2458,7 +2458,7 @@ CREATE TABLE "san_jose"."branch_transfer_requests" (
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMP(3) NOT NULL,
 
-    CONSTRAINT "branch_transfer_requests_pkey" PRIMARY KEY ("id")
+    CONSTRAINT "tenant_transfer_requests_pkey" PRIMARY KEY ("id")
 );
 
 -- SCHEMA: san_jose
@@ -3177,7 +3177,7 @@ CREATE  INDEX "compassion_actions_audit_log_id_idx" ON "san_jose"."compassion_ac
 
 -- SCHEMA: san_jose
 -- CreateIndex
-CREATE  INDEX "branch_transfer_requests_status_idx" ON "san_jose"."branch_transfer_requests"("status");
+CREATE  INDEX "tenant_transfer_requests_status_idx" ON "san_jose"."tenant_transfer_requests"("status");
 
 -- SCHEMA: san_jose
 -- CreateIndex
@@ -3497,15 +3497,15 @@ ALTER TABLE "san_jose"."notifications" ADD CONSTRAINT "notifications_user_id_fke
 
 -- SCHEMA: san_jose
 -- AddForeignKey
-ALTER TABLE "san_jose"."branch_transfer_requests" ADD CONSTRAINT "branch_transfer_requests_from_tenant_id_fkey" FOREIGN KEY ("from_tenant_id") REFERENCES public."tenants"("tenant_id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "san_jose"."tenant_transfer_requests" ADD CONSTRAINT "tenant_transfer_requests_from_tenant_id_fkey" FOREIGN KEY ("from_tenant_id") REFERENCES public."tenants"("tenant_id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- SCHEMA: san_jose
 -- AddForeignKey
-ALTER TABLE "san_jose"."branch_transfer_requests" ADD CONSTRAINT "branch_transfer_requests_to_tenant_id_fkey" FOREIGN KEY ("to_tenant_id") REFERENCES public."tenants"("tenant_id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "san_jose"."tenant_transfer_requests" ADD CONSTRAINT "tenant_transfer_requests_to_tenant_id_fkey" FOREIGN KEY ("to_tenant_id") REFERENCES public."tenants"("tenant_id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- SCHEMA: san_jose
 -- AddForeignKey
-ALTER TABLE "san_jose"."branch_transfer_requests" ADD CONSTRAINT "branch_transfer_requests_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "users"("user_id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "san_jose"."tenant_transfer_requests" ADD CONSTRAINT "tenant_transfer_requests_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "users"("user_id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- SCHEMA: san_jose
 -- AddForeignKey
@@ -3976,7 +3976,7 @@ CREATE TABLE "qc_vendors"."daily_reconciliations" (
     "total_ledger_debits" DECIMAL(15,2) NOT NULL DEFAULT 0,
     "total_ledger_credits" DECIMAL(15,2) NOT NULL DEFAULT 0,
     "is_ledger_balanced" BOOLEAN NOT NULL DEFAULT false,
-    "total_branch_savings" DECIMAL(15,2) NOT NULL DEFAULT 0,
+    "total_tenant_savings" DECIMAL(15,2) NOT NULL DEFAULT 0,
     "total_treasury_balance" DECIMAL(15,2) NOT NULL DEFAULT 0,
     "imbalance_amount" DECIMAL(15,2) NOT NULL DEFAULT 0,
     "has_discrepancy" BOOLEAN NOT NULL DEFAULT false,
@@ -4290,7 +4290,7 @@ CREATE TABLE "qc_vendors"."notifications" (
 
 -- SCHEMA: qc_vendors
 -- CreateTable
-CREATE TABLE "qc_vendors"."branch_transfer_requests" (
+CREATE TABLE "qc_vendors"."tenant_transfer_requests" (
     "id" TEXT NOT NULL,
     "user_id" INTEGER NOT NULL,
     "from_tenant_id" INTEGER NOT NULL,
@@ -4300,7 +4300,7 @@ CREATE TABLE "qc_vendors"."branch_transfer_requests" (
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMP(3) NOT NULL,
 
-    CONSTRAINT "branch_transfer_requests_pkey" PRIMARY KEY ("id")
+    CONSTRAINT "tenant_transfer_requests_pkey" PRIMARY KEY ("id")
 );
 
 -- SCHEMA: qc_vendors
@@ -5019,7 +5019,7 @@ CREATE  INDEX "compassion_actions_audit_log_id_idx" ON "qc_vendors"."compassion_
 
 -- SCHEMA: qc_vendors
 -- CreateIndex
-CREATE  INDEX "branch_transfer_requests_status_idx" ON "qc_vendors"."branch_transfer_requests"("status");
+CREATE  INDEX "tenant_transfer_requests_status_idx" ON "qc_vendors"."tenant_transfer_requests"("status");
 
 -- SCHEMA: qc_vendors
 -- CreateIndex
@@ -5339,15 +5339,15 @@ ALTER TABLE "qc_vendors"."notifications" ADD CONSTRAINT "notifications_user_id_f
 
 -- SCHEMA: qc_vendors
 -- AddForeignKey
-ALTER TABLE "qc_vendors"."branch_transfer_requests" ADD CONSTRAINT "branch_transfer_requests_from_tenant_id_fkey" FOREIGN KEY ("from_tenant_id") REFERENCES public."tenants"("tenant_id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "qc_vendors"."tenant_transfer_requests" ADD CONSTRAINT "tenant_transfer_requests_from_tenant_id_fkey" FOREIGN KEY ("from_tenant_id") REFERENCES public."tenants"("tenant_id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- SCHEMA: qc_vendors
 -- AddForeignKey
-ALTER TABLE "qc_vendors"."branch_transfer_requests" ADD CONSTRAINT "branch_transfer_requests_to_tenant_id_fkey" FOREIGN KEY ("to_tenant_id") REFERENCES public."tenants"("tenant_id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "qc_vendors"."tenant_transfer_requests" ADD CONSTRAINT "tenant_transfer_requests_to_tenant_id_fkey" FOREIGN KEY ("to_tenant_id") REFERENCES public."tenants"("tenant_id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- SCHEMA: qc_vendors
 -- AddForeignKey
-ALTER TABLE "qc_vendors"."branch_transfer_requests" ADD CONSTRAINT "branch_transfer_requests_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "users"("user_id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "qc_vendors"."tenant_transfer_requests" ADD CONSTRAINT "tenant_transfer_requests_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "users"("user_id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- SCHEMA: qc_vendors
 -- AddForeignKey
@@ -5818,7 +5818,7 @@ CREATE TABLE "makati_business"."daily_reconciliations" (
     "total_ledger_debits" DECIMAL(15,2) NOT NULL DEFAULT 0,
     "total_ledger_credits" DECIMAL(15,2) NOT NULL DEFAULT 0,
     "is_ledger_balanced" BOOLEAN NOT NULL DEFAULT false,
-    "total_branch_savings" DECIMAL(15,2) NOT NULL DEFAULT 0,
+    "total_tenant_savings" DECIMAL(15,2) NOT NULL DEFAULT 0,
     "total_treasury_balance" DECIMAL(15,2) NOT NULL DEFAULT 0,
     "imbalance_amount" DECIMAL(15,2) NOT NULL DEFAULT 0,
     "has_discrepancy" BOOLEAN NOT NULL DEFAULT false,
@@ -6132,7 +6132,7 @@ CREATE TABLE "makati_business"."notifications" (
 
 -- SCHEMA: makati_business
 -- CreateTable
-CREATE TABLE "makati_business"."branch_transfer_requests" (
+CREATE TABLE "makati_business"."tenant_transfer_requests" (
     "id" TEXT NOT NULL,
     "user_id" INTEGER NOT NULL,
     "from_tenant_id" INTEGER NOT NULL,
@@ -6142,7 +6142,7 @@ CREATE TABLE "makati_business"."branch_transfer_requests" (
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMP(3) NOT NULL,
 
-    CONSTRAINT "branch_transfer_requests_pkey" PRIMARY KEY ("id")
+    CONSTRAINT "tenant_transfer_requests_pkey" PRIMARY KEY ("id")
 );
 
 -- SCHEMA: makati_business
@@ -6861,7 +6861,7 @@ CREATE  INDEX "compassion_actions_audit_log_id_idx" ON "makati_business"."compas
 
 -- SCHEMA: makati_business
 -- CreateIndex
-CREATE  INDEX "branch_transfer_requests_status_idx" ON "makati_business"."branch_transfer_requests"("status");
+CREATE  INDEX "tenant_transfer_requests_status_idx" ON "makati_business"."tenant_transfer_requests"("status");
 
 -- SCHEMA: makati_business
 -- CreateIndex
@@ -7181,15 +7181,15 @@ ALTER TABLE "makati_business"."notifications" ADD CONSTRAINT "notifications_user
 
 -- SCHEMA: makati_business
 -- AddForeignKey
-ALTER TABLE "makati_business"."branch_transfer_requests" ADD CONSTRAINT "branch_transfer_requests_from_tenant_id_fkey" FOREIGN KEY ("from_tenant_id") REFERENCES public."tenants"("tenant_id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "makati_business"."tenant_transfer_requests" ADD CONSTRAINT "tenant_transfer_requests_from_tenant_id_fkey" FOREIGN KEY ("from_tenant_id") REFERENCES public."tenants"("tenant_id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- SCHEMA: makati_business
 -- AddForeignKey
-ALTER TABLE "makati_business"."branch_transfer_requests" ADD CONSTRAINT "branch_transfer_requests_to_tenant_id_fkey" FOREIGN KEY ("to_tenant_id") REFERENCES public."tenants"("tenant_id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "makati_business"."tenant_transfer_requests" ADD CONSTRAINT "tenant_transfer_requests_to_tenant_id_fkey" FOREIGN KEY ("to_tenant_id") REFERENCES public."tenants"("tenant_id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- SCHEMA: makati_business
 -- AddForeignKey
-ALTER TABLE "makati_business"."branch_transfer_requests" ADD CONSTRAINT "branch_transfer_requests_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "users"("user_id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "makati_business"."tenant_transfer_requests" ADD CONSTRAINT "tenant_transfer_requests_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "users"("user_id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- SCHEMA: makati_business
 -- AddForeignKey
@@ -7660,7 +7660,7 @@ CREATE TABLE "calamba_agri"."daily_reconciliations" (
     "total_ledger_debits" DECIMAL(15,2) NOT NULL DEFAULT 0,
     "total_ledger_credits" DECIMAL(15,2) NOT NULL DEFAULT 0,
     "is_ledger_balanced" BOOLEAN NOT NULL DEFAULT false,
-    "total_branch_savings" DECIMAL(15,2) NOT NULL DEFAULT 0,
+    "total_tenant_savings" DECIMAL(15,2) NOT NULL DEFAULT 0,
     "total_treasury_balance" DECIMAL(15,2) NOT NULL DEFAULT 0,
     "imbalance_amount" DECIMAL(15,2) NOT NULL DEFAULT 0,
     "has_discrepancy" BOOLEAN NOT NULL DEFAULT false,
@@ -7974,7 +7974,7 @@ CREATE TABLE "calamba_agri"."notifications" (
 
 -- SCHEMA: calamba_agri
 -- CreateTable
-CREATE TABLE "calamba_agri"."branch_transfer_requests" (
+CREATE TABLE "calamba_agri"."tenant_transfer_requests" (
     "id" TEXT NOT NULL,
     "user_id" INTEGER NOT NULL,
     "from_tenant_id" INTEGER NOT NULL,
@@ -7984,7 +7984,7 @@ CREATE TABLE "calamba_agri"."branch_transfer_requests" (
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMP(3) NOT NULL,
 
-    CONSTRAINT "branch_transfer_requests_pkey" PRIMARY KEY ("id")
+    CONSTRAINT "tenant_transfer_requests_pkey" PRIMARY KEY ("id")
 );
 
 -- SCHEMA: calamba_agri
@@ -8703,7 +8703,7 @@ CREATE  INDEX "compassion_actions_audit_log_id_idx" ON "calamba_agri"."compassio
 
 -- SCHEMA: calamba_agri
 -- CreateIndex
-CREATE  INDEX "branch_transfer_requests_status_idx" ON "calamba_agri"."branch_transfer_requests"("status");
+CREATE  INDEX "tenant_transfer_requests_status_idx" ON "calamba_agri"."tenant_transfer_requests"("status");
 
 -- SCHEMA: calamba_agri
 -- CreateIndex
@@ -9023,15 +9023,15 @@ ALTER TABLE "calamba_agri"."notifications" ADD CONSTRAINT "notifications_user_id
 
 -- SCHEMA: calamba_agri
 -- AddForeignKey
-ALTER TABLE "calamba_agri"."branch_transfer_requests" ADD CONSTRAINT "branch_transfer_requests_from_tenant_id_fkey" FOREIGN KEY ("from_tenant_id") REFERENCES public."tenants"("tenant_id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "calamba_agri"."tenant_transfer_requests" ADD CONSTRAINT "tenant_transfer_requests_from_tenant_id_fkey" FOREIGN KEY ("from_tenant_id") REFERENCES public."tenants"("tenant_id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- SCHEMA: calamba_agri
 -- AddForeignKey
-ALTER TABLE "calamba_agri"."branch_transfer_requests" ADD CONSTRAINT "branch_transfer_requests_to_tenant_id_fkey" FOREIGN KEY ("to_tenant_id") REFERENCES public."tenants"("tenant_id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "calamba_agri"."tenant_transfer_requests" ADD CONSTRAINT "tenant_transfer_requests_to_tenant_id_fkey" FOREIGN KEY ("to_tenant_id") REFERENCES public."tenants"("tenant_id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- SCHEMA: calamba_agri
 -- AddForeignKey
-ALTER TABLE "calamba_agri"."branch_transfer_requests" ADD CONSTRAINT "branch_transfer_requests_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "users"("user_id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "calamba_agri"."tenant_transfer_requests" ADD CONSTRAINT "tenant_transfer_requests_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "users"("user_id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- SCHEMA: calamba_agri
 -- AddForeignKey

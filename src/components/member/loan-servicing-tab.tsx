@@ -377,7 +377,7 @@ function LoanServicingCard({
         </p>
         <p className="text-sm text-slate-500">
           Sa prototype na ito, ang pera ay ipinapasa sa tunay na buhay sa
-          pamamagitan ng branch cashier, GCash transfer, bank transfer, o field
+          pamamagitan ng tenant cashier, GCash transfer, bank transfer, o field
           collection. Dito sa Agapay, itinatala at bine-verify natin ang
           repayment para may malinaw na records at digital receipt.
         </p>
@@ -550,7 +550,7 @@ function LoanServicingCard({
               <DialogTitle>Repayment Submission</DialogTitle>
               <DialogDescription>
                 Pumili ng payment channel at ilagay ang reference na ibinigay ng
-                branch o ng transfer.
+                tenant o ng transfer.
               </DialogDescription>
             </DialogHeader>
             <div className="space-y-4">
@@ -615,7 +615,7 @@ function LoanServicingCard({
                 <textarea
                   value={notes}
                   onChange={(e) => setNotes(e.target.value)}
-                  placeholder="Halimbawa: Binayaran sa branch cashier kaninang umaga."
+                  placeholder="Halimbawa: Binayaran sa tenant cashier kaninang umaga."
                   className="min-h-24 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm"
                 />
               </div>

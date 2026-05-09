@@ -32,7 +32,7 @@ export const RepaymentFrequency = {
 export const MICROFINANCE_POLICY = {
   minAmount: 2_000,
   maxAmount: 1_000_000,
-  maxBranchMembershipsPerUser: 2,
+  maxTenantMembershipsPerUser: 2,
   minTermMonths: 3,
   maxTermMonths: 12,
   minGuarantors: 1,
@@ -44,7 +44,7 @@ export const MICROFINANCE_POLICY = {
   gracePeriodDays: 14,
   compassionActionsPerLoanCycle: 1,
   overindebtedExposureRate: 0.8,
-  maxConcurrentLoansAcrossBranches: 2,
+  maxConcurrentLoansAcrossTenants: 2,
 } as const;
 
 export interface TierPolicy {
@@ -419,9 +419,9 @@ export function validateLoanRequestAgainstPolicy({
   return null;
 }
 
-export function validateBranchMembershipLimit(membershipCount: number) {
-  if (membershipCount > MICROFINANCE_POLICY.maxBranchMembershipsPerUser) {
-    return `A non-superadmin account may hold at most ${MICROFINANCE_POLICY.maxBranchMembershipsPerUser} branch memberships.`;
+export function validateTenantMembershipLimit(membershipCount: number) {
+  if (membershipCount > MICROFINANCE_POLICY.maxTenantMembershipsPerUser) {
+    return `A non-superadmin account may hold at most ${MICROFINANCE_POLICY.maxTenantMembershipsPerUser} tenant memberships.`;
   }
 
   return null;
@@ -457,14 +457,14 @@ export function evaluateOverindebtedness({
     return {
       blocked: true,
       reason:
-        "You have an overdue repayment in one of your branch accounts. Please settle this before applying for a new loan.",
+        "You have an overdue repayment in one of your tenant accounts. Please settle this before applying for a new loan.",
     };
   }
 
-  if (activeLoanCount >= MICROFINANCE_POLICY.maxConcurrentLoansAcrossBranches) {
+  if (activeLoanCount >= MICROFINANCE_POLICY.maxConcurrentLoansAcrossTenants) {
     return {
       blocked: true,
-      reason: `Maximum of ${MICROFINANCE_POLICY.maxConcurrentLoansAcrossBranches} concurrent loans allowed across all your branch accounts.`,
+      reason: `Maximum of ${MICROFINANCE_POLICY.maxConcurrentLoansAcrossTenants} concurrent loans allowed across all your tenant accounts.`,
     };
   }
 

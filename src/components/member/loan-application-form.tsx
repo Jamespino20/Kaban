@@ -143,7 +143,7 @@ export const LoanApplicationForm = ({
           toast.error(result.error);
         } else {
           toast.success(
-            "Your application has been submitted. The branch team will review it alongside your guarantor backing.",
+            "Your application has been submitted. The tenant team will review it alongside your guarantor backing.",
           );
           onSuccess();
         }

@@ -70,7 +70,7 @@ const EnhancedRegisterSchema = z
     birthdate: z.string().min(1, "Birthdate is required"),
     gender: z.enum(["male", "female", "other"]),
     regionId: z.string().min(1, "Region is required"),
-    tenantId: z.string().min(1, "Branch is required"),
+    tenantId: z.string().min(1, "Tenant is required"),
     psgcRegion: z.string().min(1, "PSGC Region is required"),
     province: z.string().min(1, "Province is required"),
     city: z.string().min(1, "City is required"),
@@ -188,7 +188,7 @@ export function EnhancedRegisterForm({
 
   if (!isMounted) return null;
 
-  // Handler: When Agapay Region (TenantGroup/Branch) Changes
+  // Handler: When Agapay Region (TenantGroup/Tenant) Changes
   const onRegionChange = async (regionId: string) => {
     form.setValue("regionId", regionId);
     form.setValue("tenantId", "");
@@ -732,7 +732,7 @@ export function EnhancedRegisterForm({
                           name="tenantId"
                           render={({ field }) => (
                             <FormItem>
-                              <FormLabel>Branch</FormLabel>
+                              <FormLabel>Tenant</FormLabel>
                               <FormControl>
                                 <select
                                   {...field}
@@ -743,7 +743,7 @@ export function EnhancedRegisterForm({
                                   }
                                   className="w-full rounded-xl h-12 border border-slate-200 px-4 bg-white outline-none font-bold text-emerald-700 disabled:opacity-50"
                                 >
-                                  <option value="">Select Branch</option>
+                                  <option value="">Select Tenant</option>
                                   {tenants.map((t: any) => (
                                     <option
                                       key={t.tenant_id}
@@ -755,7 +755,7 @@ export function EnhancedRegisterForm({
                                   {preselectedTenantId &&
                                     tenants.length === 0 && (
                                       <option value={preselectedTenantId}>
-                                        Preselected Branch
+                                        Preselected Tenant
                                       </option>
                                     )}
                                 </select>

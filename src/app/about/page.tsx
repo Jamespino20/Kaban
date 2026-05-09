@@ -1,6 +1,6 @@
 import { Footer } from "@/components/layout/footer";
 import { Navbar } from "@/components/layout/navbar";
-import { getActiveBranchesForNav } from "@/actions/tenant-management";
+import { getActiveTenantsForNav } from "@/actions/tenant-management";
 import {
   BadgeCheck,
   BookOpenText,
@@ -18,7 +18,7 @@ const PRINCIPLES = [
   {
     icon: <Users className="w-8 h-8 text-emerald-600" />,
     title: "Community accountability",
-    body: "The platform is built around Guarantors, Trust Scores, and branch-guided processes so every loan and repayment has a layer of social accountability.",
+    body: "The platform is built around Guarantors, Trust Scores, and tenant-guided processes so every loan and repayment has a layer of social accountability.",
   },
   {
     icon: <Shield className="w-8 h-8 text-emerald-600" />,
@@ -30,7 +30,7 @@ const PRINCIPLES = [
 const TIMELINE = [
   {
     title: "Rooted in a real problem",
-    body: "Agapay was built as a school project addressing a common pain point for micro-entrepreneurs: lack of clear records, difficulty following up, and confusing coordination between branches and borrowers.",
+    body: "Agapay was built as a school project addressing a common pain point for micro-entrepreneurs: lack of clear records, difficulty following up, and confusing coordination between tenants and borrowers.",
   },
   {
     title: "Not a wallet app, but a cooperative platform",
@@ -38,16 +38,16 @@ const TIMELINE = [
   },
   {
     title: "Filipino-first experience",
-    body: "The content and interface aim to be accessible to local users: clear technical terms and flows designed for branch-based lending and small-business cash cycles.",
+    body: "The content and interface aim to be accessible to local users: clear technical terms and flows designed for tenant-based lending and small-business cash cycles.",
   },
 ];
 
 export default async function AboutPage() {
-  const branches = await getActiveBranchesForNav();
+  const tenants = await getActiveTenantsForNav();
 
   return (
     <div className="relative min-h-screen bg-slate-50 flex flex-col items-center font-sans overflow-x-hidden text-slate-950">
-      <Navbar forceSolid branches={branches} />
+      <Navbar forceSolid tenants={tenants} />
 
       <main className="w-full pt-32 flex flex-col items-center">
         <section className="w-full py-24 px-6 max-w-7xl">
@@ -62,7 +62,7 @@ export default async function AboutPage() {
             </h1>
             <p className="text-xl md:text-2xl font-medium text-slate-600 mb-10 leading-relaxed max-w-3xl">
               Agapay is a Filipino-first cooperative microfinance SaaS built for
-              clearer branch operations, a more explainable loan flow, and
+              clearer tenant operations, a more explainable loan flow, and
               better-supported member growth.
             </p>
             <p className="text-base md:text-lg text-slate-500 leading-relaxed max-w-3xl">

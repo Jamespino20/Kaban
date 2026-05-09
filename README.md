@@ -44,7 +44,7 @@ Agapay enables cooperatives to operate independent, isolated digital microfinanc
 - **Framework**: [Next.js 15](https://nextjs.org/) (App Router)
 - **Language**: [TypeScript](https://www.typescriptlang.org/)
 - **Database**: [PostgreSQL](https://www.postgresql.org/) with multi-schema isolation
-- **ORM**: [Prisma](https://www.prisma.io/) (with `getBranchPrisma` utility)
+- **ORM**: [Prisma](https://www.prisma.io/) (with `getTenantPrisma` utility)
 - **Styling**: [Tailwind CSS v4](https://tailwindcss.com/)
 - **Jobs/Crons**: [Trigger.dev](https://trigger.dev/) (v4)
 - **Verification**: ID/Liveness docs management
@@ -59,7 +59,7 @@ Agapay enables cooperatives to operate independent, isolated digital microfinanc
 | **Core**       | Up to 500 members, basic dashboard, standard policy.          | ₱3,500/mo  |
 | **Pro**        | 2500 members, branding, community tools, compassion workflow. | ₱6,500/mo  |
 | **Enterprise** | Unlimited members, analytics, data export, priority support.  | ₱12,000/mo |
-| **Sangay**     | Multi-branch management (Enterprise add-on).                  | +₱3,000/br |
+| **Sangay**     | Multi-tenant management (Enterprise add-on).                  | +₱3,000/br |
 
 ---
 

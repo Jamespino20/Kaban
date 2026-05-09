@@ -40,7 +40,7 @@ export default async function middleware(req: NextRequest) {
     const userTenantSlug = req.auth?.user?.tenantSlug ?? null;
 
     const pathSegments = nextUrl.pathname.split("/").filter(Boolean);
-    const urlBranchSlug = pathSegments[0];
+    const urlTenantSlug = pathSegments[0];
     const isAuthRoute = nextUrl.pathname.includes("/auth");
     const isLandingPage = nextUrl.pathname === "/";
 
@@ -48,17 +48,17 @@ export default async function middleware(req: NextRequest) {
     logTraffic(nextUrl.pathname, userTenantId).catch(() => {});
 
     console.log(
-      `[PROXY] ${req.method} ${nextUrl.pathname} | Branch: ${urlBranchSlug} | Role: ${role} | TenantSlug: ${userTenantSlug}`,
+      `[PROXY] ${req.method} ${nextUrl.pathname} | Tenant: ${urlTenantSlug} | Role: ${role} | TenantSlug: ${userTenantSlug}`,
     );
 
     // 1. Unauthenticated workflow
     if (!isLoggedIn) {
-      const isBranchHomepage = pathSegments.length === 1 && urlBranchSlug;
-      if (!isAuthRoute && !isLandingPage && !isBranchHomepage) {
-        // Force branch-sensitive login
-        const targetBranch = urlBranchSlug || "main";
+      const isTenantHomepage = pathSegments.length === 1 && urlTenantSlug;
+      if (!isAuthRoute && !isLandingPage && !isTenantHomepage) {
+        // Force tenant-sensitive login
+        const targetTenant = urlTenantSlug || "main";
         return NextResponse.redirect(
-          new URL(`/${targetBranch}/auth/login`, nextUrl),
+          new URL(`/${targetTenant}/auth/login`, nextUrl),
         );
       }
       return NextResponse.next();
@@ -67,29 +67,29 @@ export default async function middleware(req: NextRequest) {
     // 2. Authenticated workflow
     const isSuperadmin = role === "superadmin";
 
-    // 2.1 Branch Isolation Guard
-    // Check if the user is in their assigned branch. Superadmins can be in any branch.
+    // 2.1 Tenant Isolation Guard
+    // Check if the user is in their assigned tenant. Superadmins can be in any tenant.
     const isTenantAccessPage = nextUrl.pathname.includes("/tenant-access");
-    const hasBranchMismatch =
+    const hasTenantMismatch =
       !isSuperadmin &&
-      urlBranchSlug &&
-      urlBranchSlug !== userTenantSlug &&
+      urlTenantSlug &&
+      urlTenantSlug !== userTenantSlug &&
       !isTenantAccessPage;
-    const isMissingBranch = !urlBranchSlug;
+    const isMissingTenant = !urlTenantSlug;
 
-    if (hasBranchMismatch || isMissingBranch) {
-      const targetBranch = isSuperadmin
-        ? urlBranchSlug || "main"
+    if (hasTenantMismatch || isMissingTenant) {
+      const targetTenant = isSuperadmin
+        ? urlTenantSlug || "main"
         : userTenantSlug || "main";
       const targetPath = role === "member" ? "agapay-pintig" : "agapay-tanaw";
 
       // If we are already at the target path, don't redirect (prevent loop)
-      if (nextUrl.pathname === `/${targetBranch}/${targetPath}`) {
+      if (nextUrl.pathname === `/${targetTenant}/${targetPath}`) {
         return NextResponse.next();
       }
 
       return NextResponse.redirect(
-        new URL(`/${targetBranch}/${targetPath}`, nextUrl),
+        new URL(`/${targetTenant}/${targetPath}`, nextUrl),
       );
     }
 
@@ -101,12 +101,12 @@ export default async function middleware(req: NextRequest) {
 
     if (role === "member" && isTanawRoute) {
       return NextResponse.redirect(
-        new URL(`/${urlBranchSlug}/agapay-pintig`, nextUrl),
+        new URL(`/${urlTenantSlug}/agapay-pintig`, nextUrl),
       );
     }
     if (!isStaffRole && isPintigRoute && !isSuperadmin) {
       return NextResponse.redirect(
-        new URL(`/${urlBranchSlug}/agapay-tanaw`, nextUrl),
+        new URL(`/${urlTenantSlug}/agapay-tanaw`, nextUrl),
       );
     }
 

@@ -1,6 +1,6 @@
 import { Footer } from "@/components/layout/footer";
 import { Navbar } from "@/components/layout/navbar";
-import { getActiveBranchesForNav } from "@/actions/tenant-management";
+import { getActiveTenantsForNav } from "@/actions/tenant-management";
 import { BadgeCheck, CheckCircle2, Building, Zap, Shield } from "lucide-react";
 import Link from "next/link";
 
@@ -31,7 +31,7 @@ const SUBSCRIPTION_PLANS = [
     features: [
       "Up to 2,500 members",
       "Advanced Analytics module",
-      "Custom branch branding",
+      "Custom tenant branding",
       "Mentorship & Community Tools setup",
       "Premium chat and email support",
       "Automated Compassion workflow",
@@ -81,11 +81,11 @@ const RATE_GUIDE = [
 ];
 
 export default async function PricingPage() {
-  const branches = await getActiveBranchesForNav();
+  const tenants = await getActiveTenantsForNav();
 
   return (
     <div className="relative min-h-screen bg-slate-50 flex flex-col items-center font-sans overflow-x-hidden text-slate-950">
-      <Navbar forceSolid branches={branches} />
+      <Navbar forceSolid tenants={tenants} />
 
       <main className="w-full pt-32 flex flex-col items-center">
         {/* SAAS PRICING SECTION */}

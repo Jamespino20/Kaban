@@ -2,13 +2,13 @@
 
 import Link from "next/link";
 
-import { PublicBranchSelector } from "@/components/layout/public-branch-selector";
+import { PublicTenantSelector } from "@/components/layout/public-tenant-selector";
 import { Footer } from "@/components/layout/footer";
 import { Navbar } from "@/components/layout/navbar";
 import {
-  BranchNetworkMap,
-  Branch,
-} from "@/components/shared/branch-network-map";
+  TenantNetworkMap,
+  Tenant,
+} from "@/components/shared/tenant-network-map";
 import {
   ArrowRight,
   BadgeCheck,
@@ -69,8 +69,8 @@ const SPLIT_SECTIONS = [
     title: "Better suited for cooperative lending than generic wallet apps",
     body: "Other apps like GCash is great for payments and transfers, but it was not built for Guarantor-backed lending, Trust Scores, and Mentorship workflows. Agapay is for financial relationships, not just a transaction feed.",
     bullets: [
-      "Mock money flow that can be verified by branch staff",
-      "Clearer support for branch release and repayment tracking",
+      "Mock money flow that can be verified by tenant staff",
+      "Clearer support for tenant release and repayment tracking",
     ],
     image: "/images/agapay_security.png",
     imageAlt: "Agapay cooperative operations",
@@ -82,12 +82,12 @@ const FALLBACK_FAQS = [
   {
     question: "What is Agapay?",
     answer:
-      "Agapay is a cooperative microfinance platform that helps branches, lenders, and members manage applications, releases, repayments, Trust Scores, and reports in a digital, transparent system.",
+      "Agapay is a cooperative microfinance platform that helps tenants, lenders, and members manage applications, releases, repayments, Trust Scores, and reports in a digital, transparent system.",
   },
   {
     question: "How is it different from apps like GCash?",
     answer:
-      "Agapay is not a wallet app. Its focus is cooperative lending: with Guarantors, Trust Scores, Mentorship, a branch approval flow, and clearer operational records for staff and members.",
+      "Agapay is not a wallet app. Its focus is cooperative lending: with Guarantors, Trust Scores, Mentorship, a tenant approval flow, and clearer operational records for staff and members.",
   },
   {
     question: "How does a member receive funds in this prototype?",
@@ -97,7 +97,7 @@ const FALLBACK_FAQS = [
   {
     question: "How does a member make repayments?",
     answer:
-      "A member can submit a repayment through a branch cashier, GCash transfer, bank transfer, or field collection. The admin then verifies the submission before it enters the system as a verified repayment.",
+      "A member can submit a repayment through a tenant cashier, GCash transfer, bank transfer, or field collection. The admin then verifies the submission before it enters the system as a verified repayment.",
   },
   {
     question: "Are there hidden fees?",
@@ -117,7 +117,7 @@ const FALLBACK_TESTIMONIALS = [
     role: "Sari-sari Store Owner",
     photo: "/images/testimonial_1.png",
     content:
-      "Before, my only options were 5-6 lenders or fast but confusing apps. With Agapay, my repayment schedule is clear, I have a digital receipt, and the branch explains everything before I commit.",
+      "Before, my only options were 5-6 lenders or fast but confusing apps. With Agapay, my repayment schedule is clear, I have a digital receipt, and the tenant explains everything before I commit.",
   },
   {
     name: "Juanito Reyes",
@@ -131,7 +131,7 @@ const FALLBACK_TESTIMONIALS = [
     role: "Online Seller",
     photo: "/images/testimonial_3.png",
     content:
-      "The repayment flow is great because I can record my GCash transfer and have it verified by the branch. I'm never confused about whether it went through or not.",
+      "The repayment flow is great because I can record my GCash transfer and have it verified by the tenant. I'm never confused about whether it went through or not.",
   },
   {
     name: "Cassandra Martinez",
@@ -176,7 +176,7 @@ const LOAN_OFFERS = [
     id: "community",
     name: "Paluwagan Plus",
     description:
-      "For community-backed groups with Guarantors and closer support from branch staff.",
+      "For community-backed groups with Guarantors and closer support from tenant staff.",
     minAmount: 3000,
     maxAmount: 15000,
     maxTerm: 6,
@@ -187,7 +187,7 @@ const LOAN_OFFERS = [
     id: "agri",
     name: "Agri-Agapay",
     description:
-      "For larger capital needs such as farm inputs, equipment support, or branch-managed livelihood expansion.",
+      "For larger capital needs such as farm inputs, equipment support, or tenant-managed livelihood expansion.",
     minAmount: 15000,
     maxAmount: 100000,
     maxTerm: 12,
@@ -199,7 +199,7 @@ const LOAN_OFFERS = [
 type PaymentCadence = "biweekly" | "weekly" | "monthly";
 const INTEREST_RATE_OPTIONS = [3, 3.5, 4, 4.5, 5];
 
-export function LandingClient({ branches }: { branches: Branch[] }) {
+export function LandingClient({ tenants }: { tenants: Tenant[] }) {
   const revealRefs = useRef<(HTMLElement | null)[]>([]);
   const [isScrolled, setIsScrolled] = useState(false);
   const [faqs, setFaqs] = useState(FALLBACK_FAQS);
@@ -335,7 +335,7 @@ export function LandingClient({ branches }: { branches: Branch[] }) {
         <div className="absolute inset-0 bg-gradient-to-b from-black/35 via-black/10 to-slate-50 z-10" />
       </div>
 
-      <Navbar branches={branches} />
+      <Navbar tenants={tenants} />
 
       <main className="relative z-20 w-full flex flex-col items-center">
         <section className="relative w-full h-[95vh] flex flex-col items-start justify-center px-6 max-w-7xl">
@@ -357,11 +357,11 @@ export function LandingClient({ branches }: { branches: Branch[] }) {
             >
               A Filipino-first lending platform with <strong>Guarantors</strong>
               ,<strong> Trust Score</strong>, <strong>Mentorship</strong>, and
-              clearer records for members, admins, and cooperative branches.
+              clearer records for members, admins, and cooperative tenants.
             </p>
             <div className="flex flex-wrap gap-4">
-              <PublicBranchSelector
-                branches={branches}
+              <PublicTenantSelector
+                tenants={tenants}
                 triggerClassName="bg-emerald-600 hover:bg-emerald-700 text-white font-bold h-12 px-8 rounded-full shadow-lg shadow-emerald-900/20 transition-all flex items-center justify-between gap-3 text-lg"
               />
               <a
@@ -386,7 +386,7 @@ export function LandingClient({ branches }: { branches: Branch[] }) {
                 Why is Agapay better for cooperative lending?
               </h2>
               <p className="text-slate-500 max-w-3xl mx-auto font-medium text-lg text-balance">
-                Agapay is built for branch operations, Trust Scores,
+                Agapay is built for tenant operations, Trust Scores,
                 Guarantor-backed loans, and more human lending support.
               </p>
             </div>
@@ -473,17 +473,17 @@ export function LandingClient({ branches }: { branches: Branch[] }) {
             <div className="text-center mb-16 px-6">
               <span className="inline-flex items-center gap-2 text-emerald-700 font-bold tracking-widest text-xs uppercase mb-6 px-4 py-1.5 bg-emerald-100/90 rounded-full border border-emerald-200/50">
                 <MapPin className="w-4 h-4" />
-                Agapay Branch Network
+                Agapay Tenant Network
               </span>
               <h2 className="text-4xl md:text-6xl font-black text-slate-950 mb-6 italic tracking-tight">
-                Live Branch Map
+                Live Tenant Map
               </h2>
               <p className="text-slate-500 max-w-3xl mx-auto font-medium text-lg">
-                From Metro Manila to Davao, we are here to support. Each branch
+                From Metro Manila to Davao, we are here to support. Each tenant
                 is independent but united in Agapay&apos;s mission.
               </p>
             </div>
-            <BranchNetworkMap branches={branches} />
+            <TenantNetworkMap tenants={tenants} />
           </section>
 
           <section className="w-full py-36 px-6 max-w-7xl">
@@ -608,8 +608,8 @@ export function LandingClient({ branches }: { branches: Branch[] }) {
                   a static wallet experience.
                 </p>
                 <div className="flex flex-wrap gap-6 justify-center">
-                  <PublicBranchSelector
-                    branches={branches}
+                  <PublicTenantSelector
+                    tenants={tenants}
                     triggerClassName="bg-white hover:bg-emerald-50 text-emerald-700 font-black h-14 px-10 rounded-full shadow-xl shadow-emerald-900/20 transition-all flex items-center justify-between gap-3 text-xl"
                   />
                   <Link

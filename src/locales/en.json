@@ -32,7 +32,7 @@
     "subtitle_lender": "Tenant-level operations, borrower oversight, and trust monitoring.",
     "subtitle_admin": "Tenant-level administration for approvals, member safety, and portfolio health.",
     "subtitle_superadmin": "Global oversight for tenant cooperatives, fraud monitoring, and system health.",
-    "subtitle_branch": "Branch-scoped oversight for selected cooperative, including approvals, members, and content operations.",
+    "subtitle_tenant": "Tenant-scoped oversight for selected cooperative, including approvals, members, and content operations.",
     "global_mgmt": "Global Tenant View",
     "homepage_content": "Homepage Content",
     "feedback": "Feedback",

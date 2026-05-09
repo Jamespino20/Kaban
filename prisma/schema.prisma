@@ -34,7 +34,7 @@ model Tenant {
   lifetime_availed_at      DateTime?
   availed_type             String?                   @db.VarChar(50) // "One-Time", "Core", "Pro"
   region                   String?                   @db.VarChar(100)
-  metadata                 Json? // For future flexible branch config
+  metadata                 Json? // For future flexible tenant config
   entitlement_reference    String?                   @db.VarChar(120)
   entitlement_notes        String?
   entitled_by_user_id      Int?
@@ -481,7 +481,7 @@ model DailyReconciliation {
   total_ledger_debits              Decimal                    @default(0) @db.Decimal(15, 2)
   total_ledger_credits             Decimal                    @default(0) @db.Decimal(15, 2)
   is_ledger_balanced               Boolean                    @default(false)
-  total_branch_savings             Decimal                    @default(0) @db.Decimal(15, 2)
+  total_tenant_savings             Decimal                    @default(0) @db.Decimal(15, 2)
   total_treasury_balance           Decimal                    @default(0) @db.Decimal(15, 2)
   imbalance_amount                 Decimal                    @default(0) @db.Decimal(15, 2)
   has_discrepancy                  Boolean                    @default(false)
@@ -1637,7 +1637,7 @@ enum NotificationType {
   mentorship_endorsed
   mentorship_rejected
   direct_message
-  branch_announcement
+  tenant_announcement
   // Security
   login_new_device
   password_changed
@@ -1677,8 +1677,8 @@ model SubscriptionPlan {
   features       String[]
   is_active      Boolean              @default(true)
   is_addon       Boolean              @default(false) // Sangay is an add-on to Enterprise
-  branch_price   Int?                 @default(3000) // Per-branch price for Sangay
-  branch_storage Int?                 @default(10000) // Per-branch storage for Sangay
+  tenant_price   Int?                 @default(3000) // Per-tenant price for Sangay
+  tenant_storage Int?                 @default(10000) // Per-tenant storage for Sangay
   created_at     DateTime             @default(now())
   updated_at     DateTime             @updatedAt
   subscriptions  TenantSubscription[]

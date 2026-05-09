@@ -1,14 +1,17 @@
 # AGAPAY Next-Phase Plan: Business Flow, Community, and Compact UX
 
 ## Summary
+
 Move Agapay back onto the product-core track by finishing the cooperative microfinance flow around `loan lifecycle`, `guarantorship`, `mentorship`, `community messaging`, and `use-case testing`, while also tightening the dashboard UX for less technical users.
 
 This phase assumes:
-- `Direct + branch rooms` messaging for v1
+
+- `Direct + tenant rooms` messaging for v1
 - `Hybrid` mentorship: members can discover people, but formal mentorship/guarantor-fit relationships require admin endorsement
 - `Moderately compact` dashboard/forms layout, not ultra-dense
 
 The sequence stays aligned to your roadmap:
+
 1. business-flow cleanup
 2. use cases / edge testing
 3. design / typography system
@@ -18,6 +21,7 @@ The sequence stays aligned to your roadmap:
 ## Implementation Changes
 
 ### 1. Finish business-flow cleanup around the real microfinance lifecycle
+
 - Normalize the loan lifecycle so every stage is explicit and consistent:
   - application
   - guarantor selection
@@ -52,15 +56,16 @@ The sequence stays aligned to your roadmap:
 - Use the existing `RepaymentFrequency` model instead of leaving the system effectively monthly-only in behavior
 
 ### 2. Add mentorship and community operations as first-class cooperative features
+
 - Build a tenant-scoped messaging system using the existing `Message` concept, but extend it to support:
   - direct conversations
-  - branch rooms
+  - tenant rooms
 - Direct messaging should support:
   - member ↔ member
   - member ↔ lender
   - member ↔ admin
   - admin ↔ lender
-- Branch rooms should be tenant-scoped and intended for:
+- Tenant rooms should be tenant-scoped and intended for:
   - onboarding help
   - repayment reminders
   - mentorship discussions
@@ -85,6 +90,7 @@ The sequence stays aligned to your roadmap:
   - Tanaw should expose mentorship/community activity summaries to staff
 
 ### 3. Compact the authenticated UX for low-system-literacy users
+
 - Refactor `Tanaw` and `Pintig` screens toward a more compact, guided layout:
   - less oversized cards
   - fewer giant empty states
@@ -113,6 +119,7 @@ The sequence stays aligned to your roadmap:
   - maintain large-enough tap targets and legible type
 
 ### 4. Use-case and edge testing pass
+
 - Add focused test coverage for the flows that matter most to cooperative lending:
   - member applies within tier cap
   - member blocked when exceeding cap
@@ -121,17 +128,18 @@ The sequence stays aligned to your roadmap:
   - repayment submission below next installment is rejected unless full settlement
   - overdue schedules are updated before verification
   - compassion request limit is enforced per loan cycle
-  - superadmin global vs branch-scoped behavior
+  - superadmin global vs tenant-scoped behavior
   - SOA shows correct outstanding balance
   - trust-tier aggregation reflects all 5 tiers
 - Add scenario tests for messaging/community:
   - direct chat within same tenant
-  - branch room visibility by tenant
+  - tenant room visibility by tenant
   - mentorship endorsement flow
   - member cannot see cross-tenant conversations
 - Prefer targeted business-rule tests over broad snapshot/UI-only tests for this phase
 
 ### 5. Prepare the design system and AI layer after the flow stabilizes
+
 - After the business flow and compact UX are stable, define the shared design system pass:
   - spacing scale
   - card density
@@ -147,6 +155,7 @@ The sequence stays aligned to your roadmap:
 - Do not start AI feature implementation before the messaging/business-flow contracts are stable
 
 ## Public / API / Type Changes
+
 - Messaging will need a real conversation model instead of the current flat message record:
   - direct thread identity
   - room/thread type
@@ -159,11 +168,12 @@ The sequence stays aligned to your roadmap:
 - SOA/report calculations should read from the corrected outstanding-balance logic.
 
 ## Test Plan
+
 - Security / isolation
   - direct messages are tenant-scoped only
-  - branch rooms are tenant-scoped only
+  - tenant rooms are tenant-scoped only
   - endorsed mentorship cannot cross tenants
-  - superadmin global and branch views remain correct after messaging/community additions
+  - superadmin global and tenant views remain correct after messaging/community additions
 - Loan lifecycle
   - full flow from application to release to repayment to overdue/default
   - guarantor enforcement and liability triggers
@@ -178,10 +188,11 @@ The sequence stays aligned to your roadmap:
 - Regression
   - existing dynamic homepage content workflow still works
   - feedback inbox still works
-  - sidebar/global-branch behavior remains stable
+  - sidebar/global-tenant behavior remains stable
 
 ## Assumptions and defaults
-- `Direct + branch rooms` is the chosen v1 messaging scope.
+
+- `Direct + tenant rooms` is the chosen v1 messaging scope.
 - `Hybrid` is the chosen mentorship model.
 - `Moderately compact` is the chosen layout density target.
 - Messaging is for relationship-building, mentorship, guarantorship, and support first, not a full social network.

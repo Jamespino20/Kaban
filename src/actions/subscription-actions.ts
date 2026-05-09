@@ -36,7 +36,7 @@ export async function getCurrentSubscription(tenantId: number) {
 export async function requestSubscriptionUpgrade(
   planId: number,
   billingCycle: "monthly" | "annually",
-  branchSlug: string,
+  tenantSlug: string,
 ) {
   try {
     const session = await requireTanawSession();
@@ -77,7 +77,7 @@ export async function requestSubscriptionUpgrade(
       },
     });
 
-    revalidatePath(`/${branchSlug}/agapay-tanaw`);
+    revalidatePath(`/${tenantSlug}/agapay-tanaw`);
     return {
       success: true,
       subscription: sub,
@@ -116,7 +116,7 @@ export async function availLifetimeFranchise(
     revalidatePath(`/${tenant.slug}/agapay-tanaw`);
     return {
       success: true,
-      message: `Branch availed as ${availedType} lifetime franchise.`,
+      message: `Tenant availed as ${availedType} lifetime franchise.`,
     };
   } catch (error) {
     console.error("Failed to avail lifetime franchise:", error);

@@ -72,7 +72,7 @@ export async function getSystemFile(fileId: string) {
       return { success: false, error: "File not found." };
     }
 
-    // Authorization check: Admins can only see their branch files
+    // Authorization check: Admins can only see their tenant files
     if (
       session.user.role !== "superadmin" &&
       file.tenant_id !== session.user.tenantId

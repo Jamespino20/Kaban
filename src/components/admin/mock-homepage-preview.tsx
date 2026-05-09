@@ -21,7 +21,7 @@ export function MockHomepagePreview({ branding, content }: MockPreviewProps) {
   const heroHeadline = content?.heroHeadline || "Iyong Agapay, Ating Tagumpay";
   const heroSubheadline =
     content?.heroSubheadline ||
-    "Filipino-first na lending platform para sa mga miyembro at cooperative branches.";
+    "Filipino-first na lending platform para sa mga miyembro at cooperative tenants.";
 
   return (
     <div className="w-full h-full bg-slate-50 overflow-hidden flex flex-col border border-slate-200 rounded-[2rem] shadow-inner relative group">

@@ -41,7 +41,7 @@ const RegisterSchema = z.object({
   businessPermitUrl: z.string().optional(),
   placeOfBirth: z.string().max(150).optional(),
   tin: z.string().max(20).optional(),
-  tenantId: z.number().int().positive("Please select a branch (Cooperative)."),
+  tenantId: z.number().int().positive("Please select a tenant (Cooperative)."),
 });
 
 export const register = async (values: z.infer<typeof RegisterSchema>) => {
@@ -89,7 +89,7 @@ export const register = async (values: z.infer<typeof RegisterSchema>) => {
   });
 
   if (existingUser) {
-    return { error: "Email or username already in use in this branch." };
+    return { error: "Email or username already in use in this tenant." };
   }
 
   const tenant = await prisma.tenant.findUnique({
@@ -98,7 +98,7 @@ export const register = async (values: z.infer<typeof RegisterSchema>) => {
   });
 
   if (!tenant) {
-    return { error: "Branch not found." };
+    return { error: "Tenant not found." };
   }
 
   try {

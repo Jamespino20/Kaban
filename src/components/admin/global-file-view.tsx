@@ -115,7 +115,7 @@ export function GlobalFileView({ tenantId }: { tenantId?: number }) {
                 File Name
               </TableHead>
               <TableHead className="font-bold text-slate-700">
-                Branch / Tenant
+                Tenant / Tenant
               </TableHead>
               <TableHead className="font-bold text-slate-700">
                 Uploader

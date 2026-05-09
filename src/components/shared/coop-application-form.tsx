@@ -133,11 +133,11 @@ export function CoopApplicationForm() {
       id: "enterprise",
       name: "Enterprise",
       price: "99,990",
-      description: "Full-scale solution for large and multi-branch coops.",
+      description: "Full-scale solution for large and multi-tenant coops.",
       icon: "enterprise" as const,
       features: [
         { text: "Unlimited members", included: true },
-        { text: "Multi-branch Management", included: true },
+        { text: "Multi-tenant Management", included: true },
         { text: "Full White-labeling", included: true },
         { text: "Dedicated Success Manager", included: true },
         { text: "API Access", included: true },
@@ -350,7 +350,7 @@ export function CoopApplicationForm() {
               </div>
               <p className="text-center text-[11px] text-slate-400 italic mt-8">
                 These documents will be used solely for verification of your
-                branch application (Max 1MB per file).
+                tenant application (Max 1MB per file).
               </p>
             </div>
 

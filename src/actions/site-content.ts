@@ -324,7 +324,7 @@ export async function submitHomepageFaqProposal(
     const isOperator = session.user.role === "operator";
     if (isOperator && !tenantId) {
       return {
-        error: "Admin branch context not found. Please log in as an admin.",
+        error: "Admin tenant context not found. Please log in as an admin.",
       };
     }
 

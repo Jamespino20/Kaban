@@ -3,7 +3,7 @@
 import { signOut } from "next-auth/react";
 import { LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { BranchSwitcher } from "./branch-switcher";
+import { TenantSwitcher } from "./tenant-switcher";
 import { NotificationBell } from "./notification-bell";
 
 export function UserAccountNav({ name }: { name: string }) {
@@ -11,7 +11,7 @@ export function UserAccountNav({ name }: { name: string }) {
     <div className="flex items-center gap-4">
       <NotificationBell />
       <div className="h-8 w-px bg-slate-200 mx-1 hidden md:block" />
-      <BranchSwitcher />
+      <TenantSwitcher />
       <div className="h-8 w-px bg-slate-200 mx-1 hidden md:block" />
       <div className="flex flex-col items-end hidden md:flex">
         <span className="text-sm font-bold text-slate-900">{name}</span>

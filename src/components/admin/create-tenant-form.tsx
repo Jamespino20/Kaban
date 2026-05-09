@@ -18,12 +18,12 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import { createBranch, getRegions } from "@/actions/tenant-management";
+import { createTenant, getRegions } from "@/actions/tenant-management";
 import { MockHomepagePreview } from "./mock-homepage-preview";
 
 const MAX_FILE_BYTES = 5 * 1024 * 1024; // 5 MB
 
-const BranchSchema = z.object({
+const TenantSchema = z.object({
   name: z.string().min(3, "Name must be at least 3 characters"),
   slug: z
     .string()
@@ -32,7 +32,7 @@ const BranchSchema = z.object({
   groupId: z.string().min(1, "Region is required"),
 });
 
-export function CreateBranchForm({
+export function CreateTenantForm({
   onOpenChange,
 }: {
   onOpenChange: (open: boolean) => void;
@@ -48,8 +48,8 @@ export function CreateBranchForm({
     getRegions().then(setRegions as any);
   }, []);
 
-  const form = useForm<z.infer<typeof BranchSchema>>({
-    resolver: zodResolver(BranchSchema),
+  const form = useForm<z.infer<typeof TenantSchema>>({
+    resolver: zodResolver(TenantSchema),
     defaultValues: { name: "", slug: "", groupId: "" },
   });
 
@@ -73,9 +73,9 @@ export function CreateBranchForm({
     if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
-  const onSubmit = (values: z.infer<typeof BranchSchema>) => {
+  const onSubmit = (values: z.infer<typeof TenantSchema>) => {
     startTransition(async () => {
-      const res = await createBranch(
+      const res = await createTenant(
         values.name,
         values.slug,
         parseInt(values.groupId),
@@ -86,11 +86,11 @@ export function CreateBranchForm({
         },
       );
       if (res.success) {
-        toast.success("Branch created successfully!");
+        toast.success("Tenant created successfully!");
         onOpenChange(false);
         window.location.reload();
       } else {
-        toast.error(res.error || "Failed to create branch");
+        toast.error(res.error || "Failed to create tenant");
       }
     });
   };
@@ -129,19 +129,19 @@ export function CreateBranchForm({
               )}
             />
 
-            {/* Branch Name */}
+            {/* Tenant Name */}
             <FormField
               control={form.control}
               name="name"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Branch Name</FormLabel>
+                  <FormLabel>Tenant Name</FormLabel>
                   <FormControl>
                     <div className="relative">
                       <Building2 className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
                       <Input
                         {...field}
-                        placeholder="e.g. Lipa Branch"
+                        placeholder="e.g. Lipa Tenant"
                         className="pl-10"
                       />
                     </div>
@@ -211,7 +211,7 @@ export function CreateBranchForm({
             {/* Logo Upload */}
             <div className="space-y-2">
               <Label className="text-slate-700 font-semibold text-sm">
-                Branch Logo
+                Tenant Logo
               </Label>
               <div className="flex items-center gap-3">
                 <div className="h-16 w-16 rounded-xl border-2 border-dashed border-slate-200 bg-slate-50 flex items-center justify-center overflow-hidden shrink-0">
@@ -256,7 +256,7 @@ export function CreateBranchForm({
               type="submit"
               className="w-full bg-slate-900 text-white"
             >
-              {isPending ? "Creating..." : "Create Branch"}
+              {isPending ? "Creating..." : "Create Tenant"}
             </Button>
           </form>
         </Form>
@@ -277,7 +277,7 @@ export function CreateBranchForm({
             branding={{
               logoUrl: logoDataUrl || undefined,
               primaryColor: brandColor,
-              displayName: watchedName || "New Branch",
+              displayName: watchedName || "New Tenant",
             }}
           />
         </div>

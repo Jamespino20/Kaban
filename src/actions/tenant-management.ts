@@ -68,10 +68,6 @@ export async function getTenants() {
         _count: {
           select: { users: true, loans: true, savings: true },
         },
-        decommissioned_backups: {
-          orderBy: { created_at: "desc" },
-          take: 1,
-        },
       },
       orderBy: {
         name: "asc",
@@ -88,13 +84,12 @@ export async function getTenants() {
       ...t,
       tenant_group: null,
       _count: { users: 0, loans: 0, savings: 0 },
-      decommissioned_backups: [],
     })) as any[];
   }
 }
 
-// 1.5 Get Active Branches (Public for Navigation/Map)
-export async function getActiveBranches() {
+// 1.5 Get Active Tenants (Public for Navigation/Map)
+export async function getActiveTenants() {
   try {
     if (!prisma || !prisma.tenant) {
       throw new Error(
@@ -102,7 +97,7 @@ export async function getActiveBranches() {
       );
     }
 
-    const branches = await prisma.tenant.findMany({
+    const tenants = await prisma.tenant.findMany({
       where: {
         is_active: true,
         entitlement_status: "active",
@@ -163,10 +158,10 @@ export async function getActiveBranches() {
       },
     };
 
-    return branches.map((b) => ({
+    return tenants.map((b) => ({
       id: b.tenant_id.toString(),
       name: b.name,
-      slug: b.slug || "branch",
+      slug: b.slug || "tenant",
       city: coordinates[b.slug || ""]?.city || "Philippines",
       region: coordinates[b.slug || ""]?.region || "Region",
       status: "active" as const,
@@ -175,32 +170,32 @@ export async function getActiveBranches() {
       color: b.accent_color || "#10b981",
     }));
   } catch (error) {
-    console.error("Failed to fetch active branches:", error);
+    console.error("Failed to fetch active tenants:", error);
     throw error; // Throw so unstable_cache doesn't cache an empty array
   }
 }
 
-export const getActiveBranchesForNav = unstable_cache(
+export const getActiveTenantsForNav = unstable_cache(
   async () => {
     try {
-      const branches = await getActiveBranches();
+      const tenants = await getActiveTenants();
       // Return plain objects to avoid serialization issues
-      return branches.map((b) => ({ ...b }));
+      return tenants.map((b) => ({ ...b }));
     } catch (e) {
       return []; // Return empty dynamically, but Next.js will cache this?
       // Wait, if we return [] here, unstable_cache caches [].
       // We want to throw so Next.js doesn't cache statically.
     }
   },
-  ["active-branches-nav"],
+  ["active-tenants-nav"],
   {
     revalidate: 3600, // cache for 1 hour
     tags: ["tenants"],
   },
 );
 
-// 2. Decommission Branch
-export async function decommissionBranch(tenantId: number) {
+// 2. Decommission Tenant
+export async function decommissionTenant(tenantId: number) {
   const session = await requireSuperadminSession();
 
   try {
@@ -262,7 +257,7 @@ export async function decommissionBranch(tenantId: number) {
       // 6. Log Audit
       await tx.auditLog.create({
         data: {
-          action: "DECOMMISSION_BRANCH",
+          action: "DECOMMISSION_TENANT",
           entity_type: "Tenant",
           entity_id: tenantId,
           user_id: parseInt(session.user.id),
@@ -278,7 +273,7 @@ export async function decommissionBranch(tenantId: number) {
     console.error("Decommissioning failed:", error);
     return {
       success: false,
-      error: "Failed to decommission branch and generate backup.",
+      error: "Failed to decommission tenant and generate backup.",
     };
   }
 }
@@ -299,8 +294,8 @@ export async function createRegion(name: string, regCode: string) {
   }
 }
 
-// 4. Create Branch (Superadmin)
-export async function createBranch(
+// 4. Create Tenant (Superadmin)
+export async function createTenant(
   name: string,
   slug: string,
   groupId: number,
@@ -309,7 +304,7 @@ export async function createBranch(
   await requireSuperadminSession();
 
   try {
-    const branch = await prisma.tenant.create({
+    const tenant = await prisma.tenant.create({
       data: {
         name,
         slug,
@@ -321,12 +316,12 @@ export async function createBranch(
       },
     });
 
-    return { success: true, data: branch };
+    return { success: true, data: tenant };
   } catch (error: any) {
-    console.error("Failed to create branch:", error);
+    console.error("Failed to create tenant:", error);
     return {
       success: false,
-      error: error.message || "Failed to create branch.",
+      error: error.message || "Failed to create tenant.",
     };
   }
 }

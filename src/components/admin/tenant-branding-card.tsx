@@ -278,7 +278,7 @@ export function BrandingTabWrapper({
           <div className="mt-4 p-4 rounded-2xl bg-amber-50 border border-amber-100">
             <p className="text-xs text-amber-800 font-medium leading-relaxed">
               <strong>Tip:</strong> Ang preview na ito ay nagpapakita kung paano
-              lalabas ang iyong branch branding sa main dashboard at mobile
+              lalabas ang iyong tenant branding sa main dashboard at mobile
               view.
             </p>
           </div>

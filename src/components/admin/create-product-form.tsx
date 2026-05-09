@@ -123,6 +123,9 @@ export const CreateProductForm = ({ onSuccess }: CreateProductFormProps) => {
           PHP {MICROFINANCE_POLICY.maxAmount.toLocaleString()}, 3%–5% monthly,{" "}
           {MICROFINANCE_POLICY.minTermMonths}–
           {MICROFINANCE_POLICY.maxTermMonths} months.
+          <br />
+          Current foundation: flat monthly interest, PRD cadence options,
+          tenant-managed amount ranges, and 25% default guarantor liability.
         </div>
 
         <div className="rounded-2xl border border-slate-200 bg-white p-4">
@@ -227,7 +230,7 @@ export const CreateProductForm = ({ onSuccess }: CreateProductFormProps) => {
             name="interest_rate_percent"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Interest Rate (%)</FormLabel>
+              <FormLabel>Flat Monthly Interest Rate (%)</FormLabel>
                 <FormControl>
                   <Input
                     {...field}
@@ -274,7 +277,7 @@ export const CreateProductForm = ({ onSuccess }: CreateProductFormProps) => {
           name="allowed_frequencies"
           render={() => (
             <FormItem>
-              <FormLabel>Payment Cadence (pumili ng isa o higit pa)</FormLabel>
+              <FormLabel>Payment Cadence (select one or more)</FormLabel>
               <div className="flex flex-wrap gap-2 pt-1">
                 {FREQUENCY_OPTIONS.map((opt) => {
                   const active = selectedFrequencies?.includes(opt.value);

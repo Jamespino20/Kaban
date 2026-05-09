@@ -5,14 +5,14 @@ import { Menu, X, LayoutDashboard } from "lucide-react";
 import Link from "next/link";
 import { useSession } from "next-auth/react";
 import { AuthModal } from "@/components/auth/auth-modal";
-import { PublicBranchSelector } from "@/components/layout/public-branch-selector";
+import { PublicTenantSelector } from "@/components/layout/public-tenant-selector";
 
 interface NavbarProps {
   forceSolid?: boolean;
-  branches?: any[];
+  tenants?: any[];
 }
 
-export function Navbar({ forceSolid = false, branches = [] }: NavbarProps) {
+export function Navbar({ forceSolid = false, tenants = [] }: NavbarProps) {
   const { data: session, status } = useSession();
   const [isMounted, setIsMounted] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
@@ -83,8 +83,8 @@ export function Navbar({ forceSolid = false, branches = [] }: NavbarProps) {
         <div className="flex items-center gap-4">
           <div className="hidden md:flex items-center gap-6">
             {!session && (
-              <PublicBranchSelector
-                branches={branches}
+              <PublicTenantSelector
+                tenants={tenants}
                 isScrolled={isScrolled}
                 triggerClassName={`flex items-center gap-2 px-6 h-12 rounded-full transition-all duration-300 font-bold text-sm shadow-lg ${
                   isScrolled
@@ -118,8 +118,8 @@ export function Navbar({ forceSolid = false, branches = [] }: NavbarProps) {
       {isMenuOpen && (
         <div className="md:hidden absolute top-full left-0 right-0 bg-white border-t border-slate-100 shadow-xl p-6 animate-in slide-in-from-top duration-300">
           <nav className="flex flex-col gap-6">
-            <PublicBranchSelector
-              branches={branches}
+            <PublicTenantSelector
+              tenants={tenants}
               isScrolled={isScrolled}
               isMobile
             />

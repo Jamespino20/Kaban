@@ -60,7 +60,7 @@ export class LoanService {
         return { error: "Member account not found." };
       }
 
-      // Business logic: Check accounts and loans strictly within this branch (Agapay multi-tenant logic)
+      // Business logic: Check accounts and loans strictly within this tenant (Agapay multi-tenant logic)
       const [activeLoans, defaultedLoanCount, overdueLoanCount] =
         await Promise.all([
           db.loan.findMany({
@@ -146,7 +146,7 @@ export class LoanService {
 
       if (eligibleGuarantors.length !== uniqueGuarantorIds.length) {
         return {
-          error: "Selected guarantors must be active members of your branch.",
+          error: "Selected guarantors must be active members of your tenant.",
         };
       }
 

@@ -74,7 +74,7 @@ export function ContactContent() {
             >
               <div className="flex items-center gap-2">
                 <Building2 className="w-4 h-4" />
-                Branch Onboarding
+                Tenant Onboarding
               </div>
             </button>
           </div>

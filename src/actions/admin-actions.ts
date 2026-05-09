@@ -43,6 +43,20 @@ export async function getTenantMembers() {
             status: true,
           },
         },
+        documents: {
+          select: {
+            document_id: true,
+            verification_status: true,
+            document_type: true,
+          },
+        },
+        social_vouches_received: {
+          select: {
+            id: true,
+            status: true,
+            score: true,
+          },
+        },
       },
       orderBy: {
         created_at: "desc",
@@ -383,7 +397,7 @@ export async function createStaffAccount(values: {
   if (session.user.role !== "superadmin") {
     return {
       success: false,
-      error: "Only global superadmins can create branch staff accounts.",
+      error: "Only global superadmins can create tenant staff accounts.",
     };
   }
 
@@ -406,7 +420,7 @@ export async function createStaffAccount(values: {
         where: { username: values.username },
       });
       if (existingUsername) {
-        throw new Error("Username taken in this branch.");
+        throw new Error("Username taken in this tenant.");
       }
 
       // 1. Generate Member Code for Staff (AGP-YYYY-[ROLE]-SERIAL)
