@@ -1,5 +1,4 @@
 import { TabsContent } from "@/components/ui/tabs";
-import { ModuleShell } from "@/components/layout/module-shell";
 import { TrendingUp, AlertCircle, ShieldAlert, HeartPulse } from "lucide-react";
 import { TenantNameSettingsCard } from "@/components/admin/tenant-name-settings-card";
 import { BrandingTabWrapper } from "@/components/admin/tenant-branding-card";
@@ -15,7 +14,6 @@ import {
 } from "lucide-react";
 import { LoanProductsTab } from "@/components/admin/loan-products-tab";
 import { TenantManagementTab } from "@/components/admin/tenant-management-tab";
-import { AuditLogViewer } from "@/components/admin/audit-log-viewer";
 import { ReportsTab } from "@/components/admin/reports-tab";
 import { FraudRiskTab } from "@/components/admin/fraud-risk-tab";
 import { getTenants } from "@/actions/tenant-management";
@@ -27,7 +25,6 @@ import { getCurrentSubscription } from "@/actions/subscription-actions";
 
 import { TrustDistributionChart } from "@/components/analytics/trust-distribution-chart";
 import { MemberDirectoryTab } from "@/components/admin/member-directory-tab";
-import { VerificationQueueTab } from "@/components/admin/verification-queue-tab";
 import {
   getTenantMembers,
   getPendingApprovals,
@@ -38,8 +35,6 @@ import {
 import { TrustMeter } from "@/components/analytics/trust-meter";
 import { KPIMetricCard } from "@/components/analytics/kpi-metric-card";
 import { HomepageContentTab } from "@/components/admin/homepage-content-tab";
-import { FeedbackTab } from "@/components/admin/feedback-tab";
-import { CompassionActionsTab } from "@/components/admin/compassion-actions-tab";
 import {
   getFeedbackEntries,
   getHomepageContentAdmin,
@@ -55,10 +50,10 @@ import { AnalyticsDashboardTab } from "@/components/admin/analytics-dashboard-ta
 import { ReconciliationTab } from "@/components/admin/reconciliation-tab";
 import { SubscriptionSettings } from "@/components/admin/subscription-settings";
 import { SystemFileManagement } from "@/components/admin/system-file-management";
-import { TopUpQueueTab } from "@/components/admin/topup-queue-tab";
 import { getPendingTopUps } from "@/actions/wallet-actions";
 import { SystemHealthTab } from "@/components/admin/system-health-tab";
-import { POSSystemTab } from "@/components/admin/pos-system-tab";
+import { ApprovalsQueueModule } from "@/components/admin/approvals-queue-module";
+import { SupportAnalyticsModule } from "@/components/admin/support-analytics-module";
 
 function SystemFileManagementSkeleton() {
   return (
@@ -451,48 +446,12 @@ export default async function AgapayTanawPage({
         {/* Superadmin & Operator Shared Approvals */}
         {(isOperator || isSuperAdmin) && (
           <TabsContent value="approvals" className="outline-none">
-            <ModuleShell
-              title="Approvals & Queue"
-              subtitle="Review, process, and action all pending loan applications, payments, capital requests, and compassion events."
-              subTabs={[
-                {
-                  value: "loans",
-                  label: "Loan Applications",
-                  badge: pendingData.loans.length,
-                },
-                {
-                  value: "payments",
-                  label: "Payment Verification",
-                  badge: pendingData.verifications.length,
-                },
-                ...(isOperator
-                  ? [
-                      {
-                        value: "topup",
-                        label: "Capital Top-Up",
-                        badge: pendingTopUps.length,
-                      },
-                      { value: "pos", label: "Payment Intake" },
-                      { value: "compassion", label: "Compassion Actions" },
-                    ]
-                  : []),
-              ]}
-              renderSubTab={(tab) => {
-                if (tab === "payments")
-                  return <VerificationQueueTab data={pendingData} />;
-                if (tab === "pos" && isOperator)
-                  return <POSSystemTab members={members} />;
-                if (tab === "topup" && isOperator)
-                  return <TopUpQueueTab requests={pendingTopUps as any} />;
-                if (tab === "compassion" && isOperator)
-                  return (
-                    <CompassionActionsTab
-                      actions={pendingData.compassion || []}
-                    />
-                  );
-                // Default: "loans"
-                return <VerificationQueueTab data={pendingData} />;
-              }}
+            <ApprovalsQueueModule
+              data={pendingData}
+              members={members}
+              pendingTopUps={pendingTopUps as any}
+              compassionActions={pendingData.compassion || []}
+              isOperator={isOperator}
             />
           </TabsContent>
         )}
@@ -501,43 +460,23 @@ export default async function AgapayTanawPage({
         {isOperator && (
           <>
             <TabsContent value="vault" className="outline-none">
-              <ModuleShell
-                title="Capital & Investments"
-                subtitle="Monitor portfolio health, risk exposure, diversification, and ROI across all active loans."
-              >
-                <AnalyticsDashboardTab />
-              </ModuleShell>
+              <AnalyticsDashboardTab />
             </TabsContent>
             <TabsContent value="members" className="outline-none">
-              <ModuleShell
-                title="Member Management"
-                subtitle="View, manage, and assess cooperative members — trust scores, loans, and activity."
-              >
-                <MemberDirectoryTab
-                  members={members}
-                  userRole={session?.user?.role}
-                  tenants={tenants.map((t) => ({
-                    id: t.tenant_id,
-                    name: t.name,
-                  }))}
-                />
-              </ModuleShell>
+              <MemberDirectoryTab
+                members={members}
+                userRole={session?.user?.role}
+                tenants={tenants.map((t) => ({
+                  id: t.tenant_id,
+                  name: t.name,
+                }))}
+              />
             </TabsContent>
             <TabsContent value="products" className="outline-none">
-              <ModuleShell
-                title="Loan Products & Policy"
-                subtitle="Configure loan products, interest rates, cadence options, and eligibility rules."
-              >
-                <LoanProductsTab />
-              </ModuleShell>
+              <LoanProductsTab />
             </TabsContent>
             <TabsContent value="reconciliation" className="outline-none">
-              <ModuleShell
-                title="Treasury & Reconciliation"
-                subtitle="End-of-day reconciliation, fund tracking, release management, and financial summaries."
-              >
-                <ReconciliationTab />
-              </ModuleShell>
+              <ReconciliationTab />
             </TabsContent>
           </>
         )}
@@ -546,87 +485,51 @@ export default async function AgapayTanawPage({
         {isSuperAdmin && (
           <>
             <TabsContent value="health" className="outline-none">
-              <ModuleShell
-                title="System Health"
-                subtitle="Real-time infrastructure monitoring — uptime, errors, database health, and server metrics."
-              >
-                <SystemHealthTab />
-              </ModuleShell>
+              <SystemHealthTab />
             </TabsContent>
             <TabsContent value="tenants" className="outline-none">
-              <ModuleShell
-                title="Tenant Management"
-                subtitle="Onboard, configure, suspend, and manage all cooperative tenants on the Agapay platform."
-              >
-                <TenantManagementTab
-                  initialTenants={tenants}
-                  role={session?.user?.role as string}
-                />
-              </ModuleShell>
+              <TenantManagementTab
+                initialTenants={tenants}
+                role={session?.user?.role as string}
+              />
             </TabsContent>
-            <TabsContent value="reports" className="outline-none">
-              <ModuleShell
-                title="Reports"
-                subtitle="Platform-wide financial and performance reports across all tenants and loan portfolios."
-              >
-                <ReportsTab />
-              </ModuleShell>
+            <TabsContent
+              value="reports"
+              className="animate-in fade-in slide-in-from-bottom-4 duration-500"
+            >
+              <ReportsTab />
             </TabsContent>
-            <TabsContent value="risk" className="outline-none">
-              <ModuleShell
-                title="Fraud & Risk"
-                subtitle="Fraud signals, anomaly detection, delinquency patterns, and risk exposure by tenant."
-              >
-                <FraudRiskTab />
-              </ModuleShell>
+            <TabsContent
+              value="risk"
+              className="animate-in fade-in slide-in-from-bottom-4 duration-500"
+            >
+              <FraudRiskTab />
             </TabsContent>
           </>
         )}
 
         {/* Shared Management Modules */}
         <TabsContent value="community" className="outline-none">
-          <ModuleShell
-            title="Community"
-            subtitle="Manage cooperative community channels, rooms, announcements, and member engagement."
-          >
-            <CommunityOperationsTab summary={communitySummary} />
-          </ModuleShell>
+          <CommunityOperationsTab summary={communitySummary} />
         </TabsContent>
 
         <TabsContent value="content" className="outline-none">
-          <ModuleShell
-            title="Content & Branding"
-            subtitle="Manage your tenant's homepage content, FAQs, testimonials, and visual branding."
-          >
-            <HomepageContentTab
-              role={userRole}
-              faqs={homepageContent.faqs}
-              testimonials={homepageContent.testimonials}
-            />
-          </ModuleShell>
+          <HomepageContentTab
+            role={userRole}
+            faqs={homepageContent.faqs}
+            testimonials={homepageContent.testimonials}
+          />
         </TabsContent>
 
         <TabsContent value="feedback" className="outline-none">
-          <ModuleShell
-            title="Support & Analytics"
-            subtitle="Member feedback, support requests, and security audit logs."
-            subTabs={[
-              { value: "feedback", label: "Member Feedback" },
-              { value: "audit", label: "Audit Log" },
-            ]}
-            renderSubTab={(tab) => {
-              if (tab === "audit")
-                return (
-                  <AuditLogViewer
-                    tenantId={
-                      isSuperAdmin
-                        ? (tenantContextId ?? undefined)
-                        : Number(session?.user?.tenantId || 0)
-                    }
-                  />
-                );
-              return <FeedbackTab role={userRole} entries={feedbackEntries} />;
-            }}
+          <SupportAnalyticsModule
+            role={userRole}
+            feedbackEntries={feedbackEntries}
+            tenantId={
+              isSuperAdmin
+                ? (tenantContextId ?? undefined)
+                : Number(session?.user?.tenantId || 0)
+            }
           />
         </TabsContent>
 
