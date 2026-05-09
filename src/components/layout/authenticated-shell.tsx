@@ -207,7 +207,7 @@ export function AuthenticatedShell({
   } as React.CSSProperties;
   const mainPaneStyle = {
     backgroundImage: normalizedTenantColor
-      ? `radial-gradient(circle at top, ${rgba(normalizedTenantColor, 0.15)}, transparent 30%), linear-gradient(180deg, #f8fafc 0%, #2c3035ff 100%)`
+      ? `radial-gradient(circle at top, ${rgba(normalizedTenantColor, 0.15)}, transparent 30%), linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%)`
       : "radial-gradient(circle at top, rgba(16,185,129,0.08), transparent 30%), linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%)",
   } as React.CSSProperties;
   const portalBadgeStyle = normalizedTenantColor
