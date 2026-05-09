@@ -1,4 +1,4 @@
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { TabsContent } from "@/components/ui/tabs";
 import { TrendingUp, AlertCircle, ShieldAlert, HeartPulse } from "lucide-react";
 import { TenantNameSettingsCard } from "@/components/admin/tenant-name-settings-card";
 import { BrandingTabWrapper } from "@/components/admin/tenant-branding-card";
@@ -243,7 +243,7 @@ export default async function AgapayTanawPage({
   ];
 
   const operatorNav: ShellNavItem[] = [
-    // Category: Core Operations
+    // Core Operations
     {
       value: "overview",
       label: "Overview",
@@ -255,64 +255,70 @@ export default async function AgapayTanawPage({
       label: "Approvals & Queue",
       icon: "approvals",
       badge:
-        (pendingData.loans?.length || 0) +
-          (pendingData.verifications?.length || 0) +
-          (pendingTopUps?.length || 0) || undefined,
+        pendingData.loans.length +
+          pendingData.verifications.length +
+          pendingTopUps.length || undefined,
       category: "Core Operations",
     },
 
-    // Category: Financial Management
+    // Capital & Investments
     {
-      value: "accounts",
-      label: "Branch Accounts",
-      icon: "members",
-      category: "Financial Management",
-    },
-    {
-      value: "collections",
-      label: "Collections & Arrears",
-      icon: "repayment",
-      category: "Financial Management",
-    },
-    {
-      value: "capital",
-      label: "Capital & Funding",
+      value: "vault",
+      label: "Capital & Investments",
       icon: "wallet",
-      category: "Financial Management",
+      category: "Capital & Investments",
     },
 
-    // Category: Storefront & Support
+    // Member Management
     {
-      value: "communications",
-      label: "Communications",
-      icon: "community",
-      category: "Storefront & Support",
-    },
-    {
-      value: "help",
-      label: "Help Center",
-      icon: "feedback",
-      category: "Storefront & Support",
+      value: "members",
+      label: "Member Management",
+      icon: "members",
+      category: "Member Management",
     },
 
-    // Category: System & Audits
+    // Loan Operations
     {
-      value: "organization",
-      label: "Organization",
-      icon: "settings",
-      category: "System & Audits",
+      value: "products",
+      label: "Loan Products & Policy",
+      icon: "products",
+      category: "Loan Operations",
     },
     {
-      value: "compliance",
-      label: "Legal & Compliance",
-      icon: "audit",
-      category: "System & Audits",
-    },
-    {
-      value: "reports",
-      label: "Reports",
+      value: "reconciliation",
+      label: "Treasury & Reconciliation",
       icon: "reconciliation",
-      category: "System & Audits",
+      category: "Loan Operations",
+    },
+
+    // Storefront
+    {
+      value: "content",
+      label: "Content & Branding",
+      icon: "content",
+      category: "Storefront",
+    },
+    {
+      value: "community",
+      label: "Community",
+      icon: "community",
+      category: "Storefront",
+    },
+
+    // Support & Analytics
+    {
+      value: "feedback",
+      label: "Support & Analytics",
+      icon: "feedback",
+      category: "Support & Analytics",
+    },
+
+    // Settings
+    {
+      value: "settings",
+      label: "Settings",
+      icon: "settings",
+      category: "Settings",
     },
   ];
 
@@ -443,40 +449,25 @@ export default async function AgapayTanawPage({
 
         {/* Superadmin & Operator Shared Approvals */}
         {(isOperator || isSuperAdmin) && (
-          <TabsContent value="approvals" className="outline-none">
+          <TabsContent value="approvals" className="outline-none space-y-6">
             <VerificationQueueTab data={pendingData} />
+            {isOperator && (
+              <>
+                <POSSystemTab members={members} />
+                <TopUpQueueTab requests={pendingTopUps as any} />
+                <CompassionActionsTab actions={pendingData.compassion || []} />
+              </>
+            )}
           </TabsContent>
         )}
 
         {/* Tenant Operator Modules */}
         {isOperator && (
           <>
-            <TabsContent value="approvals" className="outline-none">
-              <Tabs defaultValue="verifications" className="w-full">
-                <TabsList className="mb-4 bg-slate-100/50 p-1 rounded-2xl">
-                  <TabsTrigger value="verifications" className="rounded-xl">
-                    Verifications Queue
-                  </TabsTrigger>
-                  <TabsTrigger value="topup" className="rounded-xl">
-                    Capital Top-Up
-                  </TabsTrigger>
-                  <TabsTrigger value="pos" className="rounded-xl">
-                    Payment Intake (POS)
-                  </TabsTrigger>
-                </TabsList>
-                <TabsContent value="verifications" className="space-y-6">
-                  <VerificationQueueTab data={pendingData} />
-                </TabsContent>
-                <TabsContent value="topup" className="space-y-6">
-                  <TopUpQueueTab requests={pendingTopUps as any} />
-                </TabsContent>
-                <TabsContent value="pos" className="space-y-6">
-                  <POSSystemTab members={members} />
-                </TabsContent>
-              </Tabs>
+            <TabsContent value="vault" className="outline-none">
+              <AnalyticsDashboardTab />
             </TabsContent>
-
-            <TabsContent value="accounts" className="outline-none">
+            <TabsContent value="members" className="outline-none">
               <MemberDirectoryTab
                 members={members}
                 userRole={session?.user?.role}
@@ -486,172 +477,16 @@ export default async function AgapayTanawPage({
                 }))}
               />
             </TabsContent>
-
-            <TabsContent value="collections" className="outline-none">
-              <div className="bg-white/40 border border-slate-200/60 p-6 rounded-[2rem] backdrop-blur-md">
-                <h2 className="text-2xl font-display font-bold text-slate-900 italic">
-                  Collections & Arrears
-                </h2>
-                <p className="text-sm text-slate-500 max-w-2xl mt-2">
-                  Section coming soon.
-                </p>
-              </div>
+            <TabsContent value="products" className="outline-none">
+              <LoanProductsTab />
             </TabsContent>
-
-            <TabsContent value="capital" className="outline-none">
+            <TabsContent value="reconciliation" className="outline-none">
               <ReconciliationTab />
-            </TabsContent>
-
-            <TabsContent value="communications" className="outline-none">
-              <Tabs defaultValue="community" className="w-full">
-                <TabsList className="mb-4 bg-slate-100/50 p-1 rounded-2xl">
-                  <TabsTrigger value="community" className="rounded-xl">
-                    Community Ops
-                  </TabsTrigger>
-                  <TabsTrigger value="content" className="rounded-xl">
-                    Homepage Content
-                  </TabsTrigger>
-                </TabsList>
-                <TabsContent value="community" className="space-y-6">
-                  <CommunityOperationsTab summary={communitySummary} />
-                </TabsContent>
-                <TabsContent value="content" className="space-y-6">
-                  <HomepageContentTab
-                    role={userRole}
-                    faqs={homepageContent.faqs}
-                    testimonials={homepageContent.testimonials}
-                  />
-                </TabsContent>
-              </Tabs>
-            </TabsContent>
-
-            <TabsContent value="help" className="outline-none">
-              <Tabs defaultValue="feedback" className="w-full">
-                <TabsList className="mb-4 bg-slate-100/50 p-1 rounded-2xl">
-                  <TabsTrigger value="feedback" className="rounded-xl">
-                    Feedback & Support
-                  </TabsTrigger>
-                  <TabsTrigger value="compassion" className="rounded-xl">
-                    Compassion Actions
-                  </TabsTrigger>
-                </TabsList>
-                <TabsContent value="feedback" className="space-y-6">
-                  <FeedbackTab role={userRole} entries={feedbackEntries} />
-                </TabsContent>
-                <TabsContent value="compassion" className="space-y-6">
-                  <CompassionActionsTab
-                    actions={pendingData.compassion || []}
-                  />
-                </TabsContent>
-              </Tabs>
-            </TabsContent>
-
-            <TabsContent value="organization" className="outline-none">
-              <Tabs defaultValue="products" className="w-full">
-                <TabsList className="mb-4 bg-slate-100/50 p-1 rounded-2xl">
-                  <TabsTrigger value="products" className="rounded-xl">
-                    Loan Products
-                  </TabsTrigger>
-                  <TabsTrigger value="settings" className="rounded-xl">
-                    Tenant Settings
-                  </TabsTrigger>
-                </TabsList>
-                <TabsContent value="products" className="space-y-6">
-                  <LoanProductsTab />
-                </TabsContent>
-                <TabsContent value="settings" className="space-y-6">
-                  <div className="flex flex-col items-center justify-center space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500 pt-6">
-                    <div className="grid w-full gap-6">
-                      {currentTenantIdentity && (
-                        <TenantNameSettingsCard
-                          initialName={currentTenantIdentity.name}
-                          title="Tenant Name"
-                          description="Update your tenant's company or tenant name."
-                        />
-                      )}
-                      {currentTenantIdentity && (
-                        <BrandingTabWrapper
-                          initialBranding={{
-                            brand_color: currentTenantIdentity.brand_color,
-                            accent_color: currentTenantIdentity.accent_color,
-                            font_pairing: currentTenantIdentity.font_pairing,
-                            logo_url: currentTenantIdentity.logo_url,
-                          }}
-                          displayName={currentTenantIdentity.name}
-                        />
-                      )}
-
-                      {tenantContextId && (
-                        <div className="flex justify-center -mx-4 md:mx-0">
-                          <SubscriptionSettings
-                            tenantId={tenantContextId}
-                            isAdmin={true}
-                            tenantSlug={tenant}
-                          />
-                        </div>
-                      )}
-
-                      <div className="px-4 text-center space-y-2 mt-8">
-                        <h2 className="text-3xl font-display font-bold text-slate-900 italic">
-                          Account Security
-                        </h2>
-                        <p className="text-slate-500">
-                          Secure your access with 2FA.
-                        </p>
-                      </div>
-                      <div className="flex justify-center">
-                        <TwoFactorSetup isEnabledInitial={is2FAEnabled} />
-                      </div>
-                    </div>
-                  </div>
-                </TabsContent>
-              </Tabs>
-            </TabsContent>
-
-            <TabsContent value="compliance" className="outline-none">
-              <Tabs defaultValue="audit" className="w-full">
-                <TabsList className="mb-4 bg-slate-100/50 p-1 rounded-2xl">
-                  <TabsTrigger value="audit" className="rounded-xl">
-                    Security & Audit Logs
-                  </TabsTrigger>
-                  <TabsTrigger value="files" className="rounded-xl">
-                    Document Vault
-                  </TabsTrigger>
-                </TabsList>
-                <TabsContent value="audit" className="space-y-6">
-                  <AuditLogViewer
-                    tenantId={Number(session?.user?.tenantId || 0)}
-                  />
-                </TabsContent>
-                <TabsContent value="files" className="space-y-6">
-                  <div className="bg-white/40 border border-slate-200/60 p-6 rounded-[2rem] backdrop-blur-md">
-                    <div className="flex items-center gap-4 mb-2">
-                      <div className="h-10 w-10 rounded-2xl bg-indigo-100 text-indigo-600 flex items-center justify-center">
-                        <ShieldAlert className="h-5 w-5" />
-                      </div>
-                      <h2 className="text-2xl font-display font-bold text-slate-900 italic">
-                        Document Repository
-                      </h2>
-                    </div>
-                    <p className="text-sm text-slate-500 max-w-2xl">
-                      All system-generated reports, SOAs, and documents are
-                      stored securely.
-                    </p>
-                  </div>
-                  <SystemFileManagement
-                    tenantId={Number(session?.user?.tenantId || 0)}
-                  />
-                </TabsContent>
-              </Tabs>
-            </TabsContent>
-
-            <TabsContent value="reports" className="outline-none">
-              <AnalyticsDashboardTab />
             </TabsContent>
           </>
         )}
 
-        {/* Superadmin Only Modules & Shared modules accessed by superadmin */}
+        {/* Superadmin Only Modules */}
         {isSuperAdmin && (
           <>
             <TabsContent value="health" className="outline-none">
@@ -675,78 +510,93 @@ export default async function AgapayTanawPage({
             >
               <FraudRiskTab />
             </TabsContent>
-            <TabsContent value="community" className="outline-none">
-              <CommunityOperationsTab summary={communitySummary} />
-            </TabsContent>
-            <TabsContent value="content" className="outline-none">
-              <HomepageContentTab
-                role={userRole}
-                faqs={homepageContent.faqs}
-                testimonials={homepageContent.testimonials}
-              />
-            </TabsContent>
-            <TabsContent value="feedback" className="outline-none">
-              <FeedbackTab role={userRole} entries={feedbackEntries} />
-            </TabsContent>
-            <TabsContent value="audit" className="outline-none">
-              <AuditLogViewer tenantId={tenantContextId ?? undefined} />
-            </TabsContent>
-            <TabsContent value="settings" className="outline-none">
-              <div className="flex flex-col items-center justify-center space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                <div className="grid w-full max-w-5xl gap-6">
-                  {currentTenantIdentity ? (
-                    <TenantNameSettingsCard
-                      tenantId={currentTenantIdentity.tenant_id}
-                      initialName={currentTenantIdentity.name}
-                      title="Tenant Name"
-                      description="Update the name for the current tenant context."
-                    />
-                  ) : (
-                    <div className="w-full max-w-2xl rounded-[1.75rem] border border-amber-200 bg-amber-50 p-6 text-sm text-amber-800 shadow-sm">
-                      Select a tenant from the sidebar if you want to change the
-                      tenant name from `Global View`.
-                    </div>
-                  )}
-
-                  {currentTenantIdentity && (
-                    <BrandingTabWrapper
-                      tenantId={currentTenantIdentity.tenant_id}
-                      initialBranding={{
-                        brand_color: currentTenantIdentity.brand_color,
-                        accent_color: currentTenantIdentity.accent_color,
-                        font_pairing: currentTenantIdentity.font_pairing,
-                        logo_url: currentTenantIdentity.logo_url,
-                      }}
-                      displayName={currentTenantIdentity.name}
-                    />
-                  )}
-
-                  {tenantContextId && (
-                    <div className="flex justify-center -mx-4 md:mx-0">
-                      <SubscriptionSettings
-                        tenantId={tenantContextId}
-                        isAdmin={true}
-                        tenantSlug={tenant}
-                      />
-                    </div>
-                  )}
-
-                  <div className="px-4 text-center space-y-2 mt-8">
-                    <h2 className="text-3xl font-display font-bold text-slate-900 italic">
-                      Account Security
-                    </h2>
-                    <p className="text-slate-500">
-                      Secure your access with 2FA.
-                    </p>
-                  </div>
-                  <div className="flex justify-center">
-                    <TwoFactorSetup isEnabledInitial={is2FAEnabled} />
-                  </div>
-                </div>
-              </div>
-            </TabsContent>
           </>
         )}
+
+        {/* Shared Management Modules */}
+        <TabsContent value="community" className="outline-none">
+          <CommunityOperationsTab summary={communitySummary} />
+        </TabsContent>
+
+        <TabsContent value="content" className="outline-none">
+          <HomepageContentTab
+            role={userRole}
+            faqs={homepageContent.faqs}
+            testimonials={homepageContent.testimonials}
+          />
+        </TabsContent>
+
+        <TabsContent value="feedback" className="outline-none space-y-6">
+          <FeedbackTab role={userRole} entries={feedbackEntries} />
+          <AuditLogViewer
+            tenantId={
+              isSuperAdmin
+                ? (tenantContextId ?? undefined)
+                : Number(session?.user?.tenantId || 0)
+            }
+          />
+        </TabsContent>
+
+        <TabsContent value="settings" className="outline-none">
+          <div className="flex flex-col items-center justify-center space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+            <div className="grid w-full max-w-5xl gap-6">
+              {currentTenantIdentity ? (
+                <TenantNameSettingsCard
+                  tenantId={
+                    isSuperAdmin ? currentTenantIdentity.tenant_id : undefined
+                  }
+                  initialName={currentTenantIdentity.name}
+                  title="Tenant Name"
+                  description={
+                    isSuperAdmin
+                      ? "Update the name for the current tenant context."
+                      : "Update your tenant's company or tenant name."
+                  }
+                />
+              ) : isSuperAdmin ? (
+                <div className="w-full max-w-2xl rounded-[1.75rem] border border-amber-200 bg-amber-50 p-6 text-sm text-amber-800 shadow-sm">
+                  Select a tenant from the sidebar if you want to change the
+                  tenant name from `Global View`.
+                </div>
+              ) : null}
+
+              {currentTenantIdentity && (isOperator || isSuperAdmin) && (
+                <BrandingTabWrapper
+                  tenantId={
+                    isSuperAdmin ? currentTenantIdentity.tenant_id : undefined
+                  }
+                  initialBranding={{
+                    brand_color: currentTenantIdentity.brand_color,
+                    accent_color: currentTenantIdentity.accent_color,
+                    font_pairing: currentTenantIdentity.font_pairing,
+                    logo_url: currentTenantIdentity.logo_url,
+                  }}
+                  displayName={currentTenantIdentity.name}
+                />
+              )}
+
+              {tenantContextId && (isOperator || isSuperAdmin) && (
+                <div className="flex justify-center -mx-4 md:mx-0">
+                  <SubscriptionSettings
+                    tenantId={tenantContextId}
+                    isAdmin={isOperator || isSuperAdmin}
+                    tenantSlug={tenant}
+                  />
+                </div>
+              )}
+
+              <div className="px-4 text-center space-y-2">
+                <h2 className="text-3xl font-display font-bold text-slate-900 italic">
+                  Account Security
+                </h2>
+                <p className="text-slate-500">Secure your access with 2FA.</p>
+              </div>
+              <div className="flex justify-center">
+                <TwoFactorSetup isEnabledInitial={is2FAEnabled} />
+              </div>
+            </div>
+          </div>
+        </TabsContent>
       </div>
     </DashboardTabsShell>
   );
