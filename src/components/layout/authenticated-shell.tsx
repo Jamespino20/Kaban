@@ -342,7 +342,7 @@ export function AuthenticatedShell({
             return Object.entries(grouped).map(([category, items]) => (
               <div key={category} className="space-y-1 mb-6">
                 {!collapsed && (
-                  <h3 className="px-3 mb-2 text-[10px] font-black uppercase tracking-[0.2em] text-white/50">
+                  <h3 className="px-1 mb-2 text-[10px] font-black uppercase tracking-[0.2em] text-white/50">
                     {category}
                   </h3>
                 )}
@@ -362,7 +362,7 @@ export function AuthenticatedShell({
                         const event = new PopStateEvent("popstate");
                         window.dispatchEvent(event);
                       }}
-                      className={`group h-auto w-full justify-start rounded-2xl border border-transparent px-3 py-2.5 text-left text-white/70 transition-all hover:text-white hover:bg-[var(--accent-custom,rgba(255,255,255,0.1))] data-[state=active]:bg-[var(--accent-custom,rgba(255,255,255,0.15))] data-[state=active]:text-white data-[state=active]:border-[var(--accent-custom,rgba(255,255,255,0.2))] ${
+                      className={`group h-auto w-full justify-start rounded-2xl border border-transparent px-1 py-2.5 text-left text-white/70 transition-all hover:text-white hover:bg-[var(--accent-custom,rgba(255,255,255,0.1))] data-[state=active]:bg-[var(--accent-custom,rgba(255,255,255,0.15))] data-[state=active]:text-white data-[state=active]:border-[var(--accent-custom,rgba(255,255,255,0.2))] ${
                         collapsed ? "xl:px-2.5" : ""
                       }`}
                       style={{

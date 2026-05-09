@@ -478,35 +478,6 @@ export default async function AgapayPintigPage({
           </div>
         </TabsContent>
 
-        {/* TM-06: Documents Placeholder */}
-        <TabsContent
-          value="documents"
-          className="outline-none animate-in fade-in slide-in-from-bottom-4 duration-500"
-        >
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <div className="col-span-full bg-white rounded-[2rem] border border-slate-100 p-8 shadow-sm">
-              <h2 className="text-2xl font-display font-bold text-slate-900 italic mb-2">
-                My Documents
-              </h2>
-              <p className="text-slate-500">
-                Pamahalaan ang iyong mga ID, sertipiko, at iba pang kailangang
-                papeles dito.
-              </p>
-            </div>
-            {/* Mock document cards */}
-            {[1, 2].map((i) => (
-              <div
-                key={i}
-                className="bg-white/50 border border-slate-100 border-dashed rounded-[1.75rem] p-6 h-40 flex flex-col items-center justify-center text-slate-400"
-              >
-                <span className="text-xs uppercase font-bold tracking-widest">
-                  Walang Laman
-                </span>
-              </div>
-            ))}
-          </div>
-        </TabsContent>
-
         <TabsContent
           value="community"
           className="outline-none animate-in fade-in slide-in-from-bottom-4 duration-500"

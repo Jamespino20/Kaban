@@ -93,7 +93,7 @@ export function CommunityTab({
   const [isPending, startTransition] = useTransition();
 
   const allConversationCount =
-    initialData.tenantRooms.length +
+    initialData.operatorRooms.length +
     initialData.directConversations.length +
     (initialData.groupChats?.length || 0);
   const unreadCount =
