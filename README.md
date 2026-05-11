@@ -54,12 +54,11 @@ Agapay enables cooperatives to operate independent, isolated digital microfinanc
 
 ## 💳 Subscription Plans
 
-| Plan           | Benefits                                                      | Price      |
-| -------------- | ------------------------------------------------------------- | ---------- |
-| **Core**       | Up to 500 members, basic dashboard, standard policy.          | ₱3,500/mo  |
-| **Pro**        | 2500 members, branding, community tools, compassion workflow. | ₱6,500/mo  |
-| **Enterprise** | Unlimited members, analytics, data export, priority support.  | ₱12,000/mo |
-| **Sangay**     | Multi-tenant management (Enterprise add-on).                  | +₱3,000/br |
+| Plan           | Benefits                                                      | Price         |
+| -------------- | ------------------------------------------------------------- | ----------    |
+| **Core**       | Up to 500 members, basic dashboard, standard policy.          | ₱3,500/3 mo   |
+| **Pro**        | 2500 members, branding, community tools, compassion workflow. | ₱6,500/6 mo   |
+| **Enterprise** | Unlimited members, analytics, data export, priority support.  | ₱12,000/12 mo |
 
 ---
 
