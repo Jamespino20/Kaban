@@ -227,7 +227,7 @@ export function TenantManagementTab({
                   <Plus className="w-4 h-4 mr-2" /> Add Tenant
                 </Button>
               </DialogTrigger>
-              <DialogContent>
+              <DialogContent className="max-w-5xl">
                 <DialogHeader>
                   <DialogTitle>Create New Tenant (Tenant)</DialogTitle>
                 </DialogHeader>
@@ -414,7 +414,7 @@ export function TenantManagementTab({
                         {t.slug === "main-tenant" ? "HQ" : "Suspend"}
                       </Button>
                       <a
-                        href={`/${t.slug}/agapay-tanaw`}
+                        href={`/${t.slug}`}
                         target="_blank"
                         rel="noopener noreferrer"
                         className={cn(
@@ -422,7 +422,7 @@ export function TenantManagementTab({
                           "text-xs font-bold",
                         )}
                       >
-                        <ExternalLink className="w-4 h-4 mr-2" /> View Dashboard
+                        <ExternalLink className="w-4 h-4 mr-2" /> View Homepage
                       </a>
                     </div>
                   </div>

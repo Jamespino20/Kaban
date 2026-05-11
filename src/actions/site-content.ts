@@ -312,6 +312,40 @@ export async function moderatePlatformTestimonial(
   }
 }
 
+// Superadmin: Bulk toggle is_active based on season_tag
+export async function bulkUpdatePlatformSeason(
+  seasonTag: string,
+  isActive: boolean,
+) {
+  await requireSuperadminSession();
+
+  try {
+    const [faqs, testimonials] = await prisma.$transaction([
+      prisma.homepageFaq.updateMany({
+        where: { tenant_id: null, season_tag: seasonTag },
+        data: { is_active: isActive },
+      }),
+      prisma.homepageTestimonial.updateMany({
+        where: { tenant_id: null, season_tag: seasonTag },
+        data: { is_active: isActive },
+      }),
+    ]);
+
+    revalidateContentPaths();
+
+    return {
+      success: true,
+      data: {
+        faqsCount: faqs.count,
+        testimonialsCount: testimonials.count,
+      },
+    };
+  } catch (error) {
+    console.error("Failed to bulk update season content:", error);
+    return { success: false, error: "Failed to update season content" };
+  }
+}
+
 export async function submitHomepageFaqProposal(
   input: z.infer<typeof faqProposalSchema>,
 ) {

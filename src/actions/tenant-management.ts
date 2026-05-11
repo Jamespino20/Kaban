@@ -329,7 +329,16 @@ export async function createTenant(
   name: string,
   slug: string,
   groupId: number,
-  branding?: { logoUrl?: string; brandColor?: string; accentColor?: string },
+  branding?: {
+    logoUrl?: string;
+    brandColor?: string;
+    accentColor?: string;
+    heroHeadline?: string;
+    heroSubheadline?: string;
+    mission?: string;
+    vision?: string;
+    enabledFeatures?: string[];
+  },
 ) {
   await requireSuperadminSession();
 
@@ -343,6 +352,17 @@ export async function createTenant(
         logo_url: branding?.logoUrl || null,
         brand_color: branding?.brandColor || null,
         accent_color: branding?.accentColor || null,
+        metadata: {
+          heroHeadline: branding?.heroHeadline,
+          heroSubheadline: branding?.heroSubheadline,
+          mission: branding?.mission,
+          vision: branding?.vision,
+          enabledFeatures: branding?.enabledFeatures || [
+            "loans",
+            "wallet",
+            "community",
+          ],
+        },
       },
     });
 

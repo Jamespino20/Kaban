@@ -322,9 +322,10 @@ export function AuthenticatedShell({
                   {tenantName || "Agapay"}
                 </p>
                 <div className="flex items-center gap-1.5 opacity-90">
+                  <p className="text-xs">Powered by</p>
                   <img
                     src="/images/agapay_titled.png"
-                    alt="Powered by Agapay"
+                    alt="Agapay"
                     className={`h-4 object-contain ${isLight ? "brightness-0" : "brightness-0 invert"}`}
                   />
                 </div>

@@ -2,18 +2,18 @@
 
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { 
-  MessageCircle, 
-  Quote, 
-  CheckCircle, 
-  XCircle, 
+import {
+  MessageCircle,
+  Quote,
+  CheckCircle,
+  XCircle,
   Clock,
   Eye,
   Edit3,
   Trash2,
   Plus,
   Search,
-  Filter
+  Filter,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -30,6 +30,7 @@ import {
   getPlatformContentModeration,
   moderatePlatformFaq,
   moderatePlatformTestimonial,
+  bulkUpdatePlatformSeason,
 } from "@/actions/site-content";
 
 type PlatformFaq = {
@@ -42,7 +43,10 @@ type PlatformFaq = {
   sort_order: number;
   review_notes: string | null;
   created_at: Date;
-  submitted_by_user: { user_id?: number; username: string; email: string } | null | undefined;
+  submitted_by_user:
+    | { user_id?: number; username: string; email: string }
+    | null
+    | undefined;
   reviewed_by_user: { user_id?: number; username: string } | null | undefined;
 };
 
@@ -58,7 +62,10 @@ type PlatformTestimonial = {
   sort_order: number;
   review_notes: string | null;
   created_at: Date;
-  submitted_by_user: { user_id?: number; username: string; email: string } | null | undefined;
+  submitted_by_user:
+    | { user_id?: number; username: string; email: string }
+    | null
+    | undefined;
   reviewed_by_user: { user_id?: number; username: string } | null | undefined;
 };
 
@@ -79,8 +86,10 @@ export function PlatformContentModerationTab() {
     try {
       const result = await getPlatformContentModeration();
       if (result.success) {
-        const validFaqs = result.faqs?.filter((faq) => faq && faq.submitted_by_user) || [];
-        const validTestimonials = result.testimonials?.filter((t) => t && t.submitted_by_user) || [];
+        const validFaqs =
+          result.faqs?.filter((faq) => faq && faq.submitted_by_user) || [];
+        const validTestimonials =
+          result.testimonials?.filter((t) => t && t.submitted_by_user) || [];
         setFaqs(validFaqs);
         setTestimonials(validTestimonials);
       } else {
@@ -97,14 +106,12 @@ export function PlatformContentModerationTab() {
   const handleModerateFaq = async (
     faqId: number,
     action: "publish" | "reject",
-    sortOrder?: number
+    sortOrder?: number,
   ) => {
     try {
       const result = await moderatePlatformFaq(faqId, action, sortOrder);
       if (result.success) {
-        toast.success(
-          action === "publish" ? "FAQ published!" : "FAQ rejected"
-        );
+        toast.success(action === "publish" ? "FAQ published!" : "FAQ rejected");
         loadContent();
       } else {
         toast.error(result.error || "Failed to moderate FAQ");
@@ -118,19 +125,19 @@ export function PlatformContentModerationTab() {
   const handleModerateTestimonial = async (
     testimonialId: number,
     action: "publish" | "reject",
-    sortOrder?: number
+    sortOrder?: number,
   ) => {
     try {
       const result = await moderatePlatformTestimonial(
         testimonialId,
         action,
-        sortOrder
+        sortOrder,
       );
       if (result.success) {
         toast.success(
           action === "publish"
             ? "Testimonial published!"
-            : "Testimonial rejected"
+            : "Testimonial rejected",
         );
         loadContent();
       } else {
@@ -141,6 +148,30 @@ export function PlatformContentModerationTab() {
       toast.error("Failed to moderate testimonial");
     }
   };
+
+  const handleBulkSeasonUpdate = async (season: string, isActive: boolean) => {
+    try {
+      const result = await bulkUpdatePlatformSeason(season, isActive);
+      if (result.success) {
+        toast.success(
+          `Successfully ${isActive ? "activated" : "deactivated"} ${result.data?.faqsCount} FAQs and ${result.data?.testimonialsCount} testimonials for ${season}`,
+        );
+        loadContent();
+      } else {
+        toast.error(result.error || "Failed to update season");
+      }
+    } catch (error) {
+      console.error("Bulk season update error:", error);
+      toast.error("An unexpected error occurred");
+    }
+  };
+
+  const allSeasons = Array.from(
+    new Set([
+      ...faqs.map((f) => f.season_tag),
+      ...testimonials.map((t) => t.season_tag),
+    ]),
+  ).filter(Boolean) as string[];
 
   const filteredFaqs = faqs.filter((faq) => {
     const matchesSearch =
@@ -162,9 +193,11 @@ export function PlatformContentModerationTab() {
     return matchesSearch && matchesStatus;
   });
 
-  const pendingFaqs = faqs.filter((f) => f.workflow_status === "pending").length;
+  const pendingFaqs = faqs.filter(
+    (f) => f.workflow_status === "pending",
+  ).length;
   const pendingTestimonials = testimonials.filter(
-    (t) => t.workflow_status === "pending"
+    (t) => t.workflow_status === "pending",
   ).length;
 
   const getStatusBadge = (status: string) => {
@@ -196,9 +229,7 @@ export function PlatformContentModerationTab() {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
-        <div className="animate-pulse text-slate-400">
-          Loading content...
-        </div>
+        <div className="animate-pulse text-slate-400">Loading content...</div>
       </div>
     );
   }
@@ -240,6 +271,48 @@ export function PlatformContentModerationTab() {
           )}
         </button>
       </div>
+
+      {/* Season Management Section */}
+      {allSeasons.length > 0 && (
+        <Card className="bg-slate-50 border-slate-200">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-sm font-bold flex items-center gap-2">
+              <Filter className="w-4 h-4 text-slate-500" />
+              Season Management (Bulk Control)
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex flex-wrap gap-3">
+              {allSeasons.map((season) => (
+                <div
+                  key={season}
+                  className="flex items-center gap-2 bg-white p-2 rounded-xl border border-slate-200"
+                >
+                  <span className="text-xs font-bold px-2">{season}</span>
+                  <div className="flex gap-1">
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      className="h-7 px-2 text-[10px] text-emerald-600 hover:bg-emerald-50"
+                      onClick={() => handleBulkSeasonUpdate(season, true)}
+                    >
+                      Show All
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      className="h-7 px-2 text-[10px] text-rose-600 hover:bg-rose-50"
+                      onClick={() => handleBulkSeasonUpdate(season, false)}
+                    >
+                      Hide All
+                    </Button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Filters */}
       <div className="flex items-center gap-4">
@@ -303,7 +376,8 @@ export function PlatformContentModerationTab() {
                   </div>
                   <div className="flex items-center justify-between pt-3 border-t border-slate-100">
                     <div className="text-xs text-slate-400">
-                      Submitted by {faq.submitted_by_user?.username || "Unknown"} on{" "}
+                      Submitted by{" "}
+                      {faq.submitted_by_user?.username || "Unknown"} on{" "}
                       {new Date(faq.created_at).toLocaleDateString("en-PH")}
                       {faq.reviewed_by_user && (
                         <span className="ml-2">
@@ -358,14 +432,14 @@ export function PlatformContentModerationTab() {
                                     const sortOrder = parseInt(
                                       (
                                         document.getElementById(
-                                          `sort-${faq.id}`
+                                          `sort-${faq.id}`,
                                         ) as HTMLInputElement
-                                      ).value
+                                      ).value,
                                     );
                                     handleModerateFaq(
                                       faq.id,
                                       "publish",
-                                      sortOrder
+                                      sortOrder,
                                     );
                                   }}
                                   className="flex-1 bg-emerald-600 hover:bg-emerald-700"
@@ -435,9 +509,7 @@ export function PlatformContentModerationTab() {
                       </div>
                     )}
                     <div className="flex-1">
-                      <h3 className="font-semibold text-slate-900">
-                        {t.name}
-                      </h3>
+                      <h3 className="font-semibold text-slate-900">{t.name}</h3>
                       <p className="text-sm text-slate-500">{t.role_label}</p>
                     </div>
                   </div>
@@ -446,8 +518,8 @@ export function PlatformContentModerationTab() {
                   </div>
                   <div className="flex items-center justify-between pt-3 border-t border-slate-100">
                     <div className="text-xs text-slate-400">
-                      Submitted by {t.submitted_by_user?.username || "Unknown"} on{" "}
-                      {new Date(t.created_at).toLocaleDateString("en-PH")}
+                      Submitted by {t.submitted_by_user?.username || "Unknown"}{" "}
+                      on {new Date(t.created_at).toLocaleDateString("en-PH")}
                     </div>
                     {t.workflow_status === "pending" && (
                       <div className="flex gap-2">
@@ -457,7 +529,7 @@ export function PlatformContentModerationTab() {
                             handleModerateTestimonial(
                               t.id,
                               "publish",
-                              t.sort_order
+                              t.sort_order,
                             )
                           }
                           className="bg-emerald-600 hover:bg-emerald-700"

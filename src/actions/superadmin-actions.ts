@@ -841,6 +841,7 @@ export async function createPlatformAnnouncement(data: {
   content: string;
   targetAudience: "all" | "admins" | "lenders" | "members";
   priority: "low" | "normal" | "high" | "urgent";
+  isPublished?: boolean;
 }) {
   const session = await requireSuperadminSession();
 
@@ -852,7 +853,8 @@ export async function createPlatformAnnouncement(data: {
         target_audience: data.targetAudience,
         priority: data.priority,
         created_by: session.user.user_id,
-        is_published: true,
+        is_published: data.isPublished ?? true,
+        published_at: data.isPublished ? new Date() : null,
       },
     });
 
@@ -865,6 +867,31 @@ export async function createPlatformAnnouncement(data: {
     return {
       success: false,
       error: "Failed to create announcement",
+    };
+  }
+}
+
+export async function publishPlatformAnnouncement(announcementId: number) {
+  const session = await requireSuperadminSession();
+
+  try {
+    const announcement = await prisma.platformAnnouncement.update({
+      where: { id: announcementId },
+      data: {
+        is_published: true,
+        published_at: new Date(),
+      },
+    });
+
+    return {
+      success: true,
+      data: announcement,
+    };
+  } catch (error) {
+    console.error("Failed to publish platform announcement:", error);
+    return {
+      success: false,
+      error: "Failed to publish announcement",
     };
   }
 }
@@ -1587,6 +1614,42 @@ export async function getSuperadminReports() {
       where: { status: "active" },
     });
 
+    // Performance Trends (Last 6 Months)
+    const growthTrends = await prisma.$queryRaw`
+      SELECT 
+        DATE_TRUNC('month', created_at) as month,
+        COUNT(tenant_id) as new_tenants
+      FROM tenants
+      WHERE created_at >= NOW() - INTERVAL '6 months'
+      GROUP BY month
+      ORDER BY month ASC
+    `;
+
+    const userGrowth = await prisma.$queryRaw`
+      SELECT 
+        DATE_TRUNC('month', created_at) as month,
+        COUNT(user_id) as new_users
+      FROM users
+      WHERE created_at >= NOW() - INTERVAL '6 months' AND role = 'member'
+      GROUP BY month
+      ORDER BY month ASC
+    `;
+
+    // Member Acquisition & Retention
+    const acquisition = await prisma.$transaction([
+      prisma.user.count({ where: { status: "active", role: "member" } }),
+      prisma.user.count({ where: { status: "pending", role: "member" } }),
+    ]);
+
+    const retention = await prisma.$queryRaw`
+      SELECT 
+        COUNT(DISTINCT u.user_id) as total_members,
+        COUNT(DISTINCT l.user_id) as members_with_loans
+      FROM users u
+      LEFT JOIN loans l ON l.user_id = u.user_id AND l.status IN ('active', 'paid')
+      WHERE u.role = 'member'
+    `;
+
     return {
       success: true,
       data: {
@@ -1600,6 +1663,17 @@ export async function getSuperadminReports() {
           totalLoansRes._sum?.balance_remaining || 0,
         ),
         activeLoansCount: activeLoans,
+        performance: {
+          growthTrends: Array.isArray(growthTrends) ? growthTrends : [],
+          userGrowth: Array.isArray(userGrowth) ? userGrowth : [],
+          acquisition: {
+            active: acquisition[0],
+            pending: acquisition[1],
+          },
+          retention: Array.isArray(retention)
+            ? retention[0]
+            : { total_members: 0, members_with_loans: 0 },
+        },
       },
     };
   } catch (error) {

@@ -9,6 +9,7 @@ import {
   LayoutDashboard,
   CreditCard,
   PieChart,
+  TrendingUp,
 } from "lucide-react";
 import { getSuperadminReports } from "@/actions/superadmin-actions";
 
@@ -19,6 +20,12 @@ type ReportsData = {
   totalActiveLoanVolume: number;
   totalOutstandingBalance: number;
   activeLoansCount: number;
+  performance: {
+    growthTrends: any[];
+    userGrowth: any[];
+    acquisition: { active: number; pending: number };
+    retention: { total_members: number; members_with_loans: number };
+  };
 };
 
 export function ReportsTab() {
@@ -124,50 +131,89 @@ export function ReportsTab() {
         </Card>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-lg flex items-center gap-2">
-              <LayoutDashboard className="w-5 h-5 text-blue-600" />
-              Tenant Coverage
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex items-center justify-between p-4 bg-slate-50 rounded-xl">
-              <div className="space-y-1">
-                <p className="text-sm font-semibold text-slate-500 uppercase tracking-widest">
-                  Active Tenants
-                </p>
-                <p className="text-3xl font-black text-slate-800">
-                  {data?.totalTenants || 0}
-                </p>
-              </div>
-              <LayoutDashboard className="w-12 h-12 text-slate-200" />
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mt-6">
+        {/* Growth Trends - Tenancy & Users */}
+        <Card className="bg-white p-8 rounded-[2rem] border border-slate-200/60 shadow-sm space-y-6">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <TrendingUp className="w-5 h-5 text-indigo-500" />
+              <h3 className="text-xl font-display font-bold text-slate-900">
+                Growth Velocity (6 Months)
+              </h3>
             </div>
-          </CardContent>
+          </div>
+          <div className="h-48 w-full bg-slate-50/50 rounded-2xl flex items-end justify-between p-6 gap-2 border border-slate-100">
+            {data?.performance.userGrowth.map((d: any, i: number) => (
+              <div
+                key={i}
+                className="w-full bg-indigo-500 hover:bg-indigo-600 transition-all rounded-t-lg relative group"
+                style={{
+                  height: `${Math.max(10, (d.new_users / Math.max(...data.performance.userGrowth.map((x: any) => x.new_users), 1)) * 100)}%`,
+                }}
+              >
+                <div className="absolute -top-10 left-1/2 -translate-x-1/2 bg-slate-900 text-white text-[10px] px-2 py-1 rounded md opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-20">
+                  {new Date(d.month).toLocaleDateString(undefined, {
+                    month: "short",
+                  })}
+                  : {d.new_users} users
+                </div>
+              </div>
+            ))}
+          </div>
+          <div className="flex justify-between items-center text-[10px] font-bold text-slate-400 px-4">
+            <span>START</span>
+            <span>TENANT & MEMBER GROWTH TRENDS</span>
+            <span>NOW</span>
+          </div>
         </Card>
 
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-lg flex items-center gap-2">
-              <Users className="w-5 h-5 text-violet-600" />
-              User Base
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex items-center justify-between p-4 bg-slate-50 rounded-xl">
-              <div className="space-y-1">
-                <p className="text-sm font-semibold text-slate-500 uppercase tracking-widest">
-                  Registered Members
+        {/* Acquisition & Retention */}
+        <div className="space-y-6">
+          <Card className="bg-slate-900 p-8 rounded-[2rem] text-white">
+            <h3 className="text-xl font-display font-bold italic mb-6">
+              Retention & Impact
+            </h3>
+            <div className="grid grid-cols-2 gap-6">
+              <div className="space-y-2">
+                <p className="text-[10px] font-black text-indigo-400 uppercase tracking-widest">
+                  Active vs Total
                 </p>
-                <p className="text-3xl font-black text-slate-800">
+                <p className="text-3xl font-bold">
+                  {data?.performance?.acquisition?.active || 0} /{" "}
                   {data?.totalUsers || 0}
                 </p>
+                <div className="h-1.5 w-full bg-white/10 rounded-full overflow-hidden">
+                  <div
+                    className="h-full bg-indigo-500"
+                    style={{
+                      width: `${((data?.performance?.acquisition?.active || 0) / (data?.totalUsers || 1)) * 100}%`,
+                    }}
+                  />
+                </div>
               </div>
-              <Users className="w-12 h-12 text-slate-200" />
+              <div className="space-y-2">
+                <p className="text-[10px] font-black text-emerald-400 uppercase tracking-widest">
+                  Loan Penetration
+                </p>
+                <p className="text-3xl font-bold">
+                  {data?.performance?.retention?.members_with_loans || 0}
+                </p>
+                <div className="h-1.5 w-full bg-white/10 rounded-full overflow-hidden">
+                  <div
+                    className="h-full bg-emerald-500"
+                    style={{
+                      width: `${((data?.performance?.retention?.members_with_loans || 0) / (data?.performance?.retention?.total_members || 1)) * 100}%`,
+                    }}
+                  />
+                </div>
+              </div>
             </div>
-          </CardContent>
-        </Card>
+            <p className="text-xs text-slate-400 mt-6 leading-relaxed">
+              Platform-wide retention is measured by members actively utilizing
+              loan products relative to total registered user base.
+            </p>
+          </Card>
+        </div>
       </div>
     </div>
   );

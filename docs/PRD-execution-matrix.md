@@ -265,7 +265,7 @@ The previous issue-derived matrix has been replaced. All entries below are sourc
 | FL-01 | Platform access               | DONE    | Platform homepage, tenant selector/map implemented.                                                                 |
 | FL-02 | Tenant homepage access        | DONE    | Tenant slug routing implemented.                                                                                  |
 | FL-03 | Login and 2FA                | DONE*   | Login implemented. 2FA verification wire pending.                                                                |
-| FL-04 | Multi-tenant login prompt   | NEW     | Multiple tenant selection UI pending.                                                                          |
+| FL-04 | Multi-tenant login prompt   | DONE*   | Multi-tenant selection step already functional in login-form.tsx (step 2 "tenant" view with selectable cards). TenantSelector + TenantSwitcher components exist. |
 | FL-05 | Member registration entry   | DONE    | Tenant selection, registration flow implemented.                                                              |
 | FL-06 | Registration account details| DONE    | Username, email, phone, password captured.                                                                     |
 | FL-07 | Registration personal info  | DONE    | Names, birthdate, gender, marital status, addresses captured.                                                  |
@@ -275,57 +275,37 @@ The previous issue-derived matrix has been replaced. All entries below are sourc
 | FL-11 | Registration savings/assets| DONE    | Savings and assets captured.                                                                                     |
 | FL-12 | Registration references     | DONE    | Reference person captured.                                                                                 |
 | FL-13 | Registration documents     | DONE    | ID upload implemented.                                                                                  |
-| FL-14 | Registration completion     | DONE*   | Route to agapay-pintig implemented. Welcome tour pending.                                                      |
+| FL-14 | Registration completion     | DONE*   | Final success screen shown with member code and email notice. No direct route to agapay-pintig (uses window.location.reload()). Welcome tour pending. |
 | FL-15 | Tenant onboarding entry      | DONE    | Get in Touch, Contact Us, Pricing page routing.                                                               |
-| FL-16 | Tenant onboarding details   | DONE*   | Tenant details captured. Plan selection pending full workflow.                                                  |
-| FL-17 | Tenant onboarding approval   | NEW     | Superadmin approval workflow pending.                                                                           |
+| FL-16 | Tenant onboarding details   | DONE    | Full 3-step onboarding flow: Info -> Plan Selection (3 plan cards with pricing/features) -> Documents. submitCoopApplication() creates tenant application. |
+| FL-17 | Tenant onboarding approval   | DONE    | Superadmin workflow: processApplication() in tenant-applications.ts with approve/reject logic, creates tenant on approve, audit trail logged. SuperadminApprovalsTab displays pending. |
 | FL-18 | Region creation             | DONE    | TenantGroup (regions) in seed.ts and UI.                                                                       |
-| FL-19 | Tenant creation dialog      | DONE*   | Create tenant form exists. Full two-pane builder pending.                                                     |
+| FL-19 | Tenant creation dialog      | DONE    | Two-pane builder already implemented: left form + right live preview. LocalStorage draft persistence.                |
 | FL-20 | Tenant creation confirmatn  | DONE    | Confirmation and preview implemented.                                                                          |
 | FL-21 | Tenant availability        | DONE    | Avail/suspend/decommission actions implemented.                                                            |
 | FL-22 | Withdrawal                 | DONE    | Implemented in wallet-actions.ts.                                                                          |
-| FL-23 | Withdrawal issue reportng   | NEW     | Issue reporting UI pending.                                                                                  |
+| FL-23 | Withdrawal issue reportng   | NEW     | Issue reporting UI pending. General support tickets available but not transaction-specific.                 |
 | FL-24 | Deposit                    | DONE    | Implemented in wallet-actions.ts.                                                                          |
-| FL-25 | Deposit issue reporting     | NEW     | Issue reporting UI pending.                                                                                  |
+| FL-25 | Deposit issue reporting     | NEW     | Issue reporting UI pending. General support tickets available but not transaction-specific.                 |
 | FL-26 | Loan application           | DONE    | Product selection, amount, term, guarantors.                                                               |
-| FL-27 | Loan confirmation          | DONE*   | Fee preview shown in form. Full confirmation flow pending.                                                 |
-| FL-28 | Loan approval chain        | DONE*   | Admin approval implemented. Notification chain pending.                                                     |
-| FL-29 | Loan rejection reason      | NEW     | Capture and notify rejection reason.                                                                          |
-| FL-30 | Loan issue reporting        | NEW     | Issue reporting UI pending.                                                                                  |
+| FL-27 | Loan confirmation          | DONE*   | Fee preview shown in form (principal, interest, fees, total). Full confirmation step after submission pending. |
+| FL-28 | Loan approval chain        | DONE*   | Admin approval implemented (pending -> approved/rejected -> released). Notification chain pending.         |
+| FL-29 | Loan rejection reason      | NEW*   | rejectLoanApplication() accepts `notes` in schema but does NOT persist them. Admin UI uses hardcoded string. No notification to applicant. |
+| FL-30 | Loan issue reporting        | NEW     | Issue reporting UI pending. Support ticket "Loan Inquiry" category exists but not transaction-specific.    |
 | FL-31 | Installment/full payment   | DONE*   | Installment implemented. Full payment discount pending.                                                     |
 | FL-32 | Payment method choice      | DONE    | E-wallet, real-life payment options. GCash pending.                                                          |
 | FL-33 | Payment confirmation      | DONE    | Confirmation shown before submission.                                                                         |
 | FL-34 | Payment approval          | DONE*   | Admin approval implemented.                                                                               |
-| FL-35 | Paid loan closure         | NEW     | Mark loan paid and allow new application.                                                                     |
-| FL-36 | Trust score voting        | NEW     | Monthly voting workflow not yet implemented.                                                                   |
-| FL-37 | Superadmin rating        | NEW     | Superadmin rating UI not yet implemented.                                                                  |
-| FL-38 | Lender/member rating     | NEW     | Rating UI not yet implemented.                                                                          |
-| FL-39 | Missed voting suspension| NEW     | Voting lockout not yet implemented.                                                                         |
-| FL-40 | Low-rating action        | NEW     | Action workflow not yet implemented.                                                                     |
-| FL-41 | Scalable voting method    | NEW     | Sampling/quota logic not yet implemented.                                                                   |
+| FL-35 | Paid loan closure         | NEW     | No function found for marking loan paid/closed. No UI action.                                                |
+| FL-36 | Trust score voting        | VERIFY   | Full data model exists (TrustRatingPeriod, TrustRatingAssignment, TrustScoreSnapshot, TenantTrustPolicy with min_quota/sample_size/lockout). Engine calculates scores. UI/workflow for monthly voting pending. |
+| FL-37 | Superadmin rating        | VERIFY   | Same data model supports superadmin rating. UI/workflow pending.                                             |
+| FL-38 | Lender/member rating     | VERIFY   | Same data model supports rater/ratee scoring. UI/workflow pending.                                           |
+| FL-39 | Missed voting suspension| VERIFY   | TenantTrustPolicy.missed_vote_lockout_days: 7 in schema. Lockout enforcement logic pending.                  |
+| FL-40 | Low-rating action        | VERIFY   | TrustScoreSnapshot.low_rating_action_state in schema. Action workflow pending.                                |
+| FL-41 | Scalable voting method    | VERIFY   | TenantTrustPolicy.randomized_sample_size: 10, minimum_voting_quota: 3 in schema. Sampling logic pending.     |
 | FL-42 | Vouching                | DROPPED | Removed per PRD ISSUE 519/574.                                                                               |
-| FL-43 | Tier upgrade/downgrade   | NEW     | Tier auto-upgrade/downgrade not yet implemented.                                                          |
-| FL-44 | Default handling        | DONE*   | Default enforcement triggers exist. Full workflow pending.                                                   |
-| FL-25 | Deposit issue reporting            | NEW     | User can report a pending/unprocessed deposit to admin.                                                                                        |
-| FL-26 | Loan application                   | REBUILD | Loanee selects product by tier, enters loan value, cadence, purpose, and 1-2 guarantors.                                                       |
-| FL-27 | Loan confirmation                  | REBUILD | Show loan value, processing fee, service fee, guarantors, penalties, installments, and installment costs before confirmation.                  |
-| FL-28 | Loan approval chain                | NEW     | Notify loaner/admin according to role, forward to tenant admin, approve/reject, notify parties, and create record.                             |
-| FL-29 | Loan rejection reason              | NEW     | Notify loanee with rejection reason.                                                                                                           |
-| FL-30 | Loan issue reporting               | NEW     | User can report pending/unprocessed loan transaction to admin.                                                                                 |
-| FL-31 | Installment/full payment choice    | REBUILD | Loanee checks active loan and chooses installment or full payment, with full-payment discount support.                                         |
-| FL-32 | Payment method choice              | REBUILD | Loanee chooses e-wallet, real-life payment, or GCash.                                                                                          |
-| FL-33 | Payment confirmation               | REBUILD | Show cadence/option, payment method, payment value, and fees before submission.                                                                |
-| FL-34 | Payment approval                   | NEW     | Admin approves/rejects payment and notifies loaner, who receives money if approved.                                                            |
-| FL-35 | Paid loan closure                  | NEW     | Mark active loan paid and allow loanee to apply for a new product.                                                                             |
-| FL-36 | Trust score monthly voting         | NEW     | At month end, users rate one another and/or tenant according to role.                                                                          |
-| FL-37 | Superadmin rating                  | NEW     | Superadmin rates tenants and admins.                                                                                                           |
-| FL-38 | Lender/member rating               | NEW     | Lenders and members rate one another according to trust rules.                                                                                 |
-| FL-39 | Missed voting suspension           | NEW     | Suspend interactions until required voting is completed.                                                                                       |
-| FL-40 | Low-rating action workflow         | NEW     | Trigger necessary action against consistently low-rated users.                                                                                 |
-| FL-41 | Scalable voting method             | NEW     | Use randomized sampling, weighted trust graph, and minimum voting quota to avoid all-to-all voting overload.                                   |
-| FL-42 | Vouching                           | DROPPED | Removed from platform scope per PRD ISSUE 519/574.                                                                                             |
-| FL-43 | Tier upgrade/downgrade             | NEW     | Automatically upgrade or downgrade users based on configured Agapay goals.                                                                     |
-| FL-44 | Default handling                   | NEW     | Freeze account, charge guarantors, reduce trust score, and trigger reminders, restructuring offer, and final write-off workflow.               |
+| FL-43 | Tier upgrade/downgrade   | DONE    | syncUserTier() in trust-engine.ts automatically determines interest tier from trust score and updates DB. TrustTierAudit tracks changes. |
+| FL-44 | Default handling        | DONE*   | Default enforcement triggers exist. enforcement: mark defaulted, charge guarantors (25%), create recovery loans, audit logging. Automated daily cron via Trigger.dev. Full workflow pending (write-off, restructuring offers). |
 
 ---
 
@@ -360,12 +340,13 @@ The previous issue-derived matrix has been replaced. All entries below are sourc
 
 ## Implementation Summary (As of 2026-05-11)
 
-### Status Counts:
-- **DONE**: 85 items (Features, Roles, Sections, Constants)
-- **DONE***: 25 items (Implemented with notes/missing polish)
+### Status Counts (Updated from Audit):
+- **DONE**: 97 items (Features, Roles, Sections, Constants)
+- **DONE***: 28 items (Implemented with notes/missing polish)
 - **REBUILD**: 35 items (Legacy needing rework)
-- **VERIFY**: 40 items (Need code verification)
-- **NEW**: 45 items (Not yet implemented)
+- **VERIFY**: 44 items (Need code verification)
+- **NEW**: 30 items (Not yet implemented)
+- **BACKEND_ONLY**: 1 item (Actions exist, no UI)
 - **DROPPED**: 6 items (Removed per PRD)
 - **OUT_OF_SCOPE**: 1 item (Mobile)
 
