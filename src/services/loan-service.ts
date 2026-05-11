@@ -66,6 +66,7 @@ export class LoanService {
           db.loan.findMany({
             where: {
               user_id: userId,
+              tenant_id: tenantId,
               status: { in: ["pending", "approved", "active"] },
             },
             select: {
@@ -75,12 +76,14 @@ export class LoanService {
           db.loan.count({
             where: {
               user_id: userId,
+              tenant_id: tenantId,
               status: "defaulted",
             },
           }),
           db.loan.count({
             where: {
               user_id: userId,
+              tenant_id: tenantId,
               schedules: {
                 some: { status: "overdue" },
               },

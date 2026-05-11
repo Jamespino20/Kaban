@@ -10,6 +10,8 @@ import {
   ShieldAlert,
   CheckCircle,
   Plus,
+  RotateCcw,
+  ExternalLink,
 } from "lucide-react";
 import {
   getRegions,
@@ -17,6 +19,7 @@ import {
   decommissionTenant,
   renameTenant,
   updateTenantEntitlement,
+  restoreTenant,
 } from "@/actions/tenant-management";
 
 import {
@@ -164,6 +167,25 @@ export function TenantManagementTab({
         );
       } else {
         setError(res.error || "Failed to update tenant access.");
+      }
+    });
+  };
+
+  const handleRestore = (tenantId: number, tenantName: string) => {
+    if (!confirm(`Are you sure you want to RESTORE ${tenantName}?`)) return;
+
+    startTransition(async () => {
+      setError(null);
+      const res = await restoreTenant(tenantId);
+
+      if (res.success && res.data) {
+        setTenants((prev) =>
+          prev.map((t: any) =>
+            t.tenant_id === tenantId ? { ...t, is_active: true } : t,
+          ),
+        );
+      } else {
+        setError(res.error || "Failed to restore tenant.");
       }
     });
   };
@@ -380,17 +402,31 @@ export function TenantManagementTab({
                         </Button>
                       </div>
                     )}
-                    <Button
-                      variant="destructive"
-                      className="w-full text-xs font-bold"
-                      onClick={() => handleDecommission(t.tenant_id, t.name)}
-                      disabled={isPending || t.slug === "main-tenant"}
-                    >
-                      <PowerOff className="w-4 h-4 mr-2" />
-                      {t.slug === "main-tenant"
-                        ? "Cannot Suspend HQ"
-                        : "Decommission Tenant"}
-                    </Button>
+                    <div className="grid grid-cols-2 gap-2 mt-2">
+                      <Button
+                        variant="destructive"
+                        className="text-xs font-bold"
+                        onClick={() => handleDecommission(t.tenant_id, t.name)}
+                        disabled={isPending || t.slug === "main-tenant"}
+                      >
+                        <PowerOff className="w-4 h-4 mr-2" />
+                        {t.slug === "main-tenant" ? "HQ" : "Suspend"}
+                      </Button>
+                      <Button
+                        variant="secondary"
+                        className="text-xs font-bold"
+                        asChild
+                      >
+                        <a
+                          href={`/${t.slug}/agapay-tanaw`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        >
+                          <ExternalLink className="w-4 h-4 mr-2" /> View
+                          Dashboard
+                        </a>
+                      </Button>
+                    </div>
                   </div>
                 ) : (
                   <div className="space-y-3">
@@ -408,6 +444,14 @@ export function TenantManagementTab({
                           Snapshot
                         </a>
                       )}
+                    <Button
+                      variant="outline"
+                      className="w-full text-xs font-bold border-red-200 text-red-700 hover:bg-red-50"
+                      onClick={() => handleRestore(t.tenant_id, t.name)}
+                      disabled={isPending}
+                    >
+                      <RotateCcw className="w-4 h-4 mr-2" /> Restore Tenant
+                    </Button>
                   </div>
                 )}
               </CardContent>

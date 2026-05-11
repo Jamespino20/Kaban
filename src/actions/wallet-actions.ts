@@ -402,7 +402,7 @@ export async function processPosTransaction(data: {
             amount: new Prisma.Decimal(data.amount),
             reference: data.reference,
             processed_by: operatorId,
-            notes: data.notes || "POS Cash Deposit",
+            issue_notes: data.notes || null,
           },
         });
 

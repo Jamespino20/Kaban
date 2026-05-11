@@ -11,6 +11,9 @@ import {
   AlertTriangle,
   TrendingUp,
   PiggyBank,
+  Building2,
+  MessagesSquare,
+  BadgeCheck,
 } from "lucide-react";
 
 interface KPIMetricCardProps {
@@ -24,7 +27,11 @@ interface KPIMetricCardProps {
     | "alert"
     | "trending"
     | "users"
-    | "piggy-bank";
+    | "piggy-bank"
+    | "tenants"
+    | "feedback"
+    | "repayment";
+
   trend?: {
     value: number;
     isPositive: boolean;
@@ -50,6 +57,9 @@ export function KPIMetricCard({
     trending: TrendingUp,
     users: Users,
     "piggy-bank": PiggyBank,
+    tenants: Building2,
+    feedback: MessagesSquare,
+    repayment: BadgeCheck,
   };
 
   const Icon = iconName ? IconMap[iconName] : null;

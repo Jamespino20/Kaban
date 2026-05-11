@@ -200,6 +200,30 @@ export function AuthenticatedShell({
     surface: `border-white/10 bg-[linear-gradient(180deg,${rgba(normalizedTenantColor || "#0f172a", 0.96)},#020617)]`,
   };
 
+  const getContrastColor = (hex?: string | null) => {
+    if (!hex) return "white";
+    const { r, g, b } = hexToRgb(hex);
+    // Standard relative luminance formula
+    const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+    return luminance > 0.6 ? "black" : "white";
+  };
+
+  const contrastColor = getContrastColor(normalizedTenantColor);
+  const isLight = contrastColor === "black";
+  const contrastClass = isLight ? "text-slate-950" : "text-white";
+  const mutedContrastClass = isLight ? "text-slate-700" : "text-white/60";
+  const borderContrastClass = isLight
+    ? "border-slate-950/10"
+    : "border-white/10";
+  const hoverContrastClass = isLight
+    ? "hover:bg-slate-950/10"
+    : "hover:bg-white/10";
+  const activeContrastClass = isLight
+    ? "data-[state=active]:bg-slate-950/15 data-[state=active]:border-slate-950/20"
+    : "data-[state=active]:bg-white/15 data-[state=active]:border-white/20";
+  const iconBgContrastClass = isLight ? "bg-slate-950/5" : "bg-white/5";
+  const badgeContrastClass = isLight ? "bg-slate-950/20" : "bg-white/20";
+
   const sidebarStyle = {
     backgroundImage: normalizedTenantColor
       ? `linear-gradient(180deg, ${rgba(normalizedTenantColor, 0.08)})`
@@ -241,6 +265,7 @@ export function AuthenticatedShell({
   useEffect(() => {
     // Delay enabling scroll so Radix's focus-triggered scrollIntoView
     // cannot shift the nav container during mount.
+
     requestAnimationFrame(() => {
       requestAnimationFrame(() => setNavReady(true));
     });
@@ -248,14 +273,18 @@ export function AuthenticatedShell({
 
   const renderSidebar = () => (
     <div
-      className={`flex h-full flex-col text-white`}
+      className={`flex h-full flex-col ${contrastClass}`}
       style={{
         backgroundColor: normalizedTenantColor || "#0f172a",
         ...sidebarStyle,
       }}
     >
-      <div className="h-1 w-full bg-white/20" />
-      <div className="flex flex-col border-b border-white/10 p-4 space-y-4">
+      <div
+        className={`h-1 w-full ${isLight ? "bg-slate-950/20" : "bg-white/20"}`}
+      />
+      <div
+        className={`flex flex-col border-b ${borderContrastClass} p-4 space-y-4`}
+      >
         <div className="flex items-center justify-between">
           <div
             className={`flex min-w-0 flex-col gap-1 transition-all ${
@@ -287,13 +316,17 @@ export function AuthenticatedShell({
                 )}
               </div>
               <div className="min-w-0">
-                <p className="truncate text-lg font-black tracking-tight text-white mb-0.5">
+                <p
+                  className={`truncate text-lg font-black tracking-tight ${contrastClass} mb-0.5`}
+                >
                   {tenantName || "Agapay"}
                 </p>
                 <div className="flex items-center gap-1.5 opacity-90">
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-white">
-                    Powered by Agapay
-                  </span>
+                  <img
+                    src="/images/agapay_titled.png"
+                    alt="Powered by Agapay"
+                    className={`h-4 object-contain ${isLight ? "brightness-0" : "brightness-0 invert"}`}
+                  />
                 </div>
               </div>
             </div>
@@ -304,7 +337,7 @@ export function AuthenticatedShell({
               variant="ghost"
               size="icon"
               onClick={() => setMobileOpen(false)}
-              className="rounded-2xl text-white/50 hover:bg-white/10 lg:hidden"
+              className={`rounded-2xl ${mutedContrastClass} ${hoverContrastClass} lg:hidden`}
               title="Close navigation"
             >
               <X className="h-5 w-5" />
@@ -313,7 +346,7 @@ export function AuthenticatedShell({
               variant="ghost"
               size="icon"
               onClick={() => setCollapsed((value) => !value)}
-              className="hidden rounded-2xl text-white/50 hover:bg-white/10 xl:flex"
+              className={`hidden rounded-2xl ${mutedContrastClass} ${hoverContrastClass} xl:flex`}
               title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
             >
               {collapsed ? (
@@ -342,7 +375,9 @@ export function AuthenticatedShell({
             return Object.entries(grouped).map(([category, items]) => (
               <div key={category} className="space-y-1 mb-6">
                 {!collapsed && (
-                  <h3 className="pl-12 mb-2 text-[10px] font-black uppercase tracking-[0.2em] text-white/50">
+                  <h3
+                    className={`pl-12 mb-2 text-[10px] font-black uppercase tracking-[0.2em] ${mutedContrastClass}`}
+                  >
                     {category}
                   </h3>
                 )}
@@ -362,7 +397,7 @@ export function AuthenticatedShell({
                         const event = new PopStateEvent("popstate");
                         window.dispatchEvent(event);
                       }}
-                      className={`group h-auto w-full justify-start rounded-2xl border border-transparent px-1 py-2.5 text-left text-white/70 transition-all hover:text-white hover:bg-[var(--accent-custom,rgba(255,255,255,0.1))] data-[state=active]:bg-[var(--accent-custom,rgba(255,255,255,0.15))] data-[state=active]:text-white data-[state=active]:border-[var(--accent-custom,rgba(255,255,255,0.2))] ${
+                      className={`group h-auto w-full justify-start rounded-2xl border border-transparent px-1 py-2.5 text-left ${mutedContrastClass} transition-all hover:${contrastClass} ${hoverContrastClass} ${activeContrastClass} data-[state=active]:${contrastClass} ${
                         collapsed ? "xl:px-2.5" : ""
                       }`}
                       style={{
@@ -374,7 +409,9 @@ export function AuthenticatedShell({
                       }}
                     >
                       <div className="flex w-full items-center gap-3">
-                        <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-[10px] bg-white/5 transition-colors group-data-[state=active]:bg-white group-data-[state=active]:text-slate-900">
+                        <div
+                          className={`flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-[10px] ${iconBgContrastClass} transition-colors group-data-[state=active]:bg-white group-data-[state=active]:text-slate-900`}
+                        >
                           <Icon className="h-4 w-4" />
                         </div>
                         <div
@@ -388,7 +425,7 @@ export function AuthenticatedShell({
                         </div>
                         {typeof item.badge === "number" && item.badge > 0 ? (
                           <span
-                            className={`rounded-full bg-white/20 px-2 py-0.5 text-[10px] font-black text-white ${
+                            className={`rounded-full ${badgeContrastClass} px-2 py-0.5 text-[10px] font-black ${contrastClass} ${
                               collapsed ? "xl:hidden" : ""
                             }`}
                           >
@@ -405,9 +442,11 @@ export function AuthenticatedShell({
         </TabsList>
       </div>
 
-      <div className="border-t border-white/10 p-3">
+      <div className={`border-t ${borderContrastClass} p-3`}>
         <div className="px-4 py-2 text-center">
-          <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/40">
+          <p
+            className={`text-[10px] font-bold uppercase tracking-[0.2em] ${mutedContrastClass}`}
+          >
             © 2026 Agapay System
           </p>
         </div>
@@ -487,40 +526,11 @@ export function AuthenticatedShell({
               </div>
             </div>
             <div className="flex items-center gap-3 self-start lg:self-auto">
-              <TenantSelector currentTenant={tenantSlug} />
+              {accountRole === "member" && (
+                <TenantSelector currentTenant={tenantSlug} />
+              )}
               <NotificationBell />
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button
-                    variant="outline"
-                    size="icon"
-                    className="rounded-full border-slate-200 bg-white text-slate-500 shadow-sm hover:bg-slate-50 hover:text-slate-900"
-                    title="Module actions"
-                  >
-                    <MoreVertical className="h-5 w-5" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent
-                  align="end"
-                  className="w-56 rounded-2xl border-slate-200 p-2 shadow-xl"
-                >
-                  <DropdownMenuItem
-                    className="rounded-xl px-3 py-2"
-                    onClick={() => {
-                      window.location.href = `/${tenantSlug}`;
-                    }}
-                  >
-                    Open tenant homepage
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem
-                    className="rounded-xl px-3 py-2 text-red-600 focus:text-red-600"
-                    onClick={() => signOut({ callbackUrl: "/" })}
-                  >
-                    Sign out
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
+
               <div
                 className={`hidden md:inline-flex items-center gap-3 rounded-full border p-1 pr-5 ${dynamicStyles.badge}`}
                 style={portalBadgeStyle}
@@ -543,7 +553,7 @@ export function AuthenticatedShell({
               <Button
                 variant="ghost"
                 size="icon"
-                onClick={() => signOut({ callbackUrl: "/" })}
+                onClick={() => signOut({ callbackUrl: `/${tenantSlug}` })}
                 className="rounded-full text-slate-400 hover:text-red-500 hover:bg-red-50 ml-1"
                 title="Sign Out"
               >

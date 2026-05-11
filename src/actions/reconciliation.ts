@@ -78,7 +78,7 @@ export async function getEndOfDayReconciliation(
     );
 
     const isLedgerBalanced =
-      totalLedgerDebits === totalLedgerCredits && totalLedgerDebits > 0;
+      totalLedgerDebits === totalLedgerCredits;
 
     // 4. Tenant Wallet Checks (Total Active Savings Accounts)
     const tenantSavings = await db.savingsAccount.findMany({

@@ -17,7 +17,7 @@ const SECTIONS = [
   },
   {
     title: "4. Access control and visibility",
-    body: "The platform has role-based access for `superadmin`, `admin`, `lender`, and `member`. The system aims to limit reports and records to the appropriate role and tenant scope.",
+    body: "The platform has role-based access for operators and members. The system aims to limit reports and records to the appropriate role and tenant scope.",
   },
   {
     title: "5. Feedback and support submissions",
@@ -42,8 +42,8 @@ export default async function PrivacyPage() {
           </h1>
           <p className="text-lg text-slate-600 leading-relaxed mb-12 max-w-3xl">
             This privacy note applies to the current Agapay prototype. It
-            describes how member, tenant, and admin data is handled within the
-            system.
+            describes how member, tenant, and operator data is handled within
+            the system.
           </p>
 
           <div className="space-y-8">

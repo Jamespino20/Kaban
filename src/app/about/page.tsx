@@ -104,10 +104,7 @@ export default async function AboutPage() {
               <p>
                 Clear status for application, approval, release, and repayment.
               </p>
-              <p>
-                Role-based views for `superadmin`, `admin`, `lender`, and
-                `member`.
-              </p>
+              <p>Role-based views for operators and members.</p>
               <p>
                 Feedback and content workflows to keep the homepage and support
                 experience relevant.

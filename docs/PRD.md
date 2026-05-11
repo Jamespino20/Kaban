@@ -56,7 +56,7 @@ Alright, let's have a complete revamp for Agapay, we'll redo everything from scr
 - Why Agapay section
 - Features section
 - Sample Calculator section
-- Agapay Zoomable Live Tenant section-
+- Agapay Zoomable Live Branch section-
 - Agapay SaaS Pricing
 - Testimonials section
 - FAQs section
@@ -114,7 +114,7 @@ Alright, let's have a complete revamp for Agapay, we'll redo everything from scr
 - Global Management [has grid of cards that expands upon hovering, has searchbar, inside scrolling, appropriately sized elements, and filters]
   - Sorts all tenants according to regions
   - Each card shows member counts, current paid plan, portfolio, tenant score, and last availment date, with buttons to edit, mark availed/suspended, and decommission/restore
-  - Add Tenant should show a two-pane dialog. Left pane is the homepage and dashboard builder. Homepage builder contains parent region, tenant name, URL slug, brand color, main color, accent color, tenant logo, primary contents, starter testimonials and FAQs, hero section content, and calculator configs. Dashboard builder should show the entire functions for each role (Superadmin can toggle enabled functions of the tenant dashboard depending on the current plan). Right pane is the landscape live preview with a button to access the actual tenant homepage.
+  - Add Tenant should show a two-pane dialog. Left pane is the homepage and dashboard builder. Homepage builder contains parent region, tenant name, URL slug, brand color, main color, accent color, branch logo, primary contents, starter testimonials and FAQs, hero section content, and calculator configs. Dashboard builder should show the entire functions for each role (Superadmin can toggle enabled functions of the tenant dashboard depending on the current plan). Right pane is the landscape live preview with a button to access the actual tenant homepage.
   - Once new tenants are created, it should create a new tenant record in the DB
   - There should be a lease according to the tenant's purchased plan, and it should warn tenants 2 weeks before access suspension so they can pay
 - Homepage Content (for Platform Dashboard) contains FAQ Moderation (General-Scoped) and Testimonial Moderation (Uses Tenants' Testimonials)
@@ -146,11 +146,11 @@ Alright, let's have a complete revamp for Agapay, we'll redo everything from scr
   - Audit Logs across all tenants
 - Settings
   - Platform Config
-    - Global scoring weights (Trust Score, Vouch Score logic)
+    - Global scoring weights (Trust Score logic)
     - Risk thresholds (auto-flag delinquency, fraud signals)
     - Default loan calculator configs
   - Subscription & Billing
-    - Plan creation (limits: members, lenders, features)
+    - Plan creation (limits: members, operators, features)
     - Pricing tiers
     - Tenant billing cycles & invoices
   - AI Configuration
@@ -164,47 +164,47 @@ Alright, let's have a complete revamp for Agapay, we'll redo everything from scr
     - 2FA enforcement rules
 
 ## Tenant Operator (Unified Admin & Lender)
-
-- Overview [Contains combined KPIs of tenant health: Funds, Active Loans, Portfolio Growth, Repayment Rates, ROI/Earnings (Personal & Tenant), Risk Exposure, and Portfolio Diversification; includes Recent Interaction Logs, Total Trust Score of the Tenant, and AI-generated Snapshots/Summaries]
+- Overview [Contains combined KPIs of branch health: Funds, Active Loans, Portfolio Growth, Repayment Rates, ROI/Earnings (Personal & Branch), Risk Exposure, and Portfolio Diversification; includes Recent Interaction Logs, Total Trust Score of the Branch, and AI-generated Snapshots/Summaries]
 - Approvals & Queue [Unified grid of cards with search, filters, and inside-scrolling]
-  -Loan Applications [Status: Rejected, Pending, Approved]
-  -Card contains: Applicant Name, Vouch Score, Trust Score, Loan Product, Requested Value, Cadence/Term, Purpose, Reference Number
-  - Fund Releases [Status: Not Released, Released]
-    - Card contains: Applicant Name, Loan Product, Approved Value, Release Method, Scheduled Date, Reference Number
-  - Payment Verification [Status: Rejected, Pending, Approved]
-    - Card contains: Applicant Name, Installment #, Payment Reference, Receipt Attachment, Amount, Verification Action
-  - Capital Top-Up Queue [Incoming funding requests from operators/lenders]
-    - Card contains: Lender Name, Amount, Method (E-wallet/Bank), Status, Reference Number
-  - Identity Verification [Document review for new members]
-    - Card contains: Applicant Name, Membership Code, Attached IDs, Verification Status
-- Capital & Investments (The Vault) [Personal and Tenant-level funding management]
-  - My Investment Portfolio [Active investments in loans, ROI breakdown, Earnings history, Defaulted loan exposure]
-  - Wallet & Top-Ups [Add/Withdraw funds, Transaction History, Linked Bank/E-wallet accounts]
-  - Risk & Diversification [AI-driven suggested investments and risk alerts across the tenant portfolio]
+	-Loan Applications [Status: Rejected, Pending, Approved]
+	 	-Card contains: Applicant Name, Trust Score, Loan Product, Requested Value, Cadence/Term, Purpose, Reference Number
+	- Fund Releases [Status: Not Released, Released]
+		- Card contains: Applicant Name, Loan Product, Approved Value, Release Method, Scheduled Date, Reference Number
+	- Payment Verification [Status: Rejected, Pending, Approved]
+		- Card contains: Applicant Name, Installment #, Payment Reference, Receipt Attachment, Amount, Verification Action
+	- Capital Top-Up Queue [Incoming funding requests from operators/lenders]
+		- Card contains: Lender Name, Amount, Method (E-wallet/Bank), Status, Reference Number
+	- Identity Verification [Document review for new members]
+		- Card contains: Applicant Name, Membership Code, Attached IDs, Verification Status
+- Capital & Investments (The Vault) [Personal and Branch-level funding management]
+	- My Investment Portfolio [Active investments in loans, ROI breakdown, Earnings history, Defaulted loan exposure]
+	- Wallet & Top-Ups [Add/Withdraw funds, Transaction History, Linked Bank/E-wallet accounts]
+	- Risk & Diversification [AI-driven suggested investments and risk alerts across the branch portfolio]
 - Member Management
-  - Member Directory [Grid/cards view of the community]
-  - Member Profiles [Personal info, full Loan History, Trust/Vouch scores, Uploaded Documents]
-  - Status Controls [Active / Suspended / Blacklisted toggles]
+	- Member Directory [Grid/cards view of the community]
+	- Member Profiles [Personal info, full Loan History, Trust scores, Uploaded Documents]
+	- Status Controls [Active / Suspended / Blacklisted toggles]
 - Loan Products & Policy
-  - Product Studio [Create/Edit products: Interest models (Flat/Diminishing), Cadence, Term Limits, Penalty rules]
-  - Logic Config [Assigning eligibility rules and risk scoring modifiers]
+	- Product Studio [Create/Edit products: Interest models (Flat/Diminishing), Cadence, Term Limits, Penalty rules]
+	- Logic Config [Assigning eligibility rules and risk scoring modifiers]
 - Treasury & Reconciliation [Strict daily financial integrity]
-  - EOD Reconciliation (Critical) [Daily sign-off: Payments received vs. Loans released, Treasury balance, Flagging discrepancies]
-  - Compassion Actions [Loan restructuring/Grace periods/Penalty waivers with approval trails and notes]
+	- EOD Reconciliation (Critical) [Daily sign-off: Payments received vs. Loans released, Treasury balance, Flagging discrepancies]
+	- Compassion Actions [Loan restructuring/Grace periods/Penalty waivers with approval trails and notes]
 - Content & Branding [Branding and Member-facing UI control]
-  - Tenant Homepage Editor [Hero Section, Calculator Config, Testimonials, FAQs, Announcements Banner]
-  - Tenant Identity [Logo, Brand/Accent Colors, Typography selection]
+	- Tenant Homepage Editor [Hero Section, Calculator Config, Testimonials, FAQs, Announcements Banner]
+	- Branch Identity [Logo, Brand/Accent Colors, Typography selection]
 - Community
-  - Intercom / Bulletin [Tenant-wide announcements, internal messaging, member engagement posts]
-  - Chat Hub [Individual and Group chats with members and staff]
+	- Intercom / Bulletin [Branch-wide announcements, internal messaging, member engagement posts]
+	- Chat Hub [Individual and Group chats with members and tenant operator]
 - Support & Analytics
-  - Feedback Registry [Member complaints, system issues, and feature requests]
-  - Growth Analytics [Portfolio trends, behavior insights, default forecasts]
-  - Security & Audit Logs [All Operator + Staff actions; filter by User, Module, and Date]
+        - Satisfaction Survey
+	- Feedback Registry [Member complaints/reviews, system issues, testimony submission, and feature requests]
+	- Growth Analytics [Portfolio trends, behavior insights, default forecasts]
+	- Security & Audit Logs [All Operator + Staff actions; filter by User, Module, and Date]
 - Settings
-  - Tenant Config [Strict loan rules, scoring tweaks, email/system notification triggers]
-  - Operator Profile [Personal info, profile picture, Theme selection (Light/Dark)]
-  - Security Matrix [2FA config, password management, session controls, linked banking/wallet accounts]
+	- Tenant Config [Strict loan rules, scoring tweaks, email/system notification triggers]
+	- Operator Profile [Personal info, profile picture, Theme selection (Light/Dark)]
+	- Security Matrix [2FA config, password management, session controls, linked banking/wallet accounts]
 
 ## Tenant Member
 
@@ -212,7 +212,7 @@ Alright, let's have a complete revamp for Agapay, we'll redo everything from scr
   - Active loans
   - Remaining balance
   - Next due date
-  - Trust & Vouch score
+  - Trust score
   - AI financial tips
 - Apply for Loan
   - Loan product selection
@@ -230,14 +230,12 @@ Alright, let's have a complete revamp for Agapay, we'll redo everything from scr
   - Internal messaging / bulletin
   - Group announcements
   - Member engagement posts
-  - Individual chats/group chats
-- Vouch System
-  - Request vouches
-  - Give vouches
-  - View trust network
+  - Chat Hub [Individual and Group chats with members and tenant operator]
 - Support / Feedback
+  - Satisfaction Survey
   - Submit concerns
   - Track ticket status
+  - Testimony submission
 - Profile & Settings
   - Profile [Editable with username, address, profile picture, light/dark theme]
   - Security (password, 2FA)
@@ -276,7 +274,7 @@ Alright, let's have a complete revamp for Agapay, we'll redo everything from scr
 ## Agapay Tenant Subscription Plans:
 
 - Agapay Core — P3,500/3-months [Benefits: Up to 500 members, Basic Admin Dashboard, Standard Microfinance Policy Access, Audit Logs, Email Support
-- Agapay Pro — P6,500/6-months [Benefits: Everything in Core, plus: Up to 2,500 members, Custom Tenant Branding, Mentorship & Community Tools, Chat/Priority Email Support, Automated Compassion Workflow, Basic Data Export Tools]
+- Agapay Pro  — P6,500/6-months [Benefits: Everything in Core, plus: Up to 2,500 members, Custom Tenant Branding, Mentorship & Community Tools, Chat/Priority Email Support, Automated Compassion Workflow, Basic Data Export Tools]
 - Agapay Enterprise — P12,000/12-months [Benefits: Everything in Pro, plus: Unlimited Members, Analytics Module, Priority Support (faster SLA), Advanced Data Export & Reporting Tools, System Configuration Controls]
 
 ## Agapay Tenant Interest Rate Tiers
@@ -330,10 +328,6 @@ Alright, let's have a complete revamp for Agapay, we'll redo everything from scr
 - Loan Portfolio Quality & Risk (20%, System-Generated)
 - Operational Compliance & Efficiency (15%, Admin’s Rating)
 - Member Satisfaction & Engagement (10%, Members’ Ratings)
-
-## Agapay Vouch Score
-
-- 10 (computing the mean)
 
 ---
 
@@ -467,10 +461,6 @@ Alright, let's have a complete revamp for Agapay, we'll redo everything from scr
 
 * Problem: Too many members → impossible voting -> Solution: Randomized sampling voting, Weighted trust graph, Minimum voting quota
 
-# Vouching
-
-- Anytime, a member can vouch for another member, which gives both of them additional discounts
-
 ## Tier Upgrade/Downgrade
 
 - Automatic upgrade or downgrade depending on Agapay Goals (will be set up)
@@ -485,16 +475,106 @@ Alright, let's have a complete revamp for Agapay, we'll redo everything from scr
 # ISSUES
 
 ## SYSTEMWIDE ISSUES
+### Platform Homepage
+#### Homepage 
+- Add more shortcuts to the navbar
+- Disable the default scrollbar and implement a custom green circle scrollbar.
+- Remove Get Started with Agapay button from the platform navbar.
+- Hero button should be Apply for Agapay (which leads to the tenant onboarding form) and the Loan Calculator
+- Loan Calculator should emphasize that this is an example set of business operation and that things may depend on the actual cooperative policies
+- Showcase that Agapay is a platform system that offers microfinancing cooperative services, not a microfinancing cooperative company itself.
+- Live Map should be zoomable because tenants near each other are clipping against each other, making for a very complicated navigation. The static building icon should show the tenant logos instead, the button to visit the tenant homepage changes according to its brand color, and the members and loans repaid must be accurate to what the tenant actually has
+- SaaS pricing is outdated
+- Remember that the platform testimonies should come from the testimonies from other tenants, rooted from their homepages, and picked by the superadmin (the system automatically notifies the target testimonees)
+- Start a clearer lender flow box should have "Apply for Agapay Now" button only.
+
+#### Platform Footer
+- Could improve by showcasing a bit more on Agapay's features
+- Remove Security from the Footer
+- Pricing should showcase the allowed features per plan better, then the Member Loan Rate Guide could be more accurate to the Agapay Constants
+
+#### Company Footer
+- Management and Partners only lead to the /about page. Either remove them from the footer or you actually make content for this.
+
+#### Legal Footer
+- Either remove Cookie Settings from the links or actually make content for this.
+
+#### Contact
+- Ensure that the wording here is showcasing Agapay as a cooperative platform, not as a cooperative company.
+- Tenant Onboarding should add a payments tab after documents. The Tenant can now pick plans and input necessary billing details. This should notify the superadmin about the tenant application
+- General Feedbacks does not show up in the superadmin Feedback module
+
+### Tenant Homepage
+- Disable the default scrollbar and implement a custom green circle scrollbar.
+- It should be have the exact same content, design, layout, and feel as the platform homepage, now with the dedicated register/login button and modal. Ensure that the brand colors are shown properly here for distinction.
+
+### Apex Homepage [should not be seen from the find cooperatives selector]
+- Disable the default scrollbar and implement a custom green circle scrollbar.
+- Make minimal content here but still have details, now with the usual platform login button and modal.	
+
+### Tanaw and Pintig Dashboards
+- Disable the default scrollbar and implement a custom green circle scrollbar.
+- Operators and Superadmins should no longer have the branch selector, only the Members have it
+- Some modules are still indented in the sidebar
+- Having a Vouch System would just complicate things, so let's remove it for both operators and members
+- Remove the unnecessary three-dot button on the header, since we are still logged in per every session
+- Module contents are still in Tagalog
+- There are still hardcoded slate colors, and some action buttons miscolored across all tenants [ensure that the color branding is consistent per tenant]
+- It should be "Powered by [agapay_titled.png]" at the sidebar
+- There should be a warning/timeout modal popping out for 1 hour inactivity
+- For the sidebar text, when the colors are too bright, the font color should be black. Vice versa
+- Enable dark mode while retaining tenant branding
+- Logging out should lead to their tenant homepage, not the Agapay platform homepage
+- Form inputs should be saved even when accidentally exited
+- All loading visuals should be skeleton
+- Updates and changes do not happen or show up in realtime, but rather in every window refresh
+- Error toasts could be more explicit in what went wrong
 
 ## ROLE-BASED ISSUES
 
 ### Superadmin
+- Overview should not be responsible for tenant business. It should show KPIs and summary logs of the platform system itself
+- Community should be with tenant operators only	
+- Approvals should be for tenant application only
+- Improve Global Management by showing better details and action buttons for every card, allow for restoring decommissioned tenants by uploading a saved backup of all tenant information. Visually sort every tenant by their region, then widen the tenant homepage & dashboard builder modal while adding more details and paid plan options. There should also be a view tenant homepage button
+- At Homepage Content, superadmin can edit platform hero section video/content, toggle platform homepage sections, edit platform homepage content, FAQs and Tenant Testimonials. It should not approve other tenants' FAQ/Testimonial posting requests for their own homepages. When picking Tenant Testimonials for the Agapay Testimonies section, it should notify both the tenant operator and the targetted tenant member.
+- Feedback has "entryies". I tried sending a feedback from the platform homepage, but it doesn't show up (it did send an email notification to my superadmin email). Audit Logs should be a separate module [since the actual Audit Log module access leads to a blank page
+- Reports should be platform-related. There needs to be time ranges and more search-and-filter.
+- System Health should be a part of the Reports.
+- Settings is indented in the sidebar. Remove the customization in the Settings since it should be the Homepage Content [We might rename it]. There are no capabilities for personal information. Remove the SaaS subscription plan section since the superadmin doesn't need to change plans
+- There's no way right now to monitor tenant lease payments and edit the plans' benefits. There's no email templates, no AI right now.
+- There's no way for superadmin to toggle what modules each tenant will have according to their paid plan
 
-### Tenant Admin
+### Tenant Operator
+- Operators do not need an interest tier of their own [Overview]
+- Approvals and Queues have unresponsive buttons and input fields
+- Payment Intake has this error: Invalid `prisma.savingsTransaction.create()` invocation: { data: { account_id: 5, tenant_id: 2, transaction_type: "deposit", amount: new Prisma.Decimal("2000"), reference: "CASH-484582", processed_by: 2, notes: "Over-the-counter cash", ~~~~~ ? transaction_id?: Int, ? fee_amount?: Decimal, ? net_amount?: Decimal | Null, ? status?: PaymentStatus, ? method_label?: String | Null, ? external_reference?: String | Null, ? reconciliation_reference?: String | Null, ? ledger_transaction_id?: String | Null, ? issue_status?: String, ? issue_reported_at?: DateTime | Null, ? issue_notes?: String | Null, ? processed_at?: DateTime } } Unknown argument `notes`. Available options are marked with ?.
+- Capital Top-Ups from the Members should be processed automatic (handled by the system), and has this error: approveWalletTopUp failed: Error: Ledger Error: Missing account codes: CASH_EQUIVALENTS, MEMBER_SAVINGS
+    at s (.next/server/chunks/3853.js:5:1072)
+    at async (.next/server/chunks/3853.js:5:13396)
+    at async (.next/server/app/[tenant]/auth/login/page.js:22:3123)
+    at async Proxy.$withTenant (.next/server/app/[tenant]/auth/login/page.js:22:3079)
+    at async c (.next/server/chunks/3853.js:5:12560)
+- Capital and Investments is indented in the sidebar, contains redundant KPIs, has system-related previews when it should be business-related
+- Member Management is indented in the sidebar, is missing some three-dot actions, and it's seeing the members outside the current tenant
+- Treasury and Reconciliation says "An imbalance was detected. You must provide a reason to adjust the ledger and sign off." even when the values are 0 (there ARE currently two active loans in the DB)
+- At Homepage Content, Operator can edit tenant hero section video/content, toggle tenant homepage sections, edit tenant homepage content, FAQs and Tenant Testimonials. It should not mess with other tenants' homepage. There should be a notification section for superadmin testimony requests
+- Community should allow the operator to chat as well, right now it's just a preview
+- Support and Analytics is indented in the sidebar, and is really unclear. Support & Feedback should obtain data from within the tenant's members only. Audit Logs should be a separate module
+- Settings is indented in the sidebar. Remove the customization in the Settings since it should be the Homepage Content [We might rename it]. There are no capabilities for personal information. For the SaaS subscription plan, there should be a billing process everytime an upgrade is requested.
 
-### Tenant Lender
 
 ### Tenant Member
+- Loan Capability Meter should only have the min-max according to their remaining/existing balance
+- Data Privacy and Consent, Terms and Conditions, and Tutorial of the cooperative should pop up as dialogs for newcomers, with the option to view them again in the settings
+- At Wallet, whenever we make a deposit, we should provide deposit method, reference numbers, and proof of deposits somehow
+- Loan Application's form could be widened further and better laid out, as well as having clearer terms, conditions, and policies.
+- My Loans can also be Repayment, so we might as well remove the Repayment module. The card's elements could be laid out better with summary details and will be expanded by clicking on it, then the paid/overdue/defaulted loans should be presented via a grid format. Some action buttons cannot send data due to unusable input fields [possibly due to lack of data from the seed]
+- Community module is still a mess in layout and functionalities. A user can click others' profile pfps so they'll be able to see member info and send them a direct message. Closely timed messages should be closer together
+- Vouch System is now removed
+- Support System is still a placeholder. 
+- Settings should also allow profile image editing, account/personal information [except for member name and member code], preferences, security details, TnC and other policies, account deactivation, download backup, and more
+- I can still apply for loans even when I haven't paid for my previous loan
 
 ---
 

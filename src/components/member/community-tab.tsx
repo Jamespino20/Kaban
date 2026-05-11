@@ -245,7 +245,7 @@ export function CommunityTab({
 
       const result = await sendConversationMessage({
         conversationId: selectedConversationId,
-        content: messageDraft || "Nagpadala ng file",
+        content: messageDraft || "Sent a file",
         replyToMessageId: replyToMessage?.id,
         attachments: finalAttachments.length > 0 ? finalAttachments : undefined,
       });
@@ -343,11 +343,11 @@ export function CommunityTab({
           Tenant Context Needed
         </p>
         <h2 className="mt-2 text-xl font-display font-bold text-slate-900">
-          Pumili muna ng cooperative tenant bago gamitin ang community tools
+          Select a cooperative tenant first before using community tools
         </h2>
         <p className="mt-2 text-sm leading-6 text-slate-600">
-          Ang messaging, mentorship, at guarantor discovery ay tenant-scoped
-          para manatiling ligtas at malinaw ang community support.
+          Messaging, mentorship, and guarantor discovery are tenant-scoped
+          to keep community support safe and clear.
         </p>
       </div>
     );
@@ -363,7 +363,7 @@ export function CommunityTab({
                 Community Pulse
               </h2>
               <p className="text-xs text-slate-500">
-                Isang mas compact na view ng usapan, mentorship, at tenant
+                A more compact view of conversations, mentorship, and tenant
                 support.
               </p>
             </div>
@@ -382,7 +382,7 @@ export function CommunityTab({
                 Support Rooms
               </h2>
               <p className="text-xs text-slate-500">
-                Tulong, announcements, at operator support.
+                Help, announcements, and operator support.
               </p>
             </div>
           </div>
@@ -391,10 +391,10 @@ export function CommunityTab({
               <ConversationButton
                 key={room.id}
                 title={room.title || "Support Room"}
-                subtitle={room.lastMessagePreview || "Wala pang bagong usapan."}
+                subtitle={room.lastMessagePreview || "No new conversations yet."}
                 meta={
                   room.lastMessageSender
-                    ? `Huli: ${room.lastMessageSender}`
+                    ? `Last: ${room.lastMessageSender}`
                     : "Support room"
                 }
                 active={room.id === selectedConversationId}
@@ -413,15 +413,15 @@ export function CommunityTab({
                 Direct Messages
               </h2>
               <p className="text-xs text-slate-500">
-                Personal na usapan para sa mentorship at guarantorship.
+                Personal conversation for mentorship and guarantorship.
               </p>
             </div>
           </div>
           <div className="space-y-2">
             {initialData.directConversations.length === 0 ? (
               <p className="rounded-2xl border border-dashed border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-500">
-                Wala ka pang direct conversations. Pumili ng Ka-Agapay sa ibaba
-                para magsimula.
+                You don't have any direct conversations yet. Select a Ka-Agapay below
+                to start.
               </p>
             ) : (
               initialData.directConversations.map((conversation: any) => (
@@ -431,7 +431,7 @@ export function CommunityTab({
                   subtitle={
                     conversation.lastMessagePreview ||
                     conversation.counterparty?.subtitle ||
-                    "Wala pang message."
+                    "No messages yet."
                   }
                   meta={conversation.counterparty?.role || "direct"}
                   active={conversation.id === selectedConversationId}
@@ -451,7 +451,7 @@ export function CommunityTab({
                 Group Chats
               </h2>
               <p className="text-xs text-slate-500">
-                Maliit na working groups para sa support, coaching, at
+                Small working groups for support, coaching, and
                 reminders.
               </p>
             </div>
@@ -460,15 +460,15 @@ export function CommunityTab({
           <div className="space-y-2">
             {(initialData.groupChats || []).length === 0 ? (
               <p className="rounded-2xl border border-dashed border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-500">
-                Wala ka pang group chat. Gumawa ng maliit na support group sa
-                ibaba.
+                You don't have any group chats yet. Create a small support group
+                below.
               </p>
             ) : (
               (initialData.groupChats || []).map((group: any) => (
                 <ConversationButton
                   key={group.id}
                   title={group.title}
-                  subtitle={group.lastMessagePreview || "Wala pang usapan."}
+                  subtitle={group.lastMessagePreview || "No conversations yet."}
                   meta={`${group.participantCount} participants`}
                   active={group.id === selectedConversationId}
                   unread={group.hasUnread}
@@ -480,12 +480,12 @@ export function CommunityTab({
 
           <div className="mt-4 space-y-3 rounded-2xl border border-violet-100 bg-violet-50/70 p-4">
             <p className="text-xs font-black uppercase tracking-[0.18em] text-violet-700">
-              Gumawa ng Group Chat
+              Create Group Chat
             </p>
             <Input
               value={newGroupTitle}
               onChange={(event) => setNewGroupTitle(event.target.value)}
-              placeholder="Halimbawa: Repayment Support Circle"
+              placeholder="Example: Repayment Support Circle"
               className="rounded-xl bg-white"
             />
             <div className="max-h-40 space-y-2 overflow-y-auto pr-1">
@@ -521,7 +521,7 @@ export function CommunityTab({
               ) : (
                 <PlusCircle className="mr-2 h-4 w-4" />
               )}
-              Gumawa ng Group Chat
+              Create Group Chat
             </Button>
           </div>
         </section>
@@ -534,7 +534,7 @@ export function CommunityTab({
                 Ka-Agapay Discovery
               </h2>
               <p className="text-xs text-slate-500">
-                Humanap ng mentor, guarantor-fit, o kausap muna bago humiling.
+                Find a mentor, guarantor-fit, or chat first before making a request.
               </p>
             </div>
           </div>
@@ -580,7 +580,7 @@ export function CommunityTab({
               onChange={(event) => setSelectedMentorId(event.target.value)}
               className="h-10 w-full rounded-xl border border-slate-200 bg-white px-3 text-sm text-slate-700"
             >
-              <option value="">Pumili ng mentor o guarantor-fit</option>
+              <option value="">Select a mentor or guarantor-fit</option>
               {discoverableDirectory.map((user: any) => (
                 <option key={user.userId} value={String(user.userId)}>
                   {user.name} ({user.role})
@@ -590,13 +590,13 @@ export function CommunityTab({
             <Input
               value={focusArea}
               onChange={(event) => setFocusArea(event.target.value)}
-              placeholder="Focus area: negosyo, repayment habit, tenant onboarding"
+              placeholder="Focus area: business, repayment habit, tenant onboarding"
               className="rounded-xl"
             />
             <textarea
               value={mentorNotes}
               onChange={(event) => setMentorNotes(event.target.value)}
-              placeholder="Ikuwento kung bakit siya ang gusto mong lapitan."
+              placeholder="Tell us why you want to approach them."
               className="min-h-20 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700"
             />
             <Button
@@ -648,7 +648,7 @@ export function CommunityTab({
 
           {!selectedConversationId || !thread ? (
             <div className="flex flex-1 items-center justify-center rounded-2xl border border-dashed border-slate-200 bg-slate-50 px-4 py-6 text-sm text-slate-500">
-              Pumili ng room, direct message, o group chat para makita ang
+              Select a room, direct message, or group chat to view the
               thread.
             </div>
           ) : (
@@ -673,7 +673,7 @@ export function CommunityTab({
               >
                 {thread.messages.length === 0 ? (
                   <p className="w-full self-center rounded-2xl border border-dashed border-slate-200 bg-slate-50 px-4 py-5 text-center text-sm text-slate-500">
-                    Wala pang messages dito. Mauna ka na.
+                    No messages here yet. Be the first.
                   </p>
                 ) : (
                   thread.messages
@@ -897,7 +897,7 @@ export function CommunityTab({
                   <textarea
                     value={messageDraft}
                     onChange={(event) => setMessageDraft(event.target.value)}
-                    placeholder="Ilagay ang mensahe dito..."
+                    placeholder="Type your message here..."
                     className="max-h-32 min-h-10 w-full flex-1 resize-none rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
                     rows={1}
                     onKeyDown={(e) => {
@@ -934,7 +934,7 @@ export function CommunityTab({
           <div className="mt-3 space-y-2">
             {initialData.mentorships.length === 0 ? (
               <p className="rounded-2xl border border-dashed border-slate-200 bg-slate-50 px-4 py-4 text-sm text-slate-500">
-                Wala ka pang active o pending mentorship relationships.
+                You don't have any active or pending mentorship relationships.
               </p>
             ) : (
               initialData.mentorships.map((mentorship: any) => (

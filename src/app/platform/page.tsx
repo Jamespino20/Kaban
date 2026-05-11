@@ -16,10 +16,10 @@ const CAPABILITIES = [
     icon: <LayoutDashboard className="w-10 h-10 text-emerald-600" />,
     title: "Role-based dashboards",
     description:
-      "A clear view for `superadmin`, `admin`, `lender`, and `member`, making it easier to understand who performs reviews, releases, repayment verifications, and reporting.",
+      "A clear view for tenant operators managing their cooperatives and lending operations, and tenant members, making it easier to understand who performs reviews, releases, repayment verifications, and reporting.",
     points: [
-      "Tanaw for staff and oversight",
-      "Pintig for member self-service",
+      "Agapay Tanaw Dashboard for staff and oversight",
+      "Agapay Pintig Dashboard for member self-service",
       "2FA and secured account access",
     ],
   },

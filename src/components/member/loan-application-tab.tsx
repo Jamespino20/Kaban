@@ -73,30 +73,30 @@ export const LoanApplicationTab = () => {
               </h2>
               <p className="text-sm italic leading-6 text-slate-400">
                 {selectedProduct.description ||
-                  "Isang malinaw at tier-aware na financing option para sa iyong pangangailangang pinansyal."}
+                  "A clear, tier-aware financing option for your financial needs."}
               </p>
             </div>
 
             <div className="space-y-3 border-t border-white/10 pt-4">
-              <PolicyRow
-                label="Interes"
-                value={`${selectedProduct.interest_rate_percent}% kada buwan`}
-              />
-              <PolicyRow
-                label="Tagal"
-                value={`${MICROFINANCE_POLICY.minTermMonths} hanggang ${Math.min(
-                  MICROFINANCE_POLICY.maxTermMonths,
-                  selectedProduct.max_term_months,
-                )} buwan`}
-              />
-              <PolicyRow
-                label="Guarantors"
-                value={`${MICROFINANCE_POLICY.minGuarantors} hanggang ${MICROFINANCE_POLICY.maxGuarantors}`}
-              />
-              <PolicyRow
-                label="Liability kada guarantor"
-                value={`${selectedProduct.guarantor_liability_rate}%`}
-              />
+                <PolicyRow
+                  label="Interest"
+                  value={`${selectedProduct.interest_rate_percent}% per month`}
+                />
+                <PolicyRow
+                  label="Duration"
+                  value={`${MICROFINANCE_POLICY.minTermMonths} to ${Math.min(
+                    MICROFINANCE_POLICY.maxTermMonths,
+                    selectedProduct.max_term_months,
+                  )} months`}
+                />
+                <PolicyRow
+                  label="Guarantors"
+                  value={`${MICROFINANCE_POLICY.minGuarantors} to ${MICROFINANCE_POLICY.maxGuarantors}`}
+                />
+                <PolicyRow
+                  label="Liability per guarantor"
+                  value={`${selectedProduct.guarantor_liability_rate}%`}
+                />
             </div>
           </div>
 
@@ -115,19 +115,17 @@ export const LoanApplicationTab = () => {
     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
       <div className="space-y-2">
         <h2 className="text-2xl font-display font-bold text-slate-900">
-          Pumili ng Produkto ng Loan
+          Choose a Loan Product
         </h2>
         <p className="max-w-2xl text-sm text-slate-500">
-          Pumili ng produktong tugma sa iyong tier, puhunan, at kakayahang
-          magbayad.
+          Choose a product that matches your tier, capital, and repayment ability.
         </p>
       </div>
 
       <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
         {products.length === 0 ? (
           <div className="col-span-full rounded-[1.75rem] border border-dashed border-slate-200 bg-white p-10 text-center italic text-slate-400">
-            Sa kasalukuyan ay walang available na loan products. Mangyaring
-            bumalik muli mamaya.
+            No loan products are currently available. Please check back later.
           </div>
         ) : (
           products.map((product) => (
@@ -156,12 +154,12 @@ export const LoanApplicationTab = () => {
                 </div>
 
                 <p className="text-sm leading-6 text-slate-500">
-                  Maaaring hiramin mula PHP{" "}
-                  {Number(product.min_amount).toLocaleString()} hanggang PHP{" "}
+                  Can be borrowed from PHP{" "}
+                  {Number(product.min_amount).toLocaleString()} to PHP{" "}
                   {Number(product.max_amount).toLocaleString()}.
                 </p>
                 <p className="text-xs font-medium text-slate-400">
-                  Recovery share kada guarantor:{" "}
+                  Recovery share per guarantor:{" "}
                   {product.guarantor_liability_rate}%
                 </p>
               </div>
@@ -170,7 +168,7 @@ export const LoanApplicationTab = () => {
                 onClick={() => setSelectedProduct(product)}
                 className="mt-6 flex h-11 w-full items-center justify-center gap-2 rounded-2xl bg-slate-900 font-bold text-white transition-all group-hover:shadow-lg group-hover:shadow-emerald-500/20 hover:bg-emerald-600"
               >
-                <span>Mag-apply Ngayon</span>
+                <span>Apply Now</span>
                 <ArrowRight className="h-4 w-4" />
               </Button>
             </div>

@@ -278,6 +278,36 @@ export async function decommissionTenant(tenantId: number) {
   }
 }
 
+// 2.5 Restore Tenant
+export async function restoreTenant(tenantId: number) {
+  const session = await requireSuperadminSession();
+
+  try {
+    const updated = await prisma.tenant.update({
+      where: { tenant_id: tenantId },
+      data: { is_active: true },
+    });
+
+    await prisma.auditLog.create({
+      data: {
+        action: "RESTORE_TENANT",
+        entity_type: "Tenant",
+        entity_id: tenantId,
+        user_id: parseInt(session.user.id),
+        new_values: { is_active: true } as any,
+      },
+    });
+
+    return { success: true, data: updated };
+  } catch (error) {
+    console.error("Restoration failed:", error);
+    return {
+      success: false,
+      error: "Failed to restore tenant.",
+    };
+  }
+}
+
 // 3. Create Region (Superadmin)
 export async function createRegion(name: string, regCode: string) {
   await requireSuperadminSession();

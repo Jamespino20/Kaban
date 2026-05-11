@@ -52,9 +52,9 @@ export function WalletTab({ savings, transactions }: WalletTabProps) {
     }).format(val);
 
   const formatDate = (raw: string | Date | null | undefined) => {
-    if (!raw) return "Walang petsa";
+    if (!raw) return "No date";
     const d = new Date(raw);
-    if (isNaN(d.getTime())) return "Invalid na petsa";
+    if (isNaN(d.getTime())) return "Invalid date";
     return (
       d.toLocaleDateString("en-PH", {
         month: "short",
@@ -121,7 +121,7 @@ export function WalletTab({ savings, transactions }: WalletTabProps) {
       case "regular_savings":
         return "Regular Savings";
       case "personal_wallet":
-        return "Pansariling Wallet";
+        return "Personal Wallet";
       default:
         return type;
     }
@@ -143,9 +143,9 @@ export function WalletTab({ savings, transactions }: WalletTabProps) {
   const getTransactionLabel = (type: string) => {
     switch (type) {
       case "deposit":
-        return "Dagdag pondo";
+        return "Add funds";
       case "withdrawal":
-        return "Bawas pondo";
+        return "Withdraw funds";
       case "dividend":
         return "Dividend";
       case "fee":
@@ -180,23 +180,22 @@ export function WalletTab({ savings, transactions }: WalletTabProps) {
       <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
           <div className="space-y-1">
-            <h2 className="text-xl font-bold text-slate-900">Wallet at Ipon</h2>
+            <h2 className="text-xl font-bold text-slate-900">Wallet & Savings</h2>
             <p className="text-sm text-slate-500">
-              Mas malinaw na tingin sa iyong pansariling wallet, ipon, at tenant
-              records.
+              A clearer view of your personal wallet, savings, and tenant records.
             </p>
           </div>
 
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:min-w-[420px]">
             <SummaryCard
               icon={<Wallet className="h-4 w-4" />}
-              label="Pansariling Wallet"
+              label="Personal Wallet"
               value={formatCurrency(walletBalance)}
               accent="amber"
             />
             <SummaryCard
               icon={<PiggyBank className="h-4 w-4" />}
-              label="Kabuuang Ipon"
+              label="Total Savings"
               value={formatCurrency(totalSavingsBalance)}
               accent="emerald"
             />
@@ -212,10 +211,10 @@ export function WalletTab({ savings, transactions }: WalletTabProps) {
               </p>
             </div>
             <p className="text-sm leading-6 text-slate-600">
-              Ang wallet sa prototype na ito ay internal record ng personal
-              tenant funds. Kapag nagdagdag ka ng pondo, ang ibig sabihin nito
-              ay may totoong cash o transfer na natanggap sa labas ng app, at
-              ang Agapay ang nagtatala ng digital history.
+              The wallet in this prototype is an internal record of personal
+              tenant funds. When you add funds, it means actual cash or a
+              transfer has been received outside the app, and Agapay records the
+              digital history.
             </p>
           </div>
 
@@ -228,10 +227,10 @@ export function WalletTab({ savings, transactions }: WalletTabProps) {
             </div>
             <ul className="space-y-1 text-sm text-slate-600">
               <li>
-                1. Magdagdag ng pondo sa wallet kapag may aktwal na cash-in.
+                1. Add funds to your wallet when you have an actual cash-in.
               </li>
-              <li>2. Gamitin ang wallet para sa mabilis na loan repayment.</li>
-              <li>3. Suriin ang history para sa malinaw na tenant record.</li>
+              <li>2. Use your wallet for fast loan repayment.</li>
+              <li>3. Check your history for a clear tenant record.</li>
             </ul>
           </div>
         </div>
@@ -241,28 +240,27 @@ export function WalletTab({ savings, transactions }: WalletTabProps) {
             <DialogTrigger asChild>
               <Button className="rounded-2xl bg-emerald-600 px-5 py-5 font-bold text-white shadow-lg shadow-emerald-900/10 hover:bg-emerald-700">
                 <Plus className="mr-2 h-5 w-5" />
-                Magdagdag sa Wallet
+                Add to Wallet
               </Button>
             </DialogTrigger>
             <DialogContent className="rounded-[2rem] border-emerald-100 bg-white p-8">
               <DialogHeader>
                 <DialogTitle className="text-2xl font-display font-bold">
-                  Magdagdag ng Pondo
+                  Add Funds
                 </DialogTitle>
                 <DialogDescription>
-                  I-record ang aktwal na cash-in o transfer na ilalagay sa iyong
-                  Pansariling Wallet.
+                  Record the actual cash-in or transfer to be added to your
+                  Personal Wallet.
                 </DialogDescription>
               </DialogHeader>
               <div className="space-y-5 pt-4">
                 <div className="rounded-2xl border border-slate-100 bg-slate-50 px-4 py-3 text-sm text-slate-600">
                   This action will create a top-up request to the Operator.
-                  Hintayin ang kanilang approval bago pumasok ang pondo sa iyong
-                  wallet.
+                  Wait for their approval before the funds enter your wallet.
                 </div>
                 <div className="space-y-2">
                   <label className="text-xs font-black uppercase tracking-widest text-slate-400">
-                    Halaga (PHP)
+                    Amount (PHP)
                   </label>
                   <div className="relative">
                     <span className="absolute left-4 top-1/2 -translate-y-1/2 text-lg font-bold text-slate-400">
@@ -287,7 +285,7 @@ export function WalletTab({ savings, transactions }: WalletTabProps) {
                   ) : (
                     <ArrowUpCircle className="mr-2 h-5 w-5" />
                   )}
-                  Kumpirmahin ang Deposito
+                  Confirm Deposit
                 </Button>
               </div>
             </DialogContent>
@@ -315,7 +313,7 @@ export function WalletTab({ savings, transactions }: WalletTabProps) {
               </p>
               <div className="flex items-center gap-2 text-xs text-slate-500">
                 <CheckCircle2 className="h-3 w-3 text-emerald-500" />
-                <span>Status: Aktibo</span>
+                <span>Status: Active</span>
               </div>
             </CardContent>
           </Card>
@@ -330,10 +328,10 @@ export function WalletTab({ savings, transactions }: WalletTabProps) {
             </div>
             <div>
               <CardTitle className="text-lg font-bold">
-                Kamakailang Transaksyon
+                Recent Transactions
               </CardTitle>
               <CardDescription>
-                Huling 10 galaw sa wallet at savings records mo.
+                Last 10 movements in your wallet and savings records.
               </CardDescription>
             </div>
           </div>
@@ -363,7 +361,7 @@ export function WalletTab({ savings, transactions }: WalletTabProps) {
                         </div>
                         <div>
                           <p className="text-sm font-semibold text-slate-800">
-                            {tx.reference || "Walang reference na naitala"}
+                            {tx.reference || "No reference recorded"}
                           </p>
                           <p className="text-xs text-slate-500">
                             {formatDate(tx.processed_at)}
@@ -388,7 +386,7 @@ export function WalletTab({ savings, transactions }: WalletTabProps) {
               })
             ) : (
               <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50 px-4 py-10 text-center text-slate-400 italic">
-                Wala pang naitalang transaksyon.
+                No transactions recorded yet.
               </div>
             )}
           </div>

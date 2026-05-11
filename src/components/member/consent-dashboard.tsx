@@ -69,13 +69,13 @@ export const ConsentDashboard = ({
           <div className="space-y-4">
             <h3 className="text-sm font-bold text-slate-400 uppercase tracking-widest flex items-center gap-2">
               <Check className="w-4 h-4 text-emerald-500" />
-              Ano ang nakikita ng {tenantName}?
+              What does {tenantName} see?
             </h3>
             <ul className="space-y-3">
               {[
-                "Pangalan, Profile Photo, at Kasarian",
+                "Name, Profile Photo, and Gender",
                 "Loan and Payment History",
-                "Trust Score at Vouch History",
+                "Trust Score and Vouch History",
                 "Business Performance Metrics",
               ].map((item, i) => (
                 <li
@@ -94,11 +94,11 @@ export const ConsentDashboard = ({
           <div className="space-y-4">
             <h3 className="text-sm font-bold text-slate-400 uppercase tracking-widest flex items-center gap-2">
               <Lock className="w-4 h-4 text-blue-500" />
-              Ano ang nakikita ng Superadmin?
+              What does the Superadmin see?
             </h3>
             <ul className="space-y-3">
               {[
-                "Global Audit Logs (para sa seguridad)",
+                "Global Audit Logs (for security)",
                 "System Health & Maintenance Data",
                 "Tenant Performance Overview",
                 "Fraud & Risk Prevention Patterns",
@@ -123,12 +123,12 @@ export const ConsentDashboard = ({
               <AlertCircle className="w-6 h-6 text-amber-600 flex-shrink-0" />
               <div className="space-y-2">
                 <p className="font-bold text-amber-900 leading-tight">
-                  Kinakailangan ang iyong pagsang-ayon
+                  Your consent is required
                 </p>
                 <p className="text-sm text-amber-800 leading-relaxed">
-                  Bago mag-patuloy sa paggamit ng platform, kailangan mong
-                  tanggapin ang Terms and Conditions at Data Privacy Agreement
-                  ng {tenantName}.
+                  Before continuing to use the platform, you need to accept
+                  the Terms and Conditions and Data Privacy Agreement of{" "}
+                  {tenantName}.
                 </p>
               </div>
             </div>
@@ -142,10 +142,10 @@ export const ConsentDashboard = ({
                 </div>
                 <div>
                   <p className="font-bold text-slate-900">
-                    Aktibo ang iyong Consent
+                    Your Consent is Active
                   </p>
                   <p className="text-xs text-slate-500 italic">
-                    Tinanggap noong {acceptedAt?.toLocaleDateString()} (Bersyon{" "}
+                    Accepted on {acceptedAt?.toLocaleDateString()} (Version{" "}
                     {version})
                   </p>
                 </div>
@@ -169,14 +169,14 @@ export const ConsentDashboard = ({
               onClick={() => window.open("/terms", "_blank")}
             >
               <FileText className="w-4 h-4 mr-2" />
-              Basahin ang Terms
+              Read Terms
             </Button>
             <Button
               className="flex-1 rounded-xl h-12 bg-emerald-600 hover:bg-emerald-700 text-white font-bold"
               disabled={isPending}
               onClick={handleAccept}
             >
-              {isPending ? "Connecting..." : "Tanggapin at I-verify"}
+              {isPending ? "Connecting..." : "Accept & Verify"}
             </Button>
           </div>
         )}
@@ -184,9 +184,9 @@ export const ConsentDashboard = ({
 
       <div className="text-center px-8">
         <p className="text-xs text-slate-400 leading-relaxed">
-          Ang Agapay ay sumusunod sa **Republic Act No. 10173 (Data Privacy Act
-          of 2012)**. Ang iyong data ay ligtas at ginagamit lamang para sa iyong
-          microfinance transactions.
+          Agapay complies with **Republic Act No. 10173 (Data Privacy Act of
+          2012)**. Your data is safe and used only for your microfinance
+          transactions.
         </p>
       </div>
     </div>

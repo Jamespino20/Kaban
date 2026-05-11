@@ -33,15 +33,12 @@ export function Footer() {
               { label: "Features", href: "/platform" },
               { label: "Pricing", href: "/pricing" },
               { label: "Loan Calculator", href: "/#calculator" },
-              { label: "Security", href: "/platform#security" },
             ]}
           />
           <FooterGroup
             title="Company"
             links={[
               { label: "About Us", href: "/about" },
-              { label: "Management", href: "/about#management" },
-              { label: "Partners", href: "/about#partners" },
               { label: "Contact", href: "/contact" },
             ]}
           />
@@ -50,7 +47,6 @@ export function Footer() {
             links={[
               { label: "Privacy Policy", href: "/privacy" },
               { label: "Terms of Service", href: "/terms" },
-              { label: "Cookie Settings", href: "#" },
             ]}
           />
         </div>

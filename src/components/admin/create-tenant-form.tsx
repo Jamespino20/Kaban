@@ -53,6 +53,41 @@ export function CreateTenantForm({
     defaultValues: { name: "", slug: "", groupId: "" },
   });
 
+  const [isLoaded, setIsLoaded] = useState(false);
+  const STORAGE_KEY = "agapay_tenant_draft";
+
+  useEffect(() => {
+    const saved = localStorage.getItem(STORAGE_KEY);
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        form.reset(parsed.formValues);
+        if (parsed.logoDataUrl) setLogoDataUrl(parsed.logoDataUrl);
+        if (parsed.brandColor) setBrandColor(parsed.brandColor);
+        if (parsed.accentColor) setAccentColor(parsed.accentColor);
+      } catch (e) {
+        console.error("Failed to load tenant draft", e);
+      }
+    }
+    setIsLoaded(true);
+  }, [form]);
+
+  useEffect(() => {
+    if (!isLoaded) return;
+    const subscription = form.watch((values) => {
+      localStorage.setItem(
+        STORAGE_KEY,
+        JSON.stringify({
+          formValues: values,
+          logoDataUrl,
+          brandColor,
+          accentColor,
+        }),
+      );
+    });
+    return () => subscription.unsubscribe();
+  }, [form, isLoaded, logoDataUrl, brandColor, accentColor]);
+
   const watchedName = form.watch("name");
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -87,6 +122,7 @@ export function CreateTenantForm({
       );
       if (res.success) {
         toast.success("Tenant created successfully!");
+        localStorage.removeItem(STORAGE_KEY);
         onOpenChange(false);
         window.location.reload();
       } else {

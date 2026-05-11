@@ -229,14 +229,61 @@ export async function getDashboardMetrics() {
   const session = await requireTanawSession();
   const tenantId = session.user.tenantId;
 
-  const query = async (db: any) => {
+  if (!tenantId) {
+    // Global Superadmin View
+    const [
+      totalTransactions,
+      globalSupportLoad,
+      newTenantsLast30,
+      activeLoansCount,
+      overduePaymentsCount,
+      totalPayments,
+      totalTenants,
+    ] = await Promise.all([
+      prisma.savingsTransaction.count(),
+      prisma.feedbackEntry.count({ where: { status: "pending" } }),
+      prisma.tenant.count({
+        where: {
+          created_at: { gte: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000) },
+        },
+      }),
+      prisma.loan.count({ where: { status: "active" } }),
+      prisma.loanSchedule.count({
+        where: {
+          status: "overdue",
+        },
+      }),
+      prisma.payment.aggregate({
+        where: { status: "verified" },
+        _sum: { amount_paid: true },
+      }),
+      prisma.tenant.count(),
+    ]);
+
+    return {
+      totalTransactions,
+      globalSupportLoad,
+      newTenantVelocity: newTenantsLast30,
+      activeLoans: activeLoansCount,
+      overduePayments: overduePaymentsCount,
+      totalEarnings: Number(totalPayments._sum.amount_paid || 0),
+      totalTenants,
+      isGlobal: true,
+      // Provide defaults for tenant-specific fields to satisfy types
+      totalLiquidity: 0,
+      repaymentRate: 100,
+      riskExposure: 0,
+    };
+  }
+
+  return await prisma.$withTenant(tenantId, async (tx) => {
     await runAutomatedDefaultEnforcement({
       tenantId: tenantId ?? undefined,
       actorUserId: session.user.user_id,
     });
 
     // 1. Total Liquidity (Total Savings Pool)
-    const liquidity = await db.savingsAccount.aggregate({
+    const liquidity = await tx.savingsAccount.aggregate({
       where: {
         account_type: {
           in: ["regular_savings", "share_capital"],
@@ -246,19 +293,19 @@ export async function getDashboardMetrics() {
     });
 
     // 2. Active Loans Count
-    const activeLoansCount = await db.loan.count({
+    const activeLoansCount = await tx.loan.count({
       where: { status: "active" },
     });
 
     // 3. Repayment Rate (Verified Payments vs Total Due)
-    const totalPaid = await db.payment.aggregate({
+    const totalPaid = await tx.payment.aggregate({
       where: {
         status: "verified",
       },
       _sum: { amount_paid: true },
     });
 
-    const totalDue = await db.loanSchedule.aggregate({
+    const totalDue = await tx.loanSchedule.aggregate({
       where: {
         due_date: { lte: new Date() },
       },
@@ -270,7 +317,7 @@ export async function getDashboardMetrics() {
     const repaymentRate = dueVal > 0 ? (paidVal / dueVal) * 100 : 100;
 
     // 4. Risk Exposure (Sum of remaining balance on past-due/defaulted loans)
-    const riskExposure = await db.loan.aggregate({
+    const riskExposure = await tx.loan.aggregate({
       where: {
         OR: [
           { schedules: { some: { status: "overdue" } } },
@@ -285,15 +332,15 @@ export async function getDashboardMetrics() {
       activeLoans: activeLoansCount,
       repaymentRate: Math.min(100, repaymentRate),
       riskExposure: Number(riskExposure._sum.balance_remaining || 0),
+      isGlobal: false,
+      // Platforms defaults
+      totalTransactions: 0,
+      globalSupportLoad: 0,
+      newTenantVelocity: 0,
+      overduePayments: 0,
+      totalEarnings: 0,
+      totalTenants: 0,
     };
-  };
-
-  if (!tenantId) {
-    return await query(prisma);
-  }
-
-  return await prisma.$withTenant(tenantId, async (tx) => {
-    return await query(tx);
   });
 }
 

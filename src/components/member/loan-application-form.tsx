@@ -93,6 +93,9 @@ export const LoanApplicationForm = ({
     totalCostOfCredit: 0,
   });
 
+  const [isLoaded, setIsLoaded] = useState(false);
+  const STORAGE_KEY = `agapay_loan_draft_${product.product_id}`;
+
   const form = useForm<z.infer<typeof LoanApplicationSchema>>({
     resolver: zodResolver(LoanApplicationSchema),
     defaultValues: {
@@ -110,6 +113,30 @@ export const LoanApplicationForm = ({
           | "monthly") || "monthly",
     },
   });
+
+  useEffect(() => {
+    const saved = localStorage.getItem(STORAGE_KEY);
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        form.reset({
+          ...parsed,
+          product_id: product.product_id, // Ensure it stays tied to this product
+        });
+      } catch (e) {
+        console.error("Failed to load loan draft", e);
+      }
+    }
+    setIsLoaded(true);
+  }, [product.product_id, form]);
+
+  useEffect(() => {
+    if (!isLoaded) return;
+    const subscription = form.watch((value) => {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(value));
+    });
+    return () => subscription.unsubscribe();
+  }, [form, isLoaded, STORAGE_KEY]);
 
   const watchAmount = form.watch("amount");
   const watchTerm = form.watch("term_months");
@@ -145,6 +172,7 @@ export const LoanApplicationForm = ({
           toast.success(
             "Your application has been submitted. The tenant team will review it alongside your guarantor backing.",
           );
+          localStorage.removeItem(STORAGE_KEY);
           onSuccess();
         }
       } catch (error) {

@@ -26,6 +26,8 @@ import { CommunityTab } from "@/components/member/community-tab";
 import { ConsentDashboard } from "@/components/member/consent-dashboard";
 import { acceptConsent } from "@/actions/compliance-actions";
 import { MemberSettingsTab } from "@/components/member/member-settings-tab";
+import { SupportTab } from "@/components/member/support-tab";
+import { getUserFeedbackTickets } from "@/actions/transactional-feedback";
 
 const PERSONAL_WALLET = "personal_wallet";
 
@@ -43,7 +45,7 @@ export default async function AgapayPintigPage({
     redirect(`/${tenant}/agapay-tanaw`);
   }
 
-  const userName = session.user.username || "Miyembro";
+  const userName = session.user.username || "Member";
   const userId = session.user.user_id;
   const tenantId = session.user.tenantId;
 
@@ -63,6 +65,8 @@ export default async function AgapayPintigPage({
     unreadNotifications,
     totalNotifications,
     tenantIdentity,
+    userTickets,
+    trustScoreSnapshot,
   ] = await Promise.all([
     prisma.user.findUnique({
       where: { user_id: userId },
@@ -124,6 +128,19 @@ export default async function AgapayPintigPage({
       where: { tenant_id: tenantId },
       select: { name: true, brand_color: true, logo_url: true },
     }),
+    getUserFeedbackTickets(),
+    prisma.trustScoreSnapshot.findFirst({
+      where: { user_id: userId, tenant_id: tenantId },
+      orderBy: { calculated_at: "desc" },
+      select: {
+        score: true,
+        payment_score: true,
+        business_score: true,
+        peer_score: true,
+        tier_after: true,
+        calculated_at: true,
+      },
+    }),
   ]);
 
   const totalSavings = savings.reduce(
@@ -175,14 +192,8 @@ export default async function AgapayPintigPage({
     },
     {
       value: "loans",
-      label: "My Loans",
+      label: "My Loans & Repayment",
       icon: "repayment",
-      category: "Loans & Repayments",
-    },
-    {
-      value: "payments",
-      label: "Repayment",
-      icon: "wallet",
       category: "Loans & Repayments",
     },
 
@@ -191,12 +202,6 @@ export default async function AgapayPintigPage({
       value: "community",
       label: "Community",
       icon: "community",
-      category: "Social Systems",
-    },
-    {
-      value: "vouch",
-      label: "Vouch System",
-      icon: "members",
       category: "Social Systems",
     },
 
@@ -242,11 +247,20 @@ export default async function AgapayPintigPage({
     },
   ];
 
+  const trustScoreValue = trustScoreSnapshot?.score ?? 0;
+  const trustScoreDate = trustScoreSnapshot?.calculated_at
+    ? new Date(trustScoreSnapshot.calculated_at).toLocaleDateString("en-PH", {
+        month: "short",
+        day: "numeric",
+        year: "numeric",
+      })
+    : null;
+
   return (
     <DashboardTabsShell
       defaultValue="overview"
-      title="Pangkalahatan"
-      subtitle="Ang iyong katuwang sa mas malinaw na loan, repayment, at tenant support."
+      title="Overview"
+      subtitle="Your clear partner for loans, repayment, and tenant support."
       portalLabel="member portal"
       accountName={userName}
       accountRole="member"
@@ -320,8 +334,7 @@ export default async function AgapayPintigPage({
                   Repayment <br /> Report
                 </h3>
                 <p className="text-slate-400 text-xs mt-2 max-w-[180px]">
-                  I-download ang iyong Statement of Account para sa buong
-                  detalye.
+                  Download your Statement of Account for full details.
                 </p>
               </div>
 
@@ -331,7 +344,7 @@ export default async function AgapayPintigPage({
                   target="_blank"
                   className="inline-flex items-center gap-2 text-sm font-bold text-emerald-400 hover:text-emerald-300 transition-colors"
                 >
-                  <span>IDOWNLOAD ANG SOA</span>
+                  <span>DOWNLOAD SOA</span>
                   <ArrowUpRight className="w-4 h-4" />
                 </a>
               </div>
@@ -361,6 +374,90 @@ export default async function AgapayPintigPage({
             ))}
           </div>
 
+          {trustScoreSnapshot && (
+            <div className="rounded-[1.75rem] border border-indigo-100 bg-white p-6 shadow-sm">
+              <div className="flex items-center justify-between mb-4">
+                <div>
+                  <h3 className="text-sm font-bold uppercase tracking-widest text-indigo-600">
+                    Trust Score
+                  </h3>
+                  <p className="text-xs text-slate-400 mt-1">
+                    Last updated: {trustScoreDate || "N/A"}
+                  </p>
+                </div>
+                <div className="flex items-center gap-3">
+                  <div
+                    className={`text-4xl font-display font-bold ${trustScoreValue >= 700 ? "text-emerald-600" : trustScoreValue >= 400 ? "text-amber-600" : "text-red-600"}`}
+                  >
+                    {trustScoreValue}
+                  </div>
+                  <Badge
+                    variant="secondary"
+                    className="bg-indigo-50 text-indigo-700 border-none font-black text-[10px] uppercase tracking-widest px-3 py-1.5 h-auto"
+                  >
+                    {trustScoreSnapshot.tier_after?.replace(/_/g, " ") || "N/A"}
+                  </Badge>
+                </div>
+              </div>
+              <div className="grid grid-cols-3 gap-4">
+                <div className="space-y-1">
+                  <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                    Payment
+                  </p>
+                  <div className="flex items-center gap-2">
+                    <div className="h-2 flex-1 bg-slate-100 rounded-full overflow-hidden">
+                      <div
+                        className="h-full bg-emerald-500 rounded-full"
+                        style={{
+                          width: `${Math.min(100, trustScoreSnapshot.payment_score)}%`,
+                        }}
+                      />
+                    </div>
+                    <span className="text-xs font-bold text-slate-600">
+                      {trustScoreSnapshot.payment_score}
+                    </span>
+                  </div>
+                </div>
+                <div className="space-y-1">
+                  <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                    Business
+                  </p>
+                  <div className="flex items-center gap-2">
+                    <div className="h-2 flex-1 bg-slate-100 rounded-full overflow-hidden">
+                      <div
+                        className="h-full bg-blue-500 rounded-full"
+                        style={{
+                          width: `${Math.min(100, trustScoreSnapshot.business_score)}%`,
+                        }}
+                      />
+                    </div>
+                    <span className="text-xs font-bold text-slate-600">
+                      {trustScoreSnapshot.business_score}
+                    </span>
+                  </div>
+                </div>
+                <div className="space-y-1">
+                  <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                    Peer
+                  </p>
+                  <div className="flex items-center gap-2">
+                    <div className="h-2 flex-1 bg-slate-100 rounded-full overflow-hidden">
+                      <div
+                        className="h-full bg-purple-500 rounded-full"
+                        style={{
+                          width: `${Math.min(100, trustScoreSnapshot.peer_score)}%`,
+                        }}
+                      />
+                    </div>
+                    <span className="text-xs font-bold text-slate-600">
+                      {trustScoreSnapshot.peer_score}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
           <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
             <div className="rounded-[1.75rem] border border-amber-100 bg-amber-50/70 p-5 shadow-sm">
               <p className="text-xs font-bold uppercase tracking-[0.22em] text-amber-700">
@@ -389,21 +486,21 @@ export default async function AgapayPintigPage({
               </div>
               <div className="space-y-2">
                 <h2 className="text-2xl font-display font-bold text-slate-800">
-                  Magsimula sa iyong Pintig
+                  Start with your Dashboard
                 </h2>
                 <p className="mx-auto max-w-md text-slate-500">
-                  Wala ka pang aktibong transaksyon sa kasalukuyan. Maaari kang
-                  magsimulang mag-loan o magdeposito ng ipon.
+                  No active transactions yet. You can start by applying for a
+                  loan or making a deposit.
                 </p>
               </div>
             </div>
           ) : (
             <div className="rounded-[1.75rem] border border-slate-100 bg-white p-5 shadow-sm">
               <h2 className="mb-6 text-xl font-display font-bold text-slate-800">
-                Kamakailang Gawain
+                Recent Activity
               </h2>
               <p className="italic text-slate-400">
-                Ipinapakita ang iyong huling 5 transaksyon...
+                Showing your last 5 transactions...
               </p>
             </div>
           )}
@@ -434,50 +531,6 @@ export default async function AgapayPintigPage({
           />
         </TabsContent>
 
-        {/* TM-04: Payments Placeholder */}
-        <TabsContent
-          value="payments"
-          className="outline-none animate-in fade-in slide-in-from-bottom-4 duration-500"
-        >
-          <div className="bg-white rounded-[2.5rem] border border-slate-100 p-12 text-center space-y-6 shadow-sm">
-            <div className="w-20 h-20 bg-emerald-50 text-emerald-500 rounded-full flex items-center justify-center mx-auto mb-4">
-              <Wallet className="w-10 h-10" />
-            </div>
-            <div className="space-y-2">
-              <h3 className="text-2xl font-display font-bold text-slate-900">
-                Repayment Report
-              </h3>
-              <p className="text-slate-500 max-w-md mx-auto">
-                Ang detalyadong listahan ng lahat ng iyong payment history ay
-                kasalukuyang pinapaganda. Pansamantala, makikita ang iyong
-                payments under each loan in &quot;My Loans&quot; tab.
-              </p>
-            </div>
-          </div>
-        </TabsContent>
-
-        {/* TM-05: Vouch System Placeholder */}
-        <TabsContent
-          value="vouch"
-          className="outline-none animate-in fade-in slide-in-from-bottom-4 duration-500"
-        >
-          <div className="bg-white rounded-[2.5rem] border border-slate-100 p-12 text-center space-y-6 shadow-sm">
-            <div className="w-20 h-20 bg-indigo-50 text-indigo-500 rounded-full flex items-center justify-center mx-auto mb-4">
-              <ArrowUpRight className="w-10 h-10" />
-            </div>
-            <div className="space-y-2">
-              <h3 className="text-2xl font-display font-bold text-slate-900">
-                Vouch System
-              </h3>
-              <p className="text-slate-500 max-w-md mx-auto">
-                Parating na ang social trust validation. Dito mo magagawang
-                mag-endorso ng ibang miyembro para tulungan silang mapataas ang
-                kanilang loan limit at mapababa ang kanilang interest.
-              </p>
-            </div>
-          </div>
-        </TabsContent>
-
         <TabsContent
           value="community"
           className="outline-none animate-in fade-in slide-in-from-bottom-4 duration-500"
@@ -485,27 +538,12 @@ export default async function AgapayPintigPage({
           <CommunityTab initialData={communityData} />
         </TabsContent>
 
-        {/* TM-08: Support Placeholder */}
+        {/* TM-08: Support & Feedback */}
         <TabsContent
           value="support"
           className="outline-none animate-in fade-in slide-in-from-bottom-4 duration-500"
         >
-          <div className="max-w-3xl mx-auto space-y-8 py-10">
-            <div className="text-center space-y-3">
-              <h2 className="text-3xl font-display font-bold text-slate-900 italic">
-                Suporta at Feedback
-              </h2>
-              <p className="text-slate-500">
-                May katanungan o komento? Narito Kami para tumulong.
-              </p>
-            </div>
-            <div className="bg-white rounded-[2.5rem] border border-slate-100 p-8 shadow-md">
-              <p className="text-center text-slate-400 italic py-10">
-                Ang support ticket system ay kasalukuyang ginagawa. Mangyaring
-                makipag-ugnayan sa iyong tenant cashier para sa agarang tulong.
-              </p>
-            </div>
-          </div>
+          <SupportTab tenantSlug={tenant} tickets={userTickets || []} />
         </TabsContent>
 
         <TabsContent value="settings" className="outline-none">
@@ -520,7 +558,8 @@ export default async function AgapayPintigPage({
                     day: "numeric",
                     year: "numeric",
                   })
-                : "May record",
+                : "Active",
+
               fullName:
                 member?.profile?.first_name && member?.profile?.last_name
                   ? `${member.profile.first_name} ${member.profile.last_name}`

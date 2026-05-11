@@ -101,7 +101,7 @@ export function LoanServicingTab({
   if (loans.length === 0) {
     return (
       <div className="bg-white p-12 rounded-[2.5rem] border border-slate-100 text-center text-slate-400">
-        Wala ka pang active loan na puwedeng hulugan.
+        You don't have any active loan to repay yet.
       </div>
     );
   }
@@ -125,7 +125,7 @@ export function LoanServicingTab({
             Loan View
           </p>
           <p className="text-sm text-slate-500">
-            Piliin ang loan na gusto mong tingnan kapag marami nang active
+            Select the loan you want to view when there are multiple active
             repayments.
           </p>
         </div>
@@ -135,7 +135,7 @@ export function LoanServicingTab({
               <SelectValue placeholder="Filter by loan product" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">Lahat ng active loans</SelectItem>
+              <SelectItem value="all">All active loans</SelectItem>
               {loans.map((loan) => (
                 <SelectItem key={loan.loan_id} value={String(loan.loan_id)}>
                   {loan.product?.name} · {loan.loan_reference}
@@ -156,12 +156,12 @@ export function LoanServicingTab({
 
       <div className="flex flex-col gap-3 rounded-[1.5rem] border border-slate-100 bg-white px-5 py-4 md:flex-row md:items-center md:justify-between">
         <p className="text-sm text-slate-500">
-          Ipinapakita ang{" "}
+          Showing{" "}
           <span className="font-bold text-slate-700">
             {filteredLoans.length === 0 ? 0 : (currentPage - 1) * pageSize + 1}-
             {Math.min(currentPage * pageSize, filteredLoans.length)}
           </span>{" "}
-          ng{" "}
+          of{" "}
           <span className="font-bold text-slate-700">
             {filteredLoans.length}
           </span>{" "}
@@ -326,14 +326,13 @@ function LoanServicingCard({
           </p>
           {loan.is_recovery_loan && (
             <p className="text-xs text-rose-600">
-              Ang loan na ito ay nabuo mula sa natitirang balanse matapos ang
-              awtomatikong default recovery.
+              This loan was created from the remaining balance after automatic default recovery.
             </p>
           )}
         </div>
         <div className="text-left md:text-right">
           <p className="text-xs font-bold uppercase tracking-widest text-slate-400">
-            Natitirang Balanse
+            Remaining Balance
           </p>
           <p className="text-3xl font-display font-bold text-emerald-600">
             ₱
@@ -348,7 +347,7 @@ function LoanServicingCard({
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <MetricCard
           icon={<Clock3 className="w-4 h-4" />}
-          label="Susunod na Due"
+          label="Next Due"
           value={
             nextSchedule
               ? `₱${Number(nextSchedule.total_due).toLocaleString()}`
@@ -376,10 +375,7 @@ function LoanServicingCard({
           Mock Money Flow
         </p>
         <p className="text-sm text-slate-500">
-          Sa prototype na ito, ang pera ay ipinapasa sa tunay na buhay sa
-          pamamagitan ng tenant cashier, GCash transfer, bank transfer, o field
-          collection. Dito sa Agapay, itinatala at bine-verify natin ang
-          repayment para may malinaw na records at digital receipt.
+          In this prototype, money is passed in real life through the tenant cashier, GCash transfer, bank transfer, or field collection. Here in Agapay, we record and verify the repayment to have clear records and a digital receipt.
         </p>
         <p className="text-sm text-slate-500">{getPenaltyPolicyCopy()}</p>
         <p className="text-sm text-slate-500">{getCompassionPolicyCopy()}</p>
@@ -392,8 +388,7 @@ function LoanServicingCard({
               Compassion Support
             </p>
             <p className="text-sm text-slate-600">
-              Kung may valid hardship case, maaari kang humiling ng relief para
-              sa loan na ito. Isang active request lang ang puwedeng sabay.
+              If you have a valid hardship case, you can request relief for this loan. Only one active request is allowed at a time.
             </p>
           </div>
           <Dialog open={compassionOpen} onOpenChange={setCompassionOpen}>
@@ -403,21 +398,20 @@ function LoanServicingCard({
                 className="rounded-2xl border-blue-200 bg-white text-blue-700 hover:bg-blue-100"
               >
                 <HeartPulse className="mr-2 h-4 w-4" />
-                Humiling ng Compassion
+                Request Compassion
               </Button>
             </DialogTrigger>
             <DialogContent className="sm:max-w-lg">
               <DialogHeader>
                 <DialogTitle>Compassion Request</DialogTitle>
                 <DialogDescription>
-                  Ilarawan ang hardship case at piliin ang relief na naaangkop
-                  sa iyong sitwasyon.
+                  Describe the hardship case and choose the relief that fits your situation.
                 </DialogDescription>
               </DialogHeader>
               <div className="space-y-4">
                 <div className="space-y-2">
                   <label className="text-sm font-bold text-slate-700">
-                    Uri ng Relief
+                    Relief Type
                   </label>
                   <Select
                     value={compassionType}
@@ -431,7 +425,7 @@ function LoanServicingCard({
                     }
                   >
                     <SelectTrigger className="rounded-xl">
-                      <SelectValue placeholder="Pumili ng relief" />
+                      <SelectValue placeholder="Choose relief type" />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="grace_period">Grace Period</SelectItem>
@@ -451,7 +445,7 @@ function LoanServicingCard({
                   <textarea
                     value={compassionReason}
                     onChange={(e) => setCompassionReason(e.target.value)}
-                    placeholder="Ilarawan ang dahilan ng hardship case at bakit kailangan ng relief."
+                    placeholder="Describe the reason for the hardship case and why relief is needed."
                     className="min-h-28 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm"
                   />
                 </div>
@@ -460,7 +454,7 @@ function LoanServicingCard({
                   onClick={handleCompassionRequest}
                   className="w-full rounded-xl bg-blue-600 text-white hover:bg-blue-700"
                 >
-                  Isumite ang Request
+                  Submit Request
                 </Button>
               </div>
             </DialogContent>
@@ -497,7 +491,7 @@ function LoanServicingCard({
             {latestCompassion.admin_notes && (
               <div className="mt-3 rounded-xl border border-slate-100 bg-slate-50 px-3 py-2">
                 <p className="mb-1 text-[11px] font-bold uppercase tracking-widest text-slate-500">
-                  Tugon ng Admin
+                  Admin Response
                 </p>
                 <p className="text-sm text-slate-700">
                   {latestCompassion.admin_notes}
@@ -508,7 +502,7 @@ function LoanServicingCard({
         ) : (
           <div className="mt-4 flex items-center gap-2 rounded-2xl border border-dashed border-blue-200 bg-white/80 px-4 py-3 text-sm text-slate-500">
             <ShieldAlert className="h-4 w-4 text-blue-500" />
-            Wala ka pang naipapasang compassion request para sa loan na ito.
+            You haven't submitted a compassion request for this loan yet.
           </div>
         )}
       </div>
@@ -542,21 +536,20 @@ function LoanServicingCard({
             ) : (
               <Wallet className="w-4 h-4 mr-2" />
             )}
-            Bayaran gamit ang Wallet
+            Pay with Wallet
           </Button>
 
           <DialogContent className="sm:max-w-lg">
             <DialogHeader>
               <DialogTitle>Repayment Submission</DialogTitle>
               <DialogDescription>
-                Pumili ng payment channel at ilagay ang reference na ibinigay ng
-                tenant o ng transfer.
+                Choose a payment channel and enter the reference provided by the tenant or the transfer.
               </DialogDescription>
             </DialogHeader>
             <div className="space-y-4">
               <div className="space-y-2">
                 <label className="text-sm font-bold text-slate-700">
-                  Halaga
+                  Amount
                 </label>
                 <Input
                   value={amount}
@@ -572,7 +565,7 @@ function LoanServicingCard({
                 </label>
                 <Select value={methodId} onValueChange={setMethodId}>
                   <SelectTrigger className="rounded-xl">
-                    <SelectValue placeholder="Pumili ng channel" />
+                    <SelectValue placeholder="Choose a channel" />
                   </SelectTrigger>
                   <SelectContent>
                     {paymentMethods.map((method) => (
@@ -615,7 +608,7 @@ function LoanServicingCard({
                 <textarea
                   value={notes}
                   onChange={(e) => setNotes(e.target.value)}
-                  placeholder="Halimbawa: Binayaran sa tenant cashier kaninang umaga."
+                  placeholder="Example: Paid to tenant cashier this morning."
                   className="min-h-24 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm"
                 />
               </div>
@@ -626,7 +619,7 @@ function LoanServicingCard({
                 onClick={handleSubmit}
                 className="w-full rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white"
               >
-                Isumite para sa Verification
+                Submit for Verification
               </Button>
             </div>
           </DialogContent>
@@ -637,8 +630,7 @@ function LoanServicingCard({
             <DialogHeader>
               <DialogTitle>How is your repayment?</DialogTitle>
               <DialogDescription>
-                Bilang bahagi ng Ka-Agapay system, ang iyong feedback ay
-                mahalaga sa pagbuti ng ating community lending.
+                As part of the Ka-Agapay system, your feedback is valuable in improving our community lending.
               </DialogDescription>
             </DialogHeader>
             <div className="space-y-4 py-2">
@@ -665,12 +657,12 @@ function LoanServicingCard({
               </div>
               <div className="space-y-2">
                 <label className="text-sm font-bold text-slate-700">
-                  Karagdagang Komento (Optional)
+                  Additional Comments (Optional)
                 </label>
                 <textarea
                   value={feedbackMessage}
                   onChange={(e) => setFeedbackMessage(e.target.value)}
-                  placeholder="Hal. Madali ang proseso, ngunit..."
+                  placeholder="E.g., The process was easy, but..."
                   className="min-h-20 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm"
                 />
               </div>
@@ -685,13 +677,13 @@ function LoanServicingCard({
                     });
                     setFeedbackOpen(false);
                     toast.success(
-                      "Maraming salamat! Naipadala na ang iyong feedback.",
+                      "Thank you! Your feedback has been sent.",
                     );
                   });
                 }}
                 className="w-full rounded-xl bg-slate-900 text-white hover:bg-slate-800"
               >
-                Isumite ang Feedback
+                Submit Feedback
               </Button>
             </div>
           </DialogContent>
@@ -705,7 +697,7 @@ function LoanServicingCard({
         <div className="max-h-64 space-y-2 overflow-y-auto pr-1">
           {loan.payments.length === 0 ? (
             <p className="text-sm text-slate-400 italic">
-              Wala pang naipapasang repayment.
+              No repayments submitted yet.
             </p>
           ) : (
             loan.payments.map((payment) => (

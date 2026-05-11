@@ -44,7 +44,7 @@ export const MICROFINANCE_POLICY = {
   gracePeriodDays: 14,
   compassionActionsPerLoanCycle: 1,
   overindebtedExposureRate: 0.8,
-  maxConcurrentLoansAcrossTenants: 2,
+  maxConcurrentLoansAcrossTenants: 1,
 } as const;
 
 export interface TierPolicy {
@@ -69,7 +69,7 @@ export interface LoanProductTemplate {
 export const TIER_POLICIES: Record<InterestTier, TierPolicy> = {
   [InterestTier.T1_5_PERCENT]: {
     tier: InterestTier.T1_5_PERCENT,
-    label: "Gabay",
+    label: "Agapay Gabay",
     shortLabel: "5%",
     capAmount: 5_000,
     monthlyRatePercent: 5,
@@ -79,7 +79,7 @@ export const TIER_POLICIES: Record<InterestTier, TierPolicy> = {
   },
   [InterestTier.T2_4_5_PERCENT]: {
     tier: InterestTier.T2_4_5_PERCENT,
-    label: "Bagong Sigla",
+    label: "Agapay Sigla",
     shortLabel: "4.5%",
     capAmount: 29_000,
     monthlyRatePercent: 4.5,
@@ -89,7 +89,7 @@ export const TIER_POLICIES: Record<InterestTier, TierPolicy> = {
   },
   [InterestTier.T3_4_PERCENT]: {
     tier: InterestTier.T3_4_PERCENT,
-    label: "Kasapi",
+    label: "Agapay Member",
     shortLabel: "4%",
     capAmount: 59_000,
     monthlyRatePercent: 4,
@@ -99,7 +99,7 @@ export const TIER_POLICIES: Record<InterestTier, TierPolicy> = {
   },
   [InterestTier.T4_3_5_PERCENT]: {
     tier: InterestTier.T4_3_5_PERCENT,
-    label: "Katuwang",
+    label: "Agapay Partner",
     shortLabel: "3.5%",
     capAmount: 100_000,
     monthlyRatePercent: 3.5,
@@ -109,7 +109,7 @@ export const TIER_POLICIES: Record<InterestTier, TierPolicy> = {
   },
   [InterestTier.T5_3_PERCENT]: {
     tier: InterestTier.T5_3_PERCENT,
-    label: "Kaagapay",
+    label: "Agapay Companion",
     shortLabel: "3%",
     capAmount: 1_000_000,
     monthlyRatePercent: 3,

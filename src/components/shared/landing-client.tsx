@@ -369,7 +369,7 @@ export function LandingClient({ tenants }: { tenants: Tenant[] }) {
                 className="px-10 py-3 bg-slate-200/85 backdrop-blur-md text-slate-900 font-bold rounded-2xl hover:bg-slate-300 transition-all flex items-center gap-3 border border-slate-300/30 cursor-pointer"
               >
                 <Calculator className="w-5 h-5" />
-                Try the Loan Calculator
+                Loan Calculator
               </a>
             </div>
           </div>
@@ -461,6 +461,9 @@ export function LandingClient({ tenants }: { tenants: Tenant[] }) {
                 We&apos;ll show you an estimated repayment using the same
                 transparent logic used in the prototype flow.
               </p>
+              <p className="text-slate-400 text-sm mt-2 italic">
+                * This is an example set of business operation. Actual terms may depend on the specific cooperative policies.
+              </p>
             </div>
             <HomeLoanCalculator />
           </section>
@@ -505,19 +508,25 @@ export function LandingClient({ tenants }: { tenants: Tenant[] }) {
               {[
                 {
                   name: "Agapay Core",
-                  price: "₱2,500",
+                  price: "₱3,500",
+                  period: "/3 months",
                   limit: "Up to 500 members",
+                  features: ["Basic Dashboard", "Standard Policy Access", "Audit Logs", "Email Support"],
                 },
                 {
                   name: "Agapay Pro",
-                  price: "₱4,500",
+                  price: "₱6,500",
+                  period: "/6 months",
                   limit: "Up to 2,500 members",
                   highlight: true,
+                  features: ["Custom Branding", "Chat Support", "Mentorship Tools", "Priority Support"],
                 },
                 {
-                  name: "Enterprise",
-                  price: "Custom",
+                  name: "Agapay Enterprise",
+                  price: "₱12,000",
+                  period: "/12 months",
                   limit: "Unlimited members",
+                  features: ["Analytics Module", "Advanced Reporting", "Full Configuration", "Priority SLA"],
                 },
               ].map((plan) => (
                 <div
@@ -527,12 +536,22 @@ export function LandingClient({ tenants }: { tenants: Tenant[] }) {
                   <h3 className="text-xl font-black italic mb-2">
                     {plan.name}
                   </h3>
-                  <div className="text-3xl font-black mb-4">{plan.price}</div>
+                  <div className="text-3xl font-black mb-1">{plan.price}</div>
+                  <p className={`text-xs font-medium mb-6 ${plan.highlight ? "text-slate-300" : "text-slate-500"}`}>
+                    {plan.period}
+                  </p>
                   <p
-                    className={`font-medium mb-8 ${plan.highlight ? "text-slate-300" : "text-slate-500"}`}
+                    className={`font-medium mb-4 ${plan.highlight ? "text-slate-300" : "text-slate-500"}`}
                   >
                     {plan.limit}
                   </p>
+                  <ul className={`text-left text-sm space-y-2 mb-8 ${plan.highlight ? "text-slate-300" : "text-slate-500"}`}>
+                    {plan.features.map((feature) => (
+                      <li key={feature} className="flex items-center gap-2">
+                        <span className="text-emerald-500">✓</span> {feature}
+                      </li>
+                    ))}
+                  </ul>
                 </div>
               ))}
             </div>

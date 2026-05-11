@@ -21,6 +21,7 @@ import {
 } from "@/components/ui/select";
 import { processPosTransaction } from "@/actions/wallet-actions";
 import { toast } from "sonner";
+import { useFormPersistence } from "@/hooks/use-form-persistence";
 
 interface POSSystemTabProps {
   members: any[];
@@ -36,6 +37,35 @@ export function POSSystemTab({ members }: POSSystemTabProps) {
   );
   const [notes, setNotes] = useState("");
   const [loading, setLoading] = useState(false);
+
+  // Form Persistence
+  const formData = useMemo(
+    () => ({
+      type,
+      amount,
+      reference,
+      notes,
+      selectedMemberId: selectedMember?.user_id,
+    }),
+    [type, amount, reference, notes, selectedMember],
+  );
+
+  const { clearPersistence } = useFormPersistence(
+    "pos_system",
+    formData,
+    (saved) => {
+      setType(saved.type);
+      setAmount(saved.amount);
+      setReference(saved.reference);
+      setNotes(saved.notes);
+      if (saved.selectedMemberId) {
+        const m = members.find(
+          (member) => member.user_id === saved.selectedMemberId,
+        );
+        if (m) setSelectedMember(m);
+      }
+    },
+  );
 
   const filteredMembers = useMemo(() => {
     if (!search.trim()) return [];
@@ -65,10 +95,11 @@ export function POSSystemTab({ members }: POSSystemTabProps) {
       reference,
       notes,
     });
-    setLoading(false);
+    setLoading(true); // Should be false after res, fixing it below
 
     if (res.success) {
       toast.success(res.success);
+      clearPersistence();
       setSelectedMember(null);
       setAmount("");
       setSearch("");
@@ -76,6 +107,7 @@ export function POSSystemTab({ members }: POSSystemTabProps) {
     } else {
       toast.error(res.error);
     }
+    setLoading(false);
   };
 
   return (

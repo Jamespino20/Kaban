@@ -364,54 +364,100 @@ export default async function AgapayTanawPage({
         )}
         {/* Shared / Role-Specific TabsContent */}
         <TabsContent value="overview" className="space-y-6 outline-none">
-          {/* ... existing overview content ... */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <KPIMetricCard
-              label="Total Funds"
-              value={`₱${(metrics.totalLiquidity / 1000000).toFixed(1)}M`}
-              description={`Total: ₱${metrics.totalLiquidity.toLocaleString()}`}
-              iconName="wallet"
-              trend={{ value: 12.5, isPositive: true }}
-            />
-            <KPIMetricCard
-              label="Active Loans"
-              value={metrics.activeLoans}
-              iconName="activity"
-              trend={{ value: 8.2, isPositive: true }}
-            />
-            <KPIMetricCard
-              label="Repayment Rate"
-              value={`${metrics.repaymentRate.toFixed(1)}%`}
-              iconName="check"
-              trend={{ value: 1.4, isPositive: true }}
-            />
-            <KPIMetricCard
-              label="Risk Exposure"
-              value={`₱${(metrics.riskExposure / 1000).toFixed(0)}K`}
-              description={`Delinquent: ₱${metrics.riskExposure.toLocaleString()}`}
-              iconName="alert"
-              trend={{ value: 3.1, isPositive: false }}
-              variant="ghost"
-            />
-          </div>
+          {isGlobalSuperadminView ? (
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <KPIMetricCard
+                label="Registered Cooperatives"
+                value={metrics.totalTenants.toLocaleString()}
+                iconName="tenants"
+                description="Total active tenants on platform"
+              />
+              <KPIMetricCard
+                label="Platform Throughput"
+                value={metrics.totalTransactions.toLocaleString()}
+                iconName="activity"
+                description="Global transaction count"
+              />
+              <KPIMetricCard
+                label="Global Support Queue"
+                value={metrics.globalSupportLoad}
+                iconName="feedback"
+                description="Pending support tickets"
+                variant={metrics.globalSupportLoad > 10 ? "ghost" : "glass"}
+              />
+              <KPIMetricCard
+                label="New Tenant Velocity"
+                value={metrics.newTenantVelocity}
+                iconName="tenants"
+                description="Growth (last 30 days)"
+              />
+              <KPIMetricCard
+                label="Platform Loan Volume"
+                value={metrics.activeLoans}
+                iconName="repayment"
+              />
+              <KPIMetricCard
+                label="Estimated GMV"
+                value={`₱${metrics.totalEarnings.toLocaleString()}`}
+                iconName="wallet"
+                description="Total verified payments"
+              />
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              <KPIMetricCard
+                label="Total Funds"
+                value={`₱${(metrics.totalLiquidity / 1000000).toFixed(1)}M`}
+                description={`Total: ₱${metrics.totalLiquidity.toLocaleString()}`}
+                iconName="wallet"
+                trend={{ value: 12.5, isPositive: true }}
+              />
+              <KPIMetricCard
+                label="Active Loans"
+                value={metrics.activeLoans}
+                iconName="activity"
+                trend={{ value: 8.2, isPositive: true }}
+              />
+              <KPIMetricCard
+                label="Repayment Rate"
+                value={`${metrics.repaymentRate.toFixed(1)}%`}
+                iconName="check"
+                trend={{ value: 1.4, isPositive: true }}
+              />
+              <KPIMetricCard
+                label="Risk Exposure"
+                value={`₱${(metrics.riskExposure / 1000).toFixed(0)}K`}
+                description={`Delinquent: ₱${metrics.riskExposure.toLocaleString()}`}
+                iconName="alert"
+                trend={{ value: 3.1, isPositive: false }}
+                variant="ghost"
+              />
+            </div>
+          )}
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
-            <div className="lg:col-span-2 bg-white/70 backdrop-blur-xl p-6 rounded-[1.75rem] border border-slate-200/60 shadow-sm flex flex-col md:flex-row items-center gap-8">
-              <div className="flex-1 text-center md:text-left">
-                <h3 className="text-xl font-display font-bold text-slate-900">
-                  Cooperative Trust Index
-                </h3>
-                <p className="text-slate-500 text-sm mt-1 mb-6">
-                  Current status of the trust network
-                </p>
-                <TrustDistributionChart distribution={trustData.distribution} />
+            {!isGlobalSuperadminView && (
+              <div className="lg:col-span-2 bg-white/70 backdrop-blur-xl p-6 rounded-[1.75rem] border border-slate-200/60 shadow-sm flex flex-col md:flex-row items-center gap-8">
+                <div className="flex-1 text-center md:text-left">
+                  <h3 className="text-xl font-display font-bold text-slate-900">
+                    Cooperative Trust Index
+                  </h3>
+                  <p className="text-slate-500 text-sm mt-1 mb-6">
+                    Current status of the trust network
+                  </p>
+                  <TrustDistributionChart
+                    distribution={trustData.distribution}
+                  />
+                </div>
+                <div className="flex-shrink-0 scale-110 md:scale-125">
+                  <TrustMeter data={trustData.aggregateTrust} />
+                </div>
               </div>
-              <div className="flex-shrink-0 scale-110 md:scale-125">
-                <TrustMeter data={trustData.aggregateTrust} />
-              </div>
-            </div>
+            )}
 
-            <div className="bg-slate-900 p-6 rounded-[1.75rem] text-white flex flex-col justify-between overflow-hidden relative group">
+            <div
+              className={`${isGlobalSuperadminView ? "lg:col-span-3" : ""} bg-slate-900 p-6 rounded-[1.75rem] text-white flex flex-col justify-between overflow-hidden relative group min-h-[240px]`}
+            >
               <div className="relative z-10 space-y-4">
                 <div className="w-12 h-12 rounded-2xl bg-emerald-500 shadow-[0_0_20px_rgba(16,185,129,0.3)] flex items-center justify-center mb-6">
                   <TrendingUp className="w-6 h-6 text-white" />
