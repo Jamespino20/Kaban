@@ -14,8 +14,9 @@ export async function getSuperadminOverview() {
       totalFunds,
       totalActiveLoans,
       totalMembers,
-      totalLenders,
+      totalOperators,
       globalTrustScore,
+      subscriptionRevenue,
       recentLogs,
       aiSnapshot,
     ] = await prisma.$transaction([
@@ -37,16 +38,24 @@ export async function getSuperadminOverview() {
         FROM users WHERE role = 'member'
       `,
 
-      // Total lenders across all tenants
+      // Total operators across all tenants
       prisma.$queryRaw`
         SELECT COUNT(*) as count
-        FROM users WHERE role = 'lender'
+        FROM users WHERE role = 'operator'
       `,
 
       // Global trust score (platform-wide average)
       prisma.$queryRaw`
         SELECT AVG(trust_score) as avg_score
         FROM users WHERE trust_score IS NOT NULL
+      `,
+
+      // Subscription revenue - total from all tenant subscriptions
+      prisma.$queryRaw`
+        SELECT COALESCE(SUM(sp.price_monthly), 0) as total_revenue
+        FROM tenant_subscriptions ts
+        JOIN subscription_plans sp ON sp.id = ts.plan_id
+        WHERE ts.status = 'active'
       `,
 
       // Recent logs across all tenants (last 50)
@@ -75,12 +84,15 @@ export async function getSuperadminOverview() {
     const membersResult = Array.isArray(totalMembers)
       ? totalMembers[0]
       : totalMembers;
-    const lendersResult = Array.isArray(totalLenders)
-      ? totalLenders[0]
-      : totalLenders;
+    const operatorsResult = Array.isArray(totalOperators)
+      ? totalOperators[0]
+      : totalOperators;
     const trustResult = Array.isArray(globalTrustScore)
       ? globalTrustScore[0]
       : globalTrustScore;
+    const subRevenue = Array.isArray(subscriptionRevenue)
+      ? subscriptionRevenue[0]
+      : subscriptionRevenue;
 
     return {
       success: true,
@@ -88,7 +100,8 @@ export async function getSuperadminOverview() {
         totalFunds: fundsResult?.total || 0,
         totalActiveLoans: Number(loansResult?.count || 0),
         totalMembers: Number(membersResult?.count || 0),
-        totalLenders: Number(lendersResult?.count || 0),
+        totalOperators: Number(operatorsResult?.count || 0),
+        totalSubscriptionRevenue: Number(subRevenue?.total_revenue || 0),
         globalTrustScore: trustResult?.avg_score
           ? Number(trustResult.avg_score)
           : 0,
@@ -1423,7 +1436,7 @@ export async function broadcastPlatformMessage(data: {
         SELECT u.user_id, u.email, up.phone
         FROM users u
         LEFT JOIN user_profiles up ON up.user_id = u.user_id
-        WHERE u.role = 'lender' AND u.status = 'active'
+        WHERE u.role = 'operator' AND u.status = 'active'
       `;
     } else if (data.targetAudience === "members") {
       users = await prisma.$queryRaw`
@@ -1592,27 +1605,37 @@ export async function getSuperadminReports() {
     const totalTenants = await prisma.tenant.count({
       where: { is_active: true },
     });
-    const totalUsers = await prisma.user.count({ where: { role: "member" } });
 
-    // Sum of all savings accounts
-    const totalSavingsRes = await prisma.savingsAccount.aggregate({
-      _sum: { balance: true },
-    });
+    // Use raw queries wherever possible to avoid schema-scope issues
+    const totalUsersRes = await prisma.$queryRaw<
+      { count: bigint }[]
+    >`SELECT COUNT(*) as count FROM users WHERE role = 'member'`;
+    const totalUsers = Number(totalUsersRes[0]?.count || 0);
 
-    // Sum of all loan balances
-    const totalLoansRes = await prisma.loan.aggregate({
-      _sum: {
-        principal_amount: true,
-        balance_remaining: true,
-      },
-      where: {
-        status: { in: ["active", "defaulted"] },
-      },
-    });
+    const totalSavingsRes =
+      await prisma.$queryRaw<{ total: number }[]>`SELECT COALESCE(SUM(balance), 0) as total FROM savings_accounts`;
+    const totalSavingsVolume = Number(totalSavingsRes[0]?.total || 0);
 
-    const activeLoans = await prisma.loan.count({
-      where: { status: "active" },
-    });
+    const loansAggRes = await prisma.$queryRaw<
+      { total_principal: number; total_outstanding: number }[]
+    >`
+      SELECT 
+        COALESCE(SUM(principal_amount), 0) as total_principal,
+        COALESCE(SUM(balance_remaining), 0) as total_outstanding
+      FROM loans
+      WHERE status IN ('active', 'defaulted')
+    `;
+    const totalActiveLoanVolume = Number(
+      loansAggRes[0]?.total_principal || 0,
+    );
+    const totalOutstandingBalance = Number(
+      loansAggRes[0]?.total_outstanding || 0,
+    );
+
+    const activeLoansRes = await prisma.$queryRaw<
+      { count: bigint }[]
+    >`SELECT COUNT(*) as count FROM loans WHERE status = 'active'`;
+    const activeLoansCount = Number(activeLoansRes[0]?.count || 0);
 
     // Performance Trends (Last 6 Months)
     const growthTrends = await prisma.$queryRaw`
@@ -1635,11 +1658,11 @@ export async function getSuperadminReports() {
       ORDER BY month ASC
     `;
 
-    // Member Acquisition & Retention
-    const acquisition = await prisma.$transaction([
-      prisma.user.count({ where: { status: "active", role: "member" } }),
-      prisma.user.count({ where: { status: "pending", role: "member" } }),
-    ]);
+    // Member Acquisition
+    const activeMembersRes =
+      await prisma.$queryRaw<{ count: bigint }[]>`SELECT COUNT(*) as count FROM users WHERE status = 'active' AND role = 'member'`;
+    const pendingMembersRes =
+      await prisma.$queryRaw<{ count: bigint }[]>`SELECT COUNT(*) as count FROM users WHERE status = 'pending' AND role = 'member'`;
 
     const retention = await prisma.$queryRaw`
       SELECT 
@@ -1655,20 +1678,16 @@ export async function getSuperadminReports() {
       data: {
         totalTenants,
         totalUsers,
-        totalSavingsVolume: Number(totalSavingsRes._sum?.balance || 0),
-        totalActiveLoanVolume: Number(
-          totalLoansRes._sum?.principal_amount || 0,
-        ),
-        totalOutstandingBalance: Number(
-          totalLoansRes._sum?.balance_remaining || 0,
-        ),
-        activeLoansCount: activeLoans,
+        totalSavingsVolume,
+        totalActiveLoanVolume,
+        totalOutstandingBalance,
+        activeLoansCount,
         performance: {
           growthTrends: Array.isArray(growthTrends) ? growthTrends : [],
           userGrowth: Array.isArray(userGrowth) ? userGrowth : [],
           acquisition: {
-            active: acquisition[0],
-            pending: acquisition[1],
+            active: Number(activeMembersRes[0]?.count || 0),
+            pending: Number(pendingMembersRes[0]?.count || 0),
           },
           retention: Array.isArray(retention)
             ? retention[0]

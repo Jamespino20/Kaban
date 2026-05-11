@@ -25,6 +25,7 @@ export default async function RegisterPage({
         <EnhancedRegisterForm
           preselectedTenantId={tenantData.tenant_id.toString()}
           preselectedRegionId={tenantData.tenant_group_id?.toString() || "SKIP"}
+          tenantSlug={tenant}
         />
       </div>
     </div>

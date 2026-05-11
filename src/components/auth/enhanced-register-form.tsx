@@ -7,6 +7,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { toast } from "sonner";
+import { useRouter } from "next/navigation";
 import {
   User,
   Mail,
@@ -91,10 +92,13 @@ const EnhancedRegisterSchema = z
 export function EnhancedRegisterForm({
   preselectedTenantId,
   preselectedRegionId,
+  tenantSlug,
 }: {
   preselectedTenantId?: string;
   preselectedRegionId?: string;
+  tenantSlug?: string;
 }) {
+  const router = useRouter();
   const [isMounted, setIsMounted] = useState(false);
   const [step, setStep] = useState(1);
   const [isPending, startTransition] = useTransition();
@@ -401,10 +405,16 @@ export function EnhancedRegisterForm({
               </div>
 
               <Button
-                onClick={() => window.location.reload()}
+                onClick={() => {
+                  if (tenantSlug) {
+                    router.push(`/${tenantSlug}/agapay-pintig`);
+                  } else {
+                    window.location.reload();
+                  }
+                }}
                 className="w-full h-14 rounded-2xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-lg transition-all"
               >
-                Complete Registration
+                Go to My Dashboard
               </Button>
             </div>
           </div>

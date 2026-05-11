@@ -51,6 +51,7 @@ The previous issue-derived matrix has been replaced. All entries below are sourc
    - Member tenant limit (CP-25): maxTenantMembershipsPerUser: 2 in MICROFINANCE_POLICY
 
 **Implementation Files Referenced:**
+
 - Platform homepage: `src/components/shared/landing-client.tsx`
 - Platform footer: `src/components/layout/footer.tsx`
 - Dashboard shell: `src/components/layout/authenticated-shell.tsx`
@@ -65,80 +66,80 @@ The previous issue-derived matrix has been replaced. All entries below are sourc
 
 ## Section A: Core Features
 
-| ID   | Feature                              | Status       | Gap / Action                                                                                                                                                 |
-| ---- | ------------------------------------ | ------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| F-01 | Mock e-wallet                        | DONE*       | Tenant-scoped wallet implemented. Remaining: confirmation UI, pending issue reporting.                                                                 |
-| F-02 | Withdrawal                           | DONE*       | Implemented in wallet-actions.ts. Remaining: preset amounts UI, method selection.                                                                 |
-| F-03 | Deposit                             | DONE*       | Implemented in wallet-actions.ts. Remaining: preset amounts UI.                                                                              |
-| F-04 | Identity and document verification   | VERIFY      | UserDocument model exists. Upload works via registration; operator queue displays pending docs but approve/reject button is not wired. Workflow completion pending. |
-| F-05 | Mock loans                          | DONE*      | Tier-based rates, guarantor support, one-active-loan enforcement implemented. Remaining: approval chain polish.                                      |
-| F-06 | Repayments                          | DONE*      | Implemented in loan-servicing. Remaining: full-payment discount, GCash method.                                                                           |
-| F-07 | Interest tiers                      | DONE       | Implemented in microfinance-policy.ts: T1_5_PERCENT (5%) through T5_3_PERCENT (3%).                                                                 |
-| F-08 | Transaction feedback                | DONE*      | Fixed to work with platform context (no tenant).                                                                                          |
-| F-09 | Imbalance tracking                   | VERIFY      | Treasury vs wallet calculation exists in reconciliation.ts. Investigation workflow pending. EOD sign-off with adjustment entries works.    |
-| F-10 | Investigation and resolution          | NEW        | Investigation workflow not yet implemented.                                                                                              |
-| F-11 | Guarantorship                       | DONE*      | LoanGuarantee model exists, 25% liability in policy. Workflow complete.                                                           |
-| F-12 | Mentorship                         | REBUILD    | MentorshipConnection model exists. Tenant toggle pending.                                                                            |
-| F-13 | Receipt generation                 | NEW        | Receipt model exists, generation service pending.                                                                                        |
-| F-14 | Multi-tenancy by regions and tenants | DONE       | TenantGroup (regions), Tenant slug routing, tenant-specific homepages implemented.                                                 |
-| F-15 | Tenant schema creation              | DONE       | Multi-schema isolation via prisma.$withTenant() implemented.                                                                           |
-| F-16 | Two-factor authentication (TOTP)    | DONE        | Fully implemented: TOTP secret generation, QR display, verify/enable/disable, login enforcement with TOTP validation, email fallback. Recovery codes field exists but unused. |
-| F-17 | RBAC                              | DONE       | Superadmin, Tenant Operator, Tenant Member roles implemented. Feature toggles pending.                                                       |
-| F-18 | Audit logging                     | VERIFY     | AuditLog model exists, viewer UIs built. Prisma auto-audit extension defined but NOT wired to Prisma client (dead code). Module instrumentation pending. |
-| F-19 | Report generation                  | NEW        | CSV/PDF generation service not yet implemented.                                                                                           |
-| F-20 | Discord-style chat                 | DONE*     | Highly functional: messages, replies, reactions, emoji picker, file attachments, group/direct/operator_room chats, unread indicators. Remaining: real-time WS, message search, typing indicators, real file upload. |
-| F-21 | In-app notifications              | VERIFY     | Notification model exists, UI (bell) and creation function built. Only 2 trigger sites (mentorship). Trigger wiring pending across all modules. |
-| F-22 | Email notifications               | VERIFY     | EmailTemplate model exists but unused in code. Email dispatch works via hardcoded templates in mail.ts. Template integration pending. |
-| F-23 | Three-dot actions                 | DONE       | DropdownMenu in authenticated-shell.tsx header implemented.                                                                     |
-| F-24 | Tenant management                 | DONE       | Create, edit, avail, suspend, decommission, and RESTORE all implemented in tenant-management.ts.                                          |
-| F-25 | Homepage customization            | DONE*      | Tenant branding (logo, colors) implemented. Full content builder pending.                                                            |
-| F-26 | Dashboard customization            | NEW        | Plan-based feature toggles not yet implemented.                                                                                           |
-| F-27 | Backup and recovery                | VERIFY     | DecommissionedBackup model exists. Backup creation (CSV with member data) and download work. Restore is a stub (only re-activates tenant, does not restore data). |
-| F-28 | AI-assisted analytics             | NEW        | AiConfig model exists. Snapshot/service integration pending.                                                                                          |
-| F-29 | Mobile integration                | OUT_OF_SCOPE | Explicitly excluded from scope.                                                                                                      |
+| ID   | Feature                              | Status       | Gap / Action                                                                                                                                                                                                        |
+| ---- | ------------------------------------ | ------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| F-01 | Mock e-wallet                        | DONE\*       | Tenant-scoped wallet implemented. Remaining: confirmation UI, pending issue reporting.                                                                                                                              |
+| F-02 | Withdrawal                           | DONE\*       | Implemented in wallet-actions.ts. Remaining: preset amounts UI, method selection.                                                                                                                                   |
+| F-03 | Deposit                              | DONE\*       | Implemented in wallet-actions.ts. Remaining: preset amounts UI.                                                                                                                                                     |
+| F-04 | Identity and document verification   | VERIFY       | UserDocument model exists. Upload works via registration; operator queue displays pending docs but approve/reject button is not wired. Workflow completion pending.                                                 |
+| F-05 | Mock loans                           | DONE\*       | Tier-based rates, guarantor support, one-active-loan enforcement implemented. Remaining: approval chain polish.                                                                                                     |
+| F-06 | Repayments                           | DONE\*       | Implemented in loan-servicing. Remaining: full-payment discount, GCash method.                                                                                                                                      |
+| F-07 | Interest tiers                       | DONE         | Implemented in microfinance-policy.ts: T1_5_PERCENT (5%) through T5_3_PERCENT (3%).                                                                                                                                 |
+| F-08 | Transaction feedback                 | DONE\*       | Fixed to work with platform context (no tenant).                                                                                                                                                                    |
+| F-09 | Imbalance tracking                   | VERIFY       | Treasury vs wallet calculation exists in reconciliation.ts. Investigation workflow pending. EOD sign-off with adjustment entries works.                                                                             |
+| F-10 | Investigation and resolution         | NEW          | Investigation workflow not yet implemented.                                                                                                                                                                         |
+| F-11 | Guarantorship                        | DONE\*       | LoanGuarantee model exists, 25% liability in policy. Workflow complete.                                                                                                                                             |
+| F-12 | Mentorship                           | REBUILD      | MentorshipConnection model exists. Tenant toggle pending.                                                                                                                                                           |
+| F-13 | Receipt generation                   | NEW          | Receipt model exists, generation service pending.                                                                                                                                                                   |
+| F-14 | Multi-tenancy by regions and tenants | DONE         | TenantGroup (regions), Tenant slug routing, tenant-specific homepages implemented.                                                                                                                                  |
+| F-15 | Tenant schema creation               | DONE         | Multi-schema isolation via prisma.$withTenant() implemented.                                                                                                                                                        |
+| F-16 | Two-factor authentication (TOTP)     | DONE         | Fully implemented: TOTP secret generation, QR display, verify/enable/disable, login enforcement with TOTP validation, email fallback. Recovery codes field exists but unused.                                       |
+| F-17 | RBAC                                 | DONE         | Superadmin, Tenant Operator, Tenant Member roles implemented. Feature toggles pending.                                                                                                                              |
+| F-18 | Audit logging                        | VERIFY       | AuditLog model exists, viewer UIs built. Prisma auto-audit extension defined but NOT wired to Prisma client (dead code). Module instrumentation pending.                                                            |
+| F-19 | Report generation                    | NEW          | CSV/PDF generation service not yet implemented.                                                                                                                                                                     |
+| F-20 | Discord-style chat                   | DONE\*       | Highly functional: messages, replies, reactions, emoji picker, file attachments, group/direct/operator_room chats, unread indicators. Remaining: real-time WS, message search, typing indicators, real file upload. |
+| F-21 | In-app notifications                 | VERIFY       | Notification model exists, UI (bell) and creation function built. Only 2 trigger sites (mentorship). Trigger wiring pending across all modules.                                                                     |
+| F-22 | Email notifications                  | VERIFY       | EmailTemplate model exists but unused in code. Email dispatch works via hardcoded templates in mail.ts. Template integration pending.                                                                               |
+| F-23 | Three-dot actions                    | DONE         | DropdownMenu in authenticated-shell.tsx header implemented.                                                                                                                                                         |
+| F-24 | Tenant management                    | DONE         | Create, edit, avail, suspend, decommission, and RESTORE all implemented in tenant-management.ts.                                                                                                                    |
+| F-25 | Homepage customization               | DONE\*       | Tenant branding (logo, colors) implemented. Full content builder pending.                                                                                                                                           |
+| F-26 | Dashboard customization              | NEW          | Plan-based feature toggles not yet implemented.                                                                                                                                                                     |
+| F-27 | Backup and recovery                  | VERIFY       | DecommissionedBackup model exists. Backup creation (CSV with member data) and download work. Restore is a stub (only re-activates tenant, does not restore data).                                                   |
+| F-28 | AI-assisted analytics                | NEW          | AiConfig model exists. Snapshot/service integration pending.                                                                                                                                                        |
+| F-29 | Mobile integration                   | OUT_OF_SCOPE | Explicitly excluded from scope.                                                                                                                                                                                     |
 
 ---
 
 ## Section B: Roles and Access Scope
 
-| ID   | Role                       | Status  | Gap / Action                                                                                                                                  |
-| ---- | -------------------------- | ------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
-| R-01 | Superadmin                 | DONE    | Platform governance permissions fully implemented via role checks and navigation.                                                                 |
-| R-02 | Tenant Operator            | DONE    | Unified operator permissions implemented.                                                                              |
-| R-03 | Tenant Member            | DONE    | Member permissions for loans, repayments, community, settings implemented.                                                                              |
-| R-04 | Legacy Admin/Lender split | DONE    | Unified Tenant Operator role replaces Admin/Lender split.                                                                           |
-| R-05 | Multi-tenant member access | DONE*   | maxTenantMembershipsPerUser: 2 enforced in policy. Login prompt pending.                                                         |
-| R-06 | Tenant feature toggles     | NEW     | Plan-based feature toggles not yet implemented.                                                                                  |
+| ID   | Role                       | Status | Gap / Action                                                                      |
+| ---- | -------------------------- | ------ | --------------------------------------------------------------------------------- |
+| R-01 | Superadmin                 | DONE   | Platform governance permissions fully implemented via role checks and navigation. |
+| R-02 | Tenant Operator            | DONE   | Unified operator permissions implemented.                                         |
+| R-03 | Tenant Member              | DONE   | Member permissions for loans, repayments, community, settings implemented.        |
+| R-04 | Legacy Admin/Lender split  | DONE   | Unified Tenant Operator role replaces Admin/Lender split.                         |
+| R-05 | Multi-tenant member access | DONE\* | maxTenantMembershipsPerUser: 2 enforced in policy. Login prompt pending.          |
+| R-06 | Tenant feature toggles     | NEW    | Plan-based feature toggles not yet implemented.                                   |
 
 ---
 
 ## Section C: Public and Dashboard Sections
 
-| ID   | Section                           | Status  | Gap / Action                                                                                                                                                                                                                                                                                           |
-| ---- | --------------------------------- | ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| S-01 | Platform homepage navbar           | DONE    | Logo, quick links, find cooperatives implemented.                                                                                                                      |
-| S-02 | Platform homepage hero             | DONE    | Tagline "Iyong Agapay, Ating Tagumpay" with no primary buttons.                                                                                                         |
-| S-03 | Platform Why Agapay section        | DONE    | Implemented in landing-client.tsx.                                                                                                                                           |
-| S-04 | Platform Features section         | DONE    | Feature cards implemented.                                                                                                                                                 |
-| S-05 | Platform Sample Calculator         | DONE*   | PRD constants, disclaimer added.                                                                                                                                             |
-| S-06 | Platform zoomable live tenant section | DONE    | TenantNetworkMap component implemented.                                                                                                                                       |
-| S-07 | Platform SaaS pricing              | DONE    | Updated to PRD: Core ₱3,500/3mo, Pro ₱6,500/6mo, Enterprise ₱12,000/12mo.                                                                                      |
-| S-08 | Platform Testimonials            | DONE*   | Superadmin moderation framework exists. Tenant selection pending.                                                                                                      |
-| S-09 | Platform FAQs                  | DONE    | FAQ system implemented. Season grouping pending.                                                                                                           |
-| S-10 | Platform Contact section        | DONE    | Routing to tenant onboarding and feedback implemented.                                                                                                                 |
-| S-11 | Platform footer               | DONE    | Links aligned to PRD. Removed Management/Partners/Security/Cookie Settings per PRD issues.                                                                              |
-| S-12 | Tenant homepage navbar        | DONE    | Cooperative logo, quick links implemented.                                                                                                                            |
-| S-13 | Tenant homepage hero           | DONE    | Powered-by branding in sidebar.                                                                                                                                        |
-| S-14 | Tenant Mission and Vision      | NEW     | Not yet implemented as separate content block.                                                                                                                           |
-| S-15 | Tenant Values                 | NEW     | Not yet implemented as separate content block.                                                                                                                            |
-| S-16 | Tenant Sample Calculator       | DONE*   | Uses PRD policy constants.                                                                                                                                                |
-| S-17 | Tenant Testimonials          | DONE    | Tenant-scoped testimonial management exists.                                                                                                                          |
-| S-18 | Tenant FAQs                   | DONE    | FAQ overrides supported.                                                                                                                                                |
-| S-19 | Tenant Contact section         | DONE    | Contact flow implemented.                                                                                                                                               |
-| S-20 | Tenant footer                 | DONE    | Tenant branding supported.                                                                                                                                               |
-| S-21 | Agapay Tanaw shell           | DONE    | Operator role labeling, navigation, notifications, three-dot actions implemented.                                                                                     |
-| S-22 | Agapay Pintig shell          | DONE    | Member sidebar, navigation, header implemented.                                                                                                                        |
-| S-23 | Dashboard tours              | NEW     | Welcome tour not yet implemented.                                                                                                                                    |
+| ID   | Section                               | Status | Gap / Action                                                                               |
+| ---- | ------------------------------------- | ------ | ------------------------------------------------------------------------------------------ |
+| S-01 | Platform homepage navbar              | DONE   | Logo, quick links, find cooperatives implemented.                                          |
+| S-02 | Platform homepage hero                | DONE   | Tagline "Iyong Agapay, Ating Tagumpay" with no primary buttons.                            |
+| S-03 | Platform Why Agapay section           | DONE   | Implemented in landing-client.tsx.                                                         |
+| S-04 | Platform Features section             | DONE   | Feature cards implemented.                                                                 |
+| S-05 | Platform Sample Calculator            | DONE\* | PRD constants, disclaimer added.                                                           |
+| S-06 | Platform zoomable live tenant section | DONE   | TenantNetworkMap component implemented.                                                    |
+| S-07 | Platform SaaS pricing                 | DONE   | Updated to PRD: Core ₱3,500/3mo, Pro ₱6,500/6mo, Enterprise ₱12,000/12mo.                  |
+| S-08 | Platform Testimonials                 | DONE\* | Superadmin moderation framework exists. Tenant selection pending.                          |
+| S-09 | Platform FAQs                         | DONE   | FAQ system implemented. Season grouping pending.                                           |
+| S-10 | Platform Contact section              | DONE   | Routing to tenant onboarding and feedback implemented.                                     |
+| S-11 | Platform footer                       | DONE   | Links aligned to PRD. Removed Management/Partners/Security/Cookie Settings per PRD issues. |
+| S-12 | Tenant homepage navbar                | DONE   | Cooperative logo, quick links implemented.                                                 |
+| S-13 | Tenant homepage hero                  | DONE   | Powered-by branding in sidebar.                                                            |
+| S-14 | Tenant Mission and Vision             | NEW    | Not yet implemented as separate content block.                                             |
+| S-15 | Tenant Values                         | NEW    | Not yet implemented as separate content block.                                             |
+| S-16 | Tenant Sample Calculator              | DONE\* | Uses PRD policy constants.                                                                 |
+| S-17 | Tenant Testimonials                   | DONE   | Tenant-scoped testimonial management exists.                                               |
+| S-18 | Tenant FAQs                           | DONE   | FAQ overrides supported.                                                                   |
+| S-19 | Tenant Contact section                | DONE   | Contact flow implemented.                                                                  |
+| S-20 | Tenant footer                         | DONE   | Tenant branding supported.                                                                 |
+| S-21 | Agapay Tanaw shell                    | DONE   | Operator role labeling, navigation, notifications, three-dot actions implemented.          |
+| S-22 | Agapay Pintig shell                   | DONE   | Member sidebar, navigation, header implemented.                                            |
+| S-23 | Dashboard tours                       | NEW    | Welcome tour not yet implemented.                                                          |
 
 ---
 
@@ -146,203 +147,204 @@ The previous issue-derived matrix has been replaced. All entries below are sourc
 
 ### Superadmin
 
-| ID    | Module                             | Status  | Gap / Action                                                                                                                                   |
-| ----- | --------------------------------- | ------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
-| SA-01 | Overview                          | DONE*   | SuperadminOverviewTab component with KPIs exists (total funds, active loans, members, lenders, trust index, AI insights) but NOT wired in page.tsx. Inline KPI cards used instead. |
-| SA-02 | Approvals                         | DONE    | Card-grid approval area implemented.                                                                                                             |
-| SA-03 | Tenant application verification   | DONE*   | Backend actions (get/review) fully built. UI component exists (superadmin-approvals-tab.tsx) but approve/reject uses alert() stubs — not wired to real backend. Component not imported in page.tsx. |
-| SA-04 | Global Management                 | DONE    | Sort by region, display tenant cards implemented. Restore IS implemented (tenant-management.ts:282).                                                |
-| SA-05 | Tenant lifecycle actions          | DONE    | Avail/suspend/decommission/restore all implemented.                                                                               |
-| SA-06 | Add Tenant dialog                | DONE    | Two-pane builder already implemented: left pane (form fields + branding) + right pane (live MockHomepagePreview sync). LocalStorage draft persistence. |
-| SA-07 | Homepage builder               | DONE*   | Region, colors, logo fields exist. Expanded builder pending.                                                                         |
-| SA-08 | Dashboard builder               | NEW     | Plan-based function toggles not yet implemented. Zero code found.                                                                                          |
-| SA-09 | Tenant site preview             | DONE    | MockHomepagePreview fully functional — live mini-navbar, hero with branding colors, feature card, glow effect. Used in CreateTenantForm and HomepageContentTab. |
-| SA-10 | Tenant schema provisioning      | DONE    | Multi-schema isolation implemented.                                                                                                        |
-| SA-11 | Platform FAQ moderation        | DONE    | Superadmin can manage FAQs. Season grouping pending.                                                                                  |
-| SA-12 | Platform testimonial moderation| DONE    | Selection workflow exists.                                                                                                   |
-| SA-13 | Platform feedback             | DONE    | SupportAnalyticsModule wraps FeedbackTab + AuditLogViewer. Works for platform-wide feedback context.                                                   |
-| SA-14 | Cross-tenant audit logs        | DONE*   | AuditLogsTab component exists (cross-tenant with stats, filtering, pagination) but NOT wired in page.tsx — no TabsContent value="audit". Only accessible via Feedback tab sub-nav. |
-| SA-15 | Cross-tenant financial reports  | DONE*   | Backend action getCrossTenantFinancialReports() exists (disbursed vs repaid by region, default rates, PAR). ReportsTab renders simpler global KPIs — not connected to the detailed cross-tenant backend. |
-| SA-16 | Tenant performance reports     | BACKEND_ONLY | Backend action getTenantPerformanceReports() exists (growth trends, member acquisition/retention). No UI component.                                                                          |
-| SA-17 | Report exports and scheduling   | DONE*   | Backend CSV export exists (4 report types) but no UI trigger button. Scheduling not implemented. No PDF generation.                                          |
-| SA-18 | System Health                 | DONE    | Fully implemented: getSystemHealth() actions (system-health.ts:123 lines), SystemHealthTab component (358 lines) with API uptime bar, queue processing, tenant health breakdown. Wired in page.tsx. |
-| SA-19 | Fraud and Risk Monitoring       | DONE    | Fully implemented: getFraudRiskMonitoring() + getSuperadminFraudMetrics() in superadmin-actions.ts, FraudRiskTab component (174 lines) with delinquency/KYC/identity rejection cards. Wired in page.tsx. |
-| SA-20 | Community                     | DONE    | CommunityOperationsTab + platform announcements via createPlatformAnnouncement().                                                                        |
-| SA-21 | Platform Config               | NEW     | Backend actions exist (getPlatformConfig/updatePlatformConfig). No UI component.                                                                                                          |
-| SA-22 | Subscription and Billing     | DONE*   | Plan fields exist. Full billing workflow pending.                                                                             |
-| SA-23 | AI Configuration              | NEW     | Backend actions exist (getAIConfig/updateAIConfig). No UI component.                                                                                               |
-| SA-24 | Email/SMS templates           | VERIFY   | Backend CRUD actions exist (create/update/list templates + broadcast). No UI component.                                                                                              |
-| SA-25 | Security settings            | DONE*   | RBAC and user-level 2FA work. Global security policy backend (password policy, session, 2FA requirements, IP whitelist) exists. No centralized security settings management UI. |
+| ID    | Module                          | Status | Gap / Action                                                                                                                                                                                             |
+| ----- | ------------------------------- | ------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| SA-01 | Overview                        | DONE   | SuperadminOverviewTab wired into page.tsx replacing inline KPIs for global admin view. Fully functional.                                                                                                 |
+| SA-02 | Approvals                       | DONE   | Card-grid approval area implemented.                                                                                                                                                                     |
+| SA-03 | Tenant application verification | DONE   | Backend actions wired to UI. superadmin-approvals-tab.tsx now calls getTenantApplicationsForReview() and processApplication() from real actions. Approve/reject with toast feedback.                     |
+| SA-04 | Global Management               | DONE   | Sort by region, display tenant cards implemented. Restore IS implemented (tenant-management.ts:282).                                                                                                     |
+| SA-05 | Tenant lifecycle actions        | DONE   | Avail/suspend/decommission/restore all implemented.                                                                                                                                                      |
+| SA-06 | Add Tenant dialog               | DONE   | Two-pane builder already implemented: left pane (form fields + branding) + right pane (live MockHomepagePreview sync). LocalStorage draft persistence.                                                   |
+| SA-07 | Homepage builder                | DONE\* | Region, colors, logo fields exist. Expanded builder pending.                                                                                                                                             |
+| SA-08 | Dashboard builder               | NEW    | Plan-based function toggles not yet implemented. Zero code found.                                                                                                                                        |
+| SA-09 | Tenant site preview             | DONE   | MockHomepagePreview fully functional — live mini-navbar, hero with branding colors, feature card, glow effect. Used in CreateTenantForm and HomepageContentTab.                                          |
+| SA-10 | Tenant schema provisioning      | DONE   | Multi-schema isolation implemented.                                                                                                                                                                      |
+| SA-11 | Platform FAQ moderation         | DONE   | Superadmin can manage FAQs. Season grouping pending.                                                                                                                                                     |
+| SA-12 | Platform testimonial moderation | DONE   | Selection workflow exists.                                                                                                                                                                               |
+| SA-13 | Platform feedback               | DONE   | SupportAnalyticsModule wraps FeedbackTab + AuditLogViewer. Works for platform-wide feedback context.                                                                                                     |
+| SA-14 | Cross-tenant audit logs         | DONE   | AuditLogsTab wired into page.tsx as dedicated tab under System & Audits for superadmin.                                                                                                                  |
+| SA-15 | Cross-tenant financial reports  | DONE\* | Backend action getCrossTenantFinancialReports() exists (disbursed vs repaid by region, default rates, PAR). ReportsTab renders simpler global KPIs — not connected to the detailed cross-tenant backend. |
+| SA-16 | Tenant performance reports      | DONE   | TenantPerformanceReportsTab with growth trends, member acquisition cards, loan penetration table. Wired into Reports tab.                                                                                |
+| SA-17 | Report exports and scheduling   | DONE\* | Backend CSV export exists (4 report types) but no UI trigger button. Scheduling not implemented. No PDF generation.                                                                                      |
+| SA-18 | System Health                   | DONE   | Fully implemented: getSystemHealth() actions (system-health.ts:123 lines), SystemHealthTab component (358 lines) with API uptime bar, queue processing, tenant health breakdown. Wired in page.tsx.      |
+| SA-19 | Fraud and Risk Monitoring       | DONE   | Fully implemented: getFraudRiskMonitoring() + getSuperadminFraudMetrics() in superadmin-actions.ts, FraudRiskTab component (174 lines) with delinquency/KYC/identity rejection cards. Wired in page.tsx. |
+| SA-20 | Community                       | DONE   | CommunityOperationsTab + platform announcements via createPlatformAnnouncement().                                                                                                                        |
+| SA-21 | Platform Config                 | NEW    | Backend actions exist (getPlatformConfig/updatePlatformConfig). No UI component.                                                                                                                         |
+| SA-22 | Subscription and Billing        | DONE\* | Plan fields exist. Full billing workflow pending.                                                                                                                                                        |
+| SA-23 | AI Configuration                | NEW    | Backend actions exist (getAIConfig/updateAIConfig). No UI component.                                                                                                                                     |
+| SA-24 | Email/SMS templates             | VERIFY | Backend CRUD actions exist (create/update/list templates + broadcast). No UI component.                                                                                                                  |
+| SA-25 | Security settings               | DONE\* | RBAC and user-level 2FA work. Global security policy backend (password policy, session, 2FA requirements, IP whitelist) exists. No centralized security settings management UI.                          |
 
 ### Tenant Operator
 
-| ID    | Module                  | Status  | Gap / Action                                                                                                                                                                                                                                                                                                                                                                                                                                             |
-| ----- | ---------------------- | ------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| TO-01 | Overview              | DONE    | Unified KPIs implemented. AI summaries pending.                                                                                                                                                                                                                                                                            |
-| TO-02 | Approvals and Queue   | DONE    | Unified queue with search/filters implemented.                                                                                                                                                                                                                                                                                 |
-| TO-03 | Loan Applications     | DONE    | Application cards with status implemented.                                                                                                                                                                                                                                                                                    |
-| TO-04 | Fund Releases       | DONE    | Fund release queue implemented.                                                                                                                                                                                                                                                                                    |
-| TO-05 | Payment Verification| DONE    | Payment verification queue implemented.                                                                                                                                                                                                                                                                                      |
-| TO-06 | Capital Top-Up Queue | DONE    | Top-up queue module wired.                                                                                                                                                                                                                                                                                           |
-| TO-07 | Identity Verification| DONE    | Identity verification cards implemented.                                                                                                                                                                                                                                                                                   |
-| TO-08 | Capital and Investments | NEW     | "vault" tab exists but renders AnalyticsDashboardTab (operational analytics), NOT a capital/investment vault. Truly not implemented.                                                                                                                                                                                  |
-| TO-09 | Wallet and Top-Ups  | DONE    | Add/withdraw, transaction history implemented.                                                                                                                                                                                                                                                                                     |
-| TO-10 | Risk and Diversification | NEW     | AI-driven suggestions not yet implemented. Zero code found.                                                                                                                                                                                                                                                            |
-| TO-11 | Member Management | DONE    | Member directory with search, filters, pagination implemented. Full loan history pending.                                                                                                                                                                                                                               |
-| TO-12 | Loan Products and Policy | DONE    | Product creation, templates implemented. Edit/deactivate actions pending.                                                                                                                                                                                                                     |
-| TO-13 | Treasury and Reconciliation | DONE*   | EOD reconciliation fixed to handle 0 values (reconciliation.ts:80-81). Investigation workflow pending — current flow forces automatic adjustment, no investigation case management.                                                                        |
-| TO-14 | Compassion Actions | DONE    | Restructuring, grace periods, penalty waivers implemented.                                                                                                                                                                                                                                                                                 |
-| TO-15 | Content and Branding | DONE    | Tenant branding fields exist. Full builder pending.                                                                                                                                                                                                                   |
-| TO-16 | Community         | DONE    | Announcements, mentorship endorsements, messaging implemented.                                                                                                                                                                                            |
-| TO-17 | Support and Feedback | DONE    | SupportAnalyticsModule with feedback inbox (search, filter, pagination, status toggle) implemented.                                                                                                                                                                                            |
-| TO-18 | Growth Analytics | NEW     | No growth analytics UI exists. Zero code found.                                                                                                                                                                                            |
-| TO-19 | Security and Audit Logs | DONE    | AuditLog viewer with search, filter, pagination in SupportAnalyticsModule.                                                                                                                                                                                            |
-| TO-20 | Tenant Config    | NEW     | No dedicated config module UI. Zero code found. Individual settings (name, branding, subscription, 2FA) under Settings tab are not a unified config module.                                                                                                                                                                                          |
-| TO-21 | Operator Profile | DONE    | Profile editing via Settings tab.                                                                                                                                                                                            |
-| TO-22 | Security Matrix | DONE    | 2FA, password management implemented.                                                                                                                                                                                            |
+| ID    | Module                      | Status | Gap / Action                                                                                                                                                                        |
+| ----- | --------------------------- | ------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| TO-01 | Overview                    | DONE   | Unified KPIs implemented. AI summaries pending.                                                                                                                                     |
+| TO-02 | Approvals and Queue         | DONE   | Unified queue with search/filters implemented.                                                                                                                                      |
+| TO-03 | Loan Applications           | DONE   | Application cards with status implemented.                                                                                                                                          |
+| TO-04 | Fund Releases               | DONE   | Fund release queue implemented.                                                                                                                                                     |
+| TO-05 | Payment Verification        | DONE   | Payment verification queue implemented.                                                                                                                                             |
+| TO-06 | Capital Top-Up Queue        | DONE   | Top-up queue module wired.                                                                                                                                                          |
+| TO-07 | Identity Verification       | DONE   | Identity verification cards implemented.                                                                                                                                            |
+| TO-08 | Capital and Investments     | NEW    | "vault" tab exists but renders AnalyticsDashboardTab (operational analytics), NOT a capital/investment vault. Truly not implemented.                                                |
+| TO-09 | Wallet and Top-Ups          | DONE   | Add/withdraw, transaction history implemented.                                                                                                                                      |
+| TO-10 | Risk and Diversification    | NEW    | AI-driven suggestions not yet implemented. Zero code found.                                                                                                                         |
+| TO-11 | Member Management           | DONE   | Member directory with search, filters, pagination implemented. Full loan history pending.                                                                                           |
+| TO-12 | Loan Products and Policy    | DONE   | Product creation, templates implemented. Edit/deactivate actions pending.                                                                                                           |
+| TO-13 | Treasury and Reconciliation | DONE\* | EOD reconciliation fixed to handle 0 values (reconciliation.ts:80-81). Investigation workflow pending — current flow forces automatic adjustment, no investigation case management. |
+| TO-14 | Compassion Actions          | DONE   | Restructuring, grace periods, penalty waivers implemented.                                                                                                                          |
+| TO-15 | Content and Branding        | DONE   | Tenant branding fields exist. Full builder pending.                                                                                                                                 |
+| TO-16 | Community                   | DONE   | Announcements, mentorship endorsements, messaging implemented.                                                                                                                      |
+| TO-17 | Support and Feedback        | DONE   | SupportAnalyticsModule with feedback inbox (search, filter, pagination, status toggle) implemented.                                                                                 |
+| TO-18 | Growth Analytics            | NEW    | No growth analytics UI exists. Zero code found.                                                                                                                                     |
+| TO-19 | Security and Audit Logs     | DONE   | AuditLog viewer with search, filter, pagination in SupportAnalyticsModule.                                                                                                          |
+| TO-20 | Tenant Config               | NEW    | No dedicated config module UI. Zero code found. Individual settings (name, branding, subscription, 2FA) under Settings tab are not a unified config module.                         |
+| TO-21 | Operator Profile            | DONE   | Profile editing via Settings tab.                                                                                                                                                   |
+| TO-22 | Security Matrix             | DONE   | 2FA, password management implemented.                                                                                                                                               |
 
 ### Tenant Member
 
-| ID    | Module               | Status  | Gap / Action                                                                                             |
-| ----- | -------------------- | ------- | -------------------------------------------------------------------------------------------------------- |
-| TM-01 | Overview            | DONE    | Active loans, balance, due date, trust score with sub-scores shown. Ahead of matrix note.                        |
-| TM-02 | Apply for Loan      | DONE    | Product selection, calculator, application, guarantor selection, localStorage draft implemented.              |
-| TM-03 | My Loans            | DONE    | Loan details, schedule, history, compassion action history, pagination shown.                                 |
-| TM-04 | Payments            | DONE*   | Installment payments implemented. Full-payment discount pending.                                                    |
-| TM-05 | Vouch System        | DROPPED | Removed per PRD ISSUE 519/574. Code remnants exist (~37 refs) — needs cleanup.                              |
-| TM-06 | Documents           | DONE*   | Registration upload works (3 doc types). No dedicated member-facing Documents tab in nav. Verification status not shown to member. |
-| TM-07 | Community           | DONE    | Messaging, announcements, reactions, emoji picker, file attachments, mentorship requests implemented.        |
-| TM-08 | Support / Feedback   | DONE*   | Submit concern form works end-to-end (FeedbackEntry creation). My Tickets list shows past tickets with status. Survey tab is mock-only. Full SupportTicket workflow pending. |
-| TM-09 | Profile settings     | DONE    | Profile snapshot (name, username, email, phone, occupation, business), tenant info, consent status.       |
-| TM-10 | Security settings   | DONE    | Password and 2FA management.                                                                         |
-| TM-11 | Linked accounts    | NEW     | Placeholder UI only — disabled buttons, no backend, no model. Truly not implemented.                     |
-| TM-12 | Bank / wallet accounts | NEW | Placeholder UI only — decorative payment method badges, disabled buttons, no backend, no model. Truly not implemented. |
-| TM-13 | Notification preferences | NEW | Placeholder UI only — decorative CSS checkboxes, no toggle functionality, no backend. Truly not implemented. |
+| ID    | Module                   | Status  | Gap / Action                                                                                                                                                                 |
+| ----- | ------------------------ | ------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| TM-01 | Overview                 | DONE    | Active loans, balance, due date, trust score with sub-scores shown. Ahead of matrix note.                                                                                    |
+| TM-02 | Apply for Loan           | DONE    | Product selection, calculator, application, guarantor selection, localStorage draft implemented.                                                                             |
+| TM-03 | My Loans                 | DONE    | Loan details, schedule, history, compassion action history, pagination shown.                                                                                                |
+| TM-04 | Payments                 | DONE\*  | Installment payments implemented. Full-payment discount pending.                                                                                                             |
+| TM-05 | Vouch System             | DROPPED | Removed per PRD ISSUE 519/574. Code remnants exist (~37 refs) — needs cleanup.                                                                                               |
+| TM-06 | Documents                | DONE\*  | Registration upload works (3 doc types). No dedicated member-facing Documents tab in nav. Verification status not shown to member.                                           |
+| TM-07 | Community                | DONE    | Messaging, announcements, reactions, emoji picker, file attachments, mentorship requests implemented.                                                                        |
+| TM-08 | Support / Feedback       | DONE\*  | Submit concern form works end-to-end (FeedbackEntry creation). My Tickets list shows past tickets with status. Survey tab is mock-only. Full SupportTicket workflow pending. |
+| TM-09 | Profile settings         | DONE    | Profile snapshot (name, username, email, phone, occupation, business), tenant info, consent status.                                                                          |
+| TM-10 | Security settings        | DONE    | Password and 2FA management.                                                                                                                                                 |
+| TM-11 | Linked accounts          | DONE\*  | Functional UI: add/link account dialog (provider select + email input), list with delete, localStorage persistence. Backend model/API pending — uses localStorage.           |
+| TM-12 | Bank / wallet accounts   | DONE\*  | Functional UI: add account dialog (type bank/ewallet, name, account number, holder name), list with delete, localStorage persistence. Backend model/API pending.             |
+| TM-13 | Notification preferences | DONE\*  | Functional UI: clickable toggle checkboxes for 5 preference categories, localStorage persistence. Backend model/API pending.                                                 |
 
 ---
 
 ## Section E: Constants and Policies
 
-| ID    | Constant / Policy          | Status  | Gap / Action                                                                                                                                 |
-| ----- | -------------------------- | ------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
-| CP-01 | Agapay tagline             | DONE    | "Iyong Agapay, Ating Tagumpay" in landing page hero.                                                                   |
-| CP-02 | Main tenant                | DONE    | Malolos City, Bulacan in seed.ts.                                                                              |
-| CP-03 | Agapay email               | DONE*   | agapay.saas@gmail.com defined. Full email setup pending.                                                                   |
-| CP-04 | Role constants            | DONE    | Superadmin, Tenant Operator (operator), Tenant Member (member) roles implemented.           |
-| CP-05 | Dashboard constants        | DONE    | Tanaw (Superadmin/Operator), Pintig (Member) implemented.                                                              |
-| CP-06 | Agapay Core plan          | DONE    | P3,500/3mo implemented. 500 member limit.                                                                 |
-| CP-07 | Agapay Pro plan           | DONE    | P6,500/6mo implemented. 2500 member limit.                                                                      |
-| CP-08 | Agapay Enterprise plan    | DONE    | P12,000/12mo implemented. Unlimited members.                                                                      |
-| CP-09 | Agapay Sangay add-on     | DONE    | P3,000/mo as Sangay plan. Enterprise-only.                                                                        |
-| CP-10 | Tier 1 Gabay              | DONE    | 5% monthly rate, T1_5_PERCENT.                                                                                                  |
-| CP-11 | Tier 2 Bagong Sigla     | DONE    | 4.5% monthly rate, T2_4_5_PERCENT.                                                                                         |
-| CP-12 | Tier 3 Kasapi            | DONE    | 4% monthly rate, T3_4_PERCENT.                                                                                               |
-| CP-13 | Tier 4 Katuwang          | DONE    | 3.5% monthly rate, T4_3_5_PERCENT.                                                                                         |
-| CP-14 | Tier 5 Kaagapay          | DONE    | 3% monthly rate, T5_3_PERCENT.                                                                                               |
-| CP-15 | Loan amount range         | DONE    | P2,000 to P1,000,000 in MICROFINANCE_POLICY.                                                                        |
-| CP-16 | Agapay Sari-Sari product  | DONE    | P2,000-P5,000 in SAMPLE_LOAN_PRODUCT_TEMPLATES.                                                                      |
-| CP-17 | Agapay Negosyo product    | DONE    | P6,000-P29,000 in templates.                                                                              |
-| CP-18 | Agapay Paluwagan product | DONE    | P30,000-P59,000 in templates.                                                                              |
-| CP-19 | Agapay Angat product      | DONE    | P60,000-P100,000+ in templates.                                                                             |
-| CP-20 | Payment cadence          | DONE    | Weekly, bi-weekly, monthly implemented.                                                                                           |
-| CP-21 | Penalty staircase        | DONE    | 2%/5%/8%/12% staircase, 20% cap in calculateMissedInstallmentPenalty().                             |
-| CP-22 | Processing fee           | DONE    | P20 in MICROFINANCE_POLICY.                                                                                                |
-| CP-23 | Service fee               | DONE    | P50 in MICROFINANCE_POLICY.                                                                                                |
-| CP-24 | Guarantor liability       | DONE    | 25% in MICROFINANCE_POLICY (maxGuarantors: 2).                                                                            |
-| CP-25 | Member tenant limit       | DONE    | maxTenantMembershipsPerUser: 2 in MICROFINANCE_POLICY.                                                                      |
-| CP-26 | Member trust score weights| DONE*   | Weights defined. Workflow pending.                                                 |
-| CP-27 | Tenant trust score weights| DONE*   | Weights defined. Workflow pending.                                              |
-| CP-28 | Vouch score               | DROPPED | Removed per PRD ISSUE 519/574.                                                                                              |
-| CP-29 | Prefer not to say       | NEW     | Add to registration form.                                                                                      |
-| CP-30 | One active loan rule   | DONE    | one-active-loan enforcement in loan-service.ts.                                                                                             |
+| ID    | Constant / Policy          | Status  | Gap / Action                                                                      |
+| ----- | -------------------------- | ------- | --------------------------------------------------------------------------------- |
+| CP-01 | Agapay tagline             | DONE    | "Iyong Agapay, Ating Tagumpay" in landing page hero.                              |
+| CP-02 | Main tenant                | DONE    | Malolos City, Bulacan in seed.ts.                                                 |
+| CP-03 | Agapay email               | DONE\*  | agapay.saas@gmail.com defined. Full email setup pending.                          |
+| CP-04 | Role constants             | DONE    | Superadmin, Tenant Operator (operator), Tenant Member (member) roles implemented. |
+| CP-05 | Dashboard constants        | DONE    | Tanaw (Superadmin/Operator), Pintig (Member) implemented.                         |
+| CP-06 | Agapay Core plan           | DONE    | P3,500/3mo implemented. 500 member limit.                                         |
+| CP-07 | Agapay Pro plan            | DONE    | P6,500/6mo implemented. 2500 member limit.                                        |
+| CP-08 | Agapay Enterprise plan     | DONE    | P12,000/12mo implemented. Unlimited members.                                      |
+| CP-09 | Agapay Sangay add-on       | DONE    | P3,000/mo as Sangay plan. Enterprise-only.                                        |
+| CP-10 | Tier 1 Gabay               | DONE    | 5% monthly rate, T1_5_PERCENT.                                                    |
+| CP-11 | Tier 2 Bagong Sigla        | DONE    | 4.5% monthly rate, T2_4_5_PERCENT.                                                |
+| CP-12 | Tier 3 Kasapi              | DONE    | 4% monthly rate, T3_4_PERCENT.                                                    |
+| CP-13 | Tier 4 Katuwang            | DONE    | 3.5% monthly rate, T4_3_5_PERCENT.                                                |
+| CP-14 | Tier 5 Kaagapay            | DONE    | 3% monthly rate, T5_3_PERCENT.                                                    |
+| CP-15 | Loan amount range          | DONE    | P2,000 to P1,000,000 in MICROFINANCE_POLICY.                                      |
+| CP-16 | Agapay Sari-Sari product   | DONE    | P2,000-P5,000 in SAMPLE_LOAN_PRODUCT_TEMPLATES.                                   |
+| CP-17 | Agapay Negosyo product     | DONE    | P6,000-P29,000 in templates.                                                      |
+| CP-18 | Agapay Paluwagan product   | DONE    | P30,000-P59,000 in templates.                                                     |
+| CP-19 | Agapay Angat product       | DONE    | P60,000-P100,000+ in templates.                                                   |
+| CP-20 | Payment cadence            | DONE    | Weekly, bi-weekly, monthly implemented.                                           |
+| CP-21 | Penalty staircase          | DONE    | 2%/5%/8%/12% staircase, 20% cap in calculateMissedInstallmentPenalty().           |
+| CP-22 | Processing fee             | DONE    | P20 in MICROFINANCE_POLICY.                                                       |
+| CP-23 | Service fee                | DONE    | P50 in MICROFINANCE_POLICY.                                                       |
+| CP-24 | Guarantor liability        | DONE    | 25% in MICROFINANCE_POLICY (maxGuarantors: 2).                                    |
+| CP-25 | Member tenant limit        | DONE    | maxTenantMembershipsPerUser: 2 in MICROFINANCE_POLICY.                            |
+| CP-26 | Member trust score weights | DONE\*  | Weights defined. Workflow pending.                                                |
+| CP-27 | Tenant trust score weights | DONE\*  | Weights defined. Workflow pending.                                                |
+| CP-28 | Vouch score                | DROPPED | Removed per PRD ISSUE 519/574.                                                    |
+| CP-29 | Prefer not to say          | NEW     | Add to registration form.                                                         |
+| CP-30 | One active loan rule       | DONE    | one-active-loan enforcement in loan-service.ts.                                   |
 
 ---
 
 ## Section F: Use Flows
 
-| ID    | Flow                          | Status  | Gap / Action                                                                                                                                   |
-| ----- | ----------------------------- | ------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
-| FL-01 | Platform access               | DONE    | Platform homepage, tenant selector/map implemented.                                                                 |
-| FL-02 | Tenant homepage access        | DONE    | Tenant slug routing implemented.                                                                                  |
-| FL-03 | Login and 2FA                | DONE*   | Login implemented. 2FA verification wire pending.                                                                |
-| FL-04 | Multi-tenant login prompt   | DONE*   | Multi-tenant selection step already functional in login-form.tsx (step 2 "tenant" view with selectable cards). TenantSelector + TenantSwitcher components exist. |
-| FL-05 | Member registration entry   | DONE    | Tenant selection, registration flow implemented.                                                              |
-| FL-06 | Registration account details| DONE    | Username, email, phone, password captured.                                                                     |
-| FL-07 | Registration personal info  | DONE    | Names, birthdate, gender, marital status, addresses captured.                                                  |
-| FL-08 | Registration income/employmt| DONE    | Income/employment captured.                                                                                  |
-| FL-09 | Registration business info   | DONE    | Business info captured.                                                                                      |
-| FL-10 | Registration financial oblig| DONE    | Financial obligations captured.                                                                             |
-| FL-11 | Registration savings/assets| DONE    | Savings and assets captured.                                                                                     |
-| FL-12 | Registration references     | DONE    | Reference person captured.                                                                                 |
-| FL-13 | Registration documents     | DONE    | ID upload implemented.                                                                                  |
-| FL-14 | Registration completion     | DONE*   | Final success screen shown with member code and email notice. No direct route to agapay-pintig (uses window.location.reload()). Welcome tour pending. |
-| FL-15 | Tenant onboarding entry      | DONE    | Get in Touch, Contact Us, Pricing page routing.                                                               |
-| FL-16 | Tenant onboarding details   | DONE    | Full 3-step onboarding flow: Info -> Plan Selection (3 plan cards with pricing/features) -> Documents. submitCoopApplication() creates tenant application. |
-| FL-17 | Tenant onboarding approval   | DONE    | Superadmin workflow: processApplication() in tenant-applications.ts with approve/reject logic, creates tenant on approve, audit trail logged. SuperadminApprovalsTab displays pending. |
-| FL-18 | Region creation             | DONE    | TenantGroup (regions) in seed.ts and UI.                                                                       |
-| FL-19 | Tenant creation dialog      | DONE    | Two-pane builder already implemented: left form + right live preview. LocalStorage draft persistence.                |
-| FL-20 | Tenant creation confirmatn  | DONE    | Confirmation and preview implemented.                                                                          |
-| FL-21 | Tenant availability        | DONE    | Avail/suspend/decommission actions implemented.                                                            |
-| FL-22 | Withdrawal                 | DONE    | Implemented in wallet-actions.ts.                                                                          |
-| FL-23 | Withdrawal issue reportng   | NEW     | Issue reporting UI pending. General support tickets available but not transaction-specific.                 |
-| FL-24 | Deposit                    | DONE    | Implemented in wallet-actions.ts.                                                                          |
-| FL-25 | Deposit issue reporting     | NEW     | Issue reporting UI pending. General support tickets available but not transaction-specific.                 |
-| FL-26 | Loan application           | DONE    | Product selection, amount, term, guarantors.                                                               |
-| FL-27 | Loan confirmation          | DONE*   | Fee preview shown in form (principal, interest, fees, total). Full confirmation step after submission pending. |
-| FL-28 | Loan approval chain        | DONE*   | Admin approval implemented (pending -> approved/rejected -> released). Notification chain pending.         |
-| FL-29 | Loan rejection reason      | NEW*   | rejectLoanApplication() accepts `notes` in schema but does NOT persist them. Admin UI uses hardcoded string. No notification to applicant. |
-| FL-30 | Loan issue reporting        | NEW     | Issue reporting UI pending. Support ticket "Loan Inquiry" category exists but not transaction-specific.    |
-| FL-31 | Installment/full payment   | DONE*   | Installment implemented. Full payment discount pending.                                                     |
-| FL-32 | Payment method choice      | DONE    | E-wallet, real-life payment options. GCash pending.                                                          |
-| FL-33 | Payment confirmation      | DONE    | Confirmation shown before submission.                                                                         |
-| FL-34 | Payment approval          | DONE*   | Admin approval implemented.                                                                               |
-| FL-35 | Paid loan closure         | NEW     | No function found for marking loan paid/closed. No UI action.                                                |
-| FL-36 | Trust score voting        | VERIFY   | Full data model exists (TrustRatingPeriod, TrustRatingAssignment, TrustScoreSnapshot, TenantTrustPolicy with min_quota/sample_size/lockout). Engine calculates scores. UI/workflow for monthly voting pending. |
-| FL-37 | Superadmin rating        | VERIFY   | Same data model supports superadmin rating. UI/workflow pending.                                             |
-| FL-38 | Lender/member rating     | VERIFY   | Same data model supports rater/ratee scoring. UI/workflow pending.                                           |
-| FL-39 | Missed voting suspension| VERIFY   | TenantTrustPolicy.missed_vote_lockout_days: 7 in schema. Lockout enforcement logic pending.                  |
-| FL-40 | Low-rating action        | VERIFY   | TrustScoreSnapshot.low_rating_action_state in schema. Action workflow pending.                                |
-| FL-41 | Scalable voting method    | VERIFY   | TenantTrustPolicy.randomized_sample_size: 10, minimum_voting_quota: 3 in schema. Sampling logic pending.     |
-| FL-42 | Vouching                | DROPPED | Removed per PRD ISSUE 519/574.                                                                               |
-| FL-43 | Tier upgrade/downgrade   | DONE    | syncUserTier() in trust-engine.ts automatically determines interest tier from trust score and updates DB. TrustTierAudit tracks changes. |
-| FL-44 | Default handling        | DONE*   | Default enforcement triggers exist. enforcement: mark defaulted, charge guarantors (25%), create recovery loans, audit logging. Automated daily cron via Trigger.dev. Full workflow pending (write-off, restructuring offers). |
+| ID    | Flow                         | Status  | Gap / Action                                                                                                                                                                                                                   |
+| ----- | ---------------------------- | ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| FL-01 | Platform access              | DONE    | Platform homepage, tenant selector/map implemented.                                                                                                                                                                            |
+| FL-02 | Tenant homepage access       | DONE    | Tenant slug routing implemented.                                                                                                                                                                                               |
+| FL-03 | Login and 2FA                | DONE\*  | Login implemented. 2FA verification wire pending.                                                                                                                                                                              |
+| FL-04 | Multi-tenant login prompt    | DONE\*  | Multi-tenant selection step already functional in login-form.tsx (step 2 "tenant" view with selectable cards). TenantSelector + TenantSwitcher components exist.                                                               |
+| FL-05 | Member registration entry    | DONE    | Tenant selection, registration flow implemented.                                                                                                                                                                               |
+| FL-06 | Registration account details | DONE    | Username, email, phone, password captured.                                                                                                                                                                                     |
+| FL-07 | Registration personal info   | DONE    | Names, birthdate, gender, marital status, addresses captured.                                                                                                                                                                  |
+| FL-08 | Registration income/employmt | DONE    | Income/employment captured.                                                                                                                                                                                                    |
+| FL-09 | Registration business info   | DONE    | Business info captured.                                                                                                                                                                                                        |
+| FL-10 | Registration financial oblig | DONE    | Financial obligations captured.                                                                                                                                                                                                |
+| FL-11 | Registration savings/assets  | DONE    | Savings and assets captured.                                                                                                                                                                                                   |
+| FL-12 | Registration references      | DONE    | Reference person captured.                                                                                                                                                                                                     |
+| FL-13 | Registration documents       | DONE    | ID upload implemented.                                                                                                                                                                                                         |
+| FL-14 | Registration completion      | DONE\*  | Final success screen shows "Go to My Dashboard" button routing to /[tenantSlug]/agapay-pintig. Welcome tour still pending.                                                                                                     |
+| FL-15 | Tenant onboarding entry      | DONE    | Get in Touch, Contact Us, Pricing page routing.                                                                                                                                                                                |
+| FL-16 | Tenant onboarding details    | DONE    | Full 3-step onboarding flow: Info -> Plan Selection (3 plan cards with pricing/features) -> Documents. submitCoopApplication() creates tenant application.                                                                     |
+| FL-17 | Tenant onboarding approval   | DONE    | Superadmin workflow: processApplication() in tenant-applications.ts with approve/reject logic, creates tenant on approve, audit trail logged. SuperadminApprovalsTab displays pending.                                         |
+| FL-18 | Region creation              | DONE    | TenantGroup (regions) in seed.ts and UI.                                                                                                                                                                                       |
+| FL-19 | Tenant creation dialog       | DONE    | Two-pane builder already implemented: left form + right live preview. LocalStorage draft persistence.                                                                                                                          |
+| FL-20 | Tenant creation confirmatn   | DONE    | Confirmation and preview implemented.                                                                                                                                                                                          |
+| FL-21 | Tenant availability          | DONE    | Avail/suspend/decommission actions implemented.                                                                                                                                                                                |
+| FL-22 | Withdrawal                   | DONE    | Implemented in wallet-actions.ts.                                                                                                                                                                                              |
+| FL-23 | Withdrawal issue reportng    | NEW     | Issue reporting UI pending. General support tickets available but not transaction-specific.                                                                                                                                    |
+| FL-24 | Deposit                      | DONE    | Implemented in wallet-actions.ts.                                                                                                                                                                                              |
+| FL-25 | Deposit issue reporting      | NEW     | Issue reporting UI pending. General support tickets available but not transaction-specific.                                                                                                                                    |
+| FL-26 | Loan application             | DONE    | Product selection, amount, term, guarantors.                                                                                                                                                                                   |
+| FL-27 | Loan confirmation            | DONE\*  | Fee preview shown in form (principal, interest, fees, total). Full confirmation step after submission pending.                                                                                                                 |
+| FL-28 | Loan approval chain          | DONE\*  | Admin approval implemented (pending -> approved/rejected -> released). Notification chain pending.                                                                                                                             |
+| FL-29 | Loan rejection reason        | DONE    | rejectLoanApplication() now persists notes as audit log entry. Admin UI shows textarea for custom rejection reason with confirm/cancel.                                                                                        |
+| FL-30 | Loan issue reporting         | NEW     | Issue reporting UI pending. Support ticket "Loan Inquiry" category exists but not transaction-specific.                                                                                                                        |
+| FL-31 | Installment/full payment     | DONE\*  | Installment implemented. Full payment discount pending.                                                                                                                                                                        |
+| FL-32 | Payment method choice        | DONE    | E-wallet, real-life payment options. GCash pending.                                                                                                                                                                            |
+| FL-33 | Payment confirmation         | DONE    | Confirmation shown before submission.                                                                                                                                                                                          |
+| FL-34 | Payment approval             | DONE\*  | Admin approval implemented.                                                                                                                                                                                                    |
+| FL-35 | Paid loan closure            | NEW     | No function found for marking loan paid/closed. No UI action.                                                                                                                                                                  |
+| FL-36 | Trust score voting           | VERIFY  | Full data model exists (TrustRatingPeriod, TrustRatingAssignment, TrustScoreSnapshot, TenantTrustPolicy with min_quota/sample_size/lockout). Engine calculates scores. UI/workflow for monthly voting pending.                 |
+| FL-37 | Superadmin rating            | VERIFY  | Same data model supports superadmin rating. UI/workflow pending.                                                                                                                                                               |
+| FL-38 | Lender/member rating         | VERIFY  | Same data model supports rater/ratee scoring. UI/workflow pending.                                                                                                                                                             |
+| FL-39 | Missed voting suspension     | VERIFY  | TenantTrustPolicy.missed_vote_lockout_days: 7 in schema. Lockout enforcement logic pending.                                                                                                                                    |
+| FL-40 | Low-rating action            | VERIFY  | TrustScoreSnapshot.low_rating_action_state in schema. Action workflow pending.                                                                                                                                                 |
+| FL-41 | Scalable voting method       | VERIFY  | TenantTrustPolicy.randomized_sample_size: 10, minimum_voting_quota: 3 in schema. Sampling logic pending.                                                                                                                       |
+| FL-42 | Vouching                     | DROPPED | Removed per PRD ISSUE 519/574.                                                                                                                                                                                                 |
+| FL-43 | Tier upgrade/downgrade       | DONE    | syncUserTier() in trust-engine.ts automatically determines interest tier from trust score and updates DB. TrustTierAudit tracks changes.                                                                                       |
+| FL-44 | Default handling             | DONE\*  | Default enforcement triggers exist. enforcement: mark defaulted, charge guarantors (25%), create recovery loans, audit logging. Automated daily cron via Trigger.dev. Full workflow pending (write-off, restructuring offers). |
 
 ---
 
 ## Section G: UI/UX Standards
 
-| ID    | Standard                    | Status  | Gap / Action                                                                                                  |
-| ----- | -------------------------- | ------- | ------------------------------------------------------------------------------------------------------------- |
-| UI-01 | Scannability              | DONE    | Title/subtitle/metadata hierarchy in UI.                                                   |
-| UI-02 | Consistent item structure| DONE*   | Cards/rows aligned. Some refinement pending.                                                |
-| UI-03 | Limited emphasis        | DONE*   | Key attributes highlighted. Polish pending.                                                |
-| UI-04 | Progressive disclosure   | DONE*   | Expand/collapse in place. Some areas need drill-down.                                     |
-| UI-05 | Grouping and segmentation | DONE*   | Sections, headers implemented. Ongoing refinement.                                          |
-| UI-06 | Compact touch-safe rows | DONE    | 44px min targets used.                                                               |
-| UI-07 | Smart truncation        | DONE    | Text truncation with ellipsis in place.                                                  |
-| UI-08 | Visual anchors         | DONE    | Icons, badges used.                                                                   |
-| UI-09 | Fast filtering         | DONE    | Search, filters in admin lists.                                                         |
-| UI-10 | Sticky controls       | DONE    | Sticky headers in admin tables.                                                        |
-| UI-11 | Pagination vs scroll   | DONE    | Pagination in lists.                                                                   |
-| UI-12 | Hidden item actions   | DONE    | Three-dot menus in place.                                                             |
-| UI-13 | Spacing and alignment | DONE    | Consistent grid and margins.                                                         |
-| UI-14 | Skeleton loading      | DONE*   | Skeleton component exists. Full use pending.                                          |
-| UI-15 | Position awareness    | NEW     | Back-to-top not yet implemented.                                                        |
-| UI-16 | Empty and edge states | DONE    | Empty states shown in UI.                                                              |
-| UI-17 | Real-data validation | DONE*   | Some validation done. More pending.                                                |
-| UI-18 | Recogn/decision/time  | DONE*   | UI targets <1/<3/<5s where implemented.                                              |
-| UI-19 | Custom scrollbar       | DONE    | Green circle scrollbar in globals.css.                                                  |
-| UI-20 | Inactivity timeout    | DONE*   | Idle timer component exists. 1hr timeout not fully wired.                             |
-| UI-21 | Contrast-aware text   | DONE    | Dynamic sidebar font color in authenticated-shell.tsx.                                      |
-| UI-22 | Persistent form state| NEW     | Local storage form persistence not implemented.                                         |
+| ID    | Standard                  | Status | Gap / Action                                              |
+| ----- | ------------------------- | ------ | --------------------------------------------------------- |
+| UI-01 | Scannability              | DONE   | Title/subtitle/metadata hierarchy in UI.                  |
+| UI-02 | Consistent item structure | DONE\* | Cards/rows aligned. Some refinement pending.              |
+| UI-03 | Limited emphasis          | DONE\* | Key attributes highlighted. Polish pending.               |
+| UI-04 | Progressive disclosure    | DONE\* | Expand/collapse in place. Some areas need drill-down.     |
+| UI-05 | Grouping and segmentation | DONE\* | Sections, headers implemented. Ongoing refinement.        |
+| UI-06 | Compact touch-safe rows   | DONE   | 44px min targets used.                                    |
+| UI-07 | Smart truncation          | DONE   | Text truncation with ellipsis in place.                   |
+| UI-08 | Visual anchors            | DONE   | Icons, badges used.                                       |
+| UI-09 | Fast filtering            | DONE   | Search, filters in admin lists.                           |
+| UI-10 | Sticky controls           | DONE   | Sticky headers in admin tables.                           |
+| UI-11 | Pagination vs scroll      | DONE   | Pagination in lists.                                      |
+| UI-12 | Hidden item actions       | DONE   | Three-dot menus in place.                                 |
+| UI-13 | Spacing and alignment     | DONE   | Consistent grid and margins.                              |
+| UI-14 | Skeleton loading          | DONE\* | Skeleton component exists. Full use pending.              |
+| UI-15 | Position awareness        | NEW    | Back-to-top not yet implemented.                          |
+| UI-16 | Empty and edge states     | DONE   | Empty states shown in UI.                                 |
+| UI-17 | Real-data validation      | DONE\* | Some validation done. More pending.                       |
+| UI-18 | Recogn/decision/time      | DONE\* | UI targets <1/<3/<5s where implemented.                   |
+| UI-19 | Custom scrollbar          | DONE   | Green circle scrollbar in globals.css.                    |
+| UI-20 | Inactivity timeout        | DONE\* | Idle timer component exists. 1hr timeout not fully wired. |
+| UI-21 | Contrast-aware text       | DONE   | Dynamic sidebar font color in authenticated-shell.tsx.    |
+| UI-22 | Persistent form state     | NEW    | Local storage form persistence not implemented.           |
 
 ---
 
 ## Implementation Summary (As of 2026-05-11)
 
 ### Status Counts (Updated from Audit):
+
 - **DONE**: 97 items (Features, Roles, Sections, Constants)
-- **DONE***: 28 items (Implemented with notes/missing polish)
+- **DONE\***: 28 items (Implemented with notes/missing polish)
 - **REBUILD**: 35 items (Legacy needing rework)
 - **VERIFY**: 44 items (Need code verification)
 - **NEW**: 30 items (Not yet implemented)
@@ -351,6 +353,7 @@ The previous issue-derived matrix has been replaced. All entries below are sourc
 - **OUT_OF_SCOPE**: 1 item (Mobile)
 
 ### Key Remaining Work:
+
 1. **AI Analytics**: Model exists, UI/service pending
 2. **Receipt Generation**: Model exists, generation service pending
 3. **Report Exports**: CSV/PDF generation not yet implemented

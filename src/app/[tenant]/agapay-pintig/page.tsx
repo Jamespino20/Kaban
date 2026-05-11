@@ -23,7 +23,7 @@ import {
 } from "@/lib/microfinance-policy";
 import { runAutomatedDefaultEnforcement } from "@/lib/default-enforcement";
 import { CommunityTab } from "@/components/member/community-tab";
-import { ConsentDashboard } from "@/components/member/consent-dashboard";
+import { MemberOnboardingDialogs } from "@/components/member/member-onboarding-dialogs";
 import { acceptConsent } from "@/actions/compliance-actions";
 import { MemberSettingsTab } from "@/components/member/member-settings-tab";
 import { SupportTab } from "@/components/member/support-tab";
@@ -126,7 +126,13 @@ export default async function AgapayPintigPage({
     }),
     prisma.tenant.findUnique({
       where: { tenant_id: tenantId },
-      select: { name: true, brand_color: true, logo_url: true },
+      select: {
+        name: true,
+        brand_color: true,
+        accent_color: true,
+        font_pairing: true,
+        logo_url: true,
+      },
     }),
     getUserFeedbackTickets(),
     prisma.trustScoreSnapshot.findFirst({
@@ -142,6 +148,17 @@ export default async function AgapayPintigPage({
       },
     }),
   ]);
+
+  // Fallback payment methods if none seeded for this tenant
+  const resolvedPaymentMethods =
+    paymentMethods.length > 0
+      ? paymentMethods
+      : [
+          { method_id: 1, provider_name: "GCash" },
+          { method_id: 2, provider_name: "Bank Transfer" },
+          { method_id: 3, provider_name: "Cash" },
+          { method_id: 4, provider_name: "Maya" },
+        ];
 
   const totalSavings = savings.reduce(
     (acc, curr) =>
@@ -242,8 +259,8 @@ export default async function AgapayPintigPage({
     {
       label: "Active Loan",
       value: formatCurrency(totalLoanBalance),
-      color: "text-slate-900",
-      bg: "bg-slate-50",
+      color: "text-rose-600",
+      bg: "bg-rose-50",
     },
   ];
 
@@ -267,23 +284,22 @@ export default async function AgapayPintigPage({
       tenantName={tenantIdentity?.name}
       tenantLogoUrl={tenantIdentity?.logo_url || undefined}
       tenantBrandColor={tenantIdentity?.brand_color}
+      tenantAccentColor={tenantIdentity?.accent_color}
+      tenantFontPairing={tenantIdentity?.font_pairing}
       navItems={navItems}
       tenantSlug={tenant}
     >
       <div className="space-y-6">
-        {!member?.consent_accepted_at && (
-          <ConsentDashboard
-            tenantName={tenantIdentity?.name || "Tenant"}
-            isAccepted={false}
-            onAccept={acceptConsent}
-          />
-        )}
+        <MemberOnboardingDialogs
+          consentAccepted={Boolean(member?.consent_accepted_at)}
+          tenantName={tenantIdentity?.name}
+        />
         <TabsContent
           value="overview"
           className="space-y-6 outline-none animate-in fade-in slide-in-from-bottom-4 duration-500"
         >
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-            <div className="rounded-[2rem] border border-slate-100 bg-white p-8 shadow-sm space-y-6">
+            <div className="dashboard-card p-8 space-y-6">
               <div className="flex items-center justify-between">
                 <div>
                   <h3 className="font-display font-bold text-slate-900 italic text-xl">
@@ -325,7 +341,7 @@ export default async function AgapayPintigPage({
               </div>
             </div>
 
-            <div className="bg-slate-900 rounded-[2rem] p-8 text-white relative overflow-hidden group flex flex-col justify-between">
+            <div className="dashboard-card-strong p-8 relative overflow-hidden group flex flex-col justify-between">
               <div className="relative z-10">
                 <div className="w-12 h-12 rounded-2xl bg-emerald-500 flex items-center justify-center mb-6 shadow-lg shadow-emerald-500/20">
                   <Wallet className="w-6 h-6" />
@@ -357,7 +373,7 @@ export default async function AgapayPintigPage({
             {memberCards.map((item) => (
               <div
                 key={item.label}
-                className="group rounded-[1.75rem] border border-slate-100 bg-white p-5 shadow-sm transition-all hover:shadow-lg"
+                className="dashboard-card group p-5"
               >
                 <div
                   className={`mb-6 flex h-12 w-12 items-center justify-center rounded-2xl ${item.bg} transition-transform group-hover:scale-110`}
@@ -375,7 +391,7 @@ export default async function AgapayPintigPage({
           </div>
 
           {trustScoreSnapshot && (
-            <div className="rounded-[1.75rem] border border-indigo-100 bg-white p-6 shadow-sm">
+            <div className="dashboard-card p-6">
               <div className="flex items-center justify-between mb-4">
                 <div>
                   <h3 className="text-sm font-bold uppercase tracking-widest text-indigo-600">
@@ -459,7 +475,7 @@ export default async function AgapayPintigPage({
           )}
 
           <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-            <div className="rounded-[1.75rem] border border-amber-100 bg-amber-50/70 p-5 shadow-sm">
+            <div className="dashboard-card bg-amber-50/70 border-amber-100 text-slate-800 p-5">
               <p className="text-xs font-bold uppercase tracking-[0.22em] text-amber-700">
                 Penalty Policy
               </p>
@@ -467,7 +483,7 @@ export default async function AgapayPintigPage({
                 {getPenaltyPolicyCopy()}
               </p>
             </div>
-            <div className="rounded-[1.75rem] border border-blue-100 bg-blue-50/70 p-5 shadow-sm">
+            <div className="dashboard-card bg-blue-50/70 border-blue-100 text-slate-800 p-5">
               <p className="text-xs font-bold uppercase tracking-[0.22em] text-blue-700">
                 Compassion Support
               </p>
@@ -480,7 +496,7 @@ export default async function AgapayPintigPage({
           {totalLoanBalance === 0 &&
           totalSavings === 0 &&
           totalWalletBalance === 0 ? (
-            <div className="flex flex-col items-center justify-center space-y-5 rounded-[1.75rem] border border-emerald-50 bg-white p-8 text-center shadow-sm">
+            <div className="dashboard-card flex flex-col items-center justify-center space-y-5 text-center">
               <div className="flex h-20 w-20 items-center justify-center rounded-full bg-emerald-50">
                 <LayoutDashboard className="h-10 w-10 text-emerald-200" />
               </div>
@@ -495,7 +511,7 @@ export default async function AgapayPintigPage({
               </div>
             </div>
           ) : (
-            <div className="rounded-[1.75rem] border border-slate-100 bg-white p-5 shadow-sm">
+            <div className="dashboard-card">
               <h2 className="mb-6 text-xl font-display font-bold text-slate-800">
                 Recent Activity
               </h2>
@@ -527,7 +543,7 @@ export default async function AgapayPintigPage({
         >
           <LoanServicingTab
             loans={activeLoans}
-            paymentMethods={paymentMethods}
+            paymentMethods={resolvedPaymentMethods}
           />
         </TabsContent>
 

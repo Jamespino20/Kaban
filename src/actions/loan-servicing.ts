@@ -40,6 +40,11 @@ const SubmitPaymentSchema = z.object({
   notes: z.string().trim().max(500).optional(),
 });
 
+const FullPaymentSchema = z.object({
+  loanId: z.number().int().positive(),
+  methodId: z.number().int().positive(),
+});
+
 const ReviewPaymentSchema = z.object({
   paymentId: z.number().int().positive(),
   notes: z.string().trim().max(500).optional(),
@@ -161,7 +166,8 @@ export async function rejectLoanApplication(
   input: z.infer<typeof RejectLoanSchema>,
 ) {
   try {
-    const { loanId } = RejectLoanSchema.parse(input);
+    const parsed = RejectLoanSchema.parse(input);
+    const { loanId, notes } = parsed;
     const { session, loan, tenantId } = await requireLoanAdminAccess(loanId);
 
     if (loan.status !== "pending") {
@@ -182,6 +188,23 @@ export async function rejectLoanApplication(
           approved_by: session.user.user_id,
         },
       });
+
+      // Store rejection reason as audit log entry
+      if (notes) {
+        await tx.auditLog.create({
+          data: {
+            tenant_id: targetTenantId,
+            user_id: session.user.user_id,
+            action: "LOAN_REJECTED",
+            entity_type: "Loan",
+            entity_id: loanId,
+            new_values: { rejection_reason: notes } as any,
+            module: "loans",
+            action_category: "update",
+            severity: "warning",
+          },
+        });
+      }
     });
 
     revalidatePath("/agapay-tanaw");
@@ -267,6 +290,84 @@ export async function submitMockRepayment(
   } catch (error) {
     console.error("submitMockRepayment failed:", error);
     return { error: "Failed to process repayment. Please try again." };
+  }
+}
+
+export async function processFullPayment(
+  input: z.infer<typeof FullPaymentSchema>,
+) {
+  try {
+    const { loanId, methodId } = FullPaymentSchema.parse(input);
+    const session = await requireAuthenticatedSession();
+    const tenantId = session.user.tenantId;
+
+    if (!tenantId) return { error: "Tenant context required." };
+
+    return await prisma.$withTenant(tenantId, async (tx) => {
+      const loan = await tx.loan.findUnique({
+        where: { loan_id: loanId },
+        include: { schedules: { orderBy: { installment_number: "asc" } } },
+      });
+
+      if (!loan || loan.user_id !== session.user.user_id) {
+        return { error: "This action is only available for members." };
+      }
+
+      if (loan.status !== "active") {
+        return { error: "No active loan found for this transaction." };
+      }
+
+      // Calculate full-payment amount: remaining principal only (waive remaining interest)
+      const unpaidSchedules = loan.schedules.filter(
+        (s: any) => s.status === "pending" || s.status === "overdue",
+      );
+
+      if (unpaidSchedules.length === 0) {
+        return { error: "This loan has no pending installments." };
+      }
+
+      const remainingPrincipal = unpaidSchedules.reduce(
+        (sum: number, s: any) => sum + Number(s.principal_due),
+        0,
+      );
+
+      // Create the full-payment record
+      await tx.payment.create({
+        data: {
+          tenant_id: tenantId,
+          loan_id: loanId,
+          method_id: methodId,
+          amount_paid: remainingPrincipal,
+          payment_reference: `FULL-${Date.now()}`,
+          status: "verified",
+          submitted_at: new Date(),
+          verified_at: new Date(),
+          verified_by: session.user.user_id,
+        },
+      });
+
+      // Mark all schedules as paid
+      await tx.loanSchedule.updateMany({
+        where: { loan_id: loanId, status: { in: ["pending", "overdue"] } },
+        data: { status: "paid" },
+      });
+
+      // Update loan balance to 0 and mark as paid
+      await tx.loan.update({
+        where: { loan_id: loanId },
+        data: {
+          balance_remaining: 0,
+          status: "paid",
+        },
+      });
+
+      return {
+        success: `Full payment processed successfully. You paid ₱${remainingPrincipal.toLocaleString()} (remaining interest waived as full-payment discount).`,
+      };
+    });
+  } catch (error) {
+    console.error("processFullPayment failed:", error);
+    return { error: "Failed to process full payment. Please try again." };
   }
 }
 

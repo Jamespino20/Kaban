@@ -45,7 +45,7 @@ function TreasuryMetric({
   }[tone];
 
   return (
-    <section className="rounded-[1.75rem] border border-slate-200 bg-white p-6 shadow-sm">
+    <section className="dashboard-card p-6">
       <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">
         {label}
       </p>
@@ -251,7 +251,7 @@ export function ReconciliationTab() {
         />
 
         {/* Cash Outflow (Disbursements) */}
-        <section className="hidden rounded-[1.75rem] border border-slate-200 bg-white p-6 shadow-sm">
+        <section className="hidden dashboard-card p-6">
           <h3 className="text-sm font-black uppercase tracking-[0.18em] text-slate-500 mb-4">
             Cash Outflow
           </h3>
@@ -267,7 +267,7 @@ export function ReconciliationTab() {
         </section>
 
         {/* Cash Inflow (Collections) */}
-        <section className="hidden rounded-[1.75rem] border border-slate-200 bg-white p-6 shadow-sm">
+        <section className="hidden dashboard-card p-6">
           <h3 className="text-sm font-black uppercase tracking-[0.18em] text-slate-500 mb-4">
             Cash Inflow
           </h3>
@@ -284,7 +284,7 @@ export function ReconciliationTab() {
 
         {/* Ledger Balance Sheet */}
         <section
-          className={`md:col-span-2 rounded-[1.75rem] border p-6 shadow-sm ${data.ledger.isBalanced ? "border-emerald-200 bg-emerald-50/30" : data.ledger.totalDebits === 0 && data.ledger.totalCredits === 0 ? "border-slate-200 bg-white" : "border-rose-200 bg-rose-50/30"}`}
+          className={`md:col-span-2 dashboard-card ${data.ledger.isBalanced ? "border-emerald-200 bg-emerald-50/30" : data.ledger.totalDebits === 0 && data.ledger.totalCredits === 0 ? "border-slate-200 bg-white" : "border-rose-200 bg-rose-50/30"}`}
         >
           <div className="flex items-center justify-between mb-6">
             <div>
@@ -331,7 +331,7 @@ export function ReconciliationTab() {
         </section>
 
         {/* General Holdings / Liquid Assets */}
-        <section className="hidden md:col-span-2 rounded-[1.75rem] border border-slate-200 bg-white p-6 shadow-sm">
+        <section className="hidden md:col-span-2 dashboard-card p-6">
           <h3 className="text-sm font-black uppercase tracking-[0.18em] text-slate-500 mb-4">
             Total Tenant Liquid Holdings
           </h3>

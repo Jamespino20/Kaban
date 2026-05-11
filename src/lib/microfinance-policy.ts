@@ -45,6 +45,7 @@ export const MICROFINANCE_POLICY = {
   compassionActionsPerLoanCycle: 1,
   overindebtedExposureRate: 0.8,
   maxConcurrentLoansAcrossTenants: 1,
+  fullPaymentDiscountRate: 1.0, // 100% interest waiver on early full payment
 } as const;
 
 export interface TierPolicy {

@@ -126,7 +126,7 @@ export function AuditLogViewer({ tenantId }: { tenantId?: number }) {
 
   return (
     <div className="space-y-4 animate-in fade-in duration-500">
-      <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+      <div className="dashboard-card p-4">
         <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
           <div className="space-y-1">
             <h3 className="flex items-center gap-2 text-lg font-bold text-slate-900">

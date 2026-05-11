@@ -62,6 +62,7 @@ export const metadata: Metadata = {
 };
 
 import { IdleSessionTimer } from "@/components/auth/idle-session-timer";
+import { ThemeProvider } from "next-themes";
 
 export default function RootLayout({
   children,
@@ -69,19 +70,24 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className="antialiased">
+    <html lang="en" className="antialiased" suppressHydrationWarning>
       <body
         className={`${plusJakartaSans.variable} ${fraunces.variable} font-sans selection:bg-emerald-100 selection:text-emerald-900 transition-colors duration-300`}
       >
-        <AuthProvider>
-          <IdleSessionTimer />
-          <div className="relative min-h-screen bg-white">
-            <div className="pointer-events-none fixed right-0 top-0 z-0 h-[500px] w-[500px] translate-x-1/2 -translate-y-1/2 rounded-full bg-emerald-100/30 blur-[120px]" />
-
-            <main className="relative z-10">{children}</main>
-            <Toaster position="top-right" richColors expand visibleToasts={1} />
-          </div>
-        </AuthProvider>
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="system"
+          enableSystem
+          disableTransitionOnChange
+        >
+          <AuthProvider>
+            <IdleSessionTimer />
+            <div className="relative min-h-screen">
+              <main className="relative z-10">{children}</main>
+              <Toaster position="top-right" richColors expand visibleToasts={1} />
+            </div>
+          </AuthProvider>
+        </ThemeProvider>
       </body>
     </html>
   );

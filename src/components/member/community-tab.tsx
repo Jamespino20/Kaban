@@ -27,9 +27,11 @@ import {
   Layers3,
   PlusCircle,
   ChevronUp,
+  Headphones,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import EmojiPicker from "emoji-picker-react";
+import { MemberProfilePopup } from "@/components/member/member-profile-popup";
 
 const mockUploadFile = async (file: File) => {
   return new Promise<{ url: string }>((resolve) => {
@@ -84,6 +86,9 @@ export function CommunityTab({
     }>
   >([]);
   const [isUploading, setIsUploading] = useState(false);
+
+  const [selectedProfile, setSelectedProfile] = useState<any>(null);
+  const [profilePopupOpen, setProfilePopupOpen] = useState(false);
 
   const [selectedMentorId, setSelectedMentorId] = useState<string>("");
   const [focusArea, setFocusArea] = useState("");
@@ -387,6 +392,24 @@ export function CommunityTab({
             </div>
           </div>
           <div className="space-y-2">
+            {initialData.operatorRooms.length > 0 && (
+              <div className="mb-3 rounded-2xl border border-emerald-100 bg-emerald-50/70 p-3">
+                <p className="text-xs font-bold text-emerald-700">
+                  Need help? Contact your cooperative operator directly.
+                </p>
+                {initialData.operatorRooms.slice(0, 1).map((room: any) => (
+                  <Button
+                    key={room.id}
+                    size="sm"
+                    className="mt-2 w-full rounded-xl bg-emerald-600 text-white hover:bg-emerald-700"
+                    onClick={() => setSelectedConversationId(room.id)}
+                  >
+                    <Headphones className="mr-2 h-4 w-4" />
+                    Message Operator
+                  </Button>
+                ))}
+              </div>
+            )}
             {initialData.operatorRooms.map((room: any) => (
               <ConversationButton
                 key={room.id}
@@ -966,6 +989,13 @@ export function CommunityTab({
           </div>
         </section>
       </div>
+
+      <MemberProfilePopup
+        profile={selectedProfile}
+        open={profilePopupOpen}
+        onOpenChange={setProfilePopupOpen}
+        onStartConversation={handleStartConversation}
+      />
     </div>
   );
 }

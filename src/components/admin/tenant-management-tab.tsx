@@ -227,7 +227,7 @@ export function TenantManagementTab({
                   <Plus className="w-4 h-4 mr-2" /> Add Tenant
                 </Button>
               </DialogTrigger>
-              <DialogContent className="max-w-5xl">
+              <DialogContent className="max-w-[1400px]">
                 <DialogHeader>
                   <DialogTitle>Create New Tenant (Tenant)</DialogTitle>
                 </DialogHeader>
@@ -414,7 +414,7 @@ export function TenantManagementTab({
                         {t.slug === "main-tenant" ? "HQ" : "Suspend"}
                       </Button>
                       <a
-                        href={`/${t.slug}`}
+                        href={`/${t.slug}?preview=true`}
                         target="_blank"
                         rel="noopener noreferrer"
                         className={cn(

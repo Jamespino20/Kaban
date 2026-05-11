@@ -50,7 +50,7 @@ export const ConsentDashboard = ({
 
   return (
     <div className="space-y-6">
-      <div className="bg-white rounded-3xl p-8 border border-slate-200 shadow-sm">
+      <div className="dashboard-card p-8">
         <div className="flex items-center gap-4 mb-6">
           <div className="w-12 h-12 rounded-2xl bg-emerald-50 flex items-center justify-center text-emerald-600">
             <Shield className="w-6 h-6" />

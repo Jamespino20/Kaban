@@ -21,7 +21,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { submitMockRepayment } from "@/actions/loan-servicing";
+import { submitMockRepayment, processFullPayment } from "@/actions/loan-servicing";
 import { payLoanWithWallet } from "@/actions/wallet-actions";
 import { requestCompassionAction } from "@/actions/compassion-actions";
 import { submitContextualFeedback } from "@/actions/transactional-feedback";
@@ -100,7 +100,7 @@ export function LoanServicingTab({
 
   if (loans.length === 0) {
     return (
-      <div className="bg-white p-12 rounded-[2.5rem] border border-slate-100 text-center text-slate-400">
+      <div className="dashboard-card p-12 text-center text-slate-400">
         You don't have any active loan to repay yet.
       </div>
     );
@@ -119,7 +119,7 @@ export function LoanServicingTab({
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col gap-3 rounded-[2rem] border border-slate-100 bg-white p-5 shadow-sm md:flex-row md:items-center md:justify-between">
+      <div className="dashboard-card flex flex-col gap-3 p-5 md:flex-row md:items-center md:justify-between">
         <div>
           <p className="text-xs font-bold uppercase tracking-[0.2em] text-slate-400">
             Loan View
@@ -154,7 +154,7 @@ export function LoanServicingTab({
         />
       ))}
 
-      <div className="flex flex-col gap-3 rounded-[1.5rem] border border-slate-100 bg-white px-5 py-4 md:flex-row md:items-center md:justify-between">
+      <div className="dashboard-card flex flex-col gap-3 px-5 py-4 md:flex-row md:items-center md:justify-between">
         <p className="text-sm text-slate-500">
           Showing{" "}
           <span className="font-bold text-slate-700">
@@ -217,6 +217,8 @@ function LoanServicingCard({
   const [feedbackOpen, setFeedbackOpen] = useState(false);
   const [feedbackRating, setFeedbackRating] = useState(5);
   const [feedbackMessage, setFeedbackMessage] = useState("");
+  const [fullPaymentOpen, setFullPaymentOpen] = useState(false);
+  const [fullPaymentMethodId, setFullPaymentMethodId] = useState("");
   const [isPending, startTransition] = useTransition();
 
   const nextSchedule = useMemo(
@@ -307,7 +309,7 @@ function LoanServicingCard({
   };
 
   return (
-    <div className="bg-white rounded-[2.5rem] border border-slate-100 shadow-sm p-8 space-y-6">
+    <div className="dashboard-card p-8 space-y-6">
       <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
         <div className="space-y-2">
           <div className="flex flex-wrap items-center gap-2">
@@ -518,6 +520,114 @@ function LoanServicingCard({
         >
           Suggested installment: ₱{suggestedAmount.toLocaleString()}
         </Button>
+
+        <Button
+          variant="outline"
+          onClick={() => setFullPaymentOpen(true)}
+          className="rounded-2xl border-violet-200 text-violet-700 hover:bg-violet-50"
+        >
+          Pay in Full
+        </Button>
+
+        <Dialog open={fullPaymentOpen} onOpenChange={setFullPaymentOpen}>
+          <DialogContent className="sm:max-w-lg">
+            <DialogHeader>
+              <DialogTitle>Pay in Full</DialogTitle>
+              <DialogDescription>
+                Pay the remaining principal of this loan and have all remaining
+                interest waived as a full-payment discount.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4">
+              <div className="rounded-xl bg-violet-50 border border-violet-100 p-4 space-y-2">
+                <div className="flex justify-between text-sm">
+                  <span className="text-slate-600">Remaining Balance</span>
+                  <span className="font-bold text-slate-900">
+                    ₱
+                    {Number(loan.balance_remaining).toLocaleString(undefined, {
+                      minimumFractionDigits: 2,
+                      maximumFractionDigits: 2,
+                    })}
+                  </span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-slate-600">
+                    Interest Waived (Full-Payment Discount)
+                  </span>
+                  <span className="font-bold text-emerald-600">100%</span>
+                </div>
+                <div className="border-t border-violet-200 pt-2 flex justify-between text-sm">
+                  <span className="font-bold text-slate-700">
+                    You Pay (Principal Only)
+                  </span>
+                  <span className="font-bold text-violet-700">
+                    Amount computed at confirmation
+                  </span>
+                </div>
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-bold text-slate-700">
+                  Payment Method
+                </label>
+                <Select
+                  value={fullPaymentMethodId}
+                  onValueChange={setFullPaymentMethodId}
+                >
+                  <SelectTrigger className="rounded-xl">
+                    <SelectValue placeholder="Choose a channel" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {paymentMethods.map((method) => (
+                      <SelectItem
+                        key={method.method_id}
+                        value={String(method.method_id)}
+                      >
+                        {method.provider_name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="flex gap-3">
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setFullPaymentOpen(false);
+                    setFullPaymentMethodId("");
+                  }}
+                  className="flex-1 rounded-xl"
+                >
+                  Cancel
+                </Button>
+                <Button
+                  disabled={isPending || !fullPaymentMethodId}
+                  onClick={() => {
+                    startTransition(async () => {
+                      const res = await processFullPayment({
+                        loanId: loan.loan_id,
+                        methodId: Number(fullPaymentMethodId),
+                      });
+                      if (res.error) {
+                        toast.error(res.error);
+                        return;
+                      }
+                      toast.success(res.success);
+                      setFullPaymentOpen(false);
+                      setFullPaymentMethodId("");
+                      router.refresh();
+                    });
+                  }}
+                  className="flex-1 rounded-xl bg-violet-600 hover:bg-violet-700 text-white"
+                >
+                  {isPending ? (
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  ) : null}
+                  Confirm Full Payment
+                </Button>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
 
         <Dialog open={open} onOpenChange={setOpen}>
           <DialogTrigger asChild>

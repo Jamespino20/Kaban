@@ -54,10 +54,13 @@ import { getPendingTopUps } from "@/actions/wallet-actions";
 import { SystemHealthTab } from "@/components/admin/system-health-tab";
 import { ApprovalsQueueModule } from "@/components/admin/approvals-queue-module";
 import { SupportAnalyticsModule } from "@/components/admin/support-analytics-module";
+import SuperadminOverviewTab from "@/components/admin/superadmin-overview-tab";
+import { AuditLogsTab } from "@/components/admin/audit-logs-tab";
+import { TenantPerformanceReportsTab } from "@/components/admin/tenant-performance-reports-tab";
 
 function SystemFileManagementSkeleton() {
   return (
-    <div className="rounded-[1.75rem] border border-slate-100 bg-white p-6 shadow-sm space-y-6">
+    <div className="dashboard-card space-y-6">
       <div className="animate-pulse flex items-center justify-between">
         <div className="h-4 w-48 bg-slate-100 rounded" />
       </div>
@@ -343,7 +346,7 @@ export default async function AgapayTanawPage({
     >
       <div className="space-y-5">
         {reconciliation && !reconciliation.holdings.isTreasuryHealthy && (
-          <div className="animate-in fade-in slide-in-from-top-4 duration-500 rounded-[1.75rem] border border-red-200 bg-red-50 p-6 shadow-lg shadow-red-500/10 flex flex-col md:flex-row items-center gap-6">
+          <div className="dashboard-card border-red-200 bg-red-50 text-slate-900 animate-in fade-in slide-in-from-top-4 duration-500 flex flex-col md:flex-row items-center gap-6">
             <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-red-100 text-red-600 ring-4 ring-white shadow-sm">
               <ShieldAlert className="h-7 w-7" />
             </div>
@@ -365,44 +368,7 @@ export default async function AgapayTanawPage({
         {/* Shared / Role-Specific TabsContent */}
         <TabsContent value="overview" className="space-y-6 outline-none">
           {isGlobalSuperadminView ? (
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <KPIMetricCard
-                label="Registered Cooperatives"
-                value={metrics.totalTenants.toLocaleString()}
-                iconName="tenants"
-                description="Total active tenants on platform"
-              />
-              <KPIMetricCard
-                label="Platform Throughput"
-                value={metrics.totalTransactions.toLocaleString()}
-                iconName="activity"
-                description="Global transaction count"
-              />
-              <KPIMetricCard
-                label="Global Support Queue"
-                value={metrics.globalSupportLoad}
-                iconName="feedback"
-                description="Pending support tickets"
-                variant={metrics.globalSupportLoad > 10 ? "ghost" : "glass"}
-              />
-              <KPIMetricCard
-                label="New Tenant Velocity"
-                value={metrics.newTenantVelocity}
-                iconName="tenants"
-                description="Growth (last 30 days)"
-              />
-              <KPIMetricCard
-                label="Platform Loan Volume"
-                value={metrics.activeLoans}
-                iconName="repayment"
-              />
-              <KPIMetricCard
-                label="Estimated GMV"
-                value={`₱${metrics.totalEarnings.toLocaleString()}`}
-                iconName="wallet"
-                description="Total verified payments"
-              />
-            </div>
+            <SuperadminOverviewTab />
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
               <KPIMetricCard
@@ -437,7 +403,7 @@ export default async function AgapayTanawPage({
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
             {!isGlobalSuperadminView && (
-              <div className="lg:col-span-2 bg-white/70 backdrop-blur-xl p-6 rounded-[1.75rem] border border-slate-200/60 shadow-sm flex flex-col md:flex-row items-center gap-8">
+              <div className="dashboard-card lg:col-span-2 flex flex-col md:flex-row items-center gap-8 p-6">
                 <div className="flex-1 text-center md:text-left">
                   <h3 className="text-xl font-display font-bold text-slate-900">
                     Cooperative Trust Index
@@ -456,7 +422,7 @@ export default async function AgapayTanawPage({
             )}
 
             <div
-              className={`${isGlobalSuperadminView ? "lg:col-span-3" : ""} bg-slate-900 p-6 rounded-[1.75rem] text-white flex flex-col justify-between overflow-hidden relative group min-h-[240px]`}
+              className={`${isGlobalSuperadminView ? "lg:col-span-3" : ""} dashboard-card-strong flex flex-col justify-between overflow-hidden relative group min-h-[240px]`}
             >
               <div className="relative z-10 space-y-4">
                 <div className="w-12 h-12 rounded-2xl bg-emerald-500 shadow-[0_0_20px_rgba(16,185,129,0.3)] flex items-center justify-center mb-6">
@@ -467,8 +433,7 @@ export default async function AgapayTanawPage({
                   Status
                 </h3>
                 <p className="text-slate-400 text-xs leading-relaxed font-sans">
-                  Ang iyong portfolyo at koleksyon dashboard para sa tenant
-                  operations.
+                  Your portfolio and collection dashboard for tenant operations.
                 </p>
               </div>
 
@@ -543,13 +508,19 @@ export default async function AgapayTanawPage({
               value="reports"
               className="animate-in fade-in slide-in-from-bottom-4 duration-500"
             >
-              <ReportsTab />
+              <div className="space-y-6">
+                <ReportsTab />
+                <TenantPerformanceReportsTab />
+              </div>
             </TabsContent>
             <TabsContent
               value="risk"
               className="animate-in fade-in slide-in-from-bottom-4 duration-500"
             >
               <FraudRiskTab />
+            </TabsContent>
+            <TabsContent value="audit" className="outline-none">
+              <AuditLogsTab />
             </TabsContent>
           </>
         )}
@@ -596,7 +567,7 @@ export default async function AgapayTanawPage({
                   }
                 />
               ) : isSuperAdmin ? (
-                <div className="w-full max-w-2xl rounded-[1.75rem] border border-amber-200 bg-amber-50 p-6 text-sm text-amber-800 shadow-sm">
+                <div className="dashboard-card border-amber-200 bg-amber-50 text-amber-800 max-w-2xl">
                   Select a tenant from the sidebar if you want to change the
                   tenant name from `Global View`.
                 </div>

@@ -68,6 +68,7 @@ export function TenantSelector({ currentTenant }: { currentTenant: string }) {
           variant="outline"
           className="h-10 px-4 rounded-xl border-slate-200 bg-white shadow-sm flex items-center gap-3 hover:bg-slate-50 transition-all group"
           disabled={isPending}
+          aria-label="Switch tenant"
         >
           <div className="flex h-6 w-6 items-center justify-center rounded-lg bg-primary/10 text-primary group-hover:scale-110 transition-transform">
             <Building2 className="h-3.5 w-3.5" />
@@ -80,7 +81,7 @@ export function TenantSelector({ currentTenant }: { currentTenant: string }) {
       </DropdownMenuTrigger>
       <DropdownMenuContent
         align="start"
-        className="w-[240px] p-2 rounded-2xl shadow-xl border-slate-100"
+        className="w-[240px] p-2 rounded-2xl shadow-2xl border border-slate-200 bg-white/95"
       >
         <DropdownMenuLabel className="px-3 py-2 text-xs font-black uppercase tracking-widest text-slate-400">
           Available Tenants
@@ -99,8 +100,8 @@ export function TenantSelector({ currentTenant }: { currentTenant: string }) {
                 onClick={() => handleSwitch(t.tenant_id, t.slug)}
                 className={`flex items-center justify-between p-3 rounded-xl cursor-pointer transition-all ${
                   t.slug === currentTenant
-                    ? "bg-primary/10 text-primary border-primary/20"
-                    : "hover:bg-slate-50 text-slate-600"
+                    ? "bg-primary/10 text-primary border border-primary/20"
+                    : "hover:bg-slate-100 text-slate-700"
                 }`}
               >
                 <div className="flex flex-col">

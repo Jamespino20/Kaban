@@ -177,7 +177,7 @@ export function WalletTab({ savings, transactions }: WalletTabProps) {
 
   return (
     <div className="space-y-5">
-      <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+      <div className="dashboard-card p-4">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
           <div className="space-y-1">
             <h2 className="text-xl font-bold text-slate-900">Wallet & Savings</h2>

@@ -164,47 +164,47 @@ Alright, let's have a complete revamp for Agapay, we'll redo everything from scr
     - 2FA enforcement rules
 
 ## Tenant Operator (Unified Admin & Lender)
+
 - Overview [Contains combined KPIs of branch health: Funds, Active Loans, Portfolio Growth, Repayment Rates, ROI/Earnings (Personal & Branch), Risk Exposure, and Portfolio Diversification; includes Recent Interaction Logs, Total Trust Score of the Branch, and AI-generated Snapshots/Summaries]
 - Approvals & Queue [Unified grid of cards with search, filters, and inside-scrolling]
-	-Loan Applications [Status: Rejected, Pending, Approved]
-	 	-Card contains: Applicant Name, Trust Score, Loan Product, Requested Value, Cadence/Term, Purpose, Reference Number
-	- Fund Releases [Status: Not Released, Released]
-		- Card contains: Applicant Name, Loan Product, Approved Value, Release Method, Scheduled Date, Reference Number
-	- Payment Verification [Status: Rejected, Pending, Approved]
-		- Card contains: Applicant Name, Installment #, Payment Reference, Receipt Attachment, Amount, Verification Action
-	- Capital Top-Up Queue [Incoming funding requests from operators/lenders]
-		- Card contains: Lender Name, Amount, Method (E-wallet/Bank), Status, Reference Number
-	- Identity Verification [Document review for new members]
-		- Card contains: Applicant Name, Membership Code, Attached IDs, Verification Status
+  -Loan Applications [Status: Rejected, Pending, Approved]
+  -Card contains: Applicant Name, Trust Score, Loan Product, Requested Value, Cadence/Term, Purpose, Reference Number
+  - Fund Releases [Status: Not Released, Released]
+    - Card contains: Applicant Name, Loan Product, Approved Value, Release Method, Scheduled Date, Reference Number
+  - Payment Verification [Status: Rejected, Pending, Approved]
+    - Card contains: Applicant Name, Installment #, Payment Reference, Receipt Attachment, Amount, Verification Action
+  - Capital Top-Up Queue [Incoming funding requests from operators/lenders]
+    - Card contains: Lender Name, Amount, Method (E-wallet/Bank), Status, Reference Number
+  - Identity Verification [Document review for new members]
+    - Card contains: Applicant Name, Membership Code, Attached IDs, Verification Status
 - Capital & Investments (The Vault) [Personal and Branch-level funding management]
-	- My Investment Portfolio [Active investments in loans, ROI breakdown, Earnings history, Defaulted loan exposure]
-	- Wallet & Top-Ups [Add/Withdraw funds, Transaction History, Linked Bank/E-wallet accounts]
-	- Risk & Diversification [AI-driven suggested investments and risk alerts across the branch portfolio]
+  - My Investment Portfolio [Active investments in loans, ROI breakdown, Earnings history, Defaulted loan exposure]
+  - Wallet & Top-Ups [Add/Withdraw funds, Transaction History, Linked Bank/E-wallet accounts]
+  - Risk & Diversification [AI-driven suggested investments and risk alerts across the branch portfolio]
 - Member Management
-	- Member Directory [Grid/cards view of the community]
-	- Member Profiles [Personal info, full Loan History, Trust scores, Uploaded Documents]
-	- Status Controls [Active / Suspended / Blacklisted toggles]
+  - Member Directory [Grid/cards view of the community]
+  - Member Profiles [Personal info, full Loan History, Trust scores, Uploaded Documents]
+  - Status Controls [Active / Suspended / Blacklisted toggles]
 - Loan Products & Policy
-	- Product Studio [Create/Edit products: Interest models (Flat/Diminishing), Cadence, Term Limits, Penalty rules]
-	- Logic Config [Assigning eligibility rules and risk scoring modifiers]
+  - Product Studio [Create/Edit products: Interest models (Flat/Diminishing), Cadence, Term Limits, Penalty rules]
+  - Logic Config [Assigning eligibility rules and risk scoring modifiers]
 - Treasury & Reconciliation [Strict daily financial integrity]
-	- EOD Reconciliation (Critical) [Daily sign-off: Payments received vs. Loans released, Treasury balance, Flagging discrepancies]
-	- Compassion Actions [Loan restructuring/Grace periods/Penalty waivers with approval trails and notes]
+  - EOD Reconciliation (Critical) [Daily sign-off: Payments received vs. Loans released, Treasury balance, Flagging discrepancies]
+  - Compassion Actions [Loan restructuring/Grace periods/Penalty waivers with approval trails and notes]
 - Content & Branding [Branding and Member-facing UI control]
-	- Tenant Homepage Editor [Hero Section, Calculator Config, Testimonials, FAQs, Announcements Banner]
-	- Branch Identity [Logo, Brand/Accent Colors, Typography selection]
+  - Tenant Homepage Editor [Hero Section, Calculator Config, Testimonials, FAQs, Announcements Banner]
+  - Branch Identity [Logo, Brand/Accent Colors, Typography selection]
 - Community
-	- Intercom / Bulletin [Branch-wide announcements, internal messaging, member engagement posts]
-	- Chat Hub [Individual and Group chats with members and tenant operator]
-- Support & Analytics
-        - Satisfaction Survey
-	- Feedback Registry [Member complaints/reviews, system issues, testimony submission, and feature requests]
-	- Growth Analytics [Portfolio trends, behavior insights, default forecasts]
-	- Security & Audit Logs [All Operator + Staff actions; filter by User, Module, and Date]
+  - Intercom / Bulletin [Branch-wide announcements, internal messaging, member engagement posts]
+  - Chat Hub [Individual and Group chats with members and tenant operator]
+- Support & Analytics - Satisfaction Survey
+  - Feedback Registry [Member complaints/reviews, system issues, testimony submission, and feature requests]
+  - Growth Analytics [Portfolio trends, behavior insights, default forecasts]
+  - Security & Audit Logs [All Operator + Staff actions; filter by User, Module, and Date]
 - Settings
-	- Tenant Config [Strict loan rules, scoring tweaks, email/system notification triggers]
-	- Operator Profile [Personal info, profile picture, Theme selection (Light/Dark)]
-	- Security Matrix [2FA config, password management, session controls, linked banking/wallet accounts]
+  - Tenant Config [Strict loan rules, scoring tweaks, email/system notification triggers]
+  - Operator Profile [Personal info, profile picture, Theme selection (Light/Dark)]
+  - Security Matrix [2FA config, password management, session controls, linked banking/wallet accounts]
 
 ## Tenant Member
 
@@ -274,7 +274,7 @@ Alright, let's have a complete revamp for Agapay, we'll redo everything from scr
 ## Agapay Tenant Subscription Plans:
 
 - Agapay Core — P3,500/3-months [Benefits: Up to 500 members, Basic Admin Dashboard, Standard Microfinance Policy Access, Audit Logs, Email Support
-- Agapay Pro  — P6,500/6-months [Benefits: Everything in Core, plus: Up to 2,500 members, Custom Tenant Branding, Mentorship & Community Tools, Chat/Priority Email Support, Automated Compassion Workflow, Basic Data Export Tools]
+- Agapay Pro — P6,500/6-months [Benefits: Everything in Core, plus: Up to 2,500 members, Custom Tenant Branding, Mentorship & Community Tools, Chat/Priority Email Support, Automated Compassion Workflow, Basic Data Export Tools]
 - Agapay Enterprise — P12,000/12-months [Benefits: Everything in Pro, plus: Unlimited Members, Analytics Module, Priority Support (faster SLA), Advanced Data Export & Reporting Tools, System Configuration Controls]
 
 ## Agapay Tenant Interest Rate Tiers
@@ -471,305 +471,3 @@ Alright, let's have a complete revamp for Agapay, we'll redo everything from scr
 - Collection workflow triggered: Reminders -> Restructuring offer -> Final write-off
 
 ---
-
-# ISSUES
-
-## SYSTEMWIDE ISSUES
-### Platform Homepage
-#### Homepage 
-- Add more shortcuts to the navbar
-- Disable the default scrollbar and implement a custom green circle scrollbar.
-- Remove Get Started with Agapay button from the platform navbar.
-- Hero button should be Apply for Agapay (which leads to the tenant onboarding form) and the Loan Calculator
-- Loan Calculator should emphasize that this is an example set of business operation and that things may depend on the actual cooperative policies
-- Showcase that Agapay is a platform system that offers microfinancing cooperative services, not a microfinancing cooperative company itself.
-- Live Map should be zoomable because tenants near each other are clipping against each other, making for a very complicated navigation. The static building icon should show the tenant logos instead, the button to visit the tenant homepage changes according to its brand color, and the members and loans repaid must be accurate to what the tenant actually has
-- SaaS pricing is outdated
-- Remember that the platform testimonies should come from the testimonies from other tenants, rooted from their homepages, and picked by the superadmin (the system automatically notifies the target testimonees)
-- Start a clearer lender flow box should have "Apply for Agapay Now" button only.
-
-#### Platform Footer
-- Could improve by showcasing a bit more on Agapay's features
-- Remove Security from the Footer
-- Pricing should showcase the allowed features per plan better, then the Member Loan Rate Guide could be more accurate to the Agapay Constants
-
-#### Company Footer
-- Management and Partners only lead to the /about page. Either remove them from the footer or you actually make content for this.
-
-#### Legal Footer
-- Either remove Cookie Settings from the links or actually make content for this.
-
-#### Contact
-- Ensure that the wording here is showcasing Agapay as a cooperative platform, not as a cooperative company.
-- Tenant Onboarding should add a payments tab after documents. The Tenant can now pick plans and input necessary billing details. This should notify the superadmin about the tenant application
-- General Feedbacks does not show up in the superadmin Feedback module
-
-### Tenant Homepage
-- Disable the default scrollbar and implement a custom green circle scrollbar.
-- It should be have the exact same content, design, layout, and feel as the platform homepage, now with the dedicated register/login button and modal. Ensure that the brand colors are shown properly here for distinction.
-
-### Apex Homepage [should not be seen from the find cooperatives selector]
-- Disable the default scrollbar and implement a custom green circle scrollbar.
-- Make minimal content here but still have details, now with the usual platform login button and modal.	
-
-### Tanaw and Pintig Dashboards
-- Disable the default scrollbar and implement a custom green circle scrollbar.
-- Operators and Superadmins should no longer have the branch selector, only the Members have it
-- Some modules are still indented in the sidebar
-- Having a Vouch System would just complicate things, so let's remove it for both operators and members
-- Remove the unnecessary three-dot button on the header, since we are still logged in per every session
-- Module contents are still in Tagalog
-- There are still hardcoded slate colors, and some action buttons miscolored across all tenants [ensure that the color branding is consistent per tenant]
-- It should be "Powered by [agapay_titled.png]" at the sidebar
-- There should be a warning/timeout modal popping out for 1 hour inactivity
-- For the sidebar text, when the colors are too bright, the font color should be black. Vice versa
-- Enable dark mode while retaining tenant branding
-- Logging out should lead to their tenant homepage, not the Agapay platform homepage
-- Form inputs should be saved even when accidentally exited
-- All loading visuals should be skeleton
-- Updates and changes do not happen or show up in realtime, but rather in every window refresh
-- Error toasts could be more explicit in what went wrong
-
-## ROLE-BASED ISSUES
-
-### Superadmin
-- Overview should not be responsible for tenant business. It should show KPIs and summary logs of the platform system itself
-- Community should be with tenant operators only	
-- Approvals should be for tenant application only
-- Improve Global Management by showing better details and action buttons for every card, allow for restoring decommissioned tenants by uploading a saved backup of all tenant information. Visually sort every tenant by their region, then widen the tenant homepage & dashboard builder modal while adding more details and paid plan options. There should also be a view tenant homepage button
-- At Homepage Content, superadmin can edit platform hero section video/content, toggle platform homepage sections, edit platform homepage content, FAQs and Tenant Testimonials. It should not approve other tenants' FAQ/Testimonial posting requests for their own homepages. When picking Tenant Testimonials for the Agapay Testimonies section, it should notify both the tenant operator and the targetted tenant member.
-- Feedback has "entryies". I tried sending a feedback from the platform homepage, but it doesn't show up (it did send an email notification to my superadmin email). Audit Logs should be a separate module [since the actual Audit Log module access leads to a blank page
-- Reports should be platform-related. There needs to be time ranges and more search-and-filter.
-- System Health should be a part of the Reports.
-- Settings is indented in the sidebar. Remove the customization in the Settings since it should be the Homepage Content [We might rename it]. There are no capabilities for personal information. Remove the SaaS subscription plan section since the superadmin doesn't need to change plans
-- There's no way right now to monitor tenant lease payments and edit the plans' benefits. There's no email templates, no AI right now.
-- There's no way for superadmin to toggle what modules each tenant will have according to their paid plan
-
-### Tenant Operator
-- Operators do not need an interest tier of their own [Overview]
-- Approvals and Queues have unresponsive buttons and input fields
-- Payment Intake has this error: Invalid `prisma.savingsTransaction.create()` invocation: { data: { account_id: 5, tenant_id: 2, transaction_type: "deposit", amount: new Prisma.Decimal("2000"), reference: "CASH-484582", processed_by: 2, notes: "Over-the-counter cash", ~~~~~ ? transaction_id?: Int, ? fee_amount?: Decimal, ? net_amount?: Decimal | Null, ? status?: PaymentStatus, ? method_label?: String | Null, ? external_reference?: String | Null, ? reconciliation_reference?: String | Null, ? ledger_transaction_id?: String | Null, ? issue_status?: String, ? issue_reported_at?: DateTime | Null, ? issue_notes?: String | Null, ? processed_at?: DateTime } } Unknown argument `notes`. Available options are marked with ?.
-- Capital Top-Ups from the Members should be processed automatic (handled by the system), and has this error: approveWalletTopUp failed: Error: Ledger Error: Missing account codes: CASH_EQUIVALENTS, MEMBER_SAVINGS
-    at s (.next/server/chunks/3853.js:5:1072)
-    at async (.next/server/chunks/3853.js:5:13396)
-    at async (.next/server/app/[tenant]/auth/login/page.js:22:3123)
-    at async Proxy.$withTenant (.next/server/app/[tenant]/auth/login/page.js:22:3079)
-    at async c (.next/server/chunks/3853.js:5:12560)
-- Capital and Investments is indented in the sidebar, contains redundant KPIs, has system-related previews when it should be business-related
-- Member Management is indented in the sidebar, is missing some three-dot actions, and it's seeing the members outside the current tenant
-- Treasury and Reconciliation says "An imbalance was detected. You must provide a reason to adjust the ledger and sign off." even when the values are 0 (there ARE currently two active loans in the DB)
-- At Homepage Content, Operator can edit tenant hero section video/content, toggle tenant homepage sections, edit tenant homepage content, FAQs and Tenant Testimonials. It should not mess with other tenants' homepage. There should be a notification section for superadmin testimony requests
-- Community should allow the operator to chat as well, right now it's just a preview
-- Support and Analytics is indented in the sidebar, and is really unclear. Support & Feedback should obtain data from within the tenant's members only. Audit Logs should be a separate module
-- Settings is indented in the sidebar. Remove the customization in the Settings since it should be the Homepage Content [We might rename it]. There are no capabilities for personal information. For the SaaS subscription plan, there should be a billing process everytime an upgrade is requested.
-
-
-### Tenant Member
-- Loan Capability Meter should only have the min-max according to their remaining/existing balance
-- Data Privacy and Consent, Terms and Conditions, and Tutorial of the cooperative should pop up as dialogs for newcomers, with the option to view them again in the settings
-- At Wallet, whenever we make a deposit, we should provide deposit method, reference numbers, and proof of deposits somehow
-- Loan Application's form could be widened further and better laid out, as well as having clearer terms, conditions, and policies.
-- My Loans can also be Repayment, so we might as well remove the Repayment module. The card's elements could be laid out better with summary details and will be expanded by clicking on it, then the paid/overdue/defaulted loans should be presented via a grid format. Some action buttons cannot send data due to unusable input fields [possibly due to lack of data from the seed]
-- Community module is still a mess in layout and functionalities. A user can click others' profile pfps so they'll be able to see member info and send them a direct message. Closely timed messages should be closer together
-- Vouch System is now removed
-- Support System is still a placeholder. 
-- Settings should also allow profile image editing, account/personal information [except for member name and member code], preferences, security details, TnC and other policies, account deactivation, download backup, and more
-- I can still apply for loans even when I haven't paid for my previous loan
-
----
-
-# UI/UX Tips:
-
-## 1. Prioritize Scannability Over Raw Density
-
-People don’t read lists—they scan.
-
-- Use **clear visual hierarchy** (title > subtitle > metadata).
-- Keep each item structured consistently (same layout across rows).
-- Highlight only _one or two key attributes_ per item.
-
-👉 If everything is emphasized, nothing is.
-
----
-
-## 2. Use Progressive Disclosure
-
-Don’t show everything at once.
-
-- Show essential info upfront.
-- Hide secondary details behind:
-  - Expand/collapse
-  - “View more”
-  - Drill-down screens
-
-This keeps the list compact without losing depth.
-
----
-
-## 3. Group and Segment Content
-
-Break long lists into meaningful chunks.
-
-- Use:
-  - Section headers
-  - Sticky headers
-  - Categories or tags
-
-Example:
-
-- “Today”
-- “Yesterday”
-- “Earlier”
-
-This reduces cognitive load dramatically.
-
----
-
-## 4. Optimize Row Height (Compact but Touchable)
-
-Balance density with usability:
-
-- Minimum touch target: ~44px height (mobile)
-- Reduce unnecessary padding—but don’t eliminate breathing room
-- Use line truncation instead of wrapping when appropriate
-
----
-
-## 5. Use Smart Truncation
-
-Avoid multi-line chaos.
-
-- Truncate long text with ellipses (`...`)
-- Prioritize showing distinguishing information first
-- Provide full content on tap/hover
-
----
-
-## 6. Add Visual Anchors
-
-Help users orient quickly:
-
-- Icons or thumbnails for recognition
-- Status indicators (color dots, badges)
-- Consistent alignment (e.g., left-aligned titles, right-aligned metadata)
-
-These reduce reading effort.
-
----
-
-## 7. Enable Fast Filtering & Sorting
-
-Long lists without controls = frustration.
-
-Include:
-
-- Search (with instant results)
-- Filters (category, status, date)
-- Sorting (recent, A–Z, priority)
-
-👉 A good filter can eliminate 90% of scrolling.
-
----
-
-## 8. Use Sticky UI Elements
-
-Keep key controls visible:
-
-- Sticky search bar
-- Sticky filters
-- Sticky section headers
-
-This avoids constant scrolling back up.
-
----
-
-## 9. Consider Pagination vs Infinite Scroll
-
-Each has tradeoffs:
-
-- **Infinite scroll**
-  - Good for discovery (social feeds)
-  - Risk: hard to relocate items
-
-- **Pagination**
-  - Better for task-oriented lists (tables, admin panels)
-  - Easier navigation and sense of position
-
-Choose based on user intent.
-
----
-
-## 10. Provide Item-Level Actions (But Keep Them Hidden)
-
-Avoid clutter:
-
-- Use swipe actions (mobile)
-- Use hover actions (desktop)
-- Use overflow menus (⋯)
-
-Show actions _on demand_, not all the time.
-
----
-
-## 11. Maintain Consistent Spacing and Alignment
-
-Messy spacing = perceived complexity.
-
-- Use a consistent grid system
-- Align text and elements cleanly
-- Keep margins predictable
-
-Clean alignment alone improves readability significantly.
-
----
-
-## 12. Use Skeleton Loading for Perceived Performance
-
-For long lists that load dynamically:
-
-- Show skeleton placeholders instead of spinners
-- Load items progressively
-
-This makes the interface feel faster and more stable.
-
----
-
-## 13. Add “Position Awareness”
-
-Help users know where they are:
-
-- Scroll indicators
-- “Back to top” button
-- Section jump navigation (A–Z index for directories)
-
----
-
-## 14. Handle Empty and Edge States Well
-
-Don’t leave blank screens.
-
-- Show helpful empty states
-- Suggest actions (e.g., “Try adjusting filters”)
-- Provide quick resets
-
----
-
-## 15. Test With Real Data (Not Mock Content)
-
-Designs often break when:
-
-- Names are too long
-- Data is inconsistent
-- Fields are missing
-
-Always validate with messy, real-world content.
-
----
-
-## A Simple Mental Model
-
-For every list, aim for:
-
-> **“Recognize in <1 second, decide in <3 seconds, act in <5 seconds.”**
-
-If users need to stop and think too long, the list is too dense or poorly structured.

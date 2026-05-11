@@ -308,6 +308,23 @@ async function seedTenantData(client: any, tenant: any, ctx: any) {
       },
     });
   }
+
+  // 4. Default Payment Methods (GCash, Bank Transfer, Cash, Maya)
+  const defaultPaymentMethods = [
+    "GCash",
+    "Bank Transfer",
+    "Cash",
+    "Maya",
+  ];
+  for (const name of defaultPaymentMethods) {
+    await client.paymentMethod.create({
+      data: {
+        tenant_id: tenant.tenant_id,
+        provider_name: name,
+        is_active: true,
+      },
+    });
+  }
 }
 
 // ═══════════════════════════════════════════════

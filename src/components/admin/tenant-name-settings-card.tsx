@@ -36,7 +36,7 @@ export function TenantNameSettingsCard({
   };
 
   return (
-    <div className="w-full max-w-2xl rounded-[1.75rem] border border-slate-200 bg-white p-6 shadow-sm">
+    <div className="dashboard-card p-6">
       <div className="space-y-1">
         <h3 className="text-lg font-bold text-slate-900">{title}</h3>
         <p className="text-sm text-slate-500">{description}</p>

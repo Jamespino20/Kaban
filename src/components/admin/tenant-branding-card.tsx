@@ -71,7 +71,7 @@ export function TenantBrandingCard({
   };
 
   return (
-    <div className="w-full max-w-2xl rounded-[1.75rem] border border-slate-200 bg-white p-8 shadow-sm space-y-8">
+    <div className="dashboard-card p-8 space-y-8">
       <div className="flex items-center gap-3">
         <div className="h-10 w-10 rounded-xl bg-emerald-100 text-emerald-600 flex items-center justify-center">
           <Palette className="h-5 w-5" />

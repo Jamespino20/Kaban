@@ -67,8 +67,9 @@ export default async function SuperadminOverviewTab() {
           trend={membersGrowth}
         />
         <KPIMetricCard
-          label="Total Lenders"
-          value={data.totalLenders.toLocaleString()}
+          label="Subscription Revenue"
+          value={`₱${(data.totalSubscriptionRevenue / 1000).toFixed(1)}K`}
+          description={`Total: ₱${data.totalSubscriptionRevenue.toLocaleString()}`}
           iconName="piggy-bank"
           trend={{ value: 5.7, isPositive: true }}
         />

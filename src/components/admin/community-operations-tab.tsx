@@ -119,7 +119,7 @@ export function CommunityOperationsTab({
 
   return (
     <div className="space-y-4">
-      <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+      <div className="dashboard-card p-4">
         <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
           <div className="space-y-1">
             <h2 className="text-lg font-bold text-slate-900">

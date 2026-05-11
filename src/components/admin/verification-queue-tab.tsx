@@ -202,6 +202,8 @@ export function VerificationQueueTab({ data }: VerificationQueueTabProps) {
 function PendingLoansSection({ loans }: { loans: any[] }) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
+  const [rejectingId, setRejectingId] = useState<number | null>(null);
+  const [rejectReason, setRejectReason] = useState("");
 
   const handleApprove = (loanId: number) => {
     startTransition(async () => {
@@ -216,16 +218,22 @@ function PendingLoansSection({ loans }: { loans: any[] }) {
   };
 
   const handleReject = (loanId: number) => {
+    if (!rejectReason.trim()) {
+      toast.error("Please enter a rejection reason");
+      return;
+    }
     startTransition(async () => {
       const res = await rejectLoanApplication({
         loanId,
-        notes: "Needs manual reassessment.",
+        notes: rejectReason.trim(),
       });
 
       if (res.error) {
         toast.error(res.error);
       } else {
         toast.success(res.success);
+        setRejectingId(null);
+        setRejectReason("");
         router.refresh();
       }
     });
@@ -275,7 +283,7 @@ function PendingLoansSection({ loans }: { loans: any[] }) {
               value: format(new Date(loan.applied_at), "MMM d, yyyy"),
             },
             { label: "Reference", value: loan.loan_reference },
-            { label: "Purpose", value: loan.purpose || "Walang note" },
+            { label: "Purpose", value: loan.purpose || "No note" },
           ]}
           actions={
             <>
@@ -286,14 +294,41 @@ function PendingLoansSection({ loans }: { loans: any[] }) {
               >
                 Approve
               </Button>
-              <Button
-                disabled={isPending}
-                variant="outline"
-                onClick={() => handleReject(loan.loan_id)}
-                className="flex-1 rounded-xl border-rose-200 text-rose-600 hover:bg-rose-50"
-              >
-                Reject
-              </Button>
+              {rejectingId === loan.loan_id ? (
+                <div className="flex flex-col gap-2 w-full">
+                  <textarea
+                    value={rejectReason}
+                    onChange={(e) => setRejectReason(e.target.value)}
+                    placeholder="Enter rejection reason..."
+                    className="w-full text-sm p-2 border border-rose-200 rounded-xl resize-none h-20 focus:outline-none focus:ring-2 focus:ring-rose-300"
+                  />
+                  <div className="flex gap-2">
+                    <Button
+                      disabled={isPending}
+                      onClick={() => handleReject(loan.loan_id)}
+                      className="flex-1 rounded-xl bg-rose-600 text-white hover:bg-rose-700"
+                    >
+                      {isPending ? "Rejecting..." : "Confirm Reject"}
+                    </Button>
+                    <Button
+                      variant="outline"
+                      onClick={() => { setRejectingId(null); setRejectReason(""); }}
+                      className="rounded-xl"
+                    >
+                      Cancel
+                    </Button>
+                  </div>
+                </div>
+              ) : (
+                <Button
+                  disabled={isPending}
+                  variant="outline"
+                  onClick={() => setRejectingId(loan.loan_id)}
+                  className="flex-1 rounded-xl border-rose-200 text-rose-600 hover:bg-rose-50"
+                >
+                  Reject
+                </Button>
+              )}
             </>
           }
         />

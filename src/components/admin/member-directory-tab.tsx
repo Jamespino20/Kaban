@@ -1,7 +1,18 @@
 "use client";
 
 import React, { useEffect, useMemo, useState } from "react";
-import { Users2, Search, MoreVertical, ShieldCheck, Clock } from "lucide-react";
+import {
+  Users2,
+  Search,
+  MoreVertical,
+  ShieldCheck,
+  Clock,
+  Eye,
+  Ban,
+  CheckCircle2,
+  UserCog,
+  Trash2,
+} from "lucide-react";
 import {
   Select,
   SelectContent,
@@ -9,6 +20,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 import { CreateStaffModal } from "./create-staff-modal";
 
@@ -397,9 +415,42 @@ export function MemberDirectoryTab({
                         </div>
                       </td>
                       <td className="px-6 py-4 text-right">
-                        <button className="p-2 hover:bg-white hover:shadow-sm rounded-lg transition-all text-slate-400 hover:text-slate-900 border border-transparent hover:border-slate-100">
-                          <MoreVertical className="w-4 h-4" />
-                        </button>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <button className="p-2 hover:bg-white hover:shadow-sm rounded-lg transition-all text-slate-400 hover:text-slate-900 border border-transparent hover:border-slate-100 dark:hover:bg-slate-800 dark:hover:text-slate-200">
+                              <MoreVertical className="w-4 h-4" />
+                            </button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent
+                            align="end"
+                            className="w-48 rounded-2xl border-slate-200 p-1.5 shadow-lg"
+                          >
+                            <DropdownMenuItem className="rounded-xl py-2.5 text-sm cursor-pointer">
+                              <Eye className="mr-2.5 h-4 w-4 text-slate-400" />
+                              View Profile
+                            </DropdownMenuItem>
+                            <DropdownMenuItem className="rounded-xl py-2.5 text-sm cursor-pointer">
+                              <UserCog className="mr-2.5 h-4 w-4 text-slate-400" />
+                              Edit Details
+                            </DropdownMenuItem>
+                            {member.status === "active" ? (
+                              <DropdownMenuItem className="rounded-xl py-2.5 text-sm cursor-pointer text-amber-600">
+                                <Ban className="mr-2.5 h-4 w-4" />
+                                Suspend Member
+                              </DropdownMenuItem>
+                            ) : (
+                              <DropdownMenuItem className="rounded-xl py-2.5 text-sm cursor-pointer text-emerald-600">
+                                <CheckCircle2 className="mr-2.5 h-4 w-4" />
+                                Activate Member
+                              </DropdownMenuItem>
+                            )}
+                            <DropdownMenuSeparator className="my-1 bg-slate-100" />
+                            <DropdownMenuItem className="rounded-xl py-2.5 text-sm cursor-pointer text-rose-600">
+                              <Trash2 className="mr-2.5 h-4 w-4" />
+                              Deactivate
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
                       </td>
                     </tr>
                   );

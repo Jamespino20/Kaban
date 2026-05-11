@@ -127,8 +127,8 @@ export function FeedbackTab({
             </p>
             <div className="mt-1 flex items-center gap-3">
               <span className="text-sm font-black text-slate-900">
-                {filteredEntries.length} entry
-                {filteredEntries.length === 1 ? "" : "ies"}
+                {filteredEntries.length}{" "}
+                {filteredEntries.length === 1 ? "entry" : "entries"}
               </span>
               <span className="rounded-full bg-slate-900 px-2 py-1 text-[10px] font-black text-white">
                 {currentPage}/{totalPages}

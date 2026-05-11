@@ -18,7 +18,7 @@ export async function getTenantOverview() {
       totalFunds,
       totalActiveLoans,
       totalMembers,
-      totalLenders,
+      totalOperators,
       tenantTrustScore,
       paymentScore,
       businessScore,
@@ -30,7 +30,7 @@ export async function getTenantOverview() {
       fundsGrowth,
       loansGrowth,
       membersGrowth,
-      lendersGrowth,
+      operatorsGrowth,
     ] = await prisma.$withTenant(tenantId, async (tx) => {
       return await tx.$transaction([
         // Total funds (sum of wallet balances)
@@ -51,10 +51,10 @@ export async function getTenantOverview() {
           FROM users WHERE role = 'member'
         `,
 
-        // Total lenders
+        // Total operators
         tx.$queryRaw`
           SELECT COUNT(*) as count
-          FROM users WHERE role = 'lender'
+          FROM users WHERE role = 'operator'
         `,
 
         // Tenant trust score (average)
@@ -180,9 +180,9 @@ export async function getTenantOverview() {
     const membersResult = Array.isArray(totalMembers)
       ? totalMembers[0]
       : totalMembers;
-    const lendersResult = Array.isArray(totalLenders)
-      ? totalLenders[0]
-      : totalLenders;
+    const operatorsResult = Array.isArray(totalOperators)
+      ? totalOperators[0]
+      : totalOperators;
     const trustResult = Array.isArray(tenantTrustScore)
       ? tenantTrustScore[0]
       : tenantTrustScore;
@@ -208,9 +208,9 @@ export async function getTenantOverview() {
     const membersGrowthResult = Array.isArray(membersGrowth)
       ? membersGrowth[0]
       : membersGrowth;
-    const lendersGrowthResult = Array.isArray(lendersGrowth)
-      ? lendersGrowth[0]
-      : lendersGrowth;
+    const operatorsGrowthResult = Array.isArray(operatorsGrowth)
+      ? operatorsGrowth[0]
+      : operatorsGrowth;
 
     return {
       success: true,
@@ -218,7 +218,7 @@ export async function getTenantOverview() {
         totalFunds: fundsResult?.total || 0,
         totalActiveLoans: Number(loansResult?.count || 0),
         totalMembers: Number(membersResult?.count || 0),
-        totalLenders: Number(lendersResult?.count || 0),
+        totalOperators: Number(operatorsResult?.count || 0),
         tenantTrustScore: trustResult?.avg_score
           ? Number(trustResult.avg_score)
           : 0,
@@ -239,7 +239,7 @@ export async function getTenantOverview() {
         fundsGrowth: Number(fundsGrowthResult?.growth || 0),
         loansGrowth: Number(loansGrowthResult?.growth || 0),
         membersGrowth: Number(membersGrowthResult?.growth || 0),
-        lendersGrowth: Number(lendersGrowthResult?.growth || 0),
+        operatorsGrowth: Number(operatorsGrowthResult?.growth || 0),
       },
     };
   } catch (error) {

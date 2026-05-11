@@ -1,6 +1,0 @@
-src/actions/superadmin-actions.ts(1071,9): error TS2353: Object literal may only specify known properties, and 'tenant_price' does not exist in type '(Without<SubscriptionPlanCreateInput, SubscriptionPlanUncheckedCreateInput> & SubscriptionPlanUncheckedCreateInput) | (Without<...> & SubscriptionPlanCreateInput)'.
-npm notice
-npm notice New minor version of npm available! 11.12.1 -> 11.14.1
-npm notice Changelog: https://github.com/npm/cli/releases/tag/v11.14.1
-npm notice To update run: npm install -g npm@11.14.1
-npm notice

@@ -128,7 +128,7 @@ export const CreateProductForm = ({ onSuccess }: CreateProductFormProps) => {
           tenant-managed amount ranges, and 25% default guarantor liability.
         </div>
 
-        <div className="rounded-2xl border border-slate-200 bg-white p-4">
+        <div className="dashboard-card p-4">
           <div className="mb-3">
             <p className="text-sm font-bold text-slate-900">
               Optional PRD templates

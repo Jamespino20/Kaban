@@ -360,10 +360,12 @@ export function LandingClient({ tenants }: { tenants: Tenant[] }) {
               clearer records for members, admins, and cooperative tenants.
             </p>
             <div className="flex flex-wrap gap-4">
-              <PublicTenantSelector
-                tenants={tenants}
-                triggerClassName="bg-emerald-600 hover:bg-emerald-700 text-white font-bold h-12 px-8 rounded-full shadow-lg shadow-emerald-900/20 transition-all flex items-center justify-between gap-3 text-lg"
-              />
+              <Link
+                href="/contact"
+                className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold h-12 px-8 rounded-full shadow-lg shadow-emerald-900/20 transition-all flex items-center justify-between gap-3 text-lg"
+              >
+                Apply for Agapay
+              </Link>
               <a
                 href="#calculator"
                 className="px-10 py-3 bg-slate-200/85 backdrop-blur-md text-slate-900 font-bold rounded-2xl hover:bg-slate-300 transition-all flex items-center gap-3 border border-slate-300/30 cursor-pointer"
@@ -627,10 +629,12 @@ export function LandingClient({ tenants }: { tenants: Tenant[] }) {
                   a static wallet experience.
                 </p>
                 <div className="flex flex-wrap gap-6 justify-center">
-                  <PublicTenantSelector
-                    tenants={tenants}
-                    triggerClassName="bg-white hover:bg-emerald-50 text-emerald-700 font-black h-14 px-10 rounded-full shadow-xl shadow-emerald-900/20 transition-all flex items-center justify-between gap-3 text-xl"
-                  />
+                  <Link
+                    href="/contact"
+                    className="bg-white hover:bg-emerald-50 text-emerald-700 font-black h-14 px-10 rounded-full shadow-xl shadow-emerald-900/20 transition-all flex items-center justify-between gap-3 text-xl"
+                  >
+                    Apply for Agapay Now
+                  </Link>
                   <Link
                     href="/contact"
                     className="px-12 py-5 bg-transparent border-2 border-white/40 text-white font-bold rounded-2xl hover:bg-white hover:text-emerald-700 transition-all text-lg shadow-xl shadow-black/5"

@@ -34,8 +34,11 @@ export function Navbar({ forceSolid = false, tenants = [] }: NavbarProps) {
   const navItems = [
     { label: "Why Agapay", href: "/#why-agapay" },
     { label: "Features", href: "/#features" },
+    { label: "Calculator", href: "/#calculator" },
+    { label: "Pricing", href: "/pricing" },
     { label: "Testimonials", href: "/#testimonials" },
     { label: "FAQs", href: "/#faqs" },
+    { label: "Contact", href: "/contact" },
   ];
 
   return (

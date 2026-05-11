@@ -45,7 +45,7 @@ export const LoanApplicationTab = () => {
 
   if (loading) {
     return (
-      <div className="rounded-[1.75rem] border border-slate-100 bg-white p-10 text-center text-slate-400">
+      <div className="dashboard-card p-10 text-center text-slate-400">
         Fetching products...
       </div>
     );
@@ -61,7 +61,7 @@ export const LoanApplicationTab = () => {
           &larr; Back to Products
         </button>
 
-        <div className="grid grid-cols-1 overflow-hidden rounded-[1.75rem] border border-emerald-100 bg-white shadow-xl md:grid-cols-2">
+        <div className="dashboard-card grid grid-cols-1 overflow-hidden border border-emerald-100 bg-white shadow-xl md:grid-cols-2">
           <div className="space-y-5 bg-slate-900 p-6 text-white md:p-8">
             <div className="flex h-14 w-14 items-center justify-center rounded-3xl bg-emerald-500">
               <TrendingUp className="h-7 w-7 text-white" />
@@ -124,14 +124,14 @@ export const LoanApplicationTab = () => {
 
       <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
         {products.length === 0 ? (
-          <div className="col-span-full rounded-[1.75rem] border border-dashed border-slate-200 bg-white p-10 text-center italic text-slate-400">
+          <div className="dashboard-card border-dashed border-slate-200 bg-white/90 p-10 text-center italic text-slate-400">
             No loan products are currently available. Please check back later.
           </div>
         ) : (
           products.map((product) => (
             <div
               key={product.product_id}
-              className="group flex flex-col justify-between rounded-[1.5rem] border border-slate-100 bg-white p-5 shadow-sm transition-all hover:-translate-y-1 hover:shadow-xl"
+              className="dashboard-card group flex flex-col justify-between p-5 transition-all hover:-translate-y-1 hover:shadow-xl"
             >
               <div className="space-y-4">
                 <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-600 transition-transform group-hover:scale-110">

@@ -8,13 +8,16 @@ import { getActiveTenantsForNav } from "@/actions/tenant-management";
 
 export default async function TenantIndexPage({
   params,
+  searchParams,
 }: {
   params: { tenant: string };
+  searchParams: { preview?: string };
 }) {
   const { tenant } = params;
+  const isPreview = searchParams.preview === "true";
   const session = await auth();
 
-  if (session?.user?.id) {
+  if (session?.user?.id && !isPreview) {
     // Redirect to the appropriate portal based on role
     if (session.user.role === "member") {
       redirect(`/${tenant}/agapay-pintig`);

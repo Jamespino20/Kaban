@@ -75,12 +75,12 @@ export default async function TenantOverviewTab() {
           trend={membersGrowth}
         />
         <KPIMetricCard
-          label="Total Lenders"
-          value={data.totalLenders.toLocaleString()}
+          label="Total Operators"
+          value={data.totalOperators.toLocaleString()}
           iconName="piggy-bank"
           trend={{
-            value: data.lendersGrowth,
-            isPositive: data.lendersGrowth > 0,
+            value: data.operatorsGrowth,
+            isPositive: data.operatorsGrowth > 0,
           }}
         />
       </div>

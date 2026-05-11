@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useTransition } from "react";
+import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -27,6 +28,8 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { getTenantApplicationsForReview } from "@/actions/superadmin-actions";
+import { processApplication } from "@/actions/tenant-applications";
 
 // Application status badge colors
 const statusColors: Record<string, string> = {
@@ -69,14 +72,18 @@ export function SuperadminApprovalsTab({ initialApplications = [] }: ApprovalsTa
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [isLoading, setIsLoading] = useState(!initialApplications.length);
   const [expandedCard, setExpandedCard] = useState<number | null>(null);
+  const [, startTransition] = useTransition();
 
   // Fetch applications on mount
   useEffect(() => {
     async function fetchApplications() {
       try {
-        // This would call the actual action
-        // const response = await getTenantApplicationsFiltered();
-        // if (response.success) setApplications(response.data);
+        const response = await getTenantApplicationsForReview();
+        if (response.success && response.data) {
+          setApplications(response.data as unknown as TenantApplication[]);
+        }
+      } catch (error) {
+        console.error("Failed to fetch applications:", error);
       } finally {
         setIsLoading(false);
       }
@@ -101,21 +108,31 @@ export function SuperadminApprovalsTab({ initialApplications = [] }: ApprovalsTa
 
   // Handle approve/reject
   async function handleProcess(applicationId: number, action: "approve" | "reject") {
-    try {
-      // This would call the action
-      // await processApplication(applicationId, action);
-      // Refresh the list
-      alert(`${action === "approve" ? "Approved" : "Rejected"} application ${applicationId}`);
-    } catch (error) {
-      console.error("Failed to process:", error);
-    }
+    startTransition(async () => {
+      try {
+        const result = await processApplication(applicationId, action);
+        if (result.success) {
+          toast.success(`Application ${action === "approve" ? "approved" : "rejected"} successfully`);
+          // Refresh the list
+          const response = await getTenantApplicationsForReview();
+          if (response.success && response.data) {
+            setApplications(response.data as unknown as TenantApplication[]);
+          }
+        } else {
+          toast.error(result.error || "Failed to process application");
+        }
+      } catch (error) {
+        console.error("Failed to process:", error);
+        toast.error("An unexpected error occurred");
+      }
+    });
   }
 
   if (isLoading) {
     return (
       <div className="space-y-4">
         {[1, 2, 3].map((i) => (
-          <div key={i} className="rounded-[1.75rem] border border-slate-200 bg-white p-6 shadow-sm">
+          <div key={i} className="dashboard-card p-6">
             <div className="flex items-center gap-4">
               <Skeleton className="h-12 w-12 rounded-2xl" />
               <div className="flex-1 space-y-2">
@@ -177,7 +194,7 @@ export function SuperadminApprovalsTab({ initialApplications = [] }: ApprovalsTa
       {/* Applications Grid */}
       <div className="grid gap-4">
         {filteredApplications.length === 0 ? (
-          <div className="rounded-[1.75rem] border border-dashed border-slate-200 bg-slate-50 p-12 text-center">
+          <div className="dashboard-card border-dashed border-slate-200 bg-slate-50 p-12 text-center">
             <FileText className="h-12 w-12 text-slate-300 mx-auto mb-4" />
             <h3 className="text-slate-900 font-medium mb-2">No applications found</h3>
             <p className="text-slate-500">
