@@ -2,7 +2,8 @@
 
 import { useState, useTransition } from "react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 import {
   AlertTriangle,
   Download,
@@ -412,20 +413,17 @@ export function TenantManagementTab({
                         <PowerOff className="w-4 h-4 mr-2" />
                         {t.slug === "main-tenant" ? "HQ" : "Suspend"}
                       </Button>
-                      <Button
-                        variant="secondary"
-                        className="text-xs font-bold"
-                        asChild
+                      <a
+                        href={`/${t.slug}/agapay-tanaw`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className={cn(
+                          buttonVariants({ variant: "secondary" }),
+                          "text-xs font-bold",
+                        )}
                       >
-                        <a
-                          href={`/${t.slug}/agapay-tanaw`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                        >
-                          <ExternalLink className="w-4 h-4 mr-2" /> View
-                          Dashboard
-                        </a>
-                      </Button>
+                        <ExternalLink className="w-4 h-4 mr-2" /> View Dashboard
+                      </a>
                     </div>
                   </div>
                 ) : (
