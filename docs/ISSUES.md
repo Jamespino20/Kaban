@@ -1,4 +1,4 @@
-# ISSUES (Updated 2026-05-12)
+# ISSUES (Updated 2026-05-13)
 
 ## SYSTEMWIDE ISSUES
 
@@ -8,7 +8,7 @@
 
 ### Platform Homepage
 
-### Color Palette 
+### Color Palette
 Agapay Platform should use npx shadcn@latest init --preset b2oqW07n6 --base base --template next --rtl --pointer
 
 #### Tenant
@@ -54,7 +54,7 @@ Agapay Platform should use npx shadcn@latest init --preset b2oqW07n6 --base base
 - [~] Hardcoded slate colors partially fixed (sidebar now uses brand colors)
 - [x] Inactivity timeout/warning modal implemented (idle-session-timer.tsx)
 - [~] Remove dark mode while retaining tenant branding (light mode is default)
-- [~] Form inputs should be saved even when accidentally exited (useFormPersistence hook exists, needs wiring to more forms)
+- [~] Form inputs should be saved even when accidentally exited (useFormPersistence wired to registration, admin profile, member settings, and loan application forms)
 - [ ] Updates and changes do not happen or show up in realtime, but rather in every window refresh
 - [ ] Error toasts could be more explicit in what went wrong
 - [ ] Numerical inputs should be automatically filled out
@@ -83,9 +83,9 @@ Agapay Platform should use npx shadcn@latest init --preset b2oqW07n6 --base base
 - [x] Settings and Audit Logs at the very bottom (System category)
 - [ ] Operators should not have an interest tier of their own [Overview]
 - [x] Payment Intake and Capital Top-Up ledger errors fixed (postLedgerEntry uses account connect)
-- [ ] Capital Top-Ups from Members should be processed automatic (handled by the system)
+- [x] Capital Top-Ups from Members should be processed automatic (handled by the system)
 - [x] Capital and Investments contains redundant KPIs (AnalyticsDashboardTab placeholder)
-- [ ] Member Management has nonfunctional three-dot actions
+- [x] Member Management three-dot actions are functional (DropdownMenu with View Profile, Edit Details, Reset Password, Activity Log, Send Notification, Suspend/Activate/Deactivate)
 - [ ] At Homepage Content, Operator can edit tenant hero section
 - [ ] Community should allow the operator to chat as well, right now it's just a preview
 - [ ] In Settings there are no capabilities for personal information
@@ -97,12 +97,12 @@ Agapay Platform should use npx shadcn@latest init --preset b2oqW07n6 --base base
 - [ ] Loan Application's form could have clearer terms, conditions, and policies
 - [ ] My Loans can also be Repayment, so we might as well remove the Repayment module
 - [ ] The card's elements could be laid out better with summary details and will be expanded by clicking on it
-- [ ] When the loan amount is low, Installments are always 0/0, which softlocks the user from paying at all
+- [x] When the loan amount is low, Installments are always 0/0, which softlocks the user from paying at all (fixed: shows "—" instead of "0/0", schedule section always visible with helpful message)
 - [x] Processed repayments not updating to paid fixed (verifySubmittedPayment now handles partial payments)
 - [ ] Community module is still a mess in layout and functionalities
 - [ ] Closely timed messages should be closer together (shouldGroupMessages with 5-min threshold exists)
 - [ ] Support System's Survey should be more structured
-- [ ] Settings should also allow profile image editing, account/personal information, preferences, security details, TnC and other policies, account deactivation, download backup, and more
+- [x] Settings now includes profile image editing, account/personal information with form persistence, preferences, security details, TnC and other policies, account deactivation, download backup
 
 ### Legend
 - [x] = Fixed/Implemented

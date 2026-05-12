@@ -35,12 +35,29 @@ The previous issue-derived matrix has been replaced. All entries below are sourc
    - Fixed build-blocking TypeScript error in `src/components/member/loan-servicing-tab.tsx` by adding `installment_number` to `LoanScheduleItem` type.
    - Verified successful local production build (`npm run build`).
 
-**Implementation Files Referenced (this session):**
-- Site actions: `src/actions/site-content.ts`
-- Audit actions: `src/actions/audit-logs.ts`
-- Member components: `src/components/admin/member-directory-tab.tsx`, `src/components/admin/edit-member-modal.tsx`, `src/components/admin/member-activity-modal.tsx`
-- Layout components: `src/components/layout/navbar.tsx`, `src/components/layout/footer.tsx`, `src/components/layout/public-tenant-selector.tsx`
-- Page components: `src/app/[tenant]/page.tsx`
+### Completed Fixes in Session 2026-05-13:
+1. **Registration Draft Persistence (FL-05/FL-14):**
+   - Wired `useFormPersistence` hook to `EnhancedRegisterForm` with `dismissDraftNotice` integration on success card.
+   - Added `useEffect` to auto-clear draft when registration succeeds.
+   - Files: `src/components/auth/enhanced-register-form.tsx`
+2. **Loan Payment Error Message (FL-31):**
+   - Fixed `payLoanWithWallet` error message in `wallet-actions.ts` — replaced Tagalog message ("Kulang ang pondo sa iyong wallet.") with English equivalent: "Insufficient wallet balance. Please top up your wallet before making this payment."
+   - File: `src/actions/wallet-actions.ts`
+3. **Admin Profile Settings Form Persistence (TO-21):**
+   - Converted `AdminProfileSettings` to use `react-hook-form` with `useFormPersistence` for draft save/restore.
+   - Added draft notice banner, beforeunload warning, and dismiss functionality.
+   - File: `src/components/admin/admin-profile-settings.tsx`
+4. **Member Settings Form Persistence (TM-09):**
+   - Converted `MemberSettingsTab` profile fields to use `react-hook-form` with `useFormPersistence`.
+   - Replaced manual `renderEditableField` pattern with `Form`/`FormField` components.
+   - Added draft notice banner and auto-save with draft recovery.
+   - File: `src/components/member/member-settings-tab.tsx`
+5. **Member Directory Row Actions Verified (TO-11):**
+   - Verified `MemberRowActions` dropdown menu is functional with proper handlers for View Profile, Edit Details, Reset Password, Activity Log, Send Notification, Suspend/Activate/Deactivate.
+   - File: `src/components/admin/member-directory-tab.tsx`
+6. **ISSUES.md Updated:**
+   - Marked several items as completed, updated descriptions to reflect actual implementation state.
+   - File: `docs/ISSUES.md`
 
 ---
 

@@ -43,7 +43,7 @@ export const getPrisma = () => {
   }
 
   const adapterMode = process.env.AGAPAY_PRISMA_ADAPTER?.toLowerCase();
-  const useHttp = adapterMode === "http" || process.env.VERCEL_ENV === "production";
+  const useHttp = adapterMode === "http"; // HTTP only if explicitly requested
   const adapter = useHttp
     ? new PrismaNeonHttp(connectionString, {} as any)
     : new PrismaNeon({ connectionString } as any);
