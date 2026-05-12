@@ -97,6 +97,10 @@ export default async function AgapayTanawPage({
     redirect(`/${tenant}/agapay-pintig`);
   }
 
+  const adminProfileData = await prisma.userProfile.findUnique({
+    where: { user_id: session.user.user_id },
+    select: { first_name: true, last_name: true, photo_url: true },
+  });
   const userName = session?.user?.username || "Operator";
   const userRole = session?.user?.role || "operator";
   const roleLabel = getTanawRoleLabel(userRole);
@@ -623,10 +627,11 @@ export default async function AgapayTanawPage({
             <div className="grid w-full max-w-5xl gap-6">
               <AdminProfileSettings
                 initialData={{
-                  firstName: userName,
-                  lastName: "",
+                  firstName: adminProfileData?.first_name || userName,
+                  lastName: adminProfileData?.last_name || "",
                   email: session?.user?.email || "",
                   phone: "",
+                  photoUrl: adminProfileData?.photo_url,
                 }}
               />
 

@@ -658,18 +658,29 @@ export async function sendConversationMessage(input: {
 }) {
   const { session, tenantId } = await requireCommunityTenantContext();
 
-  if (!tenantId) {
-    return { error: "Please select a tenant before sending a message." };
-  }
-
   if (!input.content?.trim() && !input.attachments?.length) {
     return { error: "Please enter a message or attach a file." };
   }
 
-  const result = await prisma.$withTenant(tenantId, async (tx) => {
+  // Resolve tenant context: superadmin may not have tenantId, derive from conversation
+  let resolvedTenantId = tenantId;
+  if (!resolvedTenantId && session.user.role === "superadmin") {
+    const conv = await prisma.conversation.findUnique({
+      where: { id: input.conversationId },
+      select: { tenant_id: true },
+    });
+    if (!conv) return { error: "Conversation not found." };
+    resolvedTenantId = conv.tenant_id;
+  }
+
+  if (!resolvedTenantId) {
+    return { error: "Please select a tenant before sending a message." };
+  }
+
+  const result = await prisma.$withTenant(resolvedTenantId, async (tx) => {
     const message = await tx.message.create({
       data: {
-        tenant_id: tenantId,
+        tenant_id: resolvedTenantId,
         conversation_id: input.conversationId,
         sender_id: session.user.user_id,
         content: input.content.trim(),
@@ -677,7 +688,7 @@ export async function sendConversationMessage(input: {
         attachments: input.attachments
           ? {
               create: input.attachments.map((a) => ({
-                tenant_id: tenantId,
+                tenant_id: resolvedTenantId,
                 file_name: a.fileName,
                 file_url: a.fileUrl,
                 mime_type: a.mimeType,

@@ -5,7 +5,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { toast } from "sonner";
-import { Building2, Map, UploadCloud, X } from "lucide-react";
+import { Building2, Map, UploadCloud, X, CreditCard } from "lucide-react";
 
 import {
   Form,
@@ -19,6 +19,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { createTenant, getRegions } from "@/actions/tenant-management";
+import { getSubscriptionPlans } from "@/actions/superadmin-actions";
 import { MockHomepagePreview } from "./mock-homepage-preview";
 
 const MAX_FILE_BYTES = 5 * 1024 * 1024; // 5 MB
@@ -35,6 +36,7 @@ const TenantSchema = z.object({
   mission: z.string(),
   vision: z.string(),
   enabledFeatures: z.array(z.string()).min(1, "Required"),
+  planId: z.string().optional(),
 });
 
 type TenantFormValues = z.infer<typeof TenantSchema>;
@@ -46,6 +48,7 @@ export function CreateTenantForm({
 }) {
   const [isPending, startTransition] = useTransition();
   const [regions, setRegions] = useState<{ id: number; name: string }[]>([]);
+  const [plans, setPlans] = useState<any[]>([]);
   const [logoDataUrl, setLogoDataUrl] = useState<string>("");
   const [brandColor, setBrandColor] = useState("#10b981");
   const [accentColor, setAccentColor] = useState("#3b82f6");
@@ -53,6 +56,9 @@ export function CreateTenantForm({
 
   useEffect(() => {
     getRegions().then(setRegions as any);
+    getSubscriptionPlans().then((r) => {
+      if (r.success && r.data) setPlans(r.data);
+    });
   }, []);
 
   const form = useForm<TenantFormValues>({
@@ -67,6 +73,7 @@ export function CreateTenantForm({
       mission: "",
       vision: "",
       enabledFeatures: ["loans", "wallet", "community"],
+      planId: "",
     },
   });
 
@@ -140,6 +147,7 @@ export function CreateTenantForm({
           mission: values.mission,
           vision: values.vision,
           enabledFeatures: values.enabledFeatures,
+          planId: values.planId ? parseInt(values.planId) : undefined,
         },
       );
       if (res.success) {
@@ -154,9 +162,9 @@ export function CreateTenantForm({
   };
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-5 gap-6 pt-4">
+    <div className="grid grid-cols-1 lg:grid-cols-5 gap-8 pt-4">
       {/* ── Left: Form ── */}
-      <div className="lg:col-span-3 space-y-6 max-h-[70vh] overflow-y-auto pr-2 scrollbar-hide">
+      <div className="lg:col-span-3 space-y-6 max-h-[80vh] overflow-y-auto pr-3 scrollbar-hide">
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
             {/* Section 1: Core Identity */}
@@ -225,6 +233,23 @@ export function CreateTenantForm({
                   </FormItem>
                 )}
               />
+            </div>
+
+            {/* Plan Selection */}
+            <div className="space-y-2">
+              <label className="text-xs font-bold uppercase tracking-widest text-slate-500">Subscription Plan</label>
+              <select
+                value={form.watch("planId")}
+                onChange={(e) => form.setValue("planId", e.target.value)}
+                className="w-full rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-bold text-slate-700 outline-none focus:ring-2 focus:ring-emerald-500/20"
+              >
+                <option value="">Select a plan (optional)</option>
+                {plans.map((p: any) => (
+                  <option key={p.id} value={p.id.toString()}>
+                    {p.tier_name} — ₱{Number(p.price_monthly).toLocaleString()}/mo ({p.max_members} members)
+                  </option>
+                ))}
+              </select>
             </div>
 
             {/* Section 2: Branding & Colors */}
@@ -405,7 +430,7 @@ export function CreateTenantForm({
 
       {/* ── Right: Live Preview ── */}
       <div className="lg:col-span-2 space-y-4">
-        <div className="sticky top-0 space-y-4">
+        <div className="sticky top-4 space-y-4">
           <div className="flex items-center justify-between px-1">
             <p className="text-xs font-bold uppercase tracking-widest text-slate-400">
               Landscape Preview
@@ -414,7 +439,7 @@ export function CreateTenantForm({
               Synchronized
             </span>
           </div>
-          <div className="h-[520px] w-full">
+          <div className="h-[600px] w-full">
             <MockHomepagePreview
               branding={{
                 logoUrl: logoDataUrl || undefined,

@@ -50,7 +50,7 @@ export function Navbar({ forceSolid = false, tenants = [] }: NavbarProps) {
           : "bg-transparent"
       }`}
     >
-      <div className="max-w-[90rem] mx-auto flex items-center justify-between">
+      <div className="max-w-[100rem] mx-auto flex items-center justify-between">
         {/* Logo */}
         <Link href="/" className="flex items-center gap-4 group cursor-pointer">
           <div className="w-32 h-12 flex items-center justify-center transition-transform group-hover:scale-105">
@@ -65,7 +65,7 @@ export function Navbar({ forceSolid = false, tenants = [] }: NavbarProps) {
         </Link>
 
         {/* Desktop Nav */}
-        <nav className="hidden md:flex items-center gap-6 xl:gap-8">
+        <nav className="hidden md:flex items-center gap-3 xl:gap-5">
           {navItems.map((item) => (
             <Link
               key={item.label}

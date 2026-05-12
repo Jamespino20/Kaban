@@ -1474,7 +1474,7 @@ export async function broadcastPlatformMessage(data: {
           VALUES (
             gen_random_uuid()::varchar,
             ${uid}::integer,
-            'platform_announcement'::"NotificationType",
+            'tenant_announcement'::"NotificationType",
             ${data.subject}::varchar,
             ${data.message}::varchar,
             false,

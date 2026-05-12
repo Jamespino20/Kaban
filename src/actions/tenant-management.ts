@@ -365,6 +365,7 @@ export async function createTenant(
     mission?: string;
     vision?: string;
     enabledFeatures?: string[];
+    planId?: number;
   },
 ) {
   await requireSuperadminSession();
@@ -392,6 +393,18 @@ export async function createTenant(
         },
       },
     });
+
+    // Create subscription if plan was selected
+    if (branding?.planId) {
+      await prisma.tenantSubscription.create({
+        data: {
+          tenant_id: tenant.tenant_id,
+          plan_id: branding.planId,
+          billing_cycle: "monthly",
+          status: "active",
+        },
+      });
+    }
 
     return { success: true, data: tenant };
   } catch (error: any) {

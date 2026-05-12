@@ -6,6 +6,7 @@
 
 ##  Systemwide
 - Lost the Fraunces and PlusJarkartaSans fonts
+- CSS is messy and does not speak "premium SaaS color palette"
 
 ### Database
 - Add username field, then randomize the member code. Do not attach the membercode to the username, then implement this naming convention: [username][slug][role_initials]

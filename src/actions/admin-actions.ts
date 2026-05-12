@@ -15,63 +15,58 @@ export async function updateProfileInfo(values: {
   lastName: string;
   email: string;
   phone: string;
+  photoUrl?: string;
 }) {
   const session = await requireTanawSession();
   const userId = session.user.user_id;
   const tenantId = session.user.tenantId;
 
+  const userData: any = { email: values.email.toLowerCase() };
+  if (values.phone) userData.phone = values.phone;
+
+  const profileData: any = {
+    first_name: values.firstName,
+    last_name: values.lastName,
+  };
+  if (values.photoUrl) profileData.photo_url = values.photoUrl;
+
+  const createProfileData: any = {
+    user_id: userId,
+    first_name: values.firstName,
+    last_name: values.lastName,
+    tenant_id: tenantId ?? -1,
+    gender: "Prefer not to say",
+    marital_status: "single",
+    region: "N/A",
+    province: "N/A",
+    city: "N/A",
+    barangay: "N/A",
+    address: "N/A",
+  };
+  if (values.photoUrl) createProfileData.photo_url = values.photoUrl;
+
   try {
     const updateUser = prisma.user.update({
       where: { user_id: userId },
-      data: {
-        email: values.email.toLowerCase(),
-        phone: values.phone,
-      },
+      data: userData,
     });
 
     const updateProfile = prisma.userProfile.upsert({
       where: { user_id: userId },
-      create: {
-        user_id: userId,
-        first_name: values.firstName,
-        last_name: values.lastName,
-        tenant_id: tenantId ?? -1,
-        gender: "Prefer not to say",
-        marital_status: "single",
-        region: "N/A",
-        province: "N/A",
-        city: "N/A",
-        barangay: "N/A",
-        address: "N/A",
-      },
-      update: {
-        first_name: values.firstName,
-        last_name: values.lastName,
-      },
+      create: createProfileData,
+      update: profileData,
     });
 
     if (tenantId) {
       await prisma.$withTenant(tenantId, async (tx) => {
         await tx.user.update({
           where: { user_id: userId },
-          data: { email: values.email.toLowerCase(), phone: values.phone },
+          data: userData,
         });
         await tx.userProfile.upsert({
           where: { user_id: userId },
-          create: {
-            user_id: userId,
-            first_name: values.firstName,
-            last_name: values.lastName,
-            tenant_id: tenantId,
-            gender: "Prefer not to say",
-            marital_status: "single",
-            region: "N/A",
-            province: "N/A",
-            city: "N/A",
-            barangay: "N/A",
-            address: "N/A",
-          },
-          update: { first_name: values.firstName, last_name: values.lastName },
+          create: { ...createProfileData, tenant_id: tenantId },
+          update: profileData,
         });
       });
     } else {

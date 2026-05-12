@@ -382,9 +382,10 @@ function SurveyForm({ tenantSlug }: { tenantSlug?: string }) {
         <p className="font-bold flex items-center gap-2">
           <Star className="h-4 w-4" /> Your responses help build your Trust Score
         </p>
-        <p className="text-xs mt-1 text-amber-700">
-          Survey answers are linked to your profile and contribute to your
-          cooperative trust rating. Honest feedback strengthens the community.
+        <p className="text-xs mt-1.5 text-amber-700">
+          Your ratings are linked to your member profile and fed into the cooperative's trust scoring algorithm.
+          Higher satisfaction scores positively influence your trust rating, demonstrating accountability and
+          community engagement. Honest and consistent feedback strengthens the entire cooperative.
         </p>
       </div>
       {SURVEY_QUESTIONS.map((q) => (

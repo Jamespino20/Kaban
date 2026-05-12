@@ -162,6 +162,14 @@ export const register = async (values: z.infer<typeof RegisterSchema>) => {
 
       const memberCode = `AGP-${user.user_id.toString().padStart(12, "0")}`;
 
+      await db.user.update({
+        where: { user_id: user.user_id },
+        data: { member_code: memberCode },
+      });
+
+      const roleInitials = "M";
+      const displayName = `${username}-${tenant.slug}-${roleInitials}`;
+
       const verificationToken = await generateVerificationToken(
         email,
         tenantId,
@@ -175,6 +183,7 @@ export const register = async (values: z.infer<typeof RegisterSchema>) => {
         success:
           "Confirmation email sent! Please verify your email to activate your account.",
         memberCode,
+        displayName,
       };
     };
 

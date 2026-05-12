@@ -16,11 +16,14 @@ export function AdminProfileSettings({
     lastName: string;
     email: string;
     phone: string;
+    photoUrl?: string | null;
   };
 }) {
   const [form, setForm] = useState(initialData);
   const [isPending, startTransition] = useTransition();
-  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(
+    initialData.photoUrl || null,
+  );
   const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -49,7 +52,10 @@ export function AdminProfileSettings({
       return;
     }
     startTransition(async () => {
-      const res = await updateProfileInfo(form);
+      const res = await updateProfileInfo({
+        ...form,
+        photoUrl: avatarUrl || undefined,
+      });
       if (res.success) {
         toast.success("Profile updated successfully.");
       } else {

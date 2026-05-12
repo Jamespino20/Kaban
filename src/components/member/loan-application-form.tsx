@@ -435,10 +435,11 @@ export const LoanApplicationForm = ({
                   </div>
                 </div>
                 <div className="border-t border-white/10 pt-3 text-[11px] text-slate-400 space-y-1.5">
-                  <p>• By submitting, you agree to the repayment schedule and all applicable fees.</p>
-                  <p>• Defaulting may result in guarantor enforcement and membership suspension.</p>
-                  <p>• Early full payment qualifies for 100% interest waiver.</p>
-                  <p>• All loan decisions are subject to tenant approval and credit evaluation.</p>
+                  <p>• <strong className="text-white">Repayment Obligation:</strong> You agree to repay the full amount plus interest per the selected schedule. Missed payments accrue penalty fees.</p>
+                  <p>• <strong className="text-white">Default Consequences:</strong> Defaulting may result in guarantor enforcement, membership suspension, credit score downgrade, and referral to a third-party collection agency.</p>
+                  <p>• <strong className="text-white">Early Settlement:</strong> Full early payment qualifies for a 100% interest waiver on remaining term. Partial prepayment is subject to re-computation.</p>
+                  <p>• <strong className="text-white">Data Privacy:</strong> Your personal and financial data will be processed solely for loan evaluation, credit reporting, and regulatory compliance per the Data Privacy Act.</p>
+                  <p>• All loan decisions are subject to tenant approval and credit evaluation. Terms may be updated with prior notice.</p>
                 </div>
               </div>
             </div>
