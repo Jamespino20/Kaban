@@ -97,16 +97,18 @@ async function requireLoanAdminAccess(loanId: number) {
       },
     });
 
-    if (!loan) {
-      throw new Error("Loan not found");
-    }
+if (!loan) {
+       throw new Error(`Loan application #${loanId} not found.`);
+     }
 
-    if (
-      session.user.role !== "superadmin" &&
-      loan.tenant_id !== session.user.tenantId
-    ) {
-      throw new Error("Unauthorized");
-    }
+     if (
+       session.user.role !== "superadmin" &&
+       loan.tenant_id !== session.user.tenantId
+     ) {
+       throw new Error(
+         `Unauthorized: User does not have access to loan #${loanId} in tenant ${tenantId}.`,
+       );
+     }
 
     return { session, loan, tenantId };
   };

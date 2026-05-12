@@ -58,6 +58,11 @@ The previous issue-derived matrix has been replaced. All entries below are sourc
 6. **ISSUES.md Updated:**
    - Marked several items as completed, updated descriptions to reflect actual implementation state.
    - File: `docs/ISSUES.md`
+7. **Sidebar UI Refinements (Global Layout):**
+   - Reduced sidebar horizontal padding from `px-4` to `px-3` in `AuthenticatedShell` to remove excessive indentations.
+   - Refined `getContrastColor` threshold (0.5) and updated semantic shades (`slate-900`) for navigation text readability.
+   - Balanced active state opacities for better visual feedback across all tenant brand colors.
+   - File: `src/components/layout/authenticated-shell.tsx`
 
 ---
 

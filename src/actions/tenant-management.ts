@@ -525,13 +525,15 @@ export async function renameTenant(values: z.infer<typeof RenameTenantSchema>) {
         select: { tenant_id: true, name: true },
       });
 
-      if (!existing) {
-        throw new Error("Tenant not found.");
-      }
+if (!existing) {
+         throw new Error(
+           `Tenant with ID ${targetTenantId} not found. Cannot update name.`,
+         );
+       }
 
-      const updated = await tx.tenant.update({
-        where: { tenant_id: targetTenantId },
-        data: { name: parsed.data.name },
+       const updated = await tx.tenant.update({
+         where: { tenant_id: targetTenantId },
+         data: { name: parsed.data.name },
       });
 
       await tx.auditLog.create({
@@ -586,11 +588,13 @@ export async function updateTenantEntitlement(
         },
       });
 
-      if (!existing) {
-        throw new Error("Tenant not found.");
-      }
+if (!existing) {
+         throw new Error(
+           `Tenant with ID ${parsed.data.tenantId} not found. Cannot update entitlement.`,
+         );
+       }
 
-      const activatingForFirstTime =
+       const activatingForFirstTime =
         parsed.data.entitlementStatus === "active" &&
         existing.lifetime_availed_at === null;
 

@@ -50,7 +50,7 @@ Agapay Platform should use npx shadcn@latest init --preset b2oqW07n6 --base base
 - [x] Sidebar indentation fixed (px-4 alignment)
 - [x] Contrast-aware sidebar text implemented
 - [x] Three-dot actions added to header dropdown
-- [~] Module contents are still in Tagalog (need audit)
+- [~] Module contents are still in Tagalog (need audit) — FIXED in action/error layers (2026-05-13)
 - [~] Hardcoded slate colors partially fixed (sidebar now uses brand colors)
 - [x] Inactivity timeout/warning modal implemented (idle-session-timer.tsx)
 - [~] Remove dark mode while retaining tenant branding (light mode is default)

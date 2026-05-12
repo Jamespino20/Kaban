@@ -83,7 +83,9 @@ function revalidateContentPaths() {
 function ensureHomepageEditorRole(role?: string | null) {
   const isOperator = role === "operator";
   if (!isOperator && role !== "superadmin") {
-    throw new Error("Unauthorized");
+    throw new Error(
+      `Role "${role}" is not authorized for homepage editing. Requires operator or superadmin.`,
+    );
   }
 }
 

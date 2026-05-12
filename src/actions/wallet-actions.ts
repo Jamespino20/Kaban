@@ -496,7 +496,7 @@ export async function processPosTransaction(data: {
           orderBy: { created_at: "desc" },
         });
 
-        if (!loan) throw new Error("Walang active na loan ang member na ito.");
+        if (!loan) throw new Error("No active loan found for this member.");
 
         const amountToApply = Math.min(
           data.amount,

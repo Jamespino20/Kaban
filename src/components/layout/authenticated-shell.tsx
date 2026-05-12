@@ -212,24 +212,26 @@ export function AuthenticatedShell({
   const getContrastColor = (hex?: string | null) => {
     if (!hex) return "white";
     const { r, g, b } = hexToRgb(hex);
-    const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
-    return luminance > 0.6 ? "black" : "white";
+    // Standard relative luminance formula
+    const luminance = (0.2126 * r + 0.7152 * g + 0.0722 * b) / 255;
+    // Lower threshold (0.5 instead of 0.6) for better black text on medium-light backgrounds
+    return luminance > 0.5 ? "black" : "white";
   };
 
   const contrastColor = getContrastColor(normalizedTenantColor);
   const isLight = contrastColor === "black";
-  const sidebarTextClass = isLight ? "text-slate-950" : "text-white";
-  const sidebarMutedClass = isLight ? "text-slate-600" : "text-white/70";
-  const sidebarBorderClass = isLight ? "border-slate-950/10" : "border-white/10";
+  const sidebarTextClass = isLight ? "text-slate-900" : "text-white";
+  const sidebarMutedClass = isLight ? "text-slate-500" : "text-white/60";
+  const sidebarBorderClass = isLight ? "border-slate-900/10" : "border-white/10";
   const sidebarHoverTextClass = isLight ? "hover:text-slate-950" : "hover:text-white";
   const sidebarActiveClass = isLight
-    ? "data-[state=active]:bg-slate-950/10 data-[state=active]:border-slate-950/30 data-[state=active]:text-slate-950"
-    : "data-[state=active]:bg-primary/20 data-[state=active]:border-primary/40 data-[state=active]:text-white";
+    ? "data-[state=active]:bg-slate-900/15 data-[state=active]:border-slate-900/25 data-[state=active]:text-slate-900"
+    : "data-[state=active]:bg-white/15 data-[state=active]:border-white/25 data-[state=active]:text-white";
   const iconBgContrastClass = isLight
-    ? "bg-slate-950/5 group-data-[state=active]:bg-slate-950/10 group-data-[state=active]:text-slate-950"
-    : "bg-white/5 group-data-[state=active]:bg-primary/20 group-data-[state=active]:text-white";
+    ? "bg-slate-900/5 group-data-[state=active]:bg-slate-900/20 group-data-[state=active]:text-slate-900"
+    : "bg-white/10 group-data-[state=active]:bg-white/20 group-data-[state=active]:text-white";
   const badgeContrastClass = isLight
-    ? "bg-slate-950/20 text-slate-950 border border-slate-950/10"
+    ? "bg-slate-900/10 text-slate-900 border border-slate-900/20"
     : "bg-white/20 text-white border border-white/10";
 
   const sidebarStyle = {
@@ -354,7 +356,7 @@ export function AuthenticatedShell({
 
       <div
         ref={navScrollRef}
-        className={`flex-1 px-4 pt-4 pb-3 ${navReady ? "overflow-y-auto" : "overflow-y-hidden"}`}
+        className={`flex-1 px-3 pt-4 pb-3 ${navReady ? "overflow-y-auto" : "overflow-y-hidden"}`}
       >
         <TabsList className="flex h-auto w-full flex-col justify-start gap-1 bg-transparent p-0">
           {(() => {
@@ -370,7 +372,7 @@ export function AuthenticatedShell({
                 {!collapsed && (
                   <h3
                     className={cn(
-                      "px-4 mb-2 text-[10px] font-black uppercase tracking-[0.2em] font-accent",
+                      "px-3 mb-2 text-[10px] font-black uppercase tracking-[0.2em] font-accent",
                       sidebarMutedClass,
                     )}
                   >
@@ -394,11 +396,11 @@ export function AuthenticatedShell({
                         window.dispatchEvent(event);
                       }}
                       className={cn(
-                        "group h-auto w-full justify-start rounded-2xl border border-transparent px-4 py-2.5 text-left transition-all cursor-pointer",
+                        "group h-auto w-full justify-start rounded-2xl border border-transparent px-3 py-2.5 text-left transition-all cursor-pointer",
                         sidebarMutedClass,
                         sidebarHoverTextClass,
                         sidebarActiveClass,
-                        collapsed ? "xl:px-4" : "",
+                        collapsed ? "xl:px-2" : "",
                       )}
                     >
                       <div className="flex w-full items-center gap-3">

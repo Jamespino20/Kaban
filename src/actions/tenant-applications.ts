@@ -78,7 +78,7 @@ export async function processApplication(
         where: { application_id: applicationId }
       });
       
-      if (!app) throw new Error("Application not found");
+      if (!app) throw new Error(`Tenant application not found: ${applicationId}.`);
       
       const newStatus = action === "approve" ? "approved" : "rejected";
       

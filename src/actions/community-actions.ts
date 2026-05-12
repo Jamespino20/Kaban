@@ -94,7 +94,7 @@ async function assertConversationAccess(
     });
 
     if (!conversation) {
-      throw new Error("Conversation not found.");
+      throw new Error(`Conversation not found for conversation ID: ${conversationId}.`);
     }
 
     const sameTenant =
@@ -104,14 +104,14 @@ async function assertConversationAccess(
         : session.user.tenantId === conversation.tenant_id;
 
     if (!sameTenant) {
-      throw new Error("Unauthorized");
+       throw new Error("Unauthorized: User does not belong to tenant of conversation " + conversationId + ".");
     }
 
     if (
       conversation.type === ConversationType.direct &&
       conversation.participants.length === 0
     ) {
-      throw new Error("Unauthorized");
+       throw new Error("Unauthorized: User is not a participant of direct conversation " + conversationId + ".");
     }
 
     return conversation;
@@ -538,7 +538,7 @@ export async function getConversationThread(
     });
 
     if (!thread) {
-      throw new Error("Conversation not found.");
+       throw new Error("Conversation thread not found for ID: " + conversationId + ".");
     }
 
     return {
@@ -784,7 +784,7 @@ export async function requestMentorship(input: {
       });
 
       if (!mentor) {
-        throw new Error("The selected mentor is not available in this tenant.");
+        throw new Error(`Mentor with user ID ${input.mentorUserId} not found or not available in tenant.`);
       }
 
       await tx.mentorshipConnection.upsert({
@@ -853,14 +853,14 @@ export async function reviewMentorshipConnection(input: {
       });
 
       if (!connection) {
-        throw new Error("Mentorship request not found.");
+        throw new Error(`Mentorship request not found for connection ID: ${input.connectionId}.`);
       }
 
       if (
         !canAccessTenantStaffResource(session, connection.tenant_id) &&
         session.user.role !== "superadmin"
       ) {
-        throw new Error("Unauthorized");
+        throw new Error("Unauthorized: User does not have staff access to tenant " + connection.tenant_id + ".");
       }
 
       await db.mentorshipConnection.update({

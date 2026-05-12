@@ -164,7 +164,7 @@ export async function reviewTenantApplication(
         where: { application_id: applicationId },
       });
 
-      if (!app) throw new Error("Application not found");
+      if (!app) throw new Error(`Application not found for ID: ${applicationId}.`);
 
       const updated = await tx.tenantApplication.update({
         where: { application_id: applicationId },

@@ -21,27 +21,33 @@ export async function refreshUserReputation(userId: number) {
       },
     });
 
-    if (!targetUser || !targetUser.tenant_id) {
-      throw new Error("User not found or no tenant associated");
-    }
+if (!targetUser || !targetUser.tenant_id) {
+       throw new Error(
+         `User ID ${userId} not found or has no tenant association.`,
+       );
+     }
 
     const targetTenantId = targetUser.tenant_id;
     const targetSlug = targetUser.tenant?.slug || null;
 
     // Authorization checks
-    if (session.user.role === "member") {
-      if (
-        session.user.user_id !== userId ||
-        session.user.tenantId !== targetTenantId
-      ) {
-        throw new Error("Unauthorized reputation refresh");
-      }
-    } else if (
-      session.user.role !== "superadmin" &&
-      session.user.tenantId !== targetTenantId
-    ) {
-      throw new Error("Unauthorized reputation refresh");
-    }
+if (session.user.role === "member") {
+       if (
+         session.user.user_id !== userId ||
+         session.user.tenantId !== targetTenantId
+       ) {
+         throw new Error(
+           `Unauthorized: Member ${session.user.user_id} cannot refresh reputation for user ${userId} in tenant ${targetTenantId}.`,
+         );
+       }
+     } else if (
+       session.user.role !== "superadmin" &&
+       session.user.tenantId !== targetTenantId
+     ) {
+       throw new Error(
+         `Unauthorized: User in tenant ${session.user.tenantId} cannot refresh reputation for user ${userId} in tenant ${targetTenantId}.`,
+       );
+     }
 
     const breakdown = await prisma.$withTenant(targetTenantId, async (tx) => {
       await syncUserTier(userId, targetTenantId, targetSlug, tx);
