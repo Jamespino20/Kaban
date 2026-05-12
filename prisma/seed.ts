@@ -345,6 +345,20 @@ async function main() {
   await prisma.tenant.deleteMany();
   await prisma.tenantGroup.deleteMany();
   await prisma.subscriptionPlan.deleteMany();
+  await prisma.ledgerAccount.deleteMany();
+
+  // 1.5 System-Wide Ledger Accounts
+  const ledgerAccounts = [
+    { code: "CASH_EQUIVALENTS", name: "Cash and Cash Equivalents", type: "ASSET" },
+    { code: "MEMBER_SAVINGS", name: "Member Savings Deposits", type: "LIABILITY" },
+    { code: "LOAN_RECEIVABLES", name: "Loan Receivables", type: "ASSET" },
+    { code: "INTEREST_INCOME", name: "Interest Income", type: "REVENUE" },
+    { code: "RECONC_DISCREPANCY", name: "Reconciliation Discrepancy", type: "EXPENSE" },
+  ];
+  for (const acc of ledgerAccounts) {
+    await prisma.ledgerAccount.create({ data: { ...acc, tenant_id: null } });
+  }
+  console.log("  ✅ System-wide ledger accounts seeded");
 
   // 2. Subscription Plans
   const plans = [

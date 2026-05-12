@@ -45,6 +45,14 @@ export const submitCoopApplication = async (values: {
     barangayCert: string | null;
     businessPermit: string | null;
   };
+  billing?: {
+    name: string;
+    email: string;
+    address: string;
+    city: string;
+    zip: string;
+    cardLast4: string;
+  };
 }) => {
   try {
     const planLabel = values.selectedPlanId
@@ -62,12 +70,16 @@ export const submitCoopApplication = async (values: {
       ? `\nDocuments: ${values.docs.validId ? "ID (v)" : "(x)"}, ${values.docs.barangayCert ? "Cert (v)" : "(x)"}, ${values.docs.businessPermit ? "Permit (v)" : "(x)"}`
       : "";
 
+    const billingNotes = values.billing
+      ? `\nBilling: ${values.billing.name} (${values.billing.email}), ${values.billing.address}, ${values.billing.city} ${values.billing.zip}. Card: ****${values.billing.cardLast4}`
+      : "";
+
     await prisma.tenant.create({
       data: {
         name: values.name,
         slug: `${slug}-${Math.floor(Math.random() * 1000)}`,
         entitlement_status: "prospect",
-        entitlement_notes: `Plan: ${planLabel} (${cycleLabel}). Application from ${values.email}. Phone: ${values.phone}. Region: ${values.region}. Estimated Members: ${values.membersCount}. Message: ${values.message}${docNotes}`,
+        entitlement_notes: `Plan: ${planLabel} (${cycleLabel}). Application from ${values.email}. Phone: ${values.phone}. Region: ${values.region}. Estimated Members: ${values.membersCount}. Message: ${values.message}${docNotes}${billingNotes}`,
       },
     });
 
@@ -78,7 +90,7 @@ export const submitCoopApplication = async (values: {
         email: values.email,
         category: "COOP_APPLICATION",
         subject: `New Cooperative Application: ${values.name}`,
-        message: `Region: ${values.region}\nMembers: ${values.membersCount}\nPhone: ${values.phone}\n\nMessage: ${values.message}`,
+        message: `Region: ${values.region}\nMembers: ${values.membersCount}\nPhone: ${values.phone}\nPlan: ${planLabel}\n\nMessage: ${values.message}${billingNotes}`,
       },
     });
 

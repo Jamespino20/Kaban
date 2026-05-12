@@ -141,7 +141,7 @@ export function VerificationQueueTab({ data }: VerificationQueueTabProps) {
                 <span className="text-sm font-black text-slate-900">
                   {activeMeta?.label}
                 </span>
-                <span className="rounded-full bg-slate-900 px-2 py-1 text-[10px] font-black text-white">
+                <span className="rounded-full bg-indigo-600 px-2 py-1 text-[10px] font-black text-white">
                   {activeMeta ? counts[activeMeta.key] : 0}
                 </span>
               </div>
@@ -167,7 +167,7 @@ export function VerificationQueueTab({ data }: VerificationQueueTabProps) {
               >
                 <span>{tab.label}</span>
                 {counts[tab.key] > 0 ? (
-                  <span className="rounded-full bg-slate-900 px-2 py-1 text-[10px] font-black text-white">
+                  <span className="rounded-full bg-indigo-600 px-2 py-1 text-[10px] font-black text-white">
                     {counts[tab.key]}
                   </span>
                 ) : null}
@@ -201,18 +201,24 @@ export function VerificationQueueTab({ data }: VerificationQueueTabProps) {
 
 function PendingLoansSection({ loans }: { loans: any[] }) {
   const router = useRouter();
+  const [processingId, setProcessingId] = useState<number | null>(null);
   const [isPending, startTransition] = useTransition();
   const [rejectingId, setRejectingId] = useState<number | null>(null);
   const [rejectReason, setRejectReason] = useState("");
 
   const handleApprove = (loanId: number) => {
+    setProcessingId(loanId);
     startTransition(async () => {
-      const res = await approveLoanApplication({ loanId });
-      if (res.error) {
-        toast.error(res.error);
-      } else {
-        toast.success(res.success);
-        router.refresh();
+      try {
+        const res = await approveLoanApplication({ loanId });
+        if (res.error) {
+          toast.error(res.error);
+        } else {
+          toast.success(res.success);
+          router.refresh();
+        }
+      } finally {
+        setProcessingId(null);
       }
     });
   };
@@ -222,19 +228,24 @@ function PendingLoansSection({ loans }: { loans: any[] }) {
       toast.error("Please enter a rejection reason");
       return;
     }
+    setProcessingId(loanId);
     startTransition(async () => {
-      const res = await rejectLoanApplication({
-        loanId,
-        notes: rejectReason.trim(),
-      });
+      try {
+        const res = await rejectLoanApplication({
+          loanId,
+          notes: rejectReason.trim(),
+        });
 
-      if (res.error) {
-        toast.error(res.error);
-      } else {
-        toast.success(res.success);
-        setRejectingId(null);
-        setRejectReason("");
-        router.refresh();
+        if (res.error) {
+          toast.error(res.error);
+        } else {
+          toast.success(res.success);
+          setRejectingId(null);
+          setRejectReason("");
+          router.refresh();
+        }
+      } finally {
+        setProcessingId(null);
       }
     });
   };
@@ -288,11 +299,11 @@ function PendingLoansSection({ loans }: { loans: any[] }) {
           actions={
             <>
               <Button
-                disabled={isPending}
+                disabled={isPending && processingId === loan.loan_id}
                 onClick={() => handleApprove(loan.loan_id)}
                 className="flex-1 rounded-xl bg-emerald-600 text-white hover:bg-emerald-700"
               >
-                Approve
+                {isPending && processingId === loan.loan_id ? "Approving..." : "Approve"}
               </Button>
               {rejectingId === loan.loan_id ? (
                 <div className="flex flex-col gap-2 w-full">
@@ -304,14 +315,15 @@ function PendingLoansSection({ loans }: { loans: any[] }) {
                   />
                   <div className="flex gap-2">
                     <Button
-                      disabled={isPending}
+                      disabled={isPending && processingId === loan.loan_id}
                       onClick={() => handleReject(loan.loan_id)}
                       className="flex-1 rounded-xl bg-rose-600 text-white hover:bg-rose-700"
                     >
-                      {isPending ? "Rejecting..." : "Confirm Reject"}
+                      {isPending && processingId === loan.loan_id ? "Rejecting..." : "Confirm Reject"}
                     </Button>
                     <Button
                       variant="outline"
+                      disabled={isPending}
                       onClick={() => { setRejectingId(null); setRejectReason(""); }}
                       className="rounded-xl"
                     >
@@ -321,7 +333,7 @@ function PendingLoansSection({ loans }: { loans: any[] }) {
                 </div>
               ) : (
                 <Button
-                  disabled={isPending}
+                  disabled={isPending && processingId === loan.loan_id}
                   variant="outline"
                   onClick={() => setRejectingId(loan.loan_id)}
                   className="flex-1 rounded-xl border-rose-200 text-rose-600 hover:bg-rose-50"
@@ -449,7 +461,10 @@ function IdentityVerificationSection({
             { label: "Tenant", value: user.tenant?.name || "Current tenant" },
           ]}
           sideAction={
-            <button className="flex h-10 w-10 items-center justify-center rounded-2xl bg-slate-50 transition-all hover:bg-slate-900 hover:text-white">
+            <button
+              onClick={() => toast.info("Identity verification workflow coming soon. The member's uploaded documents will be reviewed here.")}
+              className="flex h-10 w-10 items-center justify-center rounded-2xl bg-slate-50 transition-all hover:bg-slate-900 hover:text-white cursor-pointer"
+            >
               <UserCheck className="h-4 w-4" />
             </button>
           }
@@ -520,7 +535,7 @@ function ReleaseLoanCard({ loan }: { loan: any }) {
       actions={
         <Dialog open={open} onOpenChange={setOpen}>
           <DialogTrigger asChild>
-            <Button className="w-full rounded-xl bg-slate-900 text-white hover:bg-emerald-600">
+            <Button className="w-full rounded-xl bg-emerald-600 text-white hover:bg-emerald-700">
               I-release ang Mock Funds
             </Button>
           </DialogTrigger>
@@ -592,34 +607,45 @@ function ReleaseLoanCard({ loan }: { loan: any }) {
 
 function ReviewPaymentCard({ payment }: { payment: any }) {
   const router = useRouter();
+  const [processingId, setProcessingId] = useState<number | null>(null);
   const [isPending, startTransition] = useTransition();
 
   const handleVerify = () => {
+    setProcessingId(payment.payment_id);
     startTransition(async () => {
-      const res = await verifySubmittedPayment({
-        paymentId: payment.payment_id,
-        notes: "Verified by admin in mock flow.",
-      });
-      if (res.error) {
-        toast.error(res.error);
-      } else {
-        toast.success(res.success);
-        router.refresh();
+      try {
+        const res = await verifySubmittedPayment({
+          paymentId: payment.payment_id,
+          notes: "Verified by admin in mock flow.",
+        });
+        if (res.error) {
+          toast.error(res.error);
+        } else {
+          toast.success(res.success);
+          router.refresh();
+        }
+      } finally {
+        setProcessingId(null);
       }
     });
   };
 
   const handleReject = () => {
+    setProcessingId(payment.payment_id);
     startTransition(async () => {
-      const res = await rejectSubmittedPayment({
-        paymentId: payment.payment_id,
-        notes: "Reference mismatch. Please resubmit proof.",
-      });
-      if (res.error) {
-        toast.error(res.error);
-      } else {
-        toast.success(res.success);
-        router.refresh();
+      try {
+        const res = await rejectSubmittedPayment({
+          paymentId: payment.payment_id,
+          notes: "Reference mismatch. Please resubmit proof.",
+        });
+        if (res.error) {
+          toast.error(res.error);
+        } else {
+          toast.success(res.success);
+          router.refresh();
+        }
+      } finally {
+        setProcessingId(null);
       }
     });
   };
@@ -674,19 +700,19 @@ function ReviewPaymentCard({ payment }: { payment: any }) {
       actions={
         <>
           <Button
-            disabled={isPending}
+            disabled={isPending && processingId === payment.payment_id}
             onClick={handleVerify}
             className="flex-1 rounded-xl bg-emerald-600 text-white hover:bg-emerald-700"
           >
-            Verify
+            {isPending && processingId === payment.payment_id ? "Verifying..." : "Verify"}
           </Button>
           <Button
-            disabled={isPending}
+            disabled={isPending && processingId === payment.payment_id}
             variant="outline"
             onClick={() => handleReject()}
             className="flex-1 rounded-xl border-rose-200 text-rose-600 hover:bg-rose-50"
           >
-            Reject
+            {isPending && processingId === payment.payment_id ? "Rejecting..." : "Reject"}
           </Button>
         </>
       }
@@ -696,6 +722,7 @@ function ReviewPaymentCard({ payment }: { payment: any }) {
 
 function OverdueLoansSection({ loans }: { loans: any[] }) {
   const router = useRouter();
+  const [processingId, setProcessingId] = useState<number | null>(null);
   const [isPending, startTransition] = useTransition();
 
   const handleEnforceDefault = (loanId: number) => {
@@ -708,13 +735,18 @@ function OverdueLoansSection({ loans }: { loans: any[] }) {
       return;
     }
 
+    setProcessingId(loanId);
     startTransition(async () => {
-      const res = await manuallyDeclareDefault(loanId);
-      if (res.error) {
-        toast.error(res.error);
-      } else {
-        toast.success(res.success);
-        router.refresh();
+      try {
+        const res = await manuallyDeclareDefault(loanId);
+        if (res.error) {
+          toast.error(res.error);
+        } else {
+          toast.success(res.success);
+          router.refresh();
+        }
+      } finally {
+        setProcessingId(null);
       }
     });
   };
@@ -759,11 +791,11 @@ function OverdueLoansSection({ loans }: { loans: any[] }) {
           ]}
           actions={
             <Button
-              disabled={isPending}
+              disabled={isPending && processingId === loan.loan_id}
               onClick={() => handleEnforceDefault(loan.loan_id)}
-              className="w-full rounded-xl bg-slate-900 text-white hover:bg-rose-600"
+              className="w-full rounded-xl bg-rose-600 text-white hover:bg-rose-700"
             >
-              {isPending ? "Processing..." : "Enforce Default Protocol"}
+              {isPending && processingId === loan.loan_id ? "Processing..." : "Enforce Default Protocol"}
             </Button>
           }
         />

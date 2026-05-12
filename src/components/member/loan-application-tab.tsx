@@ -53,7 +53,7 @@ export const LoanApplicationTab = () => {
 
   if (selectedProduct) {
     return (
-      <div className="mx-auto max-w-4xl space-y-5 animate-in fade-in slide-in-from-right-4 duration-300">
+      <div className="mx-auto max-w-7xl space-y-5 animate-in fade-in slide-in-from-right-4 duration-300">
         <button
           onClick={() => setSelectedProduct(null)}
           className="flex items-center gap-2 text-sm font-bold text-emerald-600 transition-all hover:translate-x-[-3px]"
@@ -61,7 +61,7 @@ export const LoanApplicationTab = () => {
           &larr; Back to Products
         </button>
 
-        <div className="dashboard-card grid grid-cols-1 overflow-hidden border border-emerald-100 bg-white shadow-xl md:grid-cols-2">
+        <div className="dashboard-card grid grid-cols-1 overflow-hidden border border-emerald-100 bg-white shadow-xl lg:grid-cols-[2fr_3fr]">
           <div className="space-y-5 bg-slate-900 p-6 text-white md:p-8">
             <div className="flex h-14 w-14 items-center justify-center rounded-3xl bg-emerald-500">
               <TrendingUp className="h-7 w-7 text-white" />
@@ -166,7 +166,7 @@ export const LoanApplicationTab = () => {
 
               <Button
                 onClick={() => setSelectedProduct(product)}
-                className="mt-6 flex h-11 w-full items-center justify-center gap-2 rounded-2xl bg-slate-900 font-bold text-white transition-all group-hover:shadow-lg group-hover:shadow-emerald-500/20 hover:bg-emerald-600"
+                className="mt-6 flex h-11 w-full items-center justify-center gap-2 rounded-2xl bg-emerald-600 font-bold text-white transition-all group-hover:shadow-lg group-hover:shadow-emerald-500/20 hover:bg-emerald-700"
               >
                 <span>Apply Now</span>
                 <ArrowRight className="h-4 w-4" />

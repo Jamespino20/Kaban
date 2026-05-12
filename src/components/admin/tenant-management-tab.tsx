@@ -4,6 +4,7 @@ import { useState, useTransition } from "react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { toast } from "sonner";
 import {
   AlertTriangle,
   Download,
@@ -13,6 +14,7 @@ import {
   Plus,
   RotateCcw,
   ExternalLink,
+  Upload,
 } from "lucide-react";
 import {
   getRegions,
@@ -45,6 +47,7 @@ export function TenantManagementTab({
   const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
+  const [sortByRegion, setSortByRegion] = useState(true);
 
   const filteredTenants = tenants.filter((t: any) => {
     const searchString =
@@ -63,6 +66,23 @@ export function TenantManagementTab({
 
     return matchesSearch;
   });
+
+  const groupedByRegion = sortByRegion
+    ? filteredTenants.reduce((acc: Record<string, any[]>, t: any) => {
+        const region = t.tenant_group?.name || "Unassigned";
+        if (!acc[region]) acc[region] = [];
+        acc[region].push(t);
+        return acc;
+      }, {} as Record<string, any[]>)
+    : { "All Tenants": filteredTenants };
+
+  if (sortByRegion) {
+    Object.keys(groupedByRegion).forEach((region) => {
+      groupedByRegion[region].sort((a: any, b: any) =>
+        a.name.localeCompare(b.name),
+      );
+    });
+  }
 
   const handleDecommission = (tenantId: number, tenantName: string) => {
     if (
@@ -266,197 +286,239 @@ export function TenantManagementTab({
           <input
             type="text"
             placeholder="Search tenant by company name or region..."
-            className="w-full pl-10 pr-4 py-2.5 bg-slate-50/50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-slate-900 transition-all font-medium text-slate-900"
+            className="w-full pl-10 pr-4 py-2.5 bg-slate-50/50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-all font-medium text-slate-900"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
           />
         </div>
-        <div className="sm:w-64">
-          <select
-            className="w-full px-4 py-2.5 bg-slate-50/50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-slate-900 font-bold text-slate-700 transition-all cursor-pointer"
-            value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value)}
+        <div className="flex gap-3">
+          <div className="sm:w-48">
+            <select
+              className="w-full px-4 py-2.5 bg-slate-50/50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 font-bold text-slate-700 transition-all cursor-pointer"
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+            >
+              <option value="all">🌐 All Operations</option>
+              <option value="active">🟢 Active Tokens</option>
+              <option value="suspended">🔴 Locked / Suspended</option>
+              <option value="prospect">🟡 Prospects (In-Review)</option>
+            </select>
+          </div>
+          <button
+            onClick={() => setSortByRegion((v) => !v)}
+            className={`px-4 py-2.5 rounded-xl font-bold text-sm transition-all border ${
+              sortByRegion
+                ? "bg-emerald-600 text-white border-emerald-600"
+                : "bg-white text-slate-600 border-slate-200 hover:border-slate-300"
+            }`}
           >
-            <option value="all">🌐 All Operations</option>
-            <option value="active">🟢 Active Tokens</option>
-            <option value="suspended">🔴 Locked / Suspended</option>
-            <option value="prospect">🟡 Prospects (In-Review)</option>
-          </select>
+            {sortByRegion ? "Sorted by Region" : "Sort by Name"}
+          </button>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {filteredTenants.length === 0 ? (
-          <div className="col-span-full py-12 text-center bg-slate-50/50 border border-slate-100 rounded-3xl">
-            <p className="text-slate-500 font-medium">
-              No tenants found matching your criteria.
-            </p>
-          </div>
-        ) : (
-          filteredTenants.map((t: any) => (
-            <Card
-              key={t.tenant_id}
-              className={`overflow-hidden transition-all ${!t.is_active ? "border-red-200 bg-red-50/30" : "border-slate-200"}`}
-            >
-              <CardHeader className="pb-2 border-b border-slate-100 bg-slate-50/50">
-                <div className="flex justify-between items-start">
-                  <div>
-                    <CardTitle className="text-lg font-bold text-slate-900">
-                      {t.name}
-                    </CardTitle>
-                    <span className="text-xs font-semibold text-slate-500 uppercase tracking-widest mt-1 block">
-                      {t.tenant_group?.name || "Unassigned Region"}
-                    </span>
-                    <span className="mt-2 inline-flex rounded-full border border-slate-200 bg-white px-2 py-1 text-[10px] font-bold uppercase tracking-widest text-slate-600">
-                      Access: {t.entitlement_status}
-                    </span>
-                  </div>
-                  {t.is_active ? (
-                    <span className="px-2 py-1 bg-emerald-100 text-emerald-700 text-[10px] font-bold rounded-full uppercase flex items-center gap-1">
-                      <CheckCircle className="w-3 h-3" /> Active
-                    </span>
-                  ) : (
-                    <span className="px-2 py-1 bg-red-100 text-red-700 text-[10px] font-bold rounded-full uppercase">
-                      Suspended
-                    </span>
-                  )}
-                </div>
-              </CardHeader>
-              <CardContent className="pt-4">
-                <div className="grid grid-cols-3 gap-2 mb-6 text-center">
-                  <div className="bg-slate-100 rounded-lg p-2">
-                    <span className="block text-xl font-black text-slate-800">
-                      {t._count.users}
-                    </span>
-                    <span className="text-[10px] uppercase text-slate-500 font-bold">
-                      Members
-                    </span>
-                  </div>
-                  <div className="bg-slate-100 rounded-lg p-2">
-                    <span className="block text-xl font-black text-slate-800">
-                      {t._count.loans}
-                    </span>
-                    <span className="text-[10px] uppercase text-slate-500 font-bold">
-                      Loans
-                    </span>
-                  </div>
-                  <div className="bg-slate-100 rounded-lg p-2">
-                    <span className="block text-xl font-black text-slate-800">
-                      {t._count.savings}
-                    </span>
-                    <span className="text-[10px] uppercase text-slate-500 font-bold">
-                      Savings
-                    </span>
-                  </div>
-                </div>
+      {Object.entries(groupedByRegion).length === 0 ? (
+        <div className="py-12 text-center bg-slate-50/50 border border-slate-100 rounded-3xl">
+          <p className="text-slate-500 font-medium">
+            No tenants found matching your criteria.
+          </p>
+        </div>
+      ) : (
+        Object.entries(groupedByRegion).map(([region, regionTenants]) => (
+          <div key={region} className="space-y-4">
+            <div className="flex items-center gap-3 border-b border-slate-200 pb-2">
+              <h3 className="text-lg font-display font-bold text-slate-900">{region}</h3>
+              <span className="rounded-full bg-slate-100 px-2.5 py-0.5 text-[10px] font-bold text-slate-500">
+                {regionTenants.length}
+              </span>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {(regionTenants as any[]).map((t: any) => (
+                <Card
+                  key={t.tenant_id}
+                  className={`overflow-hidden transition-all ${!t.is_active ? "border-red-200 bg-red-50/30" : "border-slate-200"}`}
+                >
+                  <CardHeader className="pb-2 border-b border-slate-100 bg-slate-50/50">
+                    <div className="flex justify-between items-start">
+                      <div>
+                        <CardTitle className="text-lg font-bold text-slate-900">
+                          {t.name}
+                        </CardTitle>
+                        <span className="text-xs font-semibold text-slate-500 uppercase tracking-widest mt-1 block">
+                          {t.tenant_group?.name || "Unassigned Region"}
+                        </span>
+                        <span className="mt-2 inline-flex rounded-full border border-slate-200 bg-white px-2 py-1 text-[10px] font-bold uppercase tracking-widest text-slate-600">
+                          Access: {t.entitlement_status}
+                        </span>
+                      </div>
+                      {t.is_active ? (
+                        <span className="px-2 py-1 bg-emerald-100 text-emerald-700 text-[10px] font-bold rounded-full uppercase flex items-center gap-1">
+                          <CheckCircle className="w-3 h-3" /> Active
+                        </span>
+                      ) : (
+                        <span className="px-2 py-1 bg-red-100 text-red-700 text-[10px] font-bold rounded-full uppercase">
+                          Suspended
+                        </span>
+                      )}
+                    </div>
+                  </CardHeader>
+                  <CardContent className="pt-4">
+                    <div className="grid grid-cols-3 gap-2 mb-4 text-center">
+                      <div className="bg-slate-100 rounded-lg p-2">
+                        <span className="block text-xl font-black text-slate-800">
+                          {t._count.users}
+                        </span>
+                        <span className="text-[10px] uppercase text-slate-500 font-bold">
+                          Members
+                        </span>
+                      </div>
+                      <div className="bg-slate-100 rounded-lg p-2">
+                        <span className="block text-xl font-black text-slate-800">
+                          {t._count.loans}
+                        </span>
+                        <span className="text-[10px] uppercase text-slate-500 font-bold">
+                          Loans
+                        </span>
+                      </div>
+                      <div className="bg-slate-100 rounded-lg p-2">
+                        <span className="block text-xl font-black text-slate-800">
+                          {t._count.savings}
+                        </span>
+                        <span className="text-[10px] uppercase text-slate-500 font-bold">
+                          Savings
+                        </span>
+                      </div>
+                    </div>
 
-                <div className="mb-4 space-y-2 text-xs text-slate-500">
-                  {t.lifetime_availed_at ? (
-                    <p>
-                      Lifetime availed:{" "}
-                      <span className="font-semibold text-slate-700">
-                        {new Date(t.lifetime_availed_at).toLocaleDateString(
-                          "en-PH",
+                    <div className="mb-4 space-y-2 text-xs text-slate-500">
+                      {t.lifetime_availed_at ? (
+                        <p>
+                          First availed:{" "}
+                          <span className="font-semibold text-slate-700">
+                            {new Date(t.lifetime_availed_at).toLocaleDateString("en-PH")}
+                          </span>
+                        </p>
+                      ) : (
+                        <p className="text-amber-700">Not yet availed.</p>
+                      )}
+                      {t.plan_name ? (
+                        <p>
+                          Plan:{" "}
+                          <span className="font-semibold text-slate-700">{t.plan_name}</span>
+                        </p>
+                      ) : null}
+                      {t.entitlement_reference ? (
+                        <p>
+                          Reference:{" "}
+                          <span className="font-semibold text-slate-700">
+                            {t.entitlement_reference}
+                          </span>
+                        </p>
+                      ) : null}
+                      {t.tenant_group?.reg_code ? (
+                        <p>
+                          Reg Code:{" "}
+                          <span className="font-semibold text-slate-700">{t.tenant_group.reg_code}</span>
+                        </p>
+                      ) : null}
+                    </div>
+
+                    {t.is_active ? (
+                      <div className="space-y-2">
+                        {role === "superadmin" && (
+                          <div className="grid grid-cols-2 gap-2">
+                            <Button
+                              variant="outline"
+                              className="text-xs font-bold"
+                              onClick={() => handleRename(t.tenant_id, t.name)}
+                              disabled={isPending}
+                            >
+                              Rename
+                            </Button>
+                            <Button
+                              className="text-xs font-bold bg-emerald-600 text-white hover:bg-emerald-700"
+                              onClick={() =>
+                                handleEntitlementUpdate(
+                                  t.tenant_id,
+                                  t.entitlement_status,
+                                )
+                              }
+                              disabled={isPending}
+                            >
+                              {t.entitlement_status === "active"
+                                ? "Suspend Access"
+                                : "Mark Availed"}
+                            </Button>
+                          </div>
                         )}
-                      </span>
-                    </p>
-                  ) : (
-                    <p className="text-amber-700">
-                      Wala pang recorded lifetime availing.
-                    </p>
-                  )}
-                  {t.entitlement_reference ? (
-                    <p>
-                      Reference:{" "}
-                      <span className="font-semibold text-slate-700">
-                        {t.entitlement_reference}
-                      </span>
-                    </p>
-                  ) : null}
-                </div>
-
-                {t.is_active ? (
-                  <div className="space-y-2">
-                    {role === "superadmin" && (
-                      <div className="grid grid-cols-2 gap-2">
+                        <div className="grid grid-cols-2 gap-2 mt-2">
+                          <Button
+                            variant="destructive"
+                            className="text-xs font-bold"
+                            onClick={() => handleDecommission(t.tenant_id, t.name)}
+                            disabled={isPending || t.slug === "main-tenant"}
+                          >
+                            <PowerOff className="w-4 h-4 mr-2" />
+                            {t.slug === "main-tenant" ? "HQ" : "Suspend"}
+                          </Button>
+                          <a
+                            href={`/${t.slug}?preview=true`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className={cn(
+                              buttonVariants({ variant: "secondary" }),
+                              "text-xs font-bold",
+                            )}
+                          >
+                            <ExternalLink className="w-4 h-4 mr-2" /> View Homepage
+                          </a>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="space-y-3">
+                        <div className="p-3 bg-slate-100 rounded-xl text-sm text-slate-600 font-medium">
+                          This tenant was decommissioned. Operations are locked.
+                        </div>
+                        {t.decommissioned_backups &&
+                          t.decommissioned_backups.length > 0 && (
+                            <a
+                              href={`/api/admin/backups/${t.decommissioned_backups[0].id}`}
+                              className="flex items-center justify-center w-full py-2.5 px-4 bg-emerald-600 text-white rounded-xl text-sm font-bold hover:bg-emerald-700 transition-colors"
+                            >
+                              <Download className="w-4 h-4 mr-2" /> Download Snapshot
+                            </a>
+                          )}
+                        <label className="flex items-center justify-center w-full py-2.5 px-4 border-2 border-dashed border-slate-300 text-slate-500 rounded-xl text-sm font-bold hover:border-emerald-400 hover:text-emerald-600 transition-colors cursor-pointer">
+                          <input
+                            type="file"
+                            accept=".csv,.json"
+                            className="hidden"
+                            onChange={async (e) => {
+                              const file = e.target.files?.[0];
+                              if (!file) return;
+                              toast.info(`Backup file "${file.name}" selected. Upload and restore coming soon.`);
+                              e.target.value = "";
+                            }}
+                          />
+                          <Upload className="w-4 h-4 mr-2" /> Upload Backup to Restore
+                        </label>
                         <Button
                           variant="outline"
-                          className="text-xs font-bold"
-                          onClick={() => handleRename(t.tenant_id, t.name)}
+                          className="w-full text-xs font-bold border-emerald-200 text-emerald-700 hover:bg-emerald-50"
+                          onClick={() => handleRestore(t.tenant_id, t.name)}
                           disabled={isPending}
                         >
-                          Rename
-                        </Button>
-                        <Button
-                          className="text-xs font-bold bg-emerald-600 text-white hover:bg-emerald-700"
-                          onClick={() =>
-                            handleEntitlementUpdate(
-                              t.tenant_id,
-                              t.entitlement_status,
-                            )
-                          }
-                          disabled={isPending}
-                        >
-                          {t.entitlement_status === "active"
-                            ? "Suspend Access"
-                            : "Mark Availed"}
+                          <RotateCcw className="w-4 h-4 mr-2" /> Restore Tenant
                         </Button>
                       </div>
                     )}
-                    <div className="grid grid-cols-2 gap-2 mt-2">
-                      <Button
-                        variant="destructive"
-                        className="text-xs font-bold"
-                        onClick={() => handleDecommission(t.tenant_id, t.name)}
-                        disabled={isPending || t.slug === "main-tenant"}
-                      >
-                        <PowerOff className="w-4 h-4 mr-2" />
-                        {t.slug === "main-tenant" ? "HQ" : "Suspend"}
-                      </Button>
-                      <a
-                        href={`/${t.slug}?preview=true`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className={cn(
-                          buttonVariants({ variant: "secondary" }),
-                          "text-xs font-bold",
-                        )}
-                      >
-                        <ExternalLink className="w-4 h-4 mr-2" /> View Homepage
-                      </a>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="space-y-3">
-                    <div className="p-3 bg-slate-100 rounded-xl text-sm text-slate-600 font-medium">
-                      This tenant was decommissioned due to emergency protocols.
-                      Operations are locked.
-                    </div>
-                    {t.decommissioned_backups &&
-                      t.decommissioned_backups.length > 0 && (
-                        <a
-                          href={`/api/admin/backups/${t.decommissioned_backups[0].id}`}
-                          className="flex items-center justify-center w-full py-2.5 px-4 bg-slate-900 text-white rounded-xl text-sm font-bold hover:bg-slate-800 transition-colors"
-                        >
-                          <Download className="w-4 h-4 mr-2" /> Download
-                          Snapshot
-                        </a>
-                      )}
-                    <Button
-                      variant="outline"
-                      className="w-full text-xs font-bold border-red-200 text-red-700 hover:bg-red-50"
-                      onClick={() => handleRestore(t.tenant_id, t.name)}
-                      disabled={isPending}
-                    >
-                      <RotateCcw className="w-4 h-4 mr-2" /> Restore Tenant
-                    </Button>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          ))
-        )}
-      </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </div>
+        ))
+      )}
     </div>
   );
 }

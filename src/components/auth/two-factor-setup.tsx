@@ -98,7 +98,7 @@ export function TwoFactorSetup({
           <Button
             disabled={isPending}
             onClick={handleStartSetup}
-            className="rounded-xl h-12 w-full bg-slate-900 hover:bg-emerald-600 transition-all font-bold text-white"
+            className="rounded-xl h-12 w-full bg-emerald-600 hover:bg-emerald-700 transition-all font-bold text-white"
           >
             {isPending ? (
               <Loader2 className="w-4 h-4 animate-spin" />

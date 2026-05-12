@@ -64,7 +64,11 @@ export const applyForLoan = async (
 
   const validatedFields = LoanApplicationSchema.safeParse(values);
   if (!validatedFields.success) {
-    return { error: "Invalid fields!" };
+    const fieldErrors = validatedFields.error.flatten().fieldErrors;
+    const firstError = Object.entries(fieldErrors)
+      .map(([field, msgs]) => `${field}: ${msgs?.join(", ")}`)
+      .join("; ");
+    return { error: `Validation failed: ${firstError || "Please check your inputs."}` };
   }
 
   try {
@@ -86,7 +90,8 @@ export const applyForLoan = async (
 
     return result;
   } catch (error) {
-    console.error(error);
-    return { error: "Something went wrong!" };
+    const message = error instanceof Error ? error.message : "Unknown server error";
+    console.error("Loan application failed:", message);
+    return { error: `Loan submission failed: ${message}` };
   }
 };

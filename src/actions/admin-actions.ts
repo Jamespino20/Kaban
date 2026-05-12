@@ -10,12 +10,88 @@ import {
 import { revalidatePath } from "next/cache";
 import { determineInterestTierFromScore } from "@/lib/microfinance-policy";
 
+export async function updateProfileInfo(values: {
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone: string;
+}) {
+  const session = await requireTanawSession();
+  const userId = session.user.user_id;
+  const tenantId = session.user.tenantId;
+
+  try {
+    const updateUser = prisma.user.update({
+      where: { user_id: userId },
+      data: {
+        email: values.email.toLowerCase(),
+        phone: values.phone,
+      },
+    });
+
+    const updateProfile = prisma.userProfile.upsert({
+      where: { user_id: userId },
+      create: {
+        user_id: userId,
+        first_name: values.firstName,
+        last_name: values.lastName,
+        tenant_id: tenantId ?? -1,
+        gender: "Prefer not to say",
+        marital_status: "single",
+        region: "N/A",
+        province: "N/A",
+        city: "N/A",
+        barangay: "N/A",
+        address: "N/A",
+      },
+      update: {
+        first_name: values.firstName,
+        last_name: values.lastName,
+      },
+    });
+
+    if (tenantId) {
+      await prisma.$withTenant(tenantId, async (tx) => {
+        await tx.user.update({
+          where: { user_id: userId },
+          data: { email: values.email.toLowerCase(), phone: values.phone },
+        });
+        await tx.userProfile.upsert({
+          where: { user_id: userId },
+          create: {
+            user_id: userId,
+            first_name: values.firstName,
+            last_name: values.lastName,
+            tenant_id: tenantId,
+            gender: "Prefer not to say",
+            marital_status: "single",
+            region: "N/A",
+            province: "N/A",
+            city: "N/A",
+            barangay: "N/A",
+            address: "N/A",
+          },
+          update: { first_name: values.firstName, last_name: values.lastName },
+        });
+      });
+    } else {
+      await Promise.all([updateUser, updateProfile]);
+    }
+
+    return { success: true };
+  } catch (err: any) {
+    console.error("updateProfileInfo failed:", err);
+    return { error: err.message || "Failed to update profile" };
+  }
+}
+
 export async function getTenantMembers() {
   const session = await requireTanawSession();
   const tenantId = session.user.tenantId;
 
   const query = (db: any) =>
     db.user.findMany({
+      where: tenantId ? { tenant_id: tenantId } : {},
       include: {
         profile: true,
         tenant: {
@@ -253,12 +329,11 @@ export async function getDashboardMetrics() {
           status: "overdue",
         },
       }),
-      prisma.payment.aggregate({
-        where: { status: "verified" },
-        _sum: { amount_paid: true },
-      }),
+      prisma.$queryRaw<{ total: number }[]>`SELECT COALESCE(SUM(amount_paid), 0) as total FROM payments WHERE status = 'verified'`,
       prisma.tenant.count(),
     ]);
+
+    const totalPaymentsRaw = totalPayments as { total: number }[];
 
     return {
       totalTransactions,
@@ -266,7 +341,7 @@ export async function getDashboardMetrics() {
       newTenantVelocity: newTenantsLast30,
       activeLoans: activeLoansCount,
       overduePayments: overduePaymentsCount,
-      totalEarnings: Number(totalPayments._sum.amount_paid || 0),
+      totalEarnings: Number(totalPaymentsRaw[0]?.total || 0),
       totalTenants,
       isGlobal: true,
       // Provide defaults for tenant-specific fields to satisfy types

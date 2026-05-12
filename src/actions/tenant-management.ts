@@ -107,11 +107,31 @@ export async function getActiveTenants() {
         name: true,
         slug: true,
         accent_color: true,
+        brand_color: true,
+        logo_url: true,
       },
       orderBy: {
         name: "asc",
       },
     });
+
+    // Fetch member counts and loan repaid totals per tenant
+    const tenantIds = tenants.map((t) => t.tenant_id);
+    const [memberCounts, loanRepaidTotals] = await Promise.all([
+      prisma.user.groupBy({
+        by: ["tenant_id"],
+        where: { tenant_id: { in: tenantIds }, role: "member", status: "active" },
+        _count: { user_id: true },
+      }),
+      prisma.loan.groupBy({
+        by: ["tenant_id"],
+        where: { tenant_id: { in: tenantIds }, status: "paid" },
+        _sum: { total_payable: true },
+      }),
+    ]);
+
+    const memberCountMap = new Map(memberCounts.map((m) => [m.tenant_id, m._count.user_id]));
+    const loanRepaidMap = new Map(loanRepaidTotals.map((l) => [l.tenant_id, Number(l._sum.total_payable) || 0]));
 
     // Map to coordinates for the map
     const coordinates: Record<
@@ -158,20 +178,27 @@ export async function getActiveTenants() {
       },
     };
 
-    return tenants.map((b) => ({
-      id: b.tenant_id.toString(),
-      name: b.name,
-      slug: b.slug || "tenant",
-      city: coordinates[b.slug || ""]?.city || "Philippines",
-      region: coordinates[b.slug || ""]?.region || "Region",
-      status: "active" as const,
-      x: coordinates[b.slug || ""]?.x || 50,
-      y: coordinates[b.slug || ""]?.y || 50,
-      color: b.accent_color || "#10b981",
-    }));
+    return tenants.map((b) => {
+      const tid = b.tenant_id;
+      return {
+        id: tid.toString(),
+        name: b.name,
+        slug: b.slug || "tenant",
+        city: coordinates[b.slug || ""]?.city || "Philippines",
+        region: coordinates[b.slug || ""]?.region || "Region",
+        status: "active" as const,
+        x: coordinates[b.slug || ""]?.x || 50,
+        y: coordinates[b.slug || ""]?.y || 50,
+        color: b.accent_color || "#10b981",
+        brand_color: b.brand_color || b.accent_color || "#059669",
+        logo_url: b.logo_url || null,
+        memberCount: memberCountMap.get(tid) || 0,
+        loansRepaid: loanRepaidMap.get(tid) || 0,
+      };
+    });
   } catch (error) {
     console.error("Failed to fetch active tenants:", error);
-    throw error; // Throw so unstable_cache doesn't cache an empty array
+    throw error;
   }
 }
 
@@ -179,17 +206,17 @@ export const getActiveTenantsForNav = unstable_cache(
   async () => {
     try {
       const tenants = await getActiveTenants();
-      // Return plain objects to avoid serialization issues
-      return tenants.map((b) => ({ ...b }));
+      // Exclude Apex/System tenant from "Find Cooperatives" selector
+      return tenants
+        .filter((b) => b.slug !== "apex")
+        .map((b) => ({ ...b }));
     } catch (e) {
-      return []; // Return empty dynamically, but Next.js will cache this?
-      // Wait, if we return [] here, unstable_cache caches [].
-      // We want to throw so Next.js doesn't cache statically.
+      return [];
     }
   },
   ["active-tenants-nav"],
   {
-    revalidate: 3600, // cache for 1 hour
+    revalidate: 3600,
     tags: ["tenants"],
   },
 );

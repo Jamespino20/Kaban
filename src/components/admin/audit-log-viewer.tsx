@@ -1,383 +1,415 @@
 "use client";
 
-import { useTransition, useState, useEffect } from "react";
-import { Card } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
+import { useEffect, useState } from "react";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
-  History,
-  User,
-  Database,
-  Clock,
-  Activity,
+  FileText,
+  Search,
+  AlertTriangle,
+  Info,
   ChevronDown,
   ChevronUp,
-  Eye,
-  MapPin,
-  Globe,
+  Activity,
 } from "lucide-react";
-import { getAuditLogs } from "@/actions/tenant-management";
-import { format } from "date-fns";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
+import { getAuditLogsPaginated, getAuditLogStats } from "@/actions/audit-logs";
+
+type AuditLogEntry = {
+  log_id: number;
+  tenant_id: number | null;
+  user_id: number | null;
+  actor_label: string | null;
+  module: string;
+  action: string;
+  action_category: string;
+  severity: string;
+  entity_type: string | null;
+  entity_id: number | null;
+  old_values: any | null;
+  new_values: any | null;
+  ip_address: string | null;
+  route: string | null;
+  city: string | null;
+  created_at: Date;
+  tenant: { name: string } | null;
+  user: { username: string; email: string } | null;
+};
+
+type AuditStats = {
+  totalLogs: number;
+  byCategory: { action_category: string; _count: number }[];
+  bySeverity: { severity: string; _count: number }[];
+  topActions: { action: string; _count: number }[];
+};
 
 export function AuditLogViewer({ tenantId }: { tenantId?: number }) {
-  const [logs, setLogs] = useState<any[]>([]);
-  const [isPending, startTransition] = useTransition();
-  const [expandedLog, setExpandedLog] = useState<number | null>(null);
-  const [actionFilter, setActionFilter] = useState("all");
-  const [query, setQuery] = useState("");
+  const [logs, setLogs] = useState<AuditLogEntry[]>([]);
+  const [stats, setStats] = useState<AuditStats | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [moduleFilter, setModuleFilter] = useState("all");
+  const [severityFilter, setSeverityFilter] = useState("all");
   const [currentPage, setCurrentPage] = useState(1);
-  const pageSize = 10;
+  const [totalPages, setTotalPages] = useState(1);
+  const [expandedRow, setExpandedRow] = useState<number | null>(null);
+  const pageSize = 30;
 
   useEffect(() => {
-    startTransition(async () => {
-      const data = await getAuditLogs(tenantId);
-      setLogs(data);
-    });
-  }, [tenantId]);
+    loadLogs();
+    loadStats();
+  }, [currentPage, moduleFilter, severityFilter, tenantId]);
 
-  const filteredLogs = logs.filter((log: any) => {
-    const matchesAction =
-      actionFilter === "all" ||
-      log.action.toLowerCase().includes(actionFilter.toLowerCase());
-    const matchesQuery =
-      query.trim().length === 0 ||
-      log.action.toLowerCase().includes(query.toLowerCase()) ||
-      log.entity_type.toLowerCase().includes(query.toLowerCase()) ||
-      (log.username || "system").toLowerCase().includes(query.toLowerCase());
+  const loadLogs = async () => {
+    setIsLoading(true);
+    try {
+      const result = await getAuditLogsPaginated({
+        module: moduleFilter !== "all" ? moduleFilter : undefined,
+        severity: severityFilter !== "all" ? severityFilter : undefined,
+        search: searchQuery || undefined,
+        page: currentPage,
+        pageSize,
+        tenantId,
+      });
 
-    return matchesAction && matchesQuery;
-  });
-
-  const totalPages = Math.max(1, Math.ceil(filteredLogs.length / pageSize));
-  const paginatedLogs = filteredLogs.slice(
-    (currentPage - 1) * pageSize,
-    currentPage * pageSize,
-  );
-
-  const getLogRowId = (log: any) => log.log_id ?? log.id ?? null;
-  const getActionTone = (action: string) => {
-    if (action.startsWith("READ")) {
-      return {
-        icon: <Eye className="h-4 w-4" />,
-        panel: "bg-blue-50 text-blue-600",
-        badge: "bg-blue-50 text-blue-700 ring-1 ring-blue-100",
-      };
+      if (result.success && result.data) {
+        setLogs(result.data);
+        setTotalPages(result.pagination.totalPages);
+      }
+    } catch (error) {
+      console.error("Failed to load logs:", error);
+    } finally {
+      setIsLoading(false);
     }
-
-    if (action === "CREATE") {
-      return {
-        icon: <Activity className="h-4 w-4" />,
-        panel: "bg-emerald-50 text-emerald-600",
-        badge: "bg-emerald-50 text-emerald-700 ring-1 ring-emerald-100",
-      };
-    }
-
-    if (action === "UPDATE") {
-      return {
-        icon: <Activity className="h-4 w-4" />,
-        panel: "bg-amber-50 text-amber-600",
-        badge: "bg-amber-50 text-amber-700 ring-1 ring-amber-100",
-      };
-    }
-
-    return {
-      icon: <Activity className="h-4 w-4" />,
-      panel: "bg-rose-50 text-rose-600",
-      badge: "bg-rose-50 text-rose-700 ring-1 ring-rose-100",
-    };
   };
 
-  const readCount = filteredLogs.filter((log: any) =>
-    log.action.startsWith("READ"),
-  ).length;
-  const createCount = filteredLogs.filter(
-    (log: any) => log.action === "CREATE",
-  ).length;
-  const updateCount = filteredLogs.filter(
-    (log: any) => log.action === "UPDATE",
-  ).length;
-  const alertCount = filteredLogs.filter(
-    (log: any) =>
-      !log.action.startsWith("READ") &&
-      log.action !== "CREATE" &&
-      log.action !== "UPDATE",
-  ).length;
+  const loadStats = async () => {
+    try {
+      const result = await getAuditLogStats(tenantId);
+      if (result.success && result.stats) {
+        setStats(result.stats);
+      }
+    } catch (error) {
+      console.error("Failed to load stats:", error);
+    }
+  };
 
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [actionFilter, query]);
+  const getSeverityBadge = (severity: string) => {
+    switch (severity) {
+      case "critical":
+        return (
+          <Badge className="bg-red-100 text-red-700">
+            <AlertTriangle className="w-3 h-3 mr-1" />
+            Critical
+          </Badge>
+        );
+      case "warning":
+        return (
+          <Badge className="bg-amber-100 text-amber-700">
+            <AlertTriangle className="w-3 h-3 mr-1" />
+            Warning
+          </Badge>
+        );
+      default:
+        return (
+          <Badge className="bg-blue-100 text-blue-700">
+            <Info className="w-3 h-3 mr-1" />
+            Info
+          </Badge>
+        );
+    }
+  };
 
-  if (isPending) {
+  const getCategoryBadge = (category: string) => {
+    const colors: Record<string, string> = {
+      "": "bg-slate-100 text-slate-500",
+      auth: "bg-violet-100 text-violet-700",
+      loan: "bg-emerald-100 text-emerald-700",
+      payment: "bg-blue-100 text-blue-700",
+      user: "bg-cyan-100 text-cyan-700",
+      tenant: "bg-amber-100 text-amber-700",
+      system: "bg-slate-100 text-slate-700",
+      other: "bg-slate-100 text-slate-500",
+    };
     return (
-      <div className="flex flex-col items-center justify-center space-y-4 py-20 animate-pulse">
-        <Activity className="h-8 w-8 animate-spin text-slate-300" />
-        <p className="font-medium text-slate-400">
-          Kinukuha ang kasaysayan ng audit...
-        </p>
+      <span
+        className={`text-xs px-2 py-0.5 rounded-full font-medium ${colors[category] || colors.other}`}
+      >
+        {category}
+      </span>
+    );
+  };
+
+  if (isLoading && logs.length === 0) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="animate-pulse text-slate-400">Loading audit logs...</div>
       </div>
     );
   }
 
   return (
-    <div className="space-y-4 animate-in fade-in duration-500">
-      <div className="dashboard-card p-4">
-        <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
-          <div className="space-y-1">
-            <h3 className="flex items-center gap-2 text-lg font-bold text-slate-900">
-              <History className="h-5 w-5 text-emerald-600" />
-              Kasaysayan ng Audit
-            </h3>
-            <p className="text-sm text-slate-500">
-              Compact na triage view para sa galaw, pagbabago, at pag-access sa
-              records.
-            </p>
-          </div>
-
-          <div className="grid grid-cols-2 gap-2 sm:grid-cols-4 xl:min-w-[420px]">
-            <div className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2">
-              <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">
-                Read
-              </p>
-              <p className="mt-1 text-lg font-bold text-slate-900">
-                {readCount}
-              </p>
-            </div>
-            <div className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2">
-              <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">
-                Create
-              </p>
-              <p className="mt-1 text-lg font-bold text-slate-900">
-                {createCount}
-              </p>
-            </div>
-            <div className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2">
-              <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">
-                Update
-              </p>
-              <p className="mt-1 text-lg font-bold text-slate-900">
-                {updateCount}
-              </p>
-            </div>
-            <div className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2">
-              <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">
-                Alerts
-              </p>
-              <p className="mt-1 text-lg font-bold text-slate-900">
-                {alertCount}
-              </p>
-            </div>
-          </div>
-        </div>
-
-        <div className="mt-4 grid grid-cols-1 gap-3 md:grid-cols-[1fr_220px]">
-          <Input
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            placeholder="Hanapin ang action, entity, o username..."
-            className="rounded-xl bg-white"
-          />
-          <Select value={actionFilter} onValueChange={setActionFilter}>
-            <SelectTrigger className="w-full rounded-xl bg-white">
-              <SelectValue placeholder="Action type" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Lahat ng action</SelectItem>
-              <SelectItem value="read">READ</SelectItem>
-              <SelectItem value="create">CREATE</SelectItem>
-              <SelectItem value="update">UPDATE</SelectItem>
-              <SelectItem value="delete">DELETE</SelectItem>
-              <SelectItem value="decommission">DECOMMISSION</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-      </div>
-
-      {filteredLogs.length === 0 ? (
-        <Card className="flex flex-col items-center justify-center border-dashed p-16 text-center">
-          <Database className="mb-2 h-10 w-10 text-slate-200" />
-          <p className="text-slate-500">
-            Walang audit logs na nakita para sa panahong ito.
-          </p>
-        </Card>
-      ) : (
-        <div className="space-y-3">
-          <div className="flex flex-col gap-2 rounded-2xl border border-slate-200 bg-white px-4 py-3 shadow-sm md:flex-row md:items-center md:justify-between">
-            <div>
-              <p className="text-sm font-semibold text-slate-800">
-                {filteredLogs.length} log entries
-              </p>
-              <p className="text-xs text-slate-500">
-                Mas madaling scanin ang importanteng galaw at changes.
-              </p>
-            </div>
-            <p className="text-xs text-slate-500 md:text-right">
-              Page <span className="font-bold text-slate-700">{currentPage}</span>{" "}
-              of <span className="font-bold text-slate-700">{totalPages}</span>
-            </p>
-          </div>
-
-          {paginatedLogs.map((log: any) => {
-            const rowId = getLogRowId(log);
-            const tone = getActionTone(log.action);
-
-            return (
-              <Card
-                key={rowId ?? `${log.action}-${log.created_at}`}
-                className="overflow-hidden border-slate-200 shadow-sm transition-all hover:shadow-md"
-              >
-                <div
-                  className="cursor-pointer p-4 hover:bg-slate-50"
-                  onClick={() =>
-                    setExpandedLog(expandedLog === rowId ? null : rowId)
-                  }
-                >
-                  <div className="flex items-start justify-between gap-4">
-                    <div className="min-w-0 flex-1">
-                      <div className="flex flex-wrap items-center gap-2">
-                        <div className={`rounded-lg p-2 ${tone.panel}`}>
-                          {tone.icon}
-                        </div>
-                        <span
-                          className={`rounded-full px-2.5 py-1 text-[11px] font-bold uppercase tracking-wide ${tone.badge}`}
-                        >
-                          {log.action}
-                        </span>
-                        <span className="rounded-full bg-slate-100 px-2.5 py-1 text-[11px] font-semibold text-slate-600">
-                          {log.entity_type}
-                        </span>
-                        {log.entity_id && (
-                          <span className="rounded-full bg-slate-100 px-2.5 py-1 text-[11px] font-medium text-slate-500">
-                            ID #{log.entity_id}
-                          </span>
-                        )}
-                      </div>
-
-                      <div className="mt-3 grid grid-cols-1 gap-2 text-xs text-slate-500 sm:grid-cols-2 xl:grid-cols-4">
-                        <div className="flex items-center gap-1.5 rounded-lg bg-slate-50 px-2.5 py-2">
-                          <User className="h-3.5 w-3.5 text-slate-400" />
-                          <span className="truncate">
-                            {log.username || "System"}
-                          </span>
-                        </div>
-                        <div className="flex items-center gap-1.5 rounded-lg bg-slate-50 px-2.5 py-2">
-                          <Clock className="h-3.5 w-3.5 text-slate-400" />
-                          <span>
-                            {format(
-                              new Date(log.created_at),
-                              "MMM d, yyyy HH:mm:ss",
-                            )}
-                          </span>
-                        </div>
-                        <div className="flex items-center gap-1.5 rounded-lg bg-slate-50 px-2.5 py-2">
-                          <MapPin className="h-3.5 w-3.5 text-slate-400" />
-                          <span className="truncate">
-                            {log.city
-                              ? `${log.city}, ${log.region ?? ""}`
-                              : "Lokasyon unavailable"}
-                          </span>
-                        </div>
-                        <div className="flex items-center gap-1.5 rounded-lg bg-slate-50 px-2.5 py-2">
-                          <Globe className="h-3.5 w-3.5 text-slate-400" />
-                          <span className="truncate font-mono">
-                            {log.ip_address || "Walang IP"}
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="mt-1 shrink-0">
-                      {expandedLog === rowId ? (
-                        <ChevronUp className="h-4 w-4 text-slate-400" />
-                      ) : (
-                        <ChevronDown className="h-4 w-4 text-slate-400" />
-                      )}
-                    </div>
-                  </div>
-                </div>
-
-                {expandedLog === rowId && (
-                  <div className="animate-in slide-in-from-top-1 border-t border-slate-100 bg-slate-50/70 px-4 pb-4 pt-4 duration-200">
-                    <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-                      <div className="space-y-2">
-                        <div className="text-[11px] font-bold uppercase tracking-[0.2em] text-slate-400">
-                          Dati
-                        </div>
-                        <pre className="max-h-44 overflow-x-auto rounded-xl border border-slate-200 bg-white p-3 text-[11px] text-slate-600">
-                          {log.old_values
-                            ? JSON.stringify(log.old_values, null, 2)
-                            : "{}"}
-                        </pre>
-                      </div>
-                      <div className="space-y-2">
-                        <div className="text-[11px] font-bold uppercase tracking-[0.2em] text-emerald-600">
-                          Pagkatapos / Detalye
-                        </div>
-                        <pre className="max-h-44 overflow-x-auto rounded-xl border border-slate-200 bg-white p-3 text-[11px] text-slate-600">
-                          {JSON.stringify(log.new_values, null, 2)}
-                        </pre>
-                      </div>
-                    </div>
-                    {log.user_agent && (
-                      <div className="mt-3 break-all rounded-xl border border-slate-200 bg-white px-3 py-2 text-[10px] text-slate-500">
-                        <span className="mr-2 font-bold uppercase text-slate-600">
-                          User Agent:
-                        </span>
-                        {log.user_agent}
-                      </div>
-                    )}
-                  </div>
-                )}
-              </Card>
-            );
-          })}
-
-          <div className="mt-4 flex flex-col gap-3 border-t border-slate-100 pt-4 md:flex-row md:items-center md:justify-between">
-            <p className="text-sm text-slate-500">
-              Ipinapakita ang{" "}
-              <span className="font-bold text-slate-700">
-                {filteredLogs.length === 0
-                  ? 0
-                  : (currentPage - 1) * pageSize + 1}
-                -{Math.min(currentPage * pageSize, filteredLogs.length)}
-              </span>{" "}
-              ng{" "}
-              <span className="font-bold text-slate-700">
-                {filteredLogs.length}
-              </span>{" "}
-              logs
-            </p>
-            <div className="flex items-center gap-2">
-              <button
-                type="button"
-                disabled={currentPage === 1}
-                onClick={() => setCurrentPage((page) => Math.max(1, page - 1))}
-                className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-600 disabled:cursor-not-allowed disabled:opacity-50"
-              >
-                Previous
-              </button>
-              <span className="rounded-xl bg-white px-3 py-2 text-sm font-bold text-slate-700">
-                {currentPage} / {totalPages}
-              </span>
-              <button
-                type="button"
-                disabled={currentPage === totalPages}
-                onClick={() =>
-                  setCurrentPage((page) => Math.min(totalPages, page + 1))
-                }
-                className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-600 disabled:cursor-not-allowed disabled:opacity-50"
-              >
-                Next
-              </button>
-            </div>
-          </div>
+    <div className="space-y-6">
+      {stats && (
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <Card>
+            <CardContent className="pt-6">
+              <div className="text-center">
+                <p className="text-3xl font-black text-slate-900">
+                  {stats.totalLogs.toLocaleString()}
+                </p>
+                <p className="text-sm text-slate-500 font-medium">Total Logs</p>
+              </div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="pt-6">
+              <div className="text-center">
+                <p className="text-3xl font-black text-slate-900">
+                  {stats.byCategory.length}
+                </p>
+                <p className="text-sm text-slate-500 font-medium">Categories</p>
+              </div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="pt-6">
+              <div className="text-center">
+                <p className="text-3xl font-black text-slate-900">
+                  {stats.bySeverity.find((s) => s.severity === "critical")
+                    ?._count || 0}
+                </p>
+                <p className="text-sm text-slate-500 font-medium">Critical</p>
+              </div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="pt-6">
+              <div className="text-center">
+                <p className="text-3xl font-black text-slate-900">
+                  {stats.bySeverity.find((s) => s.severity === "warning")
+                    ?._count || 0}
+                </p>
+                <p className="text-sm text-slate-500 font-medium">Warnings</p>
+              </div>
+            </CardContent>
+          </Card>
         </div>
       )}
+
+      <div className="flex flex-wrap items-center gap-4">
+        <div className="relative flex-1 min-w-[200px] max-w-md">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+          <Input
+            placeholder="Search actions, entities, users..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            onKeyDown={(e) => e.key === "Enter" && loadLogs()}
+            className="pl-10"
+          />
+        </div>
+        <select
+          value={moduleFilter}
+          onChange={(e) => {
+            setModuleFilter(e.target.value);
+            setCurrentPage(1);
+          }}
+          className="px-3 py-2 rounded-md border border-input bg-background text-sm"
+        >
+          <option value="all">All Modules</option>
+          <option value="auth">Authentication</option>
+          <option value="loan">Loans</option>
+          <option value="payment">Payments</option>
+          <option value="user">Users</option>
+          <option value="tenant">Tenants</option>
+          <option value="system">System</option>
+        </select>
+        <select
+          value={severityFilter}
+          onChange={(e) => {
+            setSeverityFilter(e.target.value);
+            setCurrentPage(1);
+          }}
+          className="px-3 py-2 rounded-md border border-input bg-background text-sm"
+        >
+          <option value="all">All Severities</option>
+          <option value="critical">Critical</option>
+          <option value="warning">Warning</option>
+          <option value="info">Info</option>
+        </select>
+        <Button variant="outline" onClick={loadLogs}>
+          <Search className="w-4 h-4 mr-2" />
+          Apply Filters
+        </Button>
+      </div>
+
+      <Card>
+        <CardHeader className="pb-3">
+          <CardTitle className="text-lg flex items-center gap-2">
+            <FileText className="w-5 h-5" />
+            Audit Logs {tenantId ? "(Tenant)" : "(Cross-Tenant)"}
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead>
+                <tr className="border-b border-slate-200">
+                  <th className="text-left py-3 px-3 text-xs font-bold uppercase tracking-wider text-slate-500 w-8"></th>
+                  <th className="text-left py-3 px-3 text-xs font-bold uppercase tracking-wider text-slate-500">
+                    Timestamp
+                  </th>
+                  <th className="text-left py-3 px-3 text-xs font-bold uppercase tracking-wider text-slate-500">
+                    Severity
+                  </th>
+                  <th className="text-left py-3 px-3 text-xs font-bold uppercase tracking-wider text-slate-500">
+                    Category
+                  </th>
+                  <th className="text-left py-3 px-3 text-xs font-bold uppercase tracking-wider text-slate-500">
+                    Action
+                  </th>
+                  <th className="text-left py-3 px-3 text-xs font-bold uppercase tracking-wider text-slate-500">
+                    Entity
+                  </th>
+                  <th className="text-left py-3 px-3 text-xs font-bold uppercase tracking-wider text-slate-500">
+                    User
+                  </th>
+                  {!tenantId && (
+                    <th className="text-left py-3 px-3 text-xs font-bold uppercase tracking-wider text-slate-500">
+                      Tenant
+                    </th>
+                  )}
+                </tr>
+              </thead>
+              <tbody>
+                {logs.length === 0 ? (
+                  <tr>
+                    <td colSpan={tenantId ? 7 : 8} className="py-8 text-center text-slate-400">
+                      No audit logs found
+                    </td>
+                  </tr>
+                ) : (
+                  logs.map((log) => (
+                    <>
+                      <tr
+                        key={log.log_id}
+                        className="border-b border-slate-100 hover:bg-slate-50 cursor-pointer"
+                        onClick={() =>
+                          setExpandedRow(
+                            expandedRow === log.log_id ? null : log.log_id,
+                          )
+                        }
+                      >
+                        <td className="py-3 px-3 text-slate-400">
+                          {expandedRow === log.log_id ? (
+                            <ChevronUp className="w-4 h-4" />
+                          ) : (
+                            <ChevronDown className="w-4 h-4" />
+                          )}
+                        </td>
+                        <td className="py-3 px-3 text-sm text-slate-600 whitespace-nowrap">
+                          {new Date(log.created_at).toLocaleString("en-PH")}
+                        </td>
+                        <td className="py-3 px-3">
+                          {getSeverityBadge(log.severity)}
+                        </td>
+                        <td className="py-3 px-3">
+                          {getCategoryBadge(log.action_category)}
+                        </td>
+                        <td className="py-3 px-3 text-sm font-medium text-slate-900">
+                          {log.action}
+                        </td>
+                        <td className="py-3 px-3 text-sm text-slate-600">
+                          {log.entity_type && log.entity_id ? (
+                            <span className="text-xs">
+                              {log.entity_type} #{log.entity_id}
+                            </span>
+                          ) : (
+                            "-"
+                          )}
+                        </td>
+                        <td className="py-3 px-3 text-sm text-slate-600">
+                          {log.user?.username || log.actor_label || "-"}
+                        </td>
+                        {!tenantId && (
+                          <td className="py-3 px-3 text-sm text-slate-600">
+                            {log.tenant?.name || "Platform"}
+                          </td>
+                        )}
+                      </tr>
+                      {expandedRow === log.log_id && (
+                        <tr key={`${log.log_id}-expanded`} className="bg-slate-50/70">
+                          <td colSpan={tenantId ? 7 : 8} className="px-6 pb-4">
+                            <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+                              <div className="space-y-2">
+                                <div className="text-[11px] font-bold uppercase tracking-[0.2em] text-slate-400">
+                                  Previous Values
+                                </div>
+                                <pre className="max-h-44 overflow-x-auto rounded-xl border border-slate-200 bg-white p-3 text-[11px] text-slate-600">
+                                  {log.old_values
+                                    ? JSON.stringify(log.old_values, null, 2)
+                                    : "{}"}
+                                </pre>
+                              </div>
+                              <div className="space-y-2">
+                                <div className="text-[11px] font-bold uppercase tracking-[0.2em] text-emerald-600">
+                                  New Values / Details
+                                </div>
+                                <pre className="max-h-44 overflow-x-auto rounded-xl border border-slate-200 bg-white p-3 text-[11px] text-slate-600">
+                                  {log.new_values
+                                    ? JSON.stringify(log.new_values, null, 2)
+                                    : "{}"}
+                                </pre>
+                              </div>
+                            </div>
+                            {log.ip_address && (
+                              <div className="mt-3 text-[10px] text-slate-500">
+                                IP: {log.ip_address}
+                                {log.city ? ` · ${log.city}` : ""}
+                              </div>
+                            )}
+                          </td>
+                        </tr>
+                      )}
+                    </>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+
+          {totalPages > 1 && (
+            <div className="flex items-center justify-between pt-4 mt-4 border-t border-slate-200">
+              <p className="text-sm text-slate-500">
+                Page {currentPage} of {totalPages}
+              </p>
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() =>
+                    setCurrentPage((p) => Math.max(1, p - 1))
+                  }
+                  disabled={currentPage === 1}
+                >
+                  Previous
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() =>
+                    setCurrentPage((p) => Math.min(totalPages, p + 1))
+                  }
+                  disabled={currentPage === totalPages}
+                >
+                  Next
+                </Button>
+              </div>
+            </div>
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
 }

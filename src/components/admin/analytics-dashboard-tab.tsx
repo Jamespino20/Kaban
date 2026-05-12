@@ -1,21 +1,14 @@
 "use server";
 
 import {
-  Activity,
-  CheckCircle2,
-  Globe,
   TrendingUp,
-  Users,
   Banknote,
   PiggyBank,
-  Percent,
   BarChart3,
   PieChart,
-  ShieldAlert,
   Zap,
   Calculator,
 } from "lucide-react";
-import { cn } from "@/lib/utils";
 import {
   getTenantAnalytics,
   getOperationalInsights,
@@ -53,66 +46,46 @@ export async function AnalyticsDashboardTab() {
 
   return (
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-      {/* Integrity & Critical Health Section */}
-      {integrity && (
-        <div
-          className={cn(
-            "p-8 rounded-[2rem] border flex flex-col md:flex-row items-center gap-8 justify-between relative overflow-hidden",
-            integrity.isBalanced
-              ? "bg-emerald-50 border-emerald-100 text-emerald-900 dark:bg-emerald-950/40 dark:border-emerald-800/50 dark:text-emerald-200"
-              : "bg-rose-50 border-rose-100 text-rose-900 dark:bg-rose-950/40 dark:border-rose-800/50 dark:text-rose-200",
-          )}
-        >
-          <div className="relative z-10 flex items-center gap-6">
-            <div
-              className={cn(
-                "w-16 h-16 rounded-full flex items-center justify-center shadow-lg",
-                integrity.isBalanced
-                  ? "bg-emerald-500 text-white"
-                  : "bg-rose-500 text-white",
-              )}
-            >
-              {integrity.isBalanced ? (
-                <CheckCircle2 className="w-8 h-8" />
-              ) : (
-                <ShieldAlert className="w-8 h-8" />
-              )}
+      {/* Investment Overview Section */}
+      {operational && (
+        <div className="p-8 rounded-[2rem] border bg-gradient-to-br from-slate-900 to-slate-800 text-white relative overflow-hidden">
+          <div className="relative z-10 flex flex-col md:flex-row items-start md:items-center gap-8 justify-between">
+            <div className="flex items-center gap-6">
+              <div className="w-16 h-16 rounded-full bg-emerald-500 flex items-center justify-center shadow-lg">
+                <TrendingUp className="w-8 h-8 text-white" />
+              </div>
+              <div className="space-y-1">
+                <h3 className="text-2xl font-display font-bold italic tracking-tight">
+                  Capital Performance Overview
+                </h3>
+                <p className="text-sm text-slate-300 max-w-xl">
+                  Total outstanding portfolio of ₱{totalOutstandingLoans.toLocaleString()} across{" "}
+                  {operational.riskConcentration.length} active investment areas —{" "}
+                  {Number.parseFloat(utilizationRate) > 50 ? "actively deployed" : "room for additional lending"}.
+                </p>
+              </div>
             </div>
-            <div className="space-y-1">
-              <h3 className="text-2xl font-display font-bold italic tracking-tight">
-                {integrity.isBalanced
-                  ? "Financial Integrity Verified"
-                  : "Treasury Imbalance Detected"}
-              </h3>
-              <p className="text-sm opacity-70 max-w-xl">
-                {integrity.isBalanced
-                  ? "Your Treasury Vault matches the total member savings. No variance found."
-                  : `A variance of ₱${Math.abs(integrity.variance).toLocaleString()} has been detected between the Treasury and Savings Pool. Reconcile immediately.`}
-              </p>
-            </div>
-          </div>
-
-          <div className="relative z-10 flex gap-4 pr-4">
-            <div className="text-right">
-              <p className="text-[10px] uppercase font-black tracking-widest opacity-50">
-                Treasury Balance
-              </p>
-              <p className="text-2xl font-display font-bold leading-none">
-                ₱{integrity.treasuryBalance.toLocaleString()}
-              </p>
-            </div>
-            <div className="w-px h-10 bg-current/10 self-center" />
-            <div className="text-right">
-              <p className="text-[10px] uppercase font-black tracking-widest opacity-50">
-                Member Pool
-              </p>
-              <p className="text-2xl font-display font-bold leading-none">
-                ₱{integrity.savingsPoolTotal.toLocaleString()}
-              </p>
+            <div className="flex gap-6 pr-4">
+              <div className="text-right">
+                <p className="text-[10px] uppercase font-black tracking-widest text-emerald-400">
+                  Capital Pool
+                </p>
+                <p className="text-2xl font-display font-bold leading-none">
+                  ₱{(totalCapitalPool / 1000).toFixed(0)}K
+                </p>
+              </div>
+              <div className="w-px h-10 bg-white/10 self-center" />
+              <div className="text-right">
+                <p className="text-[10px] uppercase font-black tracking-widest text-amber-400">
+                  Utilization
+                </p>
+                <p className="text-2xl font-display font-bold leading-none">
+                  {utilizationRate}%
+                </p>
+              </div>
             </div>
           </div>
-
-          <div className="absolute right-0 top-0 bottom-0 w-64 bg-current/5 -skew-x-12 translate-x-20" />
+          <div className="absolute right-0 top-0 bottom-0 w-64 bg-emerald-500/5 -skew-x-12 translate-x-20" />
         </div>
       )}
 
@@ -247,37 +220,44 @@ export async function AnalyticsDashboardTab() {
         </div>
       </div>
 
-      {/* Member Trust Migration & Capital Allocation */}
+      {/* Investment Business Insights & Capital Allocation */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        <div className="bg-slate-900 p-8 rounded-[2rem] text-white space-y-8 relative overflow-hidden group dark:bg-slate-950">
+        <div className="bg-gradient-to-br from-indigo-900 to-slate-900 p-8 rounded-[2rem] text-white space-y-8 relative overflow-hidden group dark:from-indigo-950 dark:to-slate-950">
           <div className="relative z-10 space-y-6">
             <div className="flex items-center gap-3">
-              <Users className="w-5 h-5 text-indigo-400" />
+              <BarChart3 className="w-5 h-5 text-indigo-400" />
               <h4 className="text-xl font-display font-bold italic">
-                Member Trust Migration
+                Investment Yield
               </h4>
             </div>
-            <div className="grid grid-cols-5 gap-3">
-              {operational &&
-                Object.entries(operational.delinquencyMigration).map(
-                  ([tier, count], i) => (
-                    <div
-                      key={i}
-                      className="p-4 bg-white/5 rounded-2xl border border-white/10 text-center hover:bg-white/10 transition-colors"
-                    >
-                      <p className="text-[10px] font-black text-indigo-400 uppercase mb-1">
-                        {tier}
-                      </p>
-                      <p className="text-2xl font-display font-bold">
-                        {count as number}
-                      </p>
-                    </div>
-                  ),
-                )}
+            <div className="grid grid-cols-2 gap-4">
+              <div className="p-6 bg-white/5 rounded-2xl border border-white/10 text-center hover:bg-white/10 transition-colors">
+                <p className="text-[10px] font-black text-emerald-400 uppercase mb-2">
+                  Portfolio Yield
+                </p>
+                <p className="text-3xl font-display font-bold">
+                  {totalCapitalPool > 0
+                    ? `${((totalRepaymentVelocity / totalCapitalPool) * 100).toFixed(1)}%`
+                    : "0%"}
+                </p>
+                <p className="text-xs text-slate-400 mt-2">
+                  30-day return on capital
+                </p>
+              </div>
+              <div className="p-6 bg-white/5 rounded-2xl border border-white/10 text-center hover:bg-white/10 transition-colors">
+                <p className="text-[10px] font-black text-amber-400 uppercase mb-2">
+                  Capital Efficiency
+                </p>
+                <p className="text-3xl font-display font-bold">
+                  {utilizationRate}%
+                </p>
+                <p className="text-xs text-slate-400 mt-2">
+                  Outstanding vs available
+                </p>
+              </div>
             </div>
             <p className="text-xs text-slate-400 leading-relaxed italic">
-              "Patuloy na sinusubaybayan ang paggalaw ng mga miyembro sa pagitan
-              ng trust tiers."
+              "Ang capital ay aktibong gumagana — binabantayan ang yield at efficiency ng investment portfolio."
             </p>
           </div>
           <div className="absolute -bottom-20 -left-20 w-80 h-80 bg-indigo-500/10 rounded-full blur-[100px]" />

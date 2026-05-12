@@ -13,8 +13,6 @@ export async function getSuperadminOverview() {
     const [
       totalFunds,
       totalActiveLoans,
-      totalMembers,
-      totalOperators,
       globalTrustScore,
       subscriptionRevenue,
       recentLogs,
@@ -30,18 +28,6 @@ export async function getSuperadminOverview() {
       prisma.$queryRaw`
         SELECT COUNT(*) as count
         FROM loans WHERE status = 'active'
-      `,
-
-      // Total members across all tenants
-      prisma.$queryRaw`
-        SELECT COUNT(*) as count
-        FROM users WHERE role = 'member'
-      `,
-
-      // Total operators across all tenants
-      prisma.$queryRaw`
-        SELECT COUNT(*) as count
-        FROM users WHERE role = 'operator'
       `,
 
       // Global trust score (platform-wide average)
@@ -81,12 +67,6 @@ export async function getSuperadminOverview() {
     const loansResult = Array.isArray(totalActiveLoans)
       ? totalActiveLoans[0]
       : totalActiveLoans;
-    const membersResult = Array.isArray(totalMembers)
-      ? totalMembers[0]
-      : totalMembers;
-    const operatorsResult = Array.isArray(totalOperators)
-      ? totalOperators[0]
-      : totalOperators;
     const trustResult = Array.isArray(globalTrustScore)
       ? globalTrustScore[0]
       : globalTrustScore;
@@ -99,8 +79,6 @@ export async function getSuperadminOverview() {
       data: {
         totalFunds: fundsResult?.total || 0,
         totalActiveLoans: Number(loansResult?.count || 0),
-        totalMembers: Number(membersResult?.count || 0),
-        totalOperators: Number(operatorsResult?.count || 0),
         totalSubscriptionRevenue: Number(subRevenue?.total_revenue || 0),
         globalTrustScore: trustResult?.avg_score
           ? Number(trustResult.avg_score)
@@ -1705,11 +1683,11 @@ export async function getSuperadminFraudMetrics() {
   await requireSuperadminSession();
 
   try {
-    const delinquentLoans = await prisma.loan.aggregate({
-      _sum: { balance_remaining: true },
-      _count: true,
-      where: { status: "defaulted" },
-    });
+    const delinquentLoansRes = await prisma.$queryRaw<{ balance: number; count: number }[]>`SELECT COALESCE(SUM(balance_remaining), 0) as balance, COUNT(*) as count FROM loans WHERE status = 'defaulted'`;
+    const delinquentLoans = {
+      _sum: { balance_remaining: delinquentLoansRes[0]?.balance || 0 },
+      _count: delinquentLoansRes[0]?.count || 0,
+    };
 
     // Recent critical audit logs
     const suspiciousActivities = await prisma.auditLog.findMany({

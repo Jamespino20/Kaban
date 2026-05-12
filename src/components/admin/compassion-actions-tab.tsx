@@ -25,6 +25,7 @@ import { Textarea } from "@/components/ui/textarea";
 
 export function CompassionActionsTab({ actions }: { actions: any[] }) {
   const router = useRouter();
+  const [processingId, setProcessingId] = useState<number | null>(null);
   const [isPending, startTransition] = useTransition();
   const [selectedAction, setSelectedAction] = useState<number | null>(null);
   const [adminNotesByAction, setAdminNotesByAction] = useState<
@@ -45,6 +46,7 @@ export function CompassionActionsTab({ actions }: { actions: any[] }) {
       return;
     }
 
+    setProcessingId(actionId);
     startTransition(async () => {
       try {
         const res = await processCompassionAction({
@@ -62,6 +64,8 @@ export function CompassionActionsTab({ actions }: { actions: any[] }) {
         }
       } catch (e) {
         toast.error("Process failed.");
+      } finally {
+        setProcessingId(null);
       }
     });
   };
@@ -209,7 +213,7 @@ export function CompassionActionsTab({ actions }: { actions: any[] }) {
                     <div className="flex items-center gap-2">
                       <Button
                         size="sm"
-                        disabled={isPending}
+                        disabled={isPending && processingId === act.action_id}
                         onClick={() => handleProcess(act.action_id, "approved")}
                         className="bg-emerald-600 hover:bg-emerald-700 text-white flex-1"
                       >
@@ -218,7 +222,7 @@ export function CompassionActionsTab({ actions }: { actions: any[] }) {
                       <Button
                         size="sm"
                         variant="destructive"
-                        disabled={isPending}
+                        disabled={isPending && processingId === act.action_id}
                         onClick={() => handleProcess(act.action_id, "rejected")}
                         className="flex-1"
                       >
@@ -227,7 +231,7 @@ export function CompassionActionsTab({ actions }: { actions: any[] }) {
                       <Button
                         size="sm"
                         variant="ghost"
-                        disabled={isPending}
+                        disabled={isPending && processingId === act.action_id}
                         onClick={() => {
                           setSelectedAction(null);
                         }}

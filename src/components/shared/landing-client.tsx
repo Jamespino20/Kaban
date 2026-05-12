@@ -82,7 +82,7 @@ const FALLBACK_FAQS = [
   {
     question: "What is Agapay?",
     answer:
-      "Agapay is a cooperative microfinance platform that helps tenants, lenders, and members manage applications, releases, repayments, Trust Scores, and reports in a digital, transparent system.",
+      "Agapay is a platform system offering microfinancing cooperative services that helps tenants, lenders, and members manage applications, releases, repayments, Trust Scores, and reports in a digital, transparent system.",
   },
   {
     question: "How is it different from apps like GCash?",
@@ -237,6 +237,42 @@ export function LandingClient({ tenants }: { tenants: Tenant[] }) {
 
     async function loadContent() {
       try {
+        // Fetch approved testimonials from server action
+        const testRes = await fetch("/api/testimonials", {
+          cache: "no-store",
+        });
+        if (testRes.ok) {
+          const testData = await testRes.json();
+          if (
+            !cancelled &&
+            Array.isArray(testData.testimonials) &&
+            testData.testimonials.length > 0
+          ) {
+            setTestimonials(
+              testData.testimonials.map(
+                (
+                  testimonial: {
+                    name: string;
+                    role_label: string;
+                    photo_url?: string;
+                    content: string;
+                  },
+                  index: number,
+                ) => ({
+                  name: testimonial.name,
+                  role: testimonial.role_label,
+                  photo:
+                    testimonial.photo_url ||
+                    FALLBACK_TESTIMONIALS[index % FALLBACK_TESTIMONIALS.length]
+                      .photo,
+                  content: testimonial.content,
+                }),
+              ),
+            );
+          }
+        }
+
+        // Also try fetching FAQs from the existing endpoint
         const response = await fetch("/api/site-content", {
           cache: "no-store",
         });
@@ -250,33 +286,6 @@ export function LandingClient({ tenants }: { tenants: Tenant[] }) {
               question: faq.question,
               answer: faq.answer,
             })),
-          );
-        }
-
-        if (
-          Array.isArray(payload.testimonials) &&
-          payload.testimonials.length > 0
-        ) {
-          setTestimonials(
-            payload.testimonials.map(
-              (
-                testimonial: {
-                  name: string;
-                  role_label: string;
-                  photo_url?: string;
-                  content: string;
-                },
-                index: number,
-              ) => ({
-                name: testimonial.name,
-                role: testimonial.role_label,
-                photo:
-                  testimonial.photo_url ||
-                  FALLBACK_TESTIMONIALS[index % FALLBACK_TESTIMONIALS.length]
-                    .photo,
-                content: testimonial.content,
-              }),
-            ),
           );
         }
       } catch {}
@@ -634,12 +643,6 @@ export function LandingClient({ tenants }: { tenants: Tenant[] }) {
                     className="bg-white hover:bg-emerald-50 text-emerald-700 font-black h-14 px-10 rounded-full shadow-xl shadow-emerald-900/20 transition-all flex items-center justify-between gap-3 text-xl"
                   >
                     Apply for Agapay Now
-                  </Link>
-                  <Link
-                    href="/contact"
-                    className="px-12 py-5 bg-transparent border-2 border-white/40 text-white font-bold rounded-2xl hover:bg-white hover:text-emerald-700 transition-all text-lg shadow-xl shadow-black/5"
-                  >
-                    Get in Touch
                   </Link>
                 </div>
               </div>

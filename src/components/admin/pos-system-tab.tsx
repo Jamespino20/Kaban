@@ -318,7 +318,7 @@ export function POSSystemTab({ members }: POSSystemTabProps) {
               size="lg"
               onClick={handleProcess}
               disabled={loading || !selectedMember}
-              className="w-full md:w-auto h-16 px-12 rounded-[1.25rem] bg-slate-900 hover:bg-slate-800 text-white font-bold text-base shadow-xl shadow-slate-900/20 gap-3 transition-all active:scale-95 disabled:opacity-50"
+              className="w-full md:w-auto h-16 px-12 rounded-[1.25rem] bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-base shadow-xl shadow-emerald-600/20 gap-3 transition-all active:scale-95 disabled:opacity-50"
             >
               {loading
                 ? "Processing..."

@@ -16,7 +16,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { applyForLoan } from "@/actions/loan-application";
-import { Calculator, ArrowRightCircle, CheckCircle2 } from "lucide-react";
+import { Calculator, ArrowRightCircle, CheckCircle2, Save } from "lucide-react";
 import { GuaranteeRequestPanel } from "./guarantee-request-panel";
 import {
   Select,
@@ -32,6 +32,7 @@ import {
   MICROFINANCE_POLICY,
   RepaymentFrequency,
 } from "@/lib/microfinance-policy";
+import { useFormPersistence } from "@/hooks/use-form-persistence";
 
 const LoanApplicationSchema = z.object({
   product_id: z.number(),
@@ -114,14 +115,25 @@ export const LoanApplicationForm = ({
     },
   });
 
+  const formValues = form.watch();
+
+  const { draftFound, clearPersistence, dismissDraftNotice } = useFormPersistence(
+    `loan_${product.product_id}`,
+    formValues as Record<string, unknown>,
+    (restored) => {
+      form.reset(restored as any);
+    },
+    true,
+  );
+
   useEffect(() => {
     const saved = localStorage.getItem(STORAGE_KEY);
-    if (saved) {
+    if (saved && !draftFound) {
       try {
         const parsed = JSON.parse(saved);
         form.reset({
           ...parsed,
-          product_id: product.product_id, // Ensure it stays tied to this product
+          product_id: product.product_id,
         });
       } catch (e) {
         console.error("Failed to load loan draft", e);
@@ -173,6 +185,7 @@ export const LoanApplicationForm = ({
             "Your application has been submitted. The tenant team will review it alongside your guarantor backing.",
           );
           localStorage.removeItem(STORAGE_KEY);
+          clearPersistence();
           onSuccess();
         }
       } catch (error) {
@@ -183,6 +196,19 @@ export const LoanApplicationForm = ({
 
   return (
     <div className="space-y-8">
+      {draftFound && (
+        <div className="flex items-center gap-3 rounded-2xl border border-amber-200 bg-amber-50 px-5 py-3 text-sm text-amber-800">
+          <Save className="h-4 w-4 shrink-0" />
+          <span className="flex-1">Draft restored from your last session.</span>
+          <button
+            onClick={() => { clearPersistence(); dismissDraftNotice(); }}
+            className="font-bold underline hover:no-underline"
+          >
+            Clear draft
+          </button>
+        </div>
+      )}
+
       <div className="flex items-center gap-3 border-b border-slate-50 pb-4">
         <Calculator className="h-5 w-5 text-emerald-600" />
         <h3 className="font-display text-sm font-bold uppercase tracking-wider text-slate-900">
@@ -193,7 +219,7 @@ export const LoanApplicationForm = ({
       <Form {...form}>
         <form
           onSubmit={form.handleSubmit(onSubmit)}
-          className="grid grid-cols-1 lg:grid-cols-2 gap-10"
+          className="grid grid-cols-1 xl:grid-cols-2 gap-8"
         >
           <div className="space-y-6">
             <FormField
@@ -391,21 +417,28 @@ export const LoanApplicationForm = ({
                 </div>
               </div>
 
-              <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
+              <div className="rounded-2xl border border-white/10 bg-white/5 p-5 space-y-4">
                 <div className="flex items-start gap-3">
                   <div className="flex h-8 w-8 items-center justify-center rounded-full bg-emerald-500/20 text-emerald-400">
                     <CheckCircle2 className="h-4 w-4" />
                   </div>
                   <div className="space-y-2 text-[11px] leading-relaxed text-slate-300">
+                    <p className="text-white text-xs font-bold uppercase tracking-wider mb-1">Terms & Conditions</p>
                     <p>
-                      <strong className="text-white">Policy:</strong>{" "}
+                      <strong className="text-white">Penalty Policy:</strong>{" "}
                       {getPenaltyPolicyCopy()}
                     </p>
                     <p>
-                      <strong className="text-white">Compassion:</strong>{" "}
+                      <strong className="text-white">Compassion Support:</strong>{" "}
                       {getCompassionPolicyCopy()}
                     </p>
                   </div>
+                </div>
+                <div className="border-t border-white/10 pt-3 text-[11px] text-slate-400 space-y-1.5">
+                  <p>• By submitting, you agree to the repayment schedule and all applicable fees.</p>
+                  <p>• Defaulting may result in guarantor enforcement and membership suspension.</p>
+                  <p>• Early full payment qualifies for 100% interest waiver.</p>
+                  <p>• All loan decisions are subject to tenant approval and credit evaluation.</p>
                 </div>
               </div>
             </div>

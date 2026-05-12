@@ -12,6 +12,7 @@ import {
 import {
   getEndOfDayReconciliation,
   resolveAndSignEndOfDay,
+  exportReconciliationCSV,
 } from "@/actions/reconciliation";
 import { toast } from "sonner";
 import { Label } from "@/components/ui/label";
@@ -89,8 +90,8 @@ export function ReconciliationTab() {
       try {
         const result = await getEndOfDayReconciliation();
         setData(result);
-      } catch (_err) {
-        toast.error("Failed to load reconciliation data");
+      } catch (err: unknown) {
+        toast.error(err instanceof Error ? err.message : "Failed to load reconciliation data");
       }
     });
   }, []);
@@ -133,8 +134,24 @@ export function ReconciliationTab() {
     }
   };
 
-  const handleExport = () => {
-    toast.info("Exporting CSV report...");
+  const handleExport = async () => {
+    try {
+      const res = await exportReconciliationCSV();
+      if (res.success && res.data) {
+        const blob = new Blob([res.data.content], { type: "text/csv" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = res.data.filename;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        toast.success("CSV report downloaded successfully.");
+      }
+    } catch (err) {
+      toast.error("Failed to export CSV report.");
+    }
   };
 
   if (!data && isPending) {

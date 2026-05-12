@@ -1,7 +1,7 @@
 "use client";
 
-import { MapPin, Building2, ExternalLink } from "lucide-react";
-import { useState, useEffect } from "react";
+import { MapPin, Building2, ExternalLink, Plus, Minus } from "lucide-react";
+import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 
 export interface Tenant {
@@ -14,17 +14,26 @@ export interface Tenant {
   x: number;
   y: number;
   color?: string;
+  brand_color?: string;
+  logo_url?: string | null;
+  memberCount?: number;
+  loansRepaid?: number;
 }
 
 export function TenantNetworkMap({ tenants = [] }: { tenants?: Tenant[] }) {
   const [activeTenant, setActiveTenant] = useState<Tenant | null>(null);
   const [mounted, setMounted] = useState(false);
+  const [zoom, setZoom] = useState(1);
+  const svgRef = useRef<HTMLDivElement>(null);
 
   const displayTenants = tenants.length > 0 ? tenants : [];
 
   useEffect(() => {
     setMounted(true);
   }, []);
+
+  const handleZoomIn = () => setZoom((z) => Math.min(z + 0.3, 3));
+  const handleZoomOut = () => setZoom((z) => Math.max(z - 0.3, 1));
 
   if (!mounted)
     return (
@@ -34,11 +43,36 @@ export function TenantNetworkMap({ tenants = [] }: { tenants?: Tenant[] }) {
   return (
     <div className="relative w-full max-w-4xl mx-auto grid grid-cols-1 lg:grid-cols-5 gap-12 items-center py-12">
       <div className="lg:col-span-3 relative aspect-[3/4] bg-white rounded-[3rem] p-8 shadow-2xl shadow-emerald-500/10 border border-slate-100 overflow-hidden group">
-        {/* Simplified SVG PH Map background */}
-        {/* Enhanced Stylized PH Map background */}
+        {/* Zoom Controls */}
+        <div className="absolute top-6 right-6 z-20 flex flex-col gap-1">
+          <button
+            onClick={handleZoomIn}
+            className="w-9 h-9 rounded-full bg-white/90 backdrop-blur border border-slate-200 shadow-md flex items-center justify-center hover:bg-slate-100 transition-all text-slate-700"
+            title="Zoom in"
+          >
+            <Plus className="w-4 h-4" />
+          </button>
+          <button
+            onClick={handleZoomOut}
+            className="w-9 h-9 rounded-full bg-white/90 backdrop-blur border border-slate-200 shadow-md flex items-center justify-center hover:bg-slate-100 transition-all text-slate-700"
+            title="Zoom out"
+          >
+            <Minus className="w-4 h-4" />
+          </button>
+          <span className="text-[9px] font-bold text-center text-slate-400 mt-0.5">
+            {Math.round(zoom * 100)}%
+          </span>
+        </div>
+
+        {/* SVG Map Wrapper for Zoom */}
+        <div
+          ref={svgRef}
+          className="w-full h-full transition-transform duration-300 ease-out"
+          style={{ transform: `scale(${zoom})`, transformOrigin: "center center" }}
+        >
         <svg
           viewBox="0 0 100 100"
-          className="w-full h-full text-slate-100 fill-current transition-all duration-700 group-hover:scale-[1.03]"
+          className="w-full h-full text-slate-100 fill-current transition-all duration-700"
         >
           <defs>
             <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
@@ -160,6 +194,7 @@ export function TenantNetworkMap({ tenants = [] }: { tenants?: Tenant[] }) {
             </g>
           ))}
         </svg>
+        </div>
 
         <div className="absolute top-10 left-10">
           <div className="flex items-center gap-3 mb-2">
@@ -185,8 +220,27 @@ export function TenantNetworkMap({ tenants = [] }: { tenants?: Tenant[] }) {
       <div className="lg:col-span-2 space-y-6">
         {activeTenant ? (
           <div className="animate-in fade-in slide-in-from-right-8 duration-500 bg-white p-8 rounded-[2.5rem] border border-slate-200 shadow-xl space-y-6">
-            <div className="w-16 h-16 bg-emerald-100 rounded-3xl flex items-center justify-center text-emerald-600">
-              <Building2 className="w-8 h-8" />
+            {/* Logo or First Letter Fallback */}
+            <div
+              className="w-16 h-16 rounded-3xl flex items-center justify-center overflow-hidden"
+              style={{
+                backgroundColor: activeTenant.brand_color
+                  ? `${activeTenant.brand_color}15`
+                  : "#ecfdf5",
+                color: activeTenant.brand_color || "#059669",
+              }}
+            >
+              {activeTenant.logo_url ? (
+                <img
+                  src={activeTenant.logo_url}
+                  alt={activeTenant.name}
+                  className="w-full h-full object-contain"
+                />
+              ) : (
+                <span className="text-2xl font-black italic">
+                  {activeTenant.name.charAt(0)}
+                </span>
+              )}
             </div>
             <div>
               <h4 className="text-3xl font-black italic text-slate-900 tracking-tight leading-tight">
@@ -202,7 +256,16 @@ export function TenantNetworkMap({ tenants = [] }: { tenants?: Tenant[] }) {
             </p>
             <Link
               href={`/${activeTenant.slug}`}
-              className="flex items-center justify-center gap-2 w-full py-4 bg-slate-900 text-white font-bold rounded-2xl hover:bg-emerald-600 transition-all group"
+              className="flex items-center justify-center gap-2 w-full py-4 text-white font-bold rounded-2xl transition-all group"
+              style={{
+                backgroundColor: activeTenant.brand_color || "#059669",
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.filter = "brightness(1.1)";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.filter = "brightness(1)";
+              }}
             >
               Visit Tenant Homepage
               <ExternalLink className="w-4 h-4 transition-transform group-hover:translate-x-1" />
@@ -221,13 +284,23 @@ export function TenantNetworkMap({ tenants = [] }: { tenants?: Tenant[] }) {
 
         <div className="grid grid-cols-2 gap-4">
           <div className="bg-white p-6 rounded-[2rem] border border-slate-100 shadow-sm">
-            <p className="text-2xl font-black text-emerald-600 italic">500+</p>
+            <p className="text-2xl font-black text-emerald-600 italic">
+              {activeTenant
+                ? activeTenant.memberCount != null
+                  ? activeTenant.memberCount.toLocaleString()
+                  : "—"
+                : "—"}
+            </p>
             <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">
               Active Members
             </p>
           </div>
           <div className="bg-white p-6 rounded-[2rem] border border-slate-100 shadow-sm">
-            <p className="text-2xl font-black text-emerald-600 italic">₱2M+</p>
+            <p className="text-2xl font-black text-emerald-600 italic">
+              {activeTenant && activeTenant.loansRepaid != null
+                ? `₱${Number(activeTenant.loansRepaid).toLocaleString()}+`
+                : "—"}
+            </p>
             <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">
               Loans Repaid
             </p>

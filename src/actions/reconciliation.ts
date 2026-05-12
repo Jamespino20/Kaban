@@ -253,3 +253,28 @@ export async function resolveAndSignEndOfDay(reason?: string) {
     return { success: true, adjusted: true };
   });
 }
+
+export async function exportReconciliationCSV(
+  dateCursor?: string,
+  overrideTenantId?: number,
+) {
+  const data = await getEndOfDayReconciliation(dateCursor, overrideTenantId);
+  const rows = [
+    ["Metric", "Value"],
+    ["Target Date", data.targetDate.toISOString().split("T")[0]],
+    ["Total Disbursed", data.totalDisbursed.toString()],
+    ["Disbursed Count", data.disbursedCount.toString()],
+    ["Total Collected", data.totalCollected.toString()],
+    ["Collected Count", data.collectedCount.toString()],
+    ["Ledger Debits", data.ledger.totalDebits.toString()],
+    ["Ledger Credits", data.ledger.totalCredits.toString()],
+    ["Ledger Balanced", data.ledger.isBalanced.toString()],
+    ["Member Savings Total", data.holdings.totalTenantSavings.toString()],
+    ["Treasury Balance", data.holdings.totalTreasuryBalance.toString()],
+    ["Imbalance", data.holdings.imbalance.toString()],
+    ["Treasury Healthy", data.holdings.isTreasuryHealthy.toString()],
+  ];
+  const csvContent = rows.map((r) => r.join(",")).join("\n");
+  const filename = `reconciliation-${data.targetDate.toISOString().split("T")[0]}.csv`;
+  return { success: true, data: { filename, content: csvContent } };
+}

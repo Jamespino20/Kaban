@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -311,39 +312,114 @@ export function SupportTab({ tenantSlug, tickets = [] }: SupportTabProps) {
               Satisfaction Survey
             </CardTitle>
             <CardDescription>
-              Rate your experience with our service.
+              Help us improve — rate your experience across these areas.
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="text-center py-8 space-y-4">
-              <div className="space-y-2">
-                <p className="text-slate-600 font-medium">
-                  How would you rate your experience?
-                </p>
-                <div className="flex justify-center gap-2">
-                  {[1, 2, 3, 4, 5].map((rating) => (
-                    <button
-                      key={rating}
-                      className="w-12 h-12 rounded-full border-2 border-amber-200 hover:bg-amber-50 flex items-center justify-center text-amber-500 font-bold transition-colors"
-                    >
-                      {rating}
-                    </button>
-                  ))}
-                </div>
-              </div>
-              <div className="pt-4 border-t border-slate-100">
-                <p className="text-sm text-slate-500">
-                  The survey will be available in your{" "}
-                  <button className="text-emerald-600 hover:underline font-medium">
-                    Settings
-                  </button>{" "}
-                  when there's a new update.
-                </p>
-              </div>
-            </div>
+            <SurveyForm />
           </CardContent>
         </Card>
       </TabsContent>
     </Tabs>
+  );
+}
+
+const SURVEY_QUESTIONS = [
+  { id: "q1", label: "How satisfied are you with the loan application process?" },
+  { id: "q2", label: "How would you rate customer support responsiveness?" },
+  { id: "q3", label: "How easy was the repayment process?" },
+  { id: "q4", label: "Would you recommend our services to others?" },
+  { id: "q5", label: "How satisfied are you with the mobile app experience?" },
+];
+
+const SURVEY_STORAGE_KEY = "agapay_survey_responses";
+
+function SurveyForm() {
+  const [ratings, setRatings] = useState<Record<string, number>>({});
+  const [comment, setComment] = useState("");
+  const [submitted, setSubmitted] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const allRated = SURVEY_QUESTIONS.every((q) => ratings[q.id] !== undefined);
+
+  const handleSubmit = async () => {
+    if (!allRated) return;
+    setIsSubmitting(true);
+    const payload = { ratings, comment, submittedAt: new Date().toISOString() };
+    try {
+      localStorage.setItem(SURVEY_STORAGE_KEY, JSON.stringify(payload));
+      toast.success("Survey submitted! Thank you for your feedback.");
+      setSubmitted(true);
+    } catch {
+      toast.error("Failed to save survey. Please try again.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  if (submitted) {
+    return (
+      <div className="text-center py-8 space-y-4">
+        <div className="w-16 h-16 bg-amber-50 rounded-full flex items-center justify-center mx-auto">
+          <Star className="w-8 h-8 text-amber-500 fill-current" />
+        </div>
+        <h3 className="text-xl font-bold text-slate-900">Survey Complete!</h3>
+        <p className="text-slate-500 max-w-md mx-auto">
+          Thank you for rating your experience. Your feedback helps us improve.
+        </p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-6">
+      {SURVEY_QUESTIONS.map((q) => (
+        <div key={q.id} className="space-y-2">
+          <p className="text-sm font-semibold text-slate-800">{q.label}</p>
+          <div className="flex gap-1.5">
+            {[1, 2, 3, 4, 5].map((star) => (
+              <button
+                key={star}
+                type="button"
+                onClick={() => setRatings((prev) => ({ ...prev, [q.id]: star }))}
+                className={`w-9 h-9 rounded-full border-2 flex items-center justify-center text-xs font-bold transition-all ${
+                  ratings[q.id] !== undefined && star <= ratings[q.id]
+                    ? "border-amber-400 bg-amber-50 text-amber-600"
+                    : "border-slate-200 bg-white text-slate-400 hover:border-amber-200 hover:bg-amber-50"
+                }`}
+              >
+                {star}
+              </button>
+            ))}
+          </div>
+        </div>
+      ))}
+      <div className="space-y-2">
+        <label className="text-sm font-semibold text-slate-800">Additional Comments (Optional)</label>
+        <textarea
+          value={comment}
+          onChange={(e) => setComment(e.target.value)}
+          placeholder="Tell us more about your experience..."
+          className="min-h-20 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm"
+        />
+      </div>
+      <Button
+        disabled={!allRated || isSubmitting}
+        onClick={handleSubmit}
+        className="w-full rounded-xl bg-amber-500 hover:bg-amber-600 text-white"
+      >
+        {isSubmitting ? (
+          <>
+            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+            Submitting...
+          </>
+        ) : (
+          <>
+            <Star className="w-4 h-4 mr-2" />
+            Submit Survey
+          </>
+        )}
+      </Button>
+    </div>
   );
 }

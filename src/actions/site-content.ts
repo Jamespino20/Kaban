@@ -380,7 +380,7 @@ export async function submitHomepageFaqProposal(
         ) {
           return {
             error:
-              "Tanging superadmin lang ang puwedeng magbago ng published FAQ.",
+              "Only superadmin can modify published FAQs.",
           };
         }
       }
@@ -419,8 +419,8 @@ export async function submitHomepageFaqProposal(
       return {
         success:
           session.user.role === "superadmin"
-            ? "Na-publish na ang FAQ."
-            : "Naipasa na ang FAQ proposal para sa superadmin review.",
+            ? "FAQ has been published."
+            : "FAQ proposal has been submitted for superadmin review.",
       };
     };
 
@@ -454,7 +454,7 @@ export async function submitHomepageTestimonialProposal(
 
     const isOperator = session.user.role === "operator";
     if (isOperator && !tenantId) {
-      return { error: "Walang tenant context ang admin account na ito." };
+      return { error: "This admin account has no tenant context." };
     }
 
     const query = async (db: any) => {
@@ -463,12 +463,12 @@ export async function submitHomepageTestimonialProposal(
           where: { id: data.id },
         });
         if (!existing)
-          return { error: "Hindi makita ang testimonial proposal." };
+          return { error: "Testimonial proposal not found." };
         if (
           session.user.role !== "superadmin" &&
           existing.tenant_id !== tenantId
         ) {
-          return { error: "Hindi ka puwedeng mag-edit ng proposal na ito." };
+          return { error: "You are not allowed to edit this proposal." };
         }
         if (
           session.user.role !== "superadmin" &&
@@ -476,7 +476,7 @@ export async function submitHomepageTestimonialProposal(
         ) {
           return {
             error:
-              "Tanging superadmin lang ang puwedeng magbago ng published testimonial.",
+              "Only superadmin can modify published testimonials.",
           };
         }
       }
@@ -519,8 +519,8 @@ export async function submitHomepageTestimonialProposal(
       return {
         success:
           session.user.role === "superadmin"
-            ? "Na-publish na ang testimonial."
-            : "Naipasa na ang testimonial proposal para sa superadmin review.",
+            ? "Testimonial has been published."
+            : "Testimonial proposal has been submitted for superadmin review.",
       };
     };
 
@@ -539,7 +539,7 @@ export async function submitHomepageTestimonialProposal(
     return result;
   } catch (error) {
     console.error("submitHomepageTestimonialProposal failed:", error);
-    return { error: "Hindi maipasa ang testimonial proposal." };
+    return { error: "Failed to submit testimonial proposal." };
   }
 }
 
@@ -555,7 +555,7 @@ export async function reviewHomepageFaqProposal(
       const existing = await db.homepageFaq.findUnique({
         where: { id: data.id },
       });
-      if (!existing) return { error: "Hindi makita ang FAQ proposal." };
+      if (!existing) return { error: "FAQ proposal not found." };
 
       await db.homepageFaq.update({
         where: { id: data.id },
@@ -577,8 +577,8 @@ export async function reviewHomepageFaqProposal(
       return {
         success:
           data.action === "publish"
-            ? "Na-publish na ang FAQ."
-            : "Na-reject ang FAQ proposal.",
+            ? "FAQ has been published."
+            : "FAQ proposal has been rejected.",
       };
     };
 
@@ -597,7 +597,7 @@ export async function reviewHomepageFaqProposal(
     return result;
   } catch (error) {
     console.error("reviewHomepageFaqProposal failed:", error);
-    return { error: "Hindi ma-review ang FAQ proposal." };
+    return { error: "Failed to review FAQ proposal." };
   }
 }
 
@@ -613,7 +613,7 @@ export async function reviewHomepageTestimonialProposal(
       const existing = await db.homepageTestimonial.findUnique({
         where: { id: data.id },
       });
-      if (!existing) return { error: "Hindi makita ang testimonial proposal." };
+      if (!existing) return { error: "Testimonial proposal not found." };
 
       await db.homepageTestimonial.update({
         where: { id: data.id },
@@ -637,8 +637,8 @@ export async function reviewHomepageTestimonialProposal(
       return {
         success:
           data.action === "publish"
-            ? "Na-publish na ang testimonial."
-            : "Na-reject ang testimonial proposal.",
+            ? "Testimonial has been published."
+            : "Testimonial proposal has been rejected.",
       };
     };
 
@@ -657,7 +657,7 @@ export async function reviewHomepageTestimonialProposal(
     return result;
   } catch (error) {
     console.error("reviewHomepageTestimonialProposal failed:", error);
-    return { error: "Hindi ma-review ang testimonial proposal." };
+    return { error: "Failed to review testimonial proposal." };
   }
 }
 
@@ -668,7 +668,7 @@ export async function deleteHomepageFaq(id: number) {
 
     const query = async (db: any) => {
       await db.homepageFaq.delete({ where: { id } });
-      return { success: "Nabura na ang FAQ entry." };
+      return { success: "FAQ entry has been deleted." };
     };
 
     let result;
@@ -686,7 +686,7 @@ export async function deleteHomepageFaq(id: number) {
     return result;
   } catch (error) {
     console.error("deleteHomepageFaq failed:", error);
-    return { error: "Hindi mabura ang FAQ entry." };
+    return { error: "Failed to delete FAQ entry." };
   }
 }
 
@@ -697,7 +697,7 @@ export async function deleteHomepageTestimonial(id: number) {
 
     const query = async (db: any) => {
       await db.homepageTestimonial.delete({ where: { id } });
-      return { success: "Nabura na ang testimonial entry." };
+      return { success: "Testimonial entry has been deleted." };
     };
 
     let result;
@@ -715,7 +715,7 @@ export async function deleteHomepageTestimonial(id: number) {
     return result;
   } catch (error) {
     console.error("deleteHomepageTestimonial failed:", error);
-    return { error: "Hindi mabura ang testimonial entry." };
+    return { error: "Failed to delete testimonial entry." };
   }
 }
 
@@ -752,7 +752,7 @@ export async function submitFeedback(input: z.infer<typeof feedbackSchema>) {
         },
       });
 
-      return { success: "Naipasa na ang feedback mo." };
+      return { success: "Your feedback has been submitted." };
     };
 
     let result;
@@ -772,7 +772,7 @@ export async function submitFeedback(input: z.infer<typeof feedbackSchema>) {
     console.error("submitFeedback failed:", error);
     return {
       error:
-        "Hindi maipasa ang feedback. Pakisuri ang email setup o subukan muli.",
+        "Failed to submit feedback. Please check your connection and try again.",
     };
   }
 }
@@ -783,8 +783,10 @@ export async function getFeedbackEntries() {
 
   const query = async (db: any) => {
     const where =
-      session.user.role === "superadmin" && tenantId === null
-        ? {}
+      session.user.role === "superadmin"
+        ? tenantId === null
+          ? {}
+          : { OR: [{ tenant_id: tenantId }, { tenant_id: null }] }
         : { tenant_id: tenantId ?? -1 };
 
     return db.feedbackEntry.findMany({
@@ -824,12 +826,12 @@ export async function updateFeedbackEntryStatus(
         where: { id: data.id },
       });
 
-      if (!existing) return { error: "Hindi makita ang feedback entry." };
+      if (!existing) return { error: "Feedback entry not found." };
       if (
         session.user.role !== "superadmin" &&
         existing.tenant_id !== tenantId
       ) {
-        return { error: "Hindi ka puwedeng mag-update ng feedback na ito." };
+        return { error: "You are not allowed to update this feedback." };
       }
 
       await db.feedbackEntry.update({
@@ -837,7 +839,7 @@ export async function updateFeedbackEntryStatus(
         data: { status: data.status },
       });
 
-      return { success: "Na-update na ang status ng feedback." };
+      return { success: "Feedback status has been updated." };
     };
 
     let result;
@@ -855,7 +857,7 @@ export async function updateFeedbackEntryStatus(
     return result;
   } catch (error) {
     console.error("updateFeedbackEntryStatus failed:", error);
-    return { error: "Hindi ma-update ang feedback." };
+    return { error: "Failed to update feedback." };
   }
 }
 
@@ -868,6 +870,13 @@ export async function getContentWorkflowSummary() {
     const tenantWhere =
       session.user.role === "superadmin" && tenantId === null
         ? {}
+        : { tenant_id: tenantId ?? -1 };
+
+    const feedbackWhere =
+      session.user.role === "superadmin"
+        ? tenantId === null
+          ? {}
+          : { OR: [{ tenant_id: tenantId }, { tenant_id: null }] }
         : { tenant_id: tenantId ?? -1 };
 
     const [
@@ -884,13 +893,13 @@ export async function getContentWorkflowSummary() {
       }),
       db.feedbackEntry.count({
         where: {
-          ...tenantWhere,
+          ...feedbackWhere,
           status: { in: ["open", "in_review"] },
         },
       }),
       db.feedbackEntry.count({
         where: {
-          ...tenantWhere,
+          ...feedbackWhere,
           category: "testimonial",
           status: { in: ["open", "in_review"] },
         },

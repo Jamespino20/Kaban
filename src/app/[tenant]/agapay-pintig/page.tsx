@@ -18,6 +18,7 @@ import { getCommunityDashboardData } from "@/actions/community-actions";
 import {
   formatTierLabel,
   getAvailableCreditForTier,
+  getTierPolicy,
   getCompassionPolicyCopy,
   getPenaltyPolicyCopy,
 } from "@/lib/microfinance-policy";
@@ -28,6 +29,7 @@ import { acceptConsent } from "@/actions/compliance-actions";
 import { MemberSettingsTab } from "@/components/member/member-settings-tab";
 import { SupportTab } from "@/components/member/support-tab";
 import { getUserFeedbackTickets } from "@/actions/transactional-feedback";
+import { DashboardPollingWrapper } from "@/components/member/dashboard-polling-wrapper";
 
 const PERSONAL_WALLET = "personal_wallet";
 
@@ -57,7 +59,7 @@ export default async function AgapayPintigPage({
   const [
     member,
     savings,
-    activeLoans,
+    userLoans,
     paymentMethods,
     tfa,
     transactions,
@@ -84,6 +86,7 @@ export default async function AgapayPintigPage({
             last_name: true,
             occupation: true,
             business_name: true,
+            photo_url: true,
           },
         },
       },
@@ -92,7 +95,7 @@ export default async function AgapayPintigPage({
       where: { user_id: userId, tenant_id: tenantId },
     }),
     prisma.loan.findMany({
-      where: { user_id: userId, tenant_id: tenantId, status: "active" },
+      where: { user_id: userId, tenant_id: tenantId, status: { in: ["active", "paid", "defaulted"] } },
       include: {
         product: true,
         compassion_actions: {
@@ -174,6 +177,7 @@ export default async function AgapayPintigPage({
         : acc,
     0,
   );
+  const activeLoans = userLoans.filter((l) => l.status === "active");
   const totalLoanBalance = activeLoans.reduce(
     (acc, curr) => acc + Number(curr.balance_remaining),
     0,
@@ -289,6 +293,7 @@ export default async function AgapayPintigPage({
       navItems={navItems}
       tenantSlug={tenant}
     >
+      <DashboardPollingWrapper>
       <div className="space-y-6">
         <MemberOnboardingDialogs
           consentAccepted={Boolean(member?.consent_accepted_at)}
@@ -330,13 +335,13 @@ export default async function AgapayPintigPage({
                   <div
                     className="h-full bg-emerald-500 rounded-full shadow-[0_0_15px_rgba(16,185,129,0.4)] transition-all duration-1000"
                     style={{
-                      width: `${Math.min(100, (availableCredit / 1000000) * 100)}%`,
+                      width: `${Math.min(100, (availableCredit / getTierPolicy(member?.interest_tier).capAmount) * 100)}%`,
                     }}
                   />
                 </div>
                 <div className="flex justify-between mt-2 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
-                  <span>Starter</span>
-                  <span>Max Limit (₱1M)</span>
+                  <span>₱0</span>
+                  <span>Max: {formatCurrency(getTierPolicy(member?.interest_tier).capAmount)}</span>
                 </div>
               </div>
             </div>
@@ -542,7 +547,7 @@ export default async function AgapayPintigPage({
           className="outline-none animate-in fade-in slide-in-from-bottom-4 duration-500"
         >
           <LoanServicingTab
-            loans={activeLoans}
+            loans={userLoans}
             paymentMethods={resolvedPaymentMethods}
           />
         </TabsContent>
@@ -575,13 +580,13 @@ export default async function AgapayPintigPage({
                     year: "numeric",
                   })
                 : "Active",
-
               fullName:
                 member?.profile?.first_name && member?.profile?.last_name
                   ? `${member.profile.first_name} ${member.profile.last_name}`
                   : userName,
               occupation: member?.profile?.occupation || null,
               businessName: member?.profile?.business_name || null,
+              avatarUrl: member?.profile?.photo_url || null,
             }}
             tenant={{
               name: tenantIdentity?.name,
@@ -610,6 +615,7 @@ export default async function AgapayPintigPage({
           />
         </TabsContent>
       </div>
+      </DashboardPollingWrapper>
     </DashboardTabsShell>
   );
 }

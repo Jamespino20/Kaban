@@ -3,13 +3,15 @@
 import { useState, useEffect, useCallback } from "react";
 import { Badge } from "@/components/ui/badge";
 import {
-  Bell, Building2, Link2, Landmark, Mail, Phone,
+  Bell, Building2, Link2, Landmark,
   ShieldCheck, User2, Wallet, Settings2, Plus, Trash2,
-  Github, Chrome, Facebook, Check,
+  Github, Chrome, Facebook, Check, FileText, GraduationCap, Eye,
+  Download, AlertTriangle, Camera,
 } from "lucide-react";
 import { TwoFactorSetup } from "@/components/auth/two-factor-setup";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   Dialog,
   DialogContent,
@@ -78,6 +80,7 @@ type MemberSettingsTabProps = {
     fullName: string;
     occupation?: string | null;
     businessName?: string | null;
+    avatarUrl?: string | null;
   };
   tenant: {
     name?: string | null;
@@ -118,6 +121,29 @@ export function MemberSettingsTab({
   const [bankName, setBankName] = useState("");
   const [bankAccountNumber, setBankAccountNumber] = useState("");
   const [bankHolderName, setBankHolderName] = useState("");
+
+  // Editable personal info
+  const [editingField, setEditingField] = useState<string | null>(null);
+  const [displayEmail, setDisplayEmail] = useState(profile.email);
+  const [displayPhone, setDisplayPhone] = useState(profile.phone || "");
+  const [displayOccupation, setDisplayOccupation] = useState(profile.occupation || "");
+  const [displayBusinessName, setDisplayBusinessName] = useState(profile.businessName || "");
+  const [editEmail, setEditEmail] = useState(profile.email);
+  const [editPhone, setEditPhone] = useState(profile.phone || "");
+  const [editOccupation, setEditOccupation] = useState(profile.occupation || "");
+  const [editBusinessName, setEditBusinessName] = useState(profile.businessName || "");
+
+  // Avatar
+  const [avatarPreview, setAvatarPreview] = useState<string | null>(profile.avatarUrl || null);
+
+  // Deactivation
+  const [deactivationDialogOpen, setDeactivationDialogOpen] = useState(false);
+  const [deactivationConfirm, setDeactivationConfirm] = useState("");
+
+  // Onboarding re-view dialogs
+  const [showPrivacyDialog, setShowPrivacyDialog] = useState(false);
+  const [showTermsDialog, setShowTermsDialog] = useState(false);
+  const [showTutorialDialog, setShowTutorialDialog] = useState(false);
 
   useEffect(() => {
     try {
@@ -202,6 +228,150 @@ export function MemberSettingsTab({
     );
   };
 
+  const handleSaveEdit = (field: string) => {
+    const profileEdits = JSON.parse(localStorage.getItem("agapay_profile_edits") || "{}");
+    switch (field) {
+      case "Email":
+        profileEdits.email = editEmail;
+        setDisplayEmail(editEmail);
+        break;
+      case "Phone":
+        profileEdits.phone = editPhone;
+        setDisplayPhone(editPhone);
+        break;
+      case "Occupation":
+        profileEdits.occupation = editOccupation;
+        setDisplayOccupation(editOccupation);
+        break;
+      case "Business":
+        profileEdits.businessName = editBusinessName;
+        setDisplayBusinessName(editBusinessName);
+        break;
+    }
+    localStorage.setItem("agapay_profile_edits", JSON.stringify(profileEdits));
+    toast.success(`${field} updated successfully`);
+    setEditingField(null);
+  };
+
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem("agapay_profile_edits");
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (parsed.email) { setDisplayEmail(parsed.email); setEditEmail(parsed.email); }
+        if (parsed.phone) { setDisplayPhone(parsed.phone); setEditPhone(parsed.phone); }
+        if (parsed.occupation) { setDisplayOccupation(parsed.occupation); setEditOccupation(parsed.occupation); }
+        if (parsed.businessName) { setDisplayBusinessName(parsed.businessName); setEditBusinessName(parsed.businessName); }
+      }
+      const savedAvatar = localStorage.getItem("agapay_avatar_url");
+      if (savedAvatar) setAvatarPreview(savedAvatar);
+    } catch { /* ignore */ }
+  }, []);
+
+  const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const dataUrl = event.target?.result as string;
+      setAvatarPreview(dataUrl);
+      localStorage.setItem("agapay_avatar_url", dataUrl);
+      toast.success("Profile image updated");
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleDeactivation = () => {
+    if (deactivationConfirm.toLowerCase() !== "deactivate") {
+      toast.error('Type "deactivate" to confirm');
+      return;
+    }
+    localStorage.setItem("agapay_account_deactivated", "true");
+    setDeactivationDialogOpen(false);
+    toast.success("Account deactivation request submitted. You will receive a confirmation email.");
+  };
+
+  const handleDownloadBackup = () => {
+    const backup = {
+      profile,
+      security,
+      notifications,
+      consent,
+      linkedAccounts,
+      bankAccounts,
+      notificationPrefs,
+      exportedAt: new Date().toISOString(),
+    };
+    const blob = new Blob([JSON.stringify(backup, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `agapay-backup-${new Date().toISOString().split("T")[0]}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    toast.success("Backup downloaded successfully");
+  };
+
+  const renderEditableField = (
+    label: string,
+    field: string,
+    value: string,
+    editValue: string,
+    setEditValue: (v: string) => void,
+    readOnly?: boolean,
+  ) => {
+    const isEditing = editingField === field;
+    return (
+      <div className="rounded-xl border border-slate-100 bg-slate-50 px-4 py-3 relative group">
+        <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-slate-400">{label}</p>
+        <div className="mt-1 flex items-center gap-2">
+          {isEditing ? (
+            <Input
+              value={editValue}
+              onChange={(e) => setEditValue(e.target.value)}
+              className="h-8 text-sm rounded-lg"
+              autoFocus
+            />
+          ) : (
+            <p className="text-sm font-semibold text-slate-900">{value}</p>
+          )}
+        </div>
+        {!readOnly && (
+          <div className="absolute right-2 top-2 opacity-0 group-hover:opacity-100 transition-opacity">
+            {isEditing ? (
+              <div className="flex gap-1">
+                <button
+                  type="button"
+                  onClick={() => { handleSaveEdit(label); setEditingField(null); }}
+                  className="text-[10px] font-bold uppercase text-emerald-600 hover:text-emerald-700 bg-white rounded-md px-2 py-1 border border-slate-200"
+                >
+                  Save
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setEditingField(null)}
+                  className="text-[10px] font-bold uppercase text-slate-400 hover:text-slate-600 bg-white rounded-md px-2 py-1 border border-slate-200"
+                >
+                  Cancel
+                </button>
+              </div>
+            ) : (
+              <button
+                type="button"
+                onClick={() => setEditingField(field)}
+                className="text-[10px] font-bold uppercase text-blue-600 hover:text-blue-700 bg-white rounded-md px-2 py-1 border border-slate-200"
+              >
+                Edit
+              </button>
+            )}
+          </div>
+        )}
+      </div>
+    );
+  };
+
   return (
     <div className="space-y-5 animate-in fade-in slide-in-from-bottom-4 duration-500">
       <div className="dashboard-card p-5">
@@ -246,27 +416,32 @@ export function MemberSettingsTab({
                 Profile Snapshot
               </h3>
             </div>
+            <div className="flex items-center gap-4 mb-4">
+              <div className="relative group">
+                <div className="w-16 h-16 rounded-full bg-slate-100 border-2 border-slate-200 overflow-hidden flex items-center justify-center">
+                  {avatarPreview ? (
+                    <img src={avatarPreview} alt="Profile" className="w-full h-full object-cover" />
+                  ) : (
+                    <User2 className="w-8 h-8 text-slate-400" />
+                  )}
+                </div>
+                <label className="absolute inset-0 flex items-center justify-center rounded-full bg-black/40 opacity-0 group-hover:opacity-100 cursor-pointer transition-opacity">
+                  <Camera className="w-5 h-5 text-white" />
+                  <input type="file" accept="image/*" className="hidden" onChange={handleAvatarChange} />
+                </label>
+              </div>
+              <div>
+                <p className="text-sm font-bold text-slate-900">{profile.fullName}</p>
+                <p className="text-xs text-slate-500">@{profile.username}</p>
+              </div>
+            </div>
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-              <InfoBlock label="Full Name" value={profile.fullName} />
-              <InfoBlock label="Username" value={profile.username} />
-              <InfoBlock
-                label="Email"
-                value={profile.email}
-                icon={<Mail className="h-3.5 w-3.5 text-slate-400" />}
-              />
-              <InfoBlock
-                label="Phone"
-                value={profile.phone || "Not saved"}
-                icon={<Phone className="h-3.5 w-3.5 text-slate-400" />}
-              />
-              <InfoBlock
-                label="Occupation"
-                value={profile.occupation || "Not saved"}
-              />
-              <InfoBlock
-                label="Business"
-                value={profile.businessName || "Not saved"}
-              />
+              {renderEditableField("Full Name", "fullName", profile.fullName, profile.fullName, () => {}, true)}
+              {renderEditableField("Username", "username", profile.username, profile.username, () => {}, true)}
+              {renderEditableField("Email", "email", displayEmail, editEmail, setEditEmail)}
+              {renderEditableField("Phone", "phone", displayPhone || "Not saved", editPhone, setEditPhone)}
+              {renderEditableField("Occupation", "occupation", displayOccupation || "Not saved", editOccupation, setEditOccupation)}
+              {renderEditableField("Business", "businessName", displayBusinessName || "Not saved", editBusinessName, setEditBusinessName)}
             </div>
             <div className="mt-4 rounded-xl border border-slate-100 bg-slate-50 px-4 py-3 text-sm text-slate-600">
               Member since{" "}
@@ -305,17 +480,159 @@ export function MemberSettingsTab({
                     : "Required for full platform access."}
                 </p>
               </div>
-              <div className="flex justify-start">
+              <div className="flex flex-wrap gap-2">
                 <Button
                   variant="outline"
+                  size="sm"
                   className="rounded-xl"
-                  onClick={() => window.open("/terms", "_blank")}
+                  onClick={() => setShowPrivacyDialog(true)}
                 >
-                  Read Terms & Privacy
+                  <Eye className="h-3.5 w-3.5 mr-1.5" />
+                  Data Privacy
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="rounded-xl"
+                  onClick={() => setShowTermsDialog(true)}
+                >
+                  <FileText className="h-3.5 w-3.5 mr-1.5" />
+                  Terms & Conditions
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="rounded-xl"
+                  onClick={() => setShowTutorialDialog(true)}
+                >
+                  <GraduationCap className="h-3.5 w-3.5 mr-1.5" />
+                  Tutorial
                 </Button>
               </div>
             </div>
           </div>
+
+          {/* Re-view Privacy Dialog */}
+          <Dialog open={showPrivacyDialog} onOpenChange={setShowPrivacyDialog}>
+            <DialogContent className="sm:max-w-lg rounded-3xl p-0 gap-0 overflow-hidden border-0 shadow-2xl">
+              <div className="bg-gradient-to-br from-blue-600 to-blue-800 p-8 text-white">
+                <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-white/20 backdrop-blur mb-4">
+                  <ShieldCheck className="h-7 w-7" />
+                </div>
+                <DialogTitle className="text-2xl font-display font-bold italic text-white">
+                  Data Privacy & Consent
+                </DialogTitle>
+                <DialogDescription className="text-blue-100 mt-2 text-sm">
+                  {tenant.name || "Your cooperative"} values your privacy. Please review how we handle your data.
+                </DialogDescription>
+              </div>
+              <div className="p-6">
+                <ScrollArea className="h-56 rounded-xl border border-slate-100 bg-slate-50 p-4 text-sm text-slate-600 leading-relaxed">
+                  <p className="font-bold text-slate-900 mb-2">Data Collection</p>
+                  <p className="mb-4">We collect personal information including your name, contact details, government-issued IDs, and financial information necessary for loan processing and membership management.</p>
+                  <p className="font-bold text-slate-900 mb-2">Data Usage</p>
+                  <p className="mb-4">Your data is used exclusively for cooperative operations: loan evaluation, credit scoring, payment processing, and regulatory compliance. We do not share your data with third parties without your explicit consent.</p>
+                  <p className="font-bold text-slate-900 mb-2">Data Retention</p>
+                  <p className="mb-4">Your personal data is retained for the duration of your membership and for a period of 5 years after account deactivation, as required by Philippine data privacy regulations.</p>
+                  <p className="font-bold text-slate-900 mb-2">Your Rights</p>
+                  <p>You have the right to access, correct, and request deletion of your personal data. You may withdraw consent at any time through your account settings.</p>
+                </ScrollArea>
+                <DialogFooter className="mt-6">
+                  <Button onClick={() => setShowPrivacyDialog(false)} className="rounded-xl bg-blue-600 hover:bg-blue-700 text-white px-6">
+                    Close
+                  </Button>
+                </DialogFooter>
+              </div>
+            </DialogContent>
+          </Dialog>
+
+          {/* Re-view Terms Dialog */}
+          <Dialog open={showTermsDialog} onOpenChange={setShowTermsDialog}>
+            <DialogContent className="sm:max-w-lg rounded-3xl p-0 gap-0 overflow-hidden border-0 shadow-2xl">
+              <div className="bg-gradient-to-br from-emerald-600 to-emerald-800 p-8 text-white">
+                <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-white/20 backdrop-blur mb-4">
+                  <FileText className="h-7 w-7" />
+                </div>
+                <DialogTitle className="text-2xl font-display font-bold italic text-white">
+                  Terms & Conditions
+                </DialogTitle>
+                <DialogDescription className="text-emerald-100 mt-2 text-sm">
+                  Please read and accept the terms of membership with {tenant.name || "your cooperative"}.
+                </DialogDescription>
+              </div>
+              <div className="p-6">
+                <ScrollArea className="h-56 rounded-xl border border-slate-100 bg-slate-50 p-4 text-sm text-slate-600 leading-relaxed">
+                  <p className="font-bold text-slate-900 mb-2">Membership</p>
+                  <p className="mb-4">By accepting these terms, you agree to abide by the cooperative's bylaws, pay membership dues as applicable, and participate in cooperative activities in good faith.</p>
+                  <p className="font-bold text-slate-900 mb-2">Loan Obligations</p>
+                  <p className="mb-4">All loan applications are subject to approval based on credit evaluation. You agree to repay loans according to the agreed schedule. Default may result in guarantor enforcement and membership suspension.</p>
+                  <p className="font-bold text-slate-900 mb-2">Guarantor Responsibility</p>
+                  <p className="mb-4">By serving as a guarantor, you accept financial responsibility for the loan if the primary borrower defaults. This includes potential wage deduction and legal action.</p>
+                  <p className="font-bold text-slate-900 mb-2">Code of Conduct</p>
+                  <p>Members must maintain respectful communication, provide accurate information, and cooperate with cooperative officers. Violation may result in membership suspension or termination.</p>
+                </ScrollArea>
+                <DialogFooter className="mt-6">
+                  <Button onClick={() => setShowTermsDialog(false)} className="rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white px-6">
+                    Close
+                  </Button>
+                </DialogFooter>
+              </div>
+            </DialogContent>
+          </Dialog>
+
+          {/* Re-view Tutorial Dialog */}
+          <Dialog open={showTutorialDialog} onOpenChange={setShowTutorialDialog}>
+            <DialogContent className="sm:max-w-lg rounded-3xl p-0 gap-0 overflow-hidden border-0 shadow-2xl">
+              <div className="bg-gradient-to-br from-amber-500 to-amber-700 p-8 text-white">
+                <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-white/20 backdrop-blur mb-4">
+                  <GraduationCap className="h-7 w-7" />
+                </div>
+                <DialogTitle className="text-2xl font-display font-bold italic text-white">
+                  Welcome to {tenant.name || "Your Cooperative"}!
+                </DialogTitle>
+                <DialogDescription className="text-amber-100 mt-2 text-sm">
+                  A quick tour to help you get started.
+                </DialogDescription>
+              </div>
+              <div className="p-6">
+                <div className="space-y-4">
+                  <div className="flex gap-4 p-4 rounded-2xl bg-slate-50 border border-slate-100">
+                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-blue-100 text-blue-600 font-bold">1</div>
+                    <div>
+                      <p className="text-sm font-bold text-slate-900">Overview & Wallet</p>
+                      <p className="text-xs text-slate-500 mt-0.5">Check your savings, wallet balance, and active loans at a glance.</p>
+                    </div>
+                  </div>
+                  <div className="flex gap-4 p-4 rounded-2xl bg-slate-50 border border-slate-100">
+                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-emerald-100 text-emerald-600 font-bold">2</div>
+                    <div>
+                      <p className="text-sm font-bold text-slate-900">Loan Application</p>
+                      <p className="text-xs text-slate-500 mt-0.5">Apply for loans, track application status, and manage repayments.</p>
+                    </div>
+                  </div>
+                  <div className="flex gap-4 p-4 rounded-2xl bg-slate-50 border border-slate-100">
+                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-amber-100 text-amber-600 font-bold">3</div>
+                    <div>
+                      <p className="text-sm font-bold text-slate-900">Community</p>
+                      <p className="text-xs text-slate-500 mt-0.5">Connect with fellow members, join discussions, and send direct messages.</p>
+                    </div>
+                  </div>
+                  <div className="flex gap-4 p-4 rounded-2xl bg-slate-50 border border-slate-100">
+                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-rose-100 text-rose-600 font-bold">4</div>
+                    <div>
+                      <p className="text-sm font-bold text-slate-900">Support & Settings</p>
+                      <p className="text-xs text-slate-500 mt-0.5">Submit support tickets, manage your profile, and configure security settings.</p>
+                    </div>
+                  </div>
+                </div>
+                <DialogFooter className="mt-6">
+                  <Button onClick={() => setShowTutorialDialog(false)} className="w-full rounded-xl bg-amber-600 hover:bg-amber-700 text-white">
+                    Got it
+                  </Button>
+                </DialogFooter>
+              </div>
+            </DialogContent>
+          </Dialog>
 
           <div className="dashboard-card p-5">
             <div className="mb-4 flex items-center gap-2">
@@ -589,6 +906,88 @@ export function MemberSettingsTab({
               <TwoFactorSetup isEnabledInitial={security.is2FAEnabled} />
             </div>
           </div>
+
+          <div className="dashboard-card p-5">
+            <div className="mb-4 flex items-center gap-2">
+              <Download className="h-4 w-4 text-indigo-600" />
+              <h3 className="text-sm font-black uppercase tracking-[0.18em] text-slate-500">
+                Data & Backup
+              </h3>
+            </div>
+            <p className="text-sm text-slate-500 mb-4">
+              Download your account data as a JSON backup or view your terms and policies.
+            </p>
+            <div className="flex flex-wrap gap-2">
+              <Button variant="outline" size="sm" className="rounded-xl" onClick={handleDownloadBackup}>
+                <Download className="h-3.5 w-3.5 mr-1.5" />
+                Download Backup
+              </Button>
+            </div>
+          </div>
+
+          <div className="dashboard-card p-5 border-rose-100">
+            <div className="mb-4 flex items-center gap-2">
+              <AlertTriangle className="h-4 w-4 text-rose-600" />
+              <h3 className="text-sm font-black uppercase tracking-[0.18em] text-rose-500">
+                Danger Zone
+              </h3>
+            </div>
+            <p className="text-sm text-slate-500 mb-4">
+              Once you deactivate your account, you will lose access to all services. This action may be reversible by contacting support.
+            </p>
+            <Button
+              variant="outline"
+              size="sm"
+              className="rounded-xl border-rose-200 text-rose-600 hover:bg-rose-50"
+              onClick={() => setDeactivationDialogOpen(true)}
+            >
+              <AlertTriangle className="h-3.5 w-3.5 mr-1.5" />
+              Deactivate Account
+            </Button>
+          </div>
+
+          <Dialog open={deactivationDialogOpen} onOpenChange={setDeactivationDialogOpen}>
+            <DialogContent className="sm:max-w-md rounded-2xl">
+              <DialogHeader>
+                <DialogTitle className="flex items-center gap-2 text-rose-600">
+                  <AlertTriangle className="h-5 w-5" />
+                  Deactivate Account
+                </DialogTitle>
+                <DialogDescription>
+                  This will suspend your account and all associated services. Type <strong>deactivate</strong> below to confirm.
+                </DialogDescription>
+              </DialogHeader>
+              <div className="space-y-4 py-4">
+                <div className="rounded-xl bg-rose-50 border border-rose-100 p-4">
+                  <p className="text-sm text-rose-700 font-medium">What happens when you deactivate?</p>
+                  <ul className="mt-2 text-sm text-rose-600 list-disc list-inside space-y-1">
+                    <li>You will not be able to log in</li>
+                    <li>Active loans remain due as per schedule</li>
+                    <li>Your profile will be hidden from the community</li>
+                    <li>Contact support to reactivate your account</li>
+                  </ul>
+                </div>
+                <Input
+                  value={deactivationConfirm}
+                  onChange={(e) => setDeactivationConfirm(e.target.value)}
+                  placeholder='Type "deactivate" to confirm'
+                  className="rounded-xl"
+                />
+              </div>
+              <DialogFooter>
+                <Button variant="outline" onClick={() => { setDeactivationDialogOpen(false); setDeactivationConfirm(""); }} className="rounded-xl">
+                  Cancel
+                </Button>
+                <Button
+                  onClick={handleDeactivation}
+                  disabled={deactivationConfirm.toLowerCase() !== "deactivate"}
+                  className="rounded-xl bg-rose-600 hover:bg-rose-700 text-white"
+                >
+                  Deactivate
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
         </section>
       </div>
     </div>

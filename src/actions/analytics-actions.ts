@@ -270,13 +270,9 @@ export async function getFinancialIntegrityCheck(): Promise<FinancialIntegrity |
         Number(treasuryLedger._sum.credit || 0);
 
       // 2. Member Savings Pool (Liability)
-      const savingsPool = await db.savingsAccount.aggregate({
-        _sum: {
-          balance: true,
-        },
-      });
+      const savingsPool = await db.$queryRaw<{ total: number }[]>`SELECT COALESCE(SUM(balance), 0) as total FROM savings_accounts`;
 
-      const poolTotal = Number(savingsPool?._sum?.balance || 0);
+      const poolTotal = Number(savingsPool[0]?.total || 0);
       const variance = treasuryBalance - poolTotal;
 
       return {

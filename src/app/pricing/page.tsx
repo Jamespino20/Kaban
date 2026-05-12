@@ -18,6 +18,8 @@ const SUBSCRIPTION_PLANS = [
       "Standard microfinance policy access",
       "Email & In-app notifications",
       "Standard 5% default penalty rate",
+      "Member management & tracking",
+      "Basic repayment recording",
     ],
     buttonText: "Start with Core",
     highlight: false,
@@ -35,6 +37,8 @@ const SUBSCRIPTION_PLANS = [
       "Mentorship & Community Tools setup",
       "Premium chat and email support",
       "Automated Compassion workflow",
+      "Trust Score management system",
+      "Guarantor workflow & tracking",
     ],
     buttonText: "Upgrade to Pro",
     highlight: true,
@@ -51,6 +55,8 @@ const SUBSCRIPTION_PLANS = [
       "Full API access and custom export",
       "Priority feature requests",
       "White-label options",
+      "Custom policy configuration",
+      "Advanced reporting & compliance",
     ],
     buttonText: "Get in Touch",
     highlight: false,
@@ -59,24 +65,38 @@ const SUBSCRIPTION_PLANS = [
 
 const RATE_GUIDE = [
   {
-    label: "Starter Tier",
+    label: "Tier 1",
     rate: "5%",
     description: "For new members. Higher rate to cover first-time risk.",
     features: ["₱5,000 max bracket", "Strict weekly payments"],
   },
   {
-    label: "Growing Tier",
-    rate: "4%",
+    label: "Tier 2",
+    rate: "4.5%",
     description:
       "Has a track record. Can have monthly terms and larger amounts.",
     features: ["Build trust network", "Bi-weekly allowance"],
   },
   {
-    label: "Elite Tier",
+    label: "Tier 3",
+    rate: "4%",
+    description:
+      "For consistent payers with growing credit history.",
+    features: ["Higher credit limit", "Flexible payment terms"],
+  },
+  {
+    label: "Tier 4",
+    rate: "3.5%",
+    description:
+      "For well-established members with strong Trust Scores.",
+    features: ["Declining balance mode", "Extended term options"],
+  },
+  {
+    label: "Tier 5",
     rate: "3%",
     description:
       "The lowest rate platform-wide. Long-time member, zero defaults.",
-    features: ["Declining balance mode", "₱100k+ credit line limit"],
+    features: ["Premium rates", "₱100k+ credit line limit"],
   },
 ];
 
@@ -181,7 +201,7 @@ export default async function PricingPage() {
                 monthly interest rates applied.
               </p>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-6">
               {RATE_GUIDE.map((tier) => (
                 <div
                   key={tier.label}

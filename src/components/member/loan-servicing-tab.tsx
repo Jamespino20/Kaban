@@ -35,6 +35,11 @@ import {
   HeartPulse,
   ShieldAlert,
   Star,
+  ChevronDown,
+  ChevronRight,
+  CheckCircle2,
+  AlertTriangle,
+  XCircle,
 } from "lucide-react";
 import {
   getCompassionPolicyCopy,
@@ -72,6 +77,7 @@ type ServicingLoan = {
   loan_id: number;
   loan_reference: string;
   balance_remaining: MoneyLike;
+  status?: string;
   is_recovery_loan?: boolean | null;
   product?: LoanProductInfo | null;
   compassion_actions: {
@@ -87,6 +93,39 @@ type ServicingLoan = {
   payments: LoanPaymentItem[];
 };
 
+type LoanCategory = "on_track" | "overdue" | "defaulted";
+
+function categorizeLoan(loan: ServicingLoan): LoanCategory {
+  if (loan.status === "defaulted" || loan.is_recovery_loan) return "defaulted";
+  const hasOverdue = loan.schedules.some((s) => s.status === "overdue");
+  if (hasOverdue) return "overdue";
+  return "on_track";
+}
+
+const categoryConfig: Record<LoanCategory, { label: string; icon: ReactNode; color: string; bg: string; border: string }> = {
+  on_track: {
+    label: "Active / On Track",
+    icon: <CheckCircle2 className="w-4 h-4" />,
+    color: "text-emerald-700",
+    bg: "bg-emerald-50",
+    border: "border-emerald-200",
+  },
+  overdue: {
+    label: "Overdue",
+    icon: <AlertTriangle className="w-4 h-4" />,
+    color: "text-amber-700",
+    bg: "bg-amber-50",
+    border: "border-amber-200",
+  },
+  defaulted: {
+    label: "Defaulted / Recovery",
+    icon: <XCircle className="w-4 h-4" />,
+    color: "text-rose-700",
+    bg: "bg-rose-50",
+    border: "border-rose-200",
+  },
+};
+
 export function LoanServicingTab({
   loans,
   paymentMethods,
@@ -94,108 +133,192 @@ export function LoanServicingTab({
   loans: ServicingLoan[];
   paymentMethods: PaymentMethodOption[];
 }) {
-  const [productFilter, setProductFilter] = useState("all");
-  const [currentPage, setCurrentPage] = useState(1);
-  const pageSize = 2;
+  const [expandedId, setExpandedId] = useState<number | null>(null);
+
+  const categorized = useMemo(() => {
+    const groups: Record<LoanCategory, ServicingLoan[]> = {
+      on_track: [],
+      overdue: [],
+      defaulted: [],
+    };
+    for (const loan of loans) {
+      const cat = categorizeLoan(loan);
+      groups[cat].push(loan);
+    }
+    return groups;
+  }, [loans]);
 
   if (loans.length === 0) {
     return (
       <div className="dashboard-card p-12 text-center text-slate-400">
-        You don't have any active loan to repay yet.
+        You don't have any loans yet.
       </div>
     );
   }
 
-  const filteredLoans = loans.filter((loan) => {
-    if (productFilter === "all") return true;
-    return String(loan.loan_id) === productFilter;
-  });
-
-  const totalPages = Math.max(1, Math.ceil(filteredLoans.length / pageSize));
-  const paginatedLoans = filteredLoans.slice(
-    (currentPage - 1) * pageSize,
-    currentPage * pageSize,
-  );
-
   return (
     <div className="space-y-6">
-      <div className="dashboard-card flex flex-col gap-3 p-5 md:flex-row md:items-center md:justify-between">
-        <div>
-          <p className="text-xs font-bold uppercase tracking-[0.2em] text-slate-400">
-            Loan View
-          </p>
-          <p className="text-sm text-slate-500">
-            Select the loan you want to view when there are multiple active
-            repayments.
-          </p>
-        </div>
-        <div className="flex items-center gap-3">
-          <Select value={productFilter} onValueChange={setProductFilter}>
-            <SelectTrigger className="w-[280px] rounded-xl bg-white">
-              <SelectValue placeholder="Filter by loan product" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All active loans</SelectItem>
-              {loans.map((loan) => (
-                <SelectItem key={loan.loan_id} value={String(loan.loan_id)}>
-                  {loan.product?.name} · {loan.loan_reference}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-      </div>
-
-      {paginatedLoans.map((loan) => (
-        <LoanServicingCard
-          key={loan.loan_id}
-          loan={loan}
-          paymentMethods={paymentMethods}
-        />
-      ))}
-
-      <div className="dashboard-card flex flex-col gap-3 px-5 py-4 md:flex-row md:items-center md:justify-between">
-        <p className="text-sm text-slate-500">
-          Showing{" "}
-          <span className="font-bold text-slate-700">
-            {filteredLoans.length === 0 ? 0 : (currentPage - 1) * pageSize + 1}-
-            {Math.min(currentPage * pageSize, filteredLoans.length)}
-          </span>{" "}
-          of{" "}
-          <span className="font-bold text-slate-700">
-            {filteredLoans.length}
-          </span>{" "}
-          active loans
-        </p>
-        <div className="flex items-center gap-2">
-          <Button
-            variant="outline"
-            disabled={currentPage === 1}
-            onClick={() => setCurrentPage((page) => Math.max(1, page - 1))}
-            className="rounded-xl"
-          >
-            Previous
-          </Button>
-          <span className="rounded-xl bg-slate-100 px-3 py-2 text-sm font-bold text-slate-700">
-            {currentPage} / {totalPages}
-          </span>
-          <Button
-            variant="outline"
-            disabled={currentPage === totalPages}
-            onClick={() =>
-              setCurrentPage((page) => Math.min(totalPages, page + 1))
-            }
-            className="rounded-xl"
-          >
-            Next
-          </Button>
-        </div>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        {(Object.entries(categorized) as [LoanCategory, ServicingLoan[]][]).map(([cat, catLoans]) => {
+          const cfg = categoryConfig[cat];
+          return (
+            <div key={cat} className={`dashboard-card p-4 border-t-4 ${cfg.border} ${cfg.bg}/30`}>
+              <div className={`flex items-center gap-2 mb-3 ${cfg.color}`}>
+                {cfg.icon}
+                <span className="text-xs font-bold uppercase tracking-widest">{cfg.label}</span>
+                <span className="ml-auto text-xs font-bold">{catLoans.length}</span>
+              </div>
+              <div className="space-y-2">
+                {catLoans.length === 0 ? (
+                  <p className="text-xs text-slate-400 italic">No loans</p>
+                ) : (
+                  catLoans.map((loan) => (
+                    <LoanSummaryCard
+                      key={loan.loan_id}
+                      loan={loan}
+                      isExpanded={expandedId === loan.loan_id}
+                      onToggle={() =>
+                        setExpandedId(expandedId === loan.loan_id ? null : loan.loan_id)
+                      }
+                      paymentMethods={paymentMethods}
+                    />
+                  ))
+                )}
+              </div>
+            </div>
+          );
+        })}
       </div>
     </div>
   );
 }
 
-function LoanServicingCard({
+function LoanSummaryCard({
+  loan,
+  isExpanded,
+  onToggle,
+  paymentMethods,
+}: {
+  loan: ServicingLoan;
+  isExpanded: boolean;
+  onToggle: () => void;
+  paymentMethods: PaymentMethodOption[];
+}) {
+  const category = categorizeLoan(loan);
+  const cfg = categoryConfig[category];
+
+  const nextDue = useMemo(
+    () =>
+      loan.schedules.find(
+        (s) => s.status === "pending" || s.status === "overdue",
+      ),
+    [loan.schedules],
+  );
+
+  const paidSchedules = loan.schedules.filter((s) => s.status === "paid").length;
+  const totalSchedules = loan.schedules.length;
+
+  return (
+    <div className={`rounded-xl border ${cfg.border} bg-white overflow-hidden transition-shadow hover:shadow-md`}>
+      <button
+        type="button"
+        onClick={onToggle}
+        className="w-full text-left p-3 flex items-center gap-3 hover:bg-slate-50 transition-colors"
+      >
+        <div className="flex-1 min-w-0">
+          <p className="text-sm font-bold text-slate-900 truncate">
+            {loan.product?.name || "Loan"}
+          </p>
+          <p className="text-xs text-slate-500 font-mono truncate">
+            {loan.loan_reference}
+          </p>
+        </div>
+        <div className="text-right">
+          <p className="text-sm font-bold text-emerald-600">
+            ₱{Number(loan.balance_remaining).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+          </p>
+          <span className={`inline-block rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider ${cfg.bg} ${cfg.color}`}>
+            {category === "on_track" ? "Active" : category === "overdue" ? "Overdue" : "Defaulted"}
+          </span>
+        </div>
+        <div className="text-slate-400">
+          {isExpanded ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
+        </div>
+      </button>
+
+      {isExpanded && (
+        <div className="border-t border-slate-100 p-3 space-y-3 animate-in fade-in slide-in-from-top-2 duration-200">
+          <div className="grid grid-cols-3 gap-2">
+            <MetricCard
+              icon={<Clock3 className="w-3 h-3" />}
+              label="Next Due"
+              value={nextDue ? `₱${Number(nextDue.total_due).toLocaleString()}` : "Fully paid"}
+            />
+            <MetricCard
+              icon={<CreditCard className="w-3 h-3" />}
+              label="Installments"
+              value={`${paidSchedules}/${totalSchedules}`}
+            />
+            <MetricCard
+              icon={<ReceiptText className="w-3 h-3" />}
+              label="Status"
+              value={loan.status || "active"}
+            />
+          </div>
+
+          {loan.schedules.length > 0 && (
+            <div>
+              <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-1">Schedule</p>
+              <div className="max-h-32 overflow-y-auto space-y-1 pr-1">
+                {loan.schedules.map((s) => (
+                  <div key={s.schedule_id} className="flex items-center justify-between rounded-lg bg-slate-50 px-3 py-1.5 text-xs">
+                    <span className="text-slate-600">Installment #{s.schedule_id}</span>
+                    <div className="flex items-center gap-2">
+                      <span className="font-mono text-slate-900">
+                        ₱{Number(s.total_due).toLocaleString()}
+                      </span>
+                      <span className={`rounded-full px-2 py-0.5 text-[9px] font-bold uppercase ${
+                        s.status === "paid" ? "bg-emerald-100 text-emerald-700" :
+                        s.status === "overdue" ? "bg-rose-100 text-rose-700" :
+                        "bg-slate-100 text-slate-500"
+                      }`}>
+                        {s.status}
+                      </span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {loan.payments.length > 0 && (
+            <div>
+              <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-1">Payments</p>
+              <div className="max-h-32 overflow-y-auto space-y-1 pr-1">
+                {loan.payments.map((p) => (
+                  <div key={p.payment_id} className="flex items-center justify-between rounded-lg bg-slate-50 px-3 py-1.5 text-xs">
+                    <span className="text-slate-600 truncate">{p.payment_method?.provider_name || "Payment"}</span>
+                    <span className="font-bold text-emerald-600">₱{Number(p.amount_paid).toLocaleString()}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {category !== "defaulted" && (
+            <LoanActions loan={loan} paymentMethods={paymentMethods} />
+          )}
+
+          {loan.compassion_actions.length > 0 && (
+            <CompassionStatus loan={loan} />
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function LoanActions({
   loan,
   paymentMethods,
 }: {
@@ -224,8 +347,7 @@ function LoanServicingCard({
   const nextSchedule = useMemo(
     () =>
       loan.schedules.find(
-        (schedule) =>
-          schedule.status === "pending" || schedule.status === "overdue",
+        (s) => s.status === "pending" || s.status === "overdue",
       ),
     [loan.schedules],
   );
@@ -233,13 +355,6 @@ function LoanServicingCard({
   const suggestedAmount = nextSchedule
     ? Number(nextSchedule.total_due)
     : Number(loan.balance_remaining);
-  const latestCompassion = loan.compassion_actions?.[0] || null;
-
-  const getCompassionLabel = (type: string) => {
-    if (type === "grace_period") return "Grace Period";
-    if (type === "term_extension") return "Term Extension";
-    return "Penalty Freeze";
-  };
 
   const handleSubmit = () => {
     startTransition(async () => {
@@ -265,10 +380,7 @@ function LoanServicingCard({
       setReceiptUrl("");
       setNotes("");
       router.refresh();
-
-      setTimeout(() => {
-        setFeedbackOpen(true);
-      }, 500);
+      setTimeout(() => setFeedbackOpen(true), 500);
     });
   };
 
@@ -280,9 +392,7 @@ function LoanServicingCard({
       } else {
         toast.success(res.success);
         router.refresh();
-        setTimeout(() => {
-          setFeedbackOpen(true);
-        }, 500);
+        setTimeout(() => setFeedbackOpen(true), 500);
       }
     });
   };
@@ -309,533 +419,288 @@ function LoanServicingCard({
   };
 
   return (
-    <div className="dashboard-card p-8 space-y-6">
-      <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
-        <div className="space-y-2">
-          <div className="flex flex-wrap items-center gap-2">
-            <h3 className="text-2xl font-display font-bold text-slate-900">
-              {loan.product?.name}
-            </h3>
-            {loan.is_recovery_loan && (
-              <span className="rounded-full bg-rose-100 px-3 py-1 text-[10px] font-bold uppercase tracking-widest text-rose-600">
-                Recovery Loan
-              </span>
-            )}
-          </div>
-          <p className="text-sm text-slate-500">
-            Loan Reference:{" "}
-            <span className="font-mono">{loan.loan_reference}</span>
-          </p>
-          {loan.is_recovery_loan && (
-            <p className="text-xs text-rose-600">
-              This loan was created from the remaining balance after automatic default recovery.
-            </p>
-          )}
-        </div>
-        <div className="text-left md:text-right">
-          <p className="text-xs font-bold uppercase tracking-widest text-slate-400">
-            Remaining Balance
-          </p>
-          <p className="text-3xl font-display font-bold text-emerald-600">
-            ₱
-            {Number(loan.balance_remaining).toLocaleString(undefined, {
-              minimumFractionDigits: 2,
-              maximumFractionDigits: 2,
-            })}
-          </p>
-        </div>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <MetricCard
-          icon={<Clock3 className="w-4 h-4" />}
-          label="Next Due"
-          value={
-            nextSchedule
-              ? `₱${Number(nextSchedule.total_due).toLocaleString()}`
-              : "Fully paid soon"
-          }
-        />
-        <MetricCard
-          icon={<CreditCard className="w-4 h-4" />}
-          label="Installments"
-          value={`${loan.schedules.filter((s) => s.status === "paid").length}/${loan.schedules.length} paid`}
-        />
-        <MetricCard
-          icon={<ReceiptText className="w-4 h-4" />}
-          label="Repayment Status"
-          value={
-            loan.payments?.[0]?.status === "pending"
-              ? "May pending verification"
-              : "Ready for submission"
-          }
-        />
-      </div>
-
-      <div className="space-y-3">
-        <p className="text-xs font-bold uppercase tracking-widest text-slate-400">
-          Mock Money Flow
-        </p>
-        <p className="text-sm text-slate-500">
-          In this prototype, money is passed in real life through the tenant cashier, GCash transfer, bank transfer, or field collection. Here in Agapay, we record and verify the repayment to have clear records and a digital receipt.
-        </p>
-        <p className="text-sm text-slate-500">{getPenaltyPolicyCopy()}</p>
-        <p className="text-sm text-slate-500">{getCompassionPolicyCopy()}</p>
-      </div>
-
-      <div className="rounded-2xl border border-blue-100 bg-blue-50/60 p-4">
-        <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
-          <div className="space-y-1">
-            <p className="text-xs font-bold uppercase tracking-[0.2em] text-blue-700">
-              Compassion Support
-            </p>
-            <p className="text-sm text-slate-600">
-              If you have a valid hardship case, you can request relief for this loan. Only one active request is allowed at a time.
-            </p>
-          </div>
-          <Dialog open={compassionOpen} onOpenChange={setCompassionOpen}>
-            <DialogTrigger asChild>
-              <Button
-                variant="outline"
-                className="rounded-2xl border-blue-200 bg-white text-blue-700 hover:bg-blue-100"
-              >
-                <HeartPulse className="mr-2 h-4 w-4" />
-                Request Compassion
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="sm:max-w-lg">
-              <DialogHeader>
-                <DialogTitle>Compassion Request</DialogTitle>
-                <DialogDescription>
-                  Describe the hardship case and choose the relief that fits your situation.
-                </DialogDescription>
-              </DialogHeader>
-              <div className="space-y-4">
-                <div className="space-y-2">
-                  <label className="text-sm font-bold text-slate-700">
-                    Relief Type
-                  </label>
-                  <Select
-                    value={compassionType}
-                    onValueChange={(value) =>
-                      setCompassionType(
-                        value as
-                          | "grace_period"
-                          | "term_extension"
-                          | "penalty_freeze",
-                      )
-                    }
-                  >
-                    <SelectTrigger className="rounded-xl">
-                      <SelectValue placeholder="Choose relief type" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="grace_period">Grace Period</SelectItem>
-                      <SelectItem value="term_extension">
-                        Term Extension
-                      </SelectItem>
-                      <SelectItem value="penalty_freeze">
-                        Penalty Freeze
-                      </SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-2">
-                  <label className="text-sm font-bold text-slate-700">
-                    Reason for Hardship
-                  </label>
-                  <textarea
-                    value={compassionReason}
-                    onChange={(e) => setCompassionReason(e.target.value)}
-                    placeholder="Describe the reason for the hardship case and why relief is needed."
-                    className="min-h-28 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm"
-                  />
-                </div>
-                <Button
-                  disabled={isPending || compassionReason.trim().length < 10}
-                  onClick={handleCompassionRequest}
-                  className="w-full rounded-xl bg-blue-600 text-white hover:bg-blue-700"
-                >
-                  Submit Request
-                </Button>
-              </div>
-            </DialogContent>
-          </Dialog>
-        </div>
-
-        {latestCompassion ? (
-          <div className="mt-4 rounded-2xl border border-white/70 bg-white px-4 py-3 shadow-sm">
-            <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
-              <div>
-                <p className="text-sm font-bold text-slate-900">
-                  Latest request:{" "}
-                  {getCompassionLabel(latestCompassion.action_type)}
-                </p>
-                <p className="text-xs text-slate-500">
-                  {new Date(latestCompassion.requested_at).toLocaleDateString()}
-                </p>
-              </div>
-              <span
-                className={`rounded-full px-3 py-1 text-[11px] font-bold uppercase tracking-widest ${
-                  latestCompassion.status === "approved"
-                    ? "bg-emerald-100 text-emerald-700"
-                    : latestCompassion.status === "rejected"
-                      ? "bg-rose-100 text-rose-700"
-                      : "bg-amber-100 text-amber-700"
-                }`}
-              >
-                {latestCompassion.status}
-              </span>
-            </div>
-            <p className="mt-3 text-sm text-slate-600">
-              {latestCompassion.reason}
-            </p>
-            {latestCompassion.admin_notes && (
-              <div className="mt-3 rounded-xl border border-slate-100 bg-slate-50 px-3 py-2">
-                <p className="mb-1 text-[11px] font-bold uppercase tracking-widest text-slate-500">
-                  Admin Response
-                </p>
-                <p className="text-sm text-slate-700">
-                  {latestCompassion.admin_notes}
-                </p>
-              </div>
-            )}
-          </div>
-        ) : (
-          <div className="mt-4 flex items-center gap-2 rounded-2xl border border-dashed border-blue-200 bg-white/80 px-4 py-3 text-sm text-slate-500">
-            <ShieldAlert className="h-4 w-4 text-blue-500" />
-            You haven't submitted a compassion request for this loan yet.
-          </div>
-        )}
-      </div>
-
-      <div className="flex flex-col md:flex-row gap-3 md:items-center md:justify-between">
+    <div className="space-y-2">
+      <div className="flex flex-wrap gap-2">
         <Button
           variant="outline"
+          size="sm"
           onClick={() => {
             setAmount(String(suggestedAmount));
             setOpen(true);
           }}
-          className="rounded-2xl border-emerald-200 text-emerald-700 hover:bg-emerald-50"
+          className="rounded-xl text-xs border-emerald-200 text-emerald-700 hover:bg-emerald-50"
         >
-          Suggested installment: ₱{suggestedAmount.toLocaleString()}
+          ₱{suggestedAmount.toLocaleString()} installment
         </Button>
-
         <Button
           variant="outline"
+          size="sm"
           onClick={() => setFullPaymentOpen(true)}
-          className="rounded-2xl border-violet-200 text-violet-700 hover:bg-violet-50"
+          className="rounded-xl text-xs border-violet-200 text-violet-700 hover:bg-violet-50"
         >
           Pay in Full
         </Button>
+        <Button
+          variant="outline"
+          size="sm"
+          disabled={isPending || suggestedAmount <= 0}
+          onClick={handleWalletPayment}
+          className="rounded-xl text-xs bg-amber-500 hover:bg-amber-600 text-white border-none"
+        >
+          {isPending ? <Loader2 className="w-3 h-3 mr-1 animate-spin" /> : <Wallet className="w-3 h-3 mr-1" />}
+          Wallet
+        </Button>
 
-        <Dialog open={fullPaymentOpen} onOpenChange={setFullPaymentOpen}>
-          <DialogContent className="sm:max-w-lg">
-            <DialogHeader>
-              <DialogTitle>Pay in Full</DialogTitle>
-              <DialogDescription>
-                Pay the remaining principal of this loan and have all remaining
-                interest waived as a full-payment discount.
-              </DialogDescription>
-            </DialogHeader>
-            <div className="space-y-4">
-              <div className="rounded-xl bg-violet-50 border border-violet-100 p-4 space-y-2">
-                <div className="flex justify-between text-sm">
-                  <span className="text-slate-600">Remaining Balance</span>
-                  <span className="font-bold text-slate-900">
-                    ₱
-                    {Number(loan.balance_remaining).toLocaleString(undefined, {
-                      minimumFractionDigits: 2,
-                      maximumFractionDigits: 2,
-                    })}
-                  </span>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-slate-600">
-                    Interest Waived (Full-Payment Discount)
-                  </span>
-                  <span className="font-bold text-emerald-600">100%</span>
-                </div>
-                <div className="border-t border-violet-200 pt-2 flex justify-between text-sm">
-                  <span className="font-bold text-slate-700">
-                    You Pay (Principal Only)
-                  </span>
-                  <span className="font-bold text-violet-700">
-                    Amount computed at confirmation
-                  </span>
-                </div>
-              </div>
-              <div className="space-y-2">
-                <label className="text-sm font-bold text-slate-700">
-                  Payment Method
-                </label>
-                <Select
-                  value={fullPaymentMethodId}
-                  onValueChange={setFullPaymentMethodId}
-                >
-                  <SelectTrigger className="rounded-xl">
-                    <SelectValue placeholder="Choose a channel" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {paymentMethods.map((method) => (
-                      <SelectItem
-                        key={method.method_id}
-                        value={String(method.method_id)}
-                      >
-                        {method.provider_name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="flex gap-3">
-                <Button
-                  variant="outline"
-                  onClick={() => {
-                    setFullPaymentOpen(false);
-                    setFullPaymentMethodId("");
-                  }}
-                  className="flex-1 rounded-xl"
-                >
-                  Cancel
-                </Button>
-                <Button
-                  disabled={isPending || !fullPaymentMethodId}
-                  onClick={() => {
-                    startTransition(async () => {
-                      const res = await processFullPayment({
-                        loanId: loan.loan_id,
-                        methodId: Number(fullPaymentMethodId),
-                      });
-                      if (res.error) {
-                        toast.error(res.error);
-                        return;
-                      }
-                      toast.success(res.success);
-                      setFullPaymentOpen(false);
-                      setFullPaymentMethodId("");
-                      router.refresh();
-                    });
-                  }}
-                  className="flex-1 rounded-xl bg-violet-600 hover:bg-violet-700 text-white"
-                >
-                  {isPending ? (
-                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  ) : null}
-                  Confirm Full Payment
-                </Button>
-              </div>
-            </div>
-          </DialogContent>
-        </Dialog>
-
-        <Dialog open={open} onOpenChange={setOpen}>
-          <DialogTrigger asChild>
-            <Button className="rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white">
-              <Send className="w-4 h-4 mr-2" />
-            </Button>
-          </DialogTrigger>
-
+        {loan.compassion_actions.length === 0 && (
           <Button
-            disabled={isPending || suggestedAmount <= 0}
-            onClick={handleWalletPayment}
-            className="rounded-2xl bg-amber-500 hover:bg-amber-600 text-white"
+            variant="outline"
+            size="sm"
+            onClick={() => setCompassionOpen(true)}
+            className="rounded-xl text-xs border-blue-200 text-blue-700 hover:bg-blue-50"
           >
-            {isPending ? (
-              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-            ) : (
-              <Wallet className="w-4 h-4 mr-2" />
-            )}
-            Pay with Wallet
+            <HeartPulse className="w-3 h-3 mr-1" />
+            Compassion
           </Button>
+        )}
+      </div>
 
-          <DialogContent className="sm:max-w-lg">
-            <DialogHeader>
-              <DialogTitle>Repayment Submission</DialogTitle>
-              <DialogDescription>
-                Choose a payment channel and enter the reference provided by the tenant or the transfer.
-              </DialogDescription>
-            </DialogHeader>
-            <div className="space-y-4">
-              <div className="space-y-2">
-                <label className="text-sm font-bold text-slate-700">
-                  Amount
-                </label>
-                <Input
-                  value={amount}
-                  onChange={(e) => setAmount(e.target.value)}
-                  type="number"
-                  placeholder="5000"
-                  className="rounded-xl"
-                />
-              </div>
-              <div className="space-y-2">
-                <label className="text-sm font-bold text-slate-700">
-                  Payment Method
-                </label>
-                <Select value={methodId} onValueChange={setMethodId}>
-                  <SelectTrigger className="rounded-xl">
-                    <SelectValue placeholder="Choose a channel" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {paymentMethods.map((method) => (
-                      <SelectItem
-                        key={method.method_id}
-                        value={String(method.method_id)}
-                      >
-                        {method.provider_name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-2">
-                <label className="text-sm font-bold text-slate-700">
-                  Reference Number
-                </label>
-                <Input
-                  value={reference}
-                  onChange={(e) => setReference(e.target.value)}
-                  placeholder="GCASH-123456 / OR-0001"
-                  className="rounded-xl"
-                />
-              </div>
-              <div className="space-y-2">
-                <label className="text-sm font-bold text-slate-700">
-                  Proof URL (optional)
-                </label>
-                <Input
-                  value={receiptUrl}
-                  onChange={(e) => setReceiptUrl(e.target.value)}
-                  placeholder="https://..."
-                  className="rounded-xl"
-                />
-              </div>
-              <div className="space-y-2">
-                <label className="text-sm font-bold text-slate-700">
-                  Notes
-                </label>
-                <textarea
-                  value={notes}
-                  onChange={(e) => setNotes(e.target.value)}
-                  placeholder="Example: Paid to tenant cashier this morning."
-                  className="min-h-24 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm"
-                />
-              </div>
-              <Button
-                disabled={
-                  isPending || !amount || !methodId || !reference.trim()
-                }
-                onClick={handleSubmit}
-                className="w-full rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white"
-              >
-                Submit for Verification
-              </Button>
+      <Dialog open={compassionOpen} onOpenChange={setCompassionOpen}>
+        <DialogContent className="sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Compassion Request</DialogTitle>
+            <DialogDescription>Describe the hardship case and choose the relief that fits your situation.</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <label className="text-sm font-bold text-slate-700">Relief Type</label>
+              <Select value={compassionType} onValueChange={(v) => setCompassionType(v as any)}>
+                <SelectTrigger className="rounded-xl">
+                  <SelectValue placeholder="Choose relief type" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="grace_period">Grace Period</SelectItem>
+                  <SelectItem value="term_extension">Term Extension</SelectItem>
+                  <SelectItem value="penalty_freeze">Penalty Freeze</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
-          </DialogContent>
-        </Dialog>
+            <div className="space-y-2">
+              <label className="text-sm font-bold text-slate-700">Reason for Hardship</label>
+              <textarea
+                value={compassionReason}
+                onChange={(e) => setCompassionReason(e.target.value)}
+                placeholder="Describe the reason for the hardship case and why relief is needed."
+                className="min-h-28 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm"
+              />
+            </div>
+            <Button
+              disabled={isPending || compassionReason.trim().length < 10}
+              onClick={handleCompassionRequest}
+              className="w-full rounded-xl bg-blue-600 text-white hover:bg-blue-700"
+            >
+              Submit Request
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
 
-        <Dialog open={feedbackOpen} onOpenChange={setFeedbackOpen}>
-          <DialogContent className="sm:max-w-md">
-            <DialogHeader>
-              <DialogTitle>How is your repayment?</DialogTitle>
-              <DialogDescription>
-                As part of the Ka-Agapay system, your feedback is valuable in improving our community lending.
-              </DialogDescription>
-            </DialogHeader>
-            <div className="space-y-4 py-2">
-              <div className="space-y-2 text-center flex flex-col items-center">
-                <label className="text-sm font-bold text-slate-700">
-                  Experience Rating
-                </label>
-                <div className="flex gap-2">
-                  {[1, 2, 3, 4, 5].map((star) => (
-                    <button
-                      key={star}
-                      type="button"
-                      onClick={() => setFeedbackRating(star)}
-                      className={`transition-colors ${
-                        star <= feedbackRating
-                          ? "text-amber-500"
-                          : "text-slate-200 hover:text-amber-300"
-                      }`}
-                    >
-                      <Star className="w-8 h-8 fill-current" />
-                    </button>
+      <Dialog open={fullPaymentOpen} onOpenChange={setFullPaymentOpen}>
+        <DialogContent className="sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Pay in Full</DialogTitle>
+            <DialogDescription>Pay the remaining principal and have all remaining interest waived.</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="rounded-xl bg-violet-50 border border-violet-100 p-4 space-y-2">
+              <div className="flex justify-between text-sm">
+                <span className="text-slate-600">Remaining Balance</span>
+                <span className="font-bold text-slate-900">
+                  ₱{Number(loan.balance_remaining).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                </span>
+              </div>
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-bold text-slate-700">Payment Method</label>
+              <Select value={fullPaymentMethodId} onValueChange={setFullPaymentMethodId}>
+                <SelectTrigger className="rounded-xl">
+                  <SelectValue placeholder="Choose a channel" />
+                </SelectTrigger>
+                <SelectContent>
+                  {paymentMethods.map((method) => (
+                    <SelectItem key={method.method_id} value={String(method.method_id)}>
+                      {method.provider_name}
+                    </SelectItem>
                   ))}
-                </div>
-              </div>
-              <div className="space-y-2">
-                <label className="text-sm font-bold text-slate-700">
-                  Additional Comments (Optional)
-                </label>
-                <textarea
-                  value={feedbackMessage}
-                  onChange={(e) => setFeedbackMessage(e.target.value)}
-                  placeholder="E.g., The process was easy, but..."
-                  className="min-h-20 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm"
-                />
-              </div>
-              <Button
-                disabled={isPending}
-                onClick={() => {
-                  startTransition(async () => {
-                    await submitContextualFeedback({
-                      category: "Loan Repayment",
-                      message: `Rating: ${feedbackRating}/5\nNotes: ${feedbackMessage}`,
-                      subject: "Repayment Experience Survey",
-                    });
-                    setFeedbackOpen(false);
-                    toast.success(
-                      "Thank you! Your feedback has been sent.",
-                    );
-                  });
-                }}
-                className="w-full rounded-xl bg-slate-900 text-white hover:bg-slate-800"
-              >
-                Submit Feedback
-              </Button>
+                </SelectContent>
+              </Select>
             </div>
-          </DialogContent>
-        </Dialog>
-      </div>
+            <Button
+              disabled={isPending || !fullPaymentMethodId}
+              onClick={() => {
+                startTransition(async () => {
+                  const res = await processFullPayment({
+                    loanId: loan.loan_id,
+                    methodId: Number(fullPaymentMethodId),
+                  });
+                  if (res.error) { toast.error(res.error); return; }
+                  toast.success(res.success);
+                  setFullPaymentOpen(false);
+                  setFullPaymentMethodId("");
+                  router.refresh();
+                });
+              }}
+              className="w-full rounded-xl bg-violet-600 hover:bg-violet-700 text-white"
+            >
+              {isPending ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : null}
+              Confirm Full Payment
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
 
-      <div className="space-y-3">
-        <p className="text-xs font-bold uppercase tracking-widest text-slate-400">
-          Recent Repayment Activity
-        </p>
-        <div className="max-h-64 space-y-2 overflow-y-auto pr-1">
-          {loan.payments.length === 0 ? (
-            <p className="text-sm text-slate-400 italic">
-              No repayments submitted yet.
-            </p>
-          ) : (
-            loan.payments.map((payment) => (
-              <div
-                key={payment.payment_id}
-                className="flex items-center justify-between rounded-2xl bg-slate-50 px-4 py-3"
-              >
-                <div>
-                  <p className="text-sm font-bold text-slate-900">
-                    {payment.payment_method?.provider_name || "Payment"}
-                  </p>
-                  <p className="text-xs text-slate-500">
-                    {payment.payment_reference}
-                  </p>
-                </div>
-                <div className="text-right">
-                  <p className="text-sm font-bold text-emerald-600">
-                    ₱{Number(payment.amount_paid).toLocaleString()}
-                  </p>
-                  <p className="text-[10px] uppercase tracking-widest text-slate-400">
-                    {payment.status}
-                  </p>
-                </div>
+      <Dialog open={open} onOpenChange={setOpen}>
+        <DialogContent className="sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Repayment Submission</DialogTitle>
+            <DialogDescription>Choose a payment channel and enter the reference.</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <label className="text-sm font-bold text-slate-700">Amount</label>
+              <Input
+                value={amount}
+                onChange={(e) => setAmount(e.target.value)}
+                type="number"
+                className="rounded-xl"
+              />
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-bold text-slate-700">Payment Method</label>
+              <Select value={methodId} onValueChange={setMethodId}>
+                <SelectTrigger className="rounded-xl">
+                  <SelectValue placeholder="Choose a channel" />
+                </SelectTrigger>
+                <SelectContent>
+                  {paymentMethods.map((method) => (
+                    <SelectItem key={method.method_id} value={String(method.method_id)}>
+                      {method.provider_name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-bold text-slate-700">Reference Number</label>
+              <Input
+                value={reference}
+                onChange={(e) => setReference(e.target.value)}
+                placeholder="GCASH-123456 / OR-0001"
+                className="rounded-xl"
+              />
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-bold text-slate-700">Proof URL (optional)</label>
+              <Input
+                value={receiptUrl}
+                onChange={(e) => setReceiptUrl(e.target.value)}
+                placeholder="https://..."
+                className="rounded-xl"
+              />
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-bold text-slate-700">Notes</label>
+              <textarea
+                value={notes}
+                onChange={(e) => setNotes(e.target.value)}
+                placeholder="Example: Paid to tenant cashier this morning."
+                className="min-h-24 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm"
+              />
+            </div>
+            <Button
+              disabled={isPending || !amount || !methodId || !reference.trim()}
+              onClick={handleSubmit}
+              className="w-full rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white"
+            >
+              Submit for Verification
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={feedbackOpen} onOpenChange={setFeedbackOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>How is your repayment?</DialogTitle>
+            <DialogDescription>Your feedback is valuable in improving our community lending.</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-2">
+            <div className="space-y-2 text-center flex flex-col items-center">
+              <label className="text-sm font-bold text-slate-700">Experience Rating</label>
+              <div className="flex gap-2">
+                {[1, 2, 3, 4, 5].map((star) => (
+                  <button
+                    key={star}
+                    type="button"
+                    onClick={() => setFeedbackRating(star)}
+                    className={`transition-colors ${star <= feedbackRating ? "text-amber-500" : "text-slate-200 hover:text-amber-300"}`}
+                  >
+                    <Star className="w-8 h-8 fill-current" />
+                  </button>
+                ))}
               </div>
-            ))
-          )}
-        </div>
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-bold text-slate-700">Additional Comments (Optional)</label>
+              <textarea
+                value={feedbackMessage}
+                onChange={(e) => setFeedbackMessage(e.target.value)}
+                placeholder="E.g., The process was easy, but..."
+                className="min-h-20 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm"
+              />
+            </div>
+            <Button
+              disabled={isPending}
+              onClick={() => {
+                startTransition(async () => {
+                  await submitContextualFeedback({
+                    category: "Loan Repayment",
+                    message: `Rating: ${feedbackRating}/5\nNotes: ${feedbackMessage}`,
+                    subject: "Repayment Experience Survey",
+                  });
+                  setFeedbackOpen(false);
+                  toast.success("Thank you! Your feedback has been sent.");
+                });
+              }}
+              className="w-full rounded-xl bg-emerald-600 text-white hover:bg-emerald-700"
+            >
+              Submit Feedback
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+}
+
+function CompassionStatus({ loan }: { loan: ServicingLoan }) {
+  const latest = loan.compassion_actions[0];
+  if (!latest) return null;
+  const label = latest.action_type === "grace_period" ? "Grace Period"
+    : latest.action_type === "term_extension" ? "Term Extension"
+    : "Penalty Freeze";
+  return (
+    <div className="rounded-xl border border-blue-100 bg-blue-50/60 p-3">
+      <div className="flex items-center justify-between mb-1">
+        <span className="text-xs font-bold text-blue-700">{label}</span>
+        <span className={`rounded-full px-2 py-0.5 text-[9px] font-bold uppercase ${
+          latest.status === "approved" ? "bg-emerald-100 text-emerald-700"
+          : latest.status === "rejected" ? "bg-rose-100 text-rose-700"
+          : "bg-amber-100 text-amber-700"
+        }`}>
+          {latest.status}
+        </span>
       </div>
+      <p className="text-xs text-slate-600">{latest.reason}</p>
     </div>
   );
 }
@@ -850,14 +715,12 @@ function MetricCard({
   value: string;
 }) {
   return (
-    <div className="rounded-2xl border border-slate-100 bg-slate-50 p-4">
-      <div className="mb-2 flex items-center gap-2 text-slate-400">
+    <div className="rounded-xl border border-slate-100 bg-slate-50 p-2.5">
+      <div className="mb-1 flex items-center gap-1.5 text-slate-400">
         {icon}
-        <span className="text-[10px] font-bold uppercase tracking-widest">
-          {label}
-        </span>
+        <span className="text-[9px] font-bold uppercase tracking-widest">{label}</span>
       </div>
-      <p className="text-sm font-bold text-slate-900">{value}</p>
+      <p className="text-xs font-bold text-slate-900">{value}</p>
     </div>
   );
 }

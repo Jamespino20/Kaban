@@ -12,6 +12,9 @@ import {
   CheckCircle2,
   UserCog,
   Trash2,
+  KeyRound,
+  Activity,
+  Bell,
 } from "lucide-react";
 import {
   Select,
@@ -433,6 +436,19 @@ export function MemberDirectoryTab({
                               <UserCog className="mr-2.5 h-4 w-4 text-slate-400" />
                               Edit Details
                             </DropdownMenuItem>
+                            <DropdownMenuItem className="rounded-xl py-2.5 text-sm cursor-pointer">
+                              <KeyRound className="mr-2.5 h-4 w-4 text-slate-400" />
+                              Reset Password
+                            </DropdownMenuItem>
+                            <DropdownMenuItem className="rounded-xl py-2.5 text-sm cursor-pointer">
+                              <Activity className="mr-2.5 h-4 w-4 text-slate-400" />
+                              Activity Log
+                            </DropdownMenuItem>
+                            <DropdownMenuItem className="rounded-xl py-2.5 text-sm cursor-pointer">
+                              <Bell className="mr-2.5 h-4 w-4 text-slate-400" />
+                              Send Notification
+                            </DropdownMenuItem>
+                            <DropdownMenuSeparator className="my-1 bg-slate-100" />
                             {member.status === "active" ? (
                               <DropdownMenuItem className="rounded-xl py-2.5 text-sm cursor-pointer text-amber-600">
                                 <Ban className="mr-2.5 h-4 w-4" />

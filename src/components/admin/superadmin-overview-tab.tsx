@@ -41,7 +41,6 @@ export default async function SuperadminOverviewTab() {
   // Calculate growth rates (placeholder - would compare with previous period)
   const fundsGrowth = { value: 12.5, isPositive: true };
   const loansGrowth = { value: 8.2, isPositive: true };
-  const membersGrowth = { value: 15.3, isPositive: true };
 
   return (
     <div className="space-y-6">
@@ -59,12 +58,6 @@ export default async function SuperadminOverviewTab() {
           value={data.totalActiveLoans.toLocaleString()}
           iconName="activity"
           trend={loansGrowth}
-        />
-        <KPIMetricCard
-          label="Total Members"
-          value={data.totalMembers.toLocaleString()}
-          iconName="users"
-          trend={membersGrowth}
         />
         <KPIMetricCard
           label="Subscription Revenue"

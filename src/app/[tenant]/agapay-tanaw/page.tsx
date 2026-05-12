@@ -44,8 +44,10 @@ import {
   type ShellIconName,
 } from "@/components/layout/authenticated-shell";
 import { DashboardTabsShell } from "@/components/layout/dashboard-tabs-shell";
-import { getCommunityStaffSummary } from "@/actions/community-actions";
+import { getCommunityStaffSummary, getCommunityDashboardData } from "@/actions/community-actions";
+import { SuperadminCommunityTab } from "@/components/admin/superadmin-community-tab";
 import { CommunityOperationsTab } from "@/components/admin/community-operations-tab";
+import { CommunityTab } from "@/components/member/community-tab";
 import { AnalyticsDashboardTab } from "@/components/admin/analytics-dashboard-tab";
 import { ReconciliationTab } from "@/components/admin/reconciliation-tab";
 import { SubscriptionSettings } from "@/components/admin/subscription-settings";
@@ -55,8 +57,10 @@ import { SystemHealthTab } from "@/components/admin/system-health-tab";
 import { ApprovalsQueueModule } from "@/components/admin/approvals-queue-module";
 import { SupportAnalyticsModule } from "@/components/admin/support-analytics-module";
 import SuperadminOverviewTab from "@/components/admin/superadmin-overview-tab";
-import { AuditLogsTab } from "@/components/admin/audit-logs-tab";
+import { SuperadminApprovalsTab } from "@/components/admin/superadmin-approvals-tab";
+import { AuditLogViewer } from "@/components/admin/audit-log-viewer";
 import { TenantPerformanceReportsTab } from "@/components/admin/tenant-performance-reports-tab";
+import { AdminProfileSettings } from "@/components/admin/admin-profile-settings";
 
 function SystemFileManagementSkeleton() {
   return (
@@ -133,6 +137,7 @@ export default async function AgapayTanawPage({
     : { faqs: [], testimonials: [] };
   const feedbackEntries = canViewFeedback ? await getFeedbackEntries() : [];
   const communitySummary = await getCommunityStaffSummary();
+  const operatorCommunityData = isOperator ? await getCommunityDashboardData() : null;
   const currentTenantIdentity =
     tenantContextId !== null
       ? await prisma.tenant.findUnique({
@@ -231,13 +236,11 @@ export default async function AgapayTanawPage({
       icon: "audit",
       category: "System & Audits",
     },
-
-    // Category: Settings
     {
       value: "settings",
       label: "Settings",
       icon: "settings",
-      category: "Settings",
+      category: "System & Audits",
     },
   ];
 
@@ -265,7 +268,6 @@ export default async function AgapayTanawPage({
       value: "vault",
       label: "Capital & Investments",
       icon: "wallet",
-      category: "Capital & Investments",
     },
 
     // Member Management
@@ -273,7 +275,6 @@ export default async function AgapayTanawPage({
       value: "members",
       label: "Member Management",
       icon: "members",
-      category: "Member Management",
     },
 
     // Loan Operations
@@ -304,20 +305,21 @@ export default async function AgapayTanawPage({
       category: "Storefront",
     },
 
-    // Support & Analytics
+    // Feedback & Support
     {
       value: "feedback",
       label: "Support & Analytics",
       icon: "feedback",
-      category: "Support & Analytics",
     },
-
-    // Settings
+    {
+      value: "audit",
+      label: "Audit Logs",
+      icon: "audit",
+    },
     {
       value: "settings",
       label: "Settings",
       icon: "settings",
-      category: "Settings",
     },
   ];
 
@@ -454,8 +456,13 @@ export default async function AgapayTanawPage({
           </div>
         </TabsContent>
 
-        {/* Superadmin & Operator Shared Approvals */}
-        {(isOperator || isSuperAdmin) && (
+        {/* Approvals */}
+        {isSuperAdmin && (
+          <TabsContent value="approvals" className="outline-none">
+            <SuperadminApprovalsTab />
+          </TabsContent>
+        )}
+        {isOperator && (
           <TabsContent value="approvals" className="outline-none">
             <ApprovalsQueueModule
               data={pendingData}
@@ -519,40 +526,70 @@ export default async function AgapayTanawPage({
             >
               <FraudRiskTab />
             </TabsContent>
-            <TabsContent value="audit" className="outline-none">
-              <AuditLogsTab />
-            </TabsContent>
           </>
         )}
 
         {/* Shared Management Modules */}
         <TabsContent value="community" className="outline-none">
-          <CommunityOperationsTab summary={communitySummary} />
+          {isOperator ? (
+            <div className="grid grid-cols-1 gap-5 xl:grid-cols-[1.5fr_1fr]">
+              <CommunityTab
+                initialData={operatorCommunityData}
+              />
+              <CommunityOperationsTab summary={communitySummary} />
+            </div>
+          ) : (
+            <SuperadminCommunityTab />
+          )}
+        </TabsContent>
+
+        <TabsContent value="audit" className="outline-none">
+          <AuditLogViewer tenantId={isSuperAdmin && tenantContextId === null ? undefined : tenantContextId ?? undefined} />
         </TabsContent>
 
         <TabsContent value="content" className="outline-none">
-          <HomepageContentTab
-            role={userRole}
-            faqs={homepageContent.faqs}
-            testimonials={homepageContent.testimonials}
-          />
+          <div className="space-y-8">
+            {currentTenantIdentity && (isOperator || isSuperAdmin) && (
+              <BrandingTabWrapper
+                tenantId={
+                  isSuperAdmin ? currentTenantIdentity.tenant_id : undefined
+                }
+                initialBranding={{
+                  brand_color: currentTenantIdentity.brand_color,
+                  accent_color: currentTenantIdentity.accent_color,
+                  font_pairing: currentTenantIdentity.font_pairing,
+                  logo_url: currentTenantIdentity.logo_url,
+                }}
+                displayName={currentTenantIdentity.name}
+              />
+            )}
+            <HomepageContentTab
+              role={userRole}
+              faqs={homepageContent.faqs}
+              testimonials={homepageContent.testimonials}
+            />
+          </div>
         </TabsContent>
 
         <TabsContent value="feedback" className="outline-none">
           <SupportAnalyticsModule
             role={userRole}
             feedbackEntries={feedbackEntries}
-            tenantId={
-              isSuperAdmin
-                ? (tenantContextId ?? undefined)
-                : Number(session?.user?.tenantId || 0)
-            }
           />
         </TabsContent>
 
         <TabsContent value="settings" className="outline-none">
           <div className="flex flex-col items-center justify-center space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
             <div className="grid w-full max-w-5xl gap-6">
+              <AdminProfileSettings
+                initialData={{
+                  firstName: userName,
+                  lastName: "",
+                  email: session?.user?.email || "",
+                  phone: "",
+                }}
+              />
+
               {currentTenantIdentity ? (
                 <TenantNameSettingsCard
                   tenantId={
@@ -572,21 +609,6 @@ export default async function AgapayTanawPage({
                   tenant name from `Global View`.
                 </div>
               ) : null}
-
-              {currentTenantIdentity && (isOperator || isSuperAdmin) && (
-                <BrandingTabWrapper
-                  tenantId={
-                    isSuperAdmin ? currentTenantIdentity.tenant_id : undefined
-                  }
-                  initialBranding={{
-                    brand_color: currentTenantIdentity.brand_color,
-                    accent_color: currentTenantIdentity.accent_color,
-                    font_pairing: currentTenantIdentity.font_pairing,
-                    logo_url: currentTenantIdentity.logo_url,
-                  }}
-                  displayName={currentTenantIdentity.name}
-                />
-              )}
 
               {tenantContextId && (isOperator || isSuperAdmin) && (
                 <div className="flex justify-center -mx-4 md:mx-0">

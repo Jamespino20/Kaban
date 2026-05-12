@@ -87,7 +87,7 @@ export function FeedbackTab({
       <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
         <FeedbackMetric
           icon={<MessageSquareMore className="h-5 w-5 text-sky-600" />}
-          label="Kabuuang Feedback"
+          label="Total Feedback"
           value={entries.length}
           tone="sky"
         />
@@ -116,7 +116,7 @@ export function FeedbackTab({
             </h3>
             <p className="text-sm text-slate-500">
               {role === "superadmin"
-                ? "Cross-tenant feedback, concerns, at testimonial leads sa isang compact triage view."
+                ? "Cross-tenant feedback, concerns, and testimonial leads in a compact triage view."
                 : "Feedback from your tenant and potential homepage stories."}
             </p>
           </div>
@@ -130,7 +130,7 @@ export function FeedbackTab({
                 {filteredEntries.length}{" "}
                 {filteredEntries.length === 1 ? "entry" : "entries"}
               </span>
-              <span className="rounded-full bg-slate-900 px-2 py-1 text-[10px] font-black text-white">
+                <span className="rounded-full bg-indigo-600 px-2 py-1 text-[10px] font-black text-white">
                 {currentPage}/{totalPages}
               </span>
             </div>
@@ -141,7 +141,7 @@ export function FeedbackTab({
           <Input
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Hanapin ang subject, sender, o laman ng feedback..."
+            placeholder="Search by subject, sender, or feedback content..."
             className="rounded-xl bg-white"
           />
           <Select value={categoryFilter} onValueChange={setCategoryFilter}>
@@ -149,7 +149,7 @@ export function FeedbackTab({
               <SelectValue placeholder="Category" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">Lahat ng category</SelectItem>
+              <SelectItem value="all">All Categories</SelectItem>
               <SelectItem value="testimonial">Testimonial</SelectItem>
               <SelectItem value="faq">FAQ</SelectItem>
               <SelectItem value="general">General</SelectItem>
@@ -161,7 +161,7 @@ export function FeedbackTab({
               <SelectValue placeholder="Status" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">Lahat ng status</SelectItem>
+              <SelectItem value="all">All Status</SelectItem>
               <SelectItem value="open">Open</SelectItem>
               <SelectItem value="in_review">In Review</SelectItem>
               <SelectItem value="resolved">Resolved</SelectItem>
@@ -171,14 +171,13 @@ export function FeedbackTab({
 
         <div className="mb-4 rounded-2xl border border-slate-100 bg-slate-50/80 px-4 py-3 text-sm text-slate-600">
           <span className="font-bold text-slate-800">{unresolvedCount}</span>{" "}
-          ang nangangailangan pa ng follow-up. Gamitin ang filters para mas
-          mabilis ang triage.
+          still need follow-up. Use filters for faster triage.
         </div>
 
         <div className="space-y-3">
           {paginatedEntries.length === 0 ? (
             <div className="rounded-[1.5rem] border border-dashed border-slate-200 bg-slate-50 p-6 text-sm text-slate-500">
-              Wala pang feedback entries sa ngayon.
+              No feedback entries at the moment.
             </div>
           ) : (
             paginatedEntries.map((entry) => (
@@ -189,7 +188,7 @@ export function FeedbackTab({
 
         <div className="mt-5 flex flex-col gap-3 border-t border-slate-100 pt-4 md:flex-row md:items-center md:justify-between">
           <p className="text-sm text-slate-500">
-            Ipinapakita ang{" "}
+            Showing{" "}
             <span className="font-bold text-slate-700">
               {filteredEntries.length === 0
                 ? 0
@@ -293,14 +292,14 @@ function FeedbackRow({ entry }: { entry: FeedbackItem }) {
             ) : null}
           </div>
           <p className="line-clamp-2 font-black text-slate-900">
-            {entry.subject || "Walang subject"}
+            {entry.subject || "No subject"}
           </p>
           <div className="grid gap-2 rounded-2xl border border-slate-100 bg-slate-50/80 p-3 text-xs text-slate-600 md:grid-cols-3">
             <MetaCell
-              label="Mula kay"
+              label="From"
               value={`${entry.name}${entry.email ? ` (${entry.email})` : ""}`}
             />
-            <MetaCell label="Page" value={entry.page_path || "Hindi tinukoy"} />
+            <MetaCell label="Page" value={entry.page_path || "Not specified"} />
             <MetaCell
               label="Created"
               value={new Date(entry.created_at).toLocaleString()}
@@ -316,7 +315,7 @@ function FeedbackRow({ entry }: { entry: FeedbackItem }) {
               onClick={() => handleUpdate(option.value)}
               className={`rounded-xl px-3 ${
                 entry.status === option.value
-                  ? "bg-slate-900 text-white"
+                  ? "bg-emerald-600 text-white"
                   : "border border-slate-200 bg-white text-slate-700 hover:bg-slate-100"
               }`}
             >

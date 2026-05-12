@@ -1,11 +1,13 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { VerificationQueueTab } from "@/components/admin/verification-queue-tab";
 import { POSSystemTab } from "@/components/admin/pos-system-tab";
 import { TopUpQueueTab } from "@/components/admin/topup-queue-tab";
 import { CompassionActionsTab } from "@/components/admin/compassion-actions-tab";
+import { usePolling } from "@/hooks/use-polling";
 
 type ApprovalsPendingData = Parameters<typeof VerificationQueueTab>[0]["data"];
 type Member = Parameters<typeof POSSystemTab>[0]["members"][0];
@@ -40,8 +42,13 @@ export function ApprovalsQueueModule({
   compassionActions,
   isOperator,
 }: ApprovalsQueueModuleProps) {
+  const router = useRouter();
   const [activeTab, setActiveTab] = useState("verification");
   const tabs = isOperator ? TABS : SUPERADMIN_TABS;
+
+  usePolling(async () => {
+    router.refresh();
+  }, 30_000);
 
   return (
     <div className="space-y-4">
@@ -53,7 +60,7 @@ export function ApprovalsQueueModule({
             onClick={() => setActiveTab(tab.value)}
             className={`px-4 py-2 rounded-2xl text-sm font-bold transition-all duration-200 cursor-pointer ${
               activeTab === tab.value
-                ? "bg-slate-900 text-white shadow-sm"
+                ? "bg-emerald-600 text-white shadow-sm"
                 : "bg-white/70 text-slate-600 border border-slate-200/80 hover:bg-white hover:text-slate-900"
             }`}
           >

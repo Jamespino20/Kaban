@@ -12,6 +12,8 @@ import {
   History,
   Info,
   ShieldCheck,
+  Upload,
+  X,
 } from "lucide-react";
 import { requestWalletTopUp } from "@/actions/wallet-actions";
 import { Button } from "@/components/ui/button";
@@ -31,6 +33,13 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 
@@ -42,7 +51,10 @@ interface WalletTabProps {
 export function WalletTab({ savings, transactions }: WalletTabProps) {
   const router = useRouter();
   const [isDepositing, setIsDepositing] = useState(false);
-  const [depositAmount, setDepositAmount] = useState("");
+  const [depositAmount, setDepositAmount] = useState("500");
+  const [depositMethod, setDepositMethod] = useState("");
+  const [referenceNumber, setReferenceNumber] = useState("");
+  const [proofFile, setProofFile] = useState<File | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
   const formatCurrency = (val: number) =>
@@ -86,14 +98,39 @@ export function WalletTab({ savings, transactions }: WalletTabProps) {
       toast.error("Please enter a valid amount.");
       return;
     }
+    if (!depositMethod) {
+      toast.error("Please select a deposit method.");
+      return;
+    }
+    if (!referenceNumber.trim()) {
+      toast.error("Please enter a reference number.");
+      return;
+    }
 
     setIsDepositing(true);
-    const result = await requestWalletTopUp(amount);
+    let receiptUrl: string | undefined;
+    if (proofFile) {
+      const formData = new FormData();
+      formData.append("file", proofFile);
+      try {
+        const uploadRes = await fetch("/api/upload", { method: "POST", body: formData });
+        if (uploadRes.ok) {
+          const data = await uploadRes.json();
+          receiptUrl = data.url;
+        }
+      } catch {
+        // fallback: continue without URL on upload failure
+      }
+    }
+    const result = await requestWalletTopUp(amount, receiptUrl, depositMethod, referenceNumber);
     setIsDepositing(false);
 
     if (result.success) {
       toast.success(result.success);
       setDepositAmount("");
+      setDepositMethod("");
+      setReferenceNumber("");
+      setProofFile(null);
       setIsDialogOpen(false);
       router.refresh();
     } else {
@@ -243,7 +280,7 @@ export function WalletTab({ savings, transactions }: WalletTabProps) {
                 Add to Wallet
               </Button>
             </DialogTrigger>
-            <DialogContent className="rounded-[2rem] border-emerald-100 bg-white p-8">
+            <DialogContent className="rounded-[2rem] border-emerald-100 bg-white p-8 sm:max-w-lg">
               <DialogHeader>
                 <DialogTitle className="text-2xl font-display font-bold">
                   Add Funds
@@ -258,6 +295,7 @@ export function WalletTab({ savings, transactions }: WalletTabProps) {
                   This action will create a top-up request to the Operator.
                   Wait for their approval before the funds enter your wallet.
                 </div>
+
                 <div className="space-y-2">
                   <label className="text-xs font-black uppercase tracking-widest text-slate-400">
                     Amount (PHP)
@@ -275,6 +313,67 @@ export function WalletTab({ savings, transactions }: WalletTabProps) {
                     />
                   </div>
                 </div>
+
+                <div className="space-y-2">
+                  <label className="text-xs font-black uppercase tracking-widest text-slate-400">
+                    Deposit Method
+                  </label>
+                  <Select value={depositMethod} onValueChange={setDepositMethod}>
+                    <SelectTrigger className="h-14 rounded-2xl border-slate-100 text-base font-bold focus:border-emerald-300 focus:ring-emerald-300">
+                      <SelectValue placeholder="Select deposit method" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="GCash">GCash</SelectItem>
+                      <SelectItem value="Maya">Maya</SelectItem>
+                      <SelectItem value="Bank Transfer">Bank Transfer</SelectItem>
+                      <SelectItem value="Cash">Cash</SelectItem>
+                      <SelectItem value="Over-the-Counter">Over-the-Counter</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-xs font-black uppercase tracking-widest text-slate-400">
+                    Reference Number
+                  </label>
+                  <Input
+                    type="text"
+                    placeholder="e.g. GCash ref #, bank confirmation #"
+                    className="h-14 rounded-2xl border-slate-100 text-base font-medium focus:border-emerald-300 focus:ring-emerald-300"
+                    value={referenceNumber}
+                    onChange={(e) => setReferenceNumber(e.target.value)}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-xs font-black uppercase tracking-widest text-slate-400">
+                    Proof of Deposit (optional)
+                  </label>
+                  <div className="flex items-center gap-3">
+                    <label className="flex h-14 w-full cursor-pointer items-center gap-3 rounded-2xl border-2 border-dashed border-slate-200 bg-slate-50 px-4 text-sm text-slate-500 hover:border-emerald-300 hover:bg-emerald-50 transition-colors">
+                      <Upload className="h-5 w-5 text-slate-400" />
+                      <span className="font-medium">
+                        {proofFile ? proofFile.name : "Upload screenshot or receipt"}
+                      </span>
+                      <input
+                        type="file"
+                        accept="image/*,.pdf"
+                        className="hidden"
+                        onChange={(e) => setProofFile(e.target.files?.[0] || null)}
+                      />
+                    </label>
+                    {proofFile && (
+                      <button
+                        type="button"
+                        onClick={() => setProofFile(null)}
+                        className="flex h-10 w-10 items-center justify-center rounded-xl text-slate-400 hover:text-rose-500 hover:bg-rose-50 transition-colors"
+                      >
+                        <X className="h-5 w-5" />
+                      </button>
+                    )}
+                  </div>
+                </div>
+
                 <Button
                   onClick={handleDeposit}
                   disabled={isDepositing}
@@ -285,7 +384,7 @@ export function WalletTab({ savings, transactions }: WalletTabProps) {
                   ) : (
                     <ArrowUpCircle className="mr-2 h-5 w-5" />
                   )}
-                  Confirm Deposit
+                  Submit Deposit Request
                 </Button>
               </div>
             </DialogContent>

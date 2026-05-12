@@ -166,7 +166,12 @@ export async function getMemberWallets() {
   });
 }
 
-export async function requestWalletTopUp(amount: number, receiptUrl?: string) {
+export async function requestWalletTopUp(
+  amount: number,
+  receiptUrl?: string,
+  methodLabel?: string,
+  externalReference?: string,
+) {
   const session = await requireAuthenticatedSession();
   const userId = session.user.user_id;
   const tenantId = session.user.tenantId;
@@ -183,6 +188,8 @@ export async function requestWalletTopUp(amount: number, receiptUrl?: string) {
           user_id: userId,
           amount: new Prisma.Decimal(amount),
           receipt_url: receiptUrl || null,
+          method_label: methodLabel || null,
+          external_reference: externalReference || null,
           status: "pending",
         },
       });
