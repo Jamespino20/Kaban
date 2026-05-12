@@ -44,7 +44,13 @@ type AuditStats = {
   topActions: { action: string; _count: number }[];
 };
 
-export function AuditLogViewer({ tenantId }: { tenantId?: number }) {
+export function AuditLogViewer({ 
+  tenantId, 
+  userId 
+}: { 
+  tenantId?: number;
+  userId?: number;
+}) {
   const [logs, setLogs] = useState<AuditLogEntry[]>([]);
   const [stats, setStats] = useState<AuditStats | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -59,7 +65,7 @@ export function AuditLogViewer({ tenantId }: { tenantId?: number }) {
   useEffect(() => {
     loadLogs();
     loadStats();
-  }, [currentPage, moduleFilter, severityFilter, tenantId]);
+  }, [currentPage, moduleFilter, severityFilter, tenantId, userId]);
 
   const loadLogs = async () => {
     setIsLoading(true);
@@ -71,6 +77,7 @@ export function AuditLogViewer({ tenantId }: { tenantId?: number }) {
         page: currentPage,
         pageSize,
         tenantId,
+        userId,
       });
 
       if (result.success && result.data) {
@@ -86,7 +93,7 @@ export function AuditLogViewer({ tenantId }: { tenantId?: number }) {
 
   const loadStats = async () => {
     try {
-      const result = await getAuditLogStats(tenantId);
+      const result = await getAuditLogStats(tenantId, userId);
       if (result.success && result.stats) {
         setStats(result.stats);
       }

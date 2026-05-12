@@ -55,6 +55,7 @@ type MoneyLike = number | string | { toString(): string };
 
 type LoanScheduleItem = {
   schedule_id: number;
+  installment_number: number;
   status: "pending" | "overdue" | "paid";
   total_due: MoneyLike;
 };

@@ -25,6 +25,7 @@ interface PublicTenantSelectorProps {
   isScrolled?: boolean;
   isMobile?: boolean;
   triggerClassName?: string;
+  style?: React.CSSProperties;
 }
 
 export function PublicTenantSelector({
@@ -32,6 +33,7 @@ export function PublicTenantSelector({
   isScrolled,
   isMobile,
   triggerClassName,
+  style,
 }: PublicTenantSelectorProps) {
   const [searchQuery, setSearchQuery] = useState("");
 
@@ -53,7 +55,7 @@ export function PublicTenantSelector({
 
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger className={triggerClasses}>
+      <DropdownMenuTrigger className={triggerClasses} style={style}>
         <div className="flex items-center gap-2 text-left">
           <MapPin className="w-4 h-4" />
           <span>Find Cooperative</span>

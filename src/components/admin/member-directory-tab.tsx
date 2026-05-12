@@ -32,6 +32,9 @@ import {
 } from "@/components/ui/dropdown-menu";
 
 import { CreateStaffModal } from "./create-staff-modal";
+import { MemberProfileModal } from "./member-profile-modal";
+import { EditMemberModal } from "./edit-member-modal";
+import { MemberActivityModal } from "./member-activity-modal";
 import {
   updateMemberStatus,
   resetMemberPassword,
@@ -97,6 +100,10 @@ export function MemberDirectoryTab({
   const [tenantFilter, setTenantFilter] = useState("all");
   const [tierFilter, setTierFilter] = useState("all");
   const [currentPage, setCurrentPage] = useState(1);
+  const [selectedMember, setSelectedMember] = useState<any>(null);
+  const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const [isEditOpen, setIsEditOpen] = useState(false);
+  const [isActivityOpen, setIsActivityOpen] = useState(false);
   const pageSize = 8;
 
   const isSuperadmin = userRole === "superadmin";
@@ -424,7 +431,21 @@ export function MemberDirectoryTab({
                         </div>
                       </td>
                       <td className="px-6 py-4 text-right">
-                        <MemberRowActions member={member} />
+                        <MemberRowActions 
+                          member={member} 
+                          onViewProfile={() => {
+                            setSelectedMember(member);
+                            setIsProfileOpen(true);
+                          }}
+                          onEditDetails={() => {
+                            setSelectedMember(member);
+                            setIsEditOpen(true);
+                          }}
+                          onViewActivity={() => {
+                            setSelectedMember(member);
+                            setIsActivityOpen(true);
+                          }}
+                        />
                       </td>
                     </tr>
                   );
@@ -442,11 +463,39 @@ export function MemberDirectoryTab({
           onPageChange={setCurrentPage}
         />
       </div>
+
+      <MemberProfileModal
+        member={selectedMember}
+        isOpen={isProfileOpen}
+        onClose={() => setIsProfileOpen(false)}
+      />
+
+      <EditMemberModal
+        member={selectedMember}
+        isOpen={isEditOpen}
+        onClose={() => setIsEditOpen(false)}
+      />
+
+      <MemberActivityModal
+        member={selectedMember}
+        isOpen={isActivityOpen}
+        onClose={() => setIsActivityOpen(false)}
+      />
     </div>
   );
 }
 
-function MemberRowActions({ member }: { member: any }) {
+function MemberRowActions({ 
+  member, 
+  onViewProfile,
+  onEditDetails,
+  onViewActivity
+}: { 
+  member: any;
+  onViewProfile: () => void;
+  onEditDetails: () => void;
+  onViewActivity: () => void;
+}) {
   const [isPending, startTransition] = useTransition();
 
   const handleResetPassword = () => {
@@ -509,14 +558,14 @@ function MemberRowActions({ member }: { member: any }) {
       >
         <DropdownMenuItem
           className="rounded-xl py-2.5 text-sm cursor-pointer"
-          onClick={() => toast.info("View member profile details including loan history, documents, and trust scores.")}
+          onClick={onViewProfile}
         >
           <Eye className="mr-2.5 h-4 w-4 text-slate-400" />
           View Profile
         </DropdownMenuItem>
         <DropdownMenuItem
           className="rounded-xl py-2.5 text-sm cursor-pointer"
-          onClick={() => toast.info("Edit member details such as contact information and account status.")}
+          onClick={onEditDetails}
         >
           <UserCog className="mr-2.5 h-4 w-4 text-slate-400" />
           Edit Details
@@ -531,7 +580,7 @@ function MemberRowActions({ member }: { member: any }) {
         </DropdownMenuItem>
         <DropdownMenuItem
           className="rounded-xl py-2.5 text-sm cursor-pointer"
-          onClick={() => toast.info("View member activity log including login history, loan applications, and payments.")}
+          onClick={onViewActivity}
         >
           <Activity className="mr-2.5 h-4 w-4 text-slate-400" />
           Activity Log

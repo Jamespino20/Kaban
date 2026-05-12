@@ -80,6 +80,69 @@ export async function updateProfileInfo(values: {
   }
 }
 
+export async function updateMemberProfile(
+  userId: number,
+  values: {
+    firstName?: string;
+    lastName?: string;
+    email?: string;
+    phone?: string;
+    gender?: string;
+    maritalStatus?: string;
+  },
+) {
+  const session = await requireTanawSession();
+  const tenantId = session.user.tenantId;
+
+  try {
+    const userData: any = {};
+    if (values.email) userData.email = values.email.toLowerCase();
+    if (values.phone) userData.phone = values.phone;
+
+    const profileData: any = {};
+    if (values.firstName) profileData.first_name = values.firstName;
+    if (values.lastName) profileData.last_name = values.lastName;
+    if (values.gender) profileData.gender = values.gender;
+    if (values.maritalStatus) profileData.marital_status = values.maritalStatus;
+
+    if (tenantId) {
+      await prisma.$withTenant(tenantId, async (tx) => {
+        if (Object.keys(userData).length > 0) {
+          await tx.user.update({
+            where: { user_id: userId },
+            data: userData,
+          });
+        }
+        if (Object.keys(profileData).length > 0) {
+          await tx.userProfile.update({
+            where: { user_id: userId },
+            data: profileData,
+          });
+        }
+      });
+    } else {
+      if (Object.keys(userData).length > 0) {
+        await prisma.user.update({
+          where: { user_id: userId },
+          data: userData,
+        });
+      }
+      if (Object.keys(profileData).length > 0) {
+        await prisma.userProfile.update({
+          where: { user_id: userId },
+          data: profileData,
+        });
+      }
+    }
+
+    revalidatePath("/agapay-tanaw");
+    return { success: "Member profile updated successfully." };
+  } catch (err: any) {
+    console.error("updateMemberProfile failed:", err);
+    return { error: err.message || "Failed to update member profile" };
+  }
+}
+
 export async function getTenantMembers() {
   const session = await requireTanawSession();
   const tenantId = session.user.tenantId;

@@ -840,18 +840,12 @@ export async function submitFeedback(input: z.infer<typeof feedbackSchema>) {
 
 export async function getFeedbackEntries() {
   const session = await requireTanawSession();
+  const isSuperadmin = session.user.role === "superadmin";
   const tenantId = session.user.tenantId;
 
-  const query = async (db: any) => {
-    const where =
-      session.user.role === "superadmin"
-        ? tenantId === null
-          ? {}
-          : { OR: [{ tenant_id: tenantId }, { tenant_id: null }] }
-        : { tenant_id: tenantId ?? -1 };
-
+  const query = async (db: any, whereClause: any) => {
     return db.feedbackEntry.findMany({
-      where,
+      where: whereClause,
       orderBy: [{ status: "asc" }, { created_at: "desc" }],
       include: {
         user: {
@@ -866,12 +860,40 @@ export async function getFeedbackEntries() {
   };
 
   if (!tenantId) {
-    return await query(prisma);
+    // Not scoped to any tenant - fetch all (for superadmin) or error (shouldn't happen for others)
+    return await query(prisma, isSuperadmin ? {} : { tenant_id: -1 });
   }
 
-  return await prisma.$withTenant(tenantId, async (tx) => {
-    return await query(tx);
+  // Scoped view for the current tenant
+  const scopedResults = await prisma.$withTenant(tenantId, async (tx) => {
+    return await query(tx, { tenant_id: tenantId });
   });
+
+  if (isSuperadmin) {
+    // Superadmin also needs platform-wide feedback (tenant_id IS NULL)
+    // We fetch this using the base prisma client where session RLS is NULL
+    const platformResults = await query(prisma, { tenant_id: null });
+
+    // Merge and sort manually
+    const statusOrder: Record<string, number> = {
+      open: 0,
+      in_review: 1,
+      resolved: 2,
+    };
+
+    const merged = [...scopedResults, ...platformResults]
+      .sort((a, b) => {
+        if (a.status !== b.status) {
+          return (statusOrder[a.status] ?? 0) - (statusOrder[b.status] ?? 0);
+        }
+        return b.created_at.getTime() - a.created_at.getTime();
+      })
+      .slice(0, 100);
+
+    return merged;
+  }
+
+  return scopedResults;
 }
 
 export async function updateFeedbackEntryStatus(

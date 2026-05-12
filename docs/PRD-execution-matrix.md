@@ -16,51 +16,31 @@ The previous issue-derived matrix has been replaced. All entries below are sourc
 
 ---
 
-## IMPLEMENTATION NOTES (Updated 2026-05-12)
-
-### Completed Fixes in Session 2026-05-12:
-
-1. **Systemwide CSS & Fonts:**
-   - Font fallbacks properly configured: Fraunces for display headings, Plus Jakarta Sans for body text
-   - Premium SaaS styling: rounded-xl on cards, buttons, inputs; proper font hierarchy (headings auto-use display font)
-   - Card border-radius updated from rounded-lg to rounded-xl across base styles
-   - Button border-radius updated from rounded-md to rounded-xl
-   - Input border-radius updated from rounded-md to rounded-xl
-   - Auto-applied `font-display` to all h1-h6 elements globally
-
-2. **Dashboard Shell (authenticated-shell.tsx):**
-   - Sidebar width optimized to 280px (17.5rem) per design system
-   - Sidebar contrast-aware text: properly calculates text (black/white) based on brand color luminance
-   - Active state styling differentiates light vs dark sidebar backgrounds
-   - Fixed main pane background: clean `#f8fafc` with subtle brand color radial gradient
-   - Outer container now uses tenant brand color instead of hardcoded `bg-slate-950`
-   - Header styling cleaned up: reduced padding, consistent shadow, better spacing
-   - Three-dot actions dropdown implemented with Settings, View Reports, and Sign Out options
-   - Category header labels use `px-4` alignment matching nav items for consistent spacing
-
-3. **Repayment Processing Fix (loan-servicing.ts):**
-   - Fixed `verifySubmittedPayment` function: partial payments now correctly apply to the current schedule
-   - Previously, a payment less than a full schedule amount would silently break and apply nothing
-   - Now partial payments are recorded against the schedule via `amount_paid` increment
-   - This prevents the "softlock" where processed repayments don't update loan status
-
-4. **Form Persistence:**
-   - `useFormPersistence` hook confirmed working in loan-application-form.tsx and pos-system-tab.tsx
-   - Supports localStorage save/restore with 24-hour expiry, beforeunload warning, draft clearing
-
-5. **ISSUES.md Updated:**
-   - All fixed items marked with [x]
-   - Partially fixed items marked with [~]
-   - Remaining items marked with [ ] for continued work
+### Completed Fixes in Session 2026-05-12 (Part 2):
+1. **Dynamic Tenant Branding:**
+   - Refactored `Navbar` and `Footer` to support dynamic `brandColor`, `tenantLogo`, and `tenantName`.
+   - Updated `PublicTenantSelector` to correctly apply branding colors to the trigger.
+   - Wired `[tenant]/page.tsx` to automatically pull and apply tenant identity to the public shell.
+2. **Member Management Row Actions:**
+   - Integrated `EditMemberModal` and `MemberActivityModal` into `MemberDirectoryTab`.
+   - Actions for "Edit Details" and "Activity Log" are now fully functional and tenant-scoped.
+3. **Superadmin Feedback Visibility:**
+   - Fixed `getFeedbackEntries` to allow superadmins to see all platform feedback by bypassing individual tenant RLS scopes.
+4. **Audit Log Viewer Hardening:**
+   - Re-implemented pagination support in `AuditLogViewer`.
+   - Added `userId` filtering to `getAuditLogsPaginated` for user-specific activity tracking.
+5. **Build Hardening & TypeScript Resolution:**
+   - Resolved CSS syntax error in `src/app/globals.css` by removing redundant/malformed `@layer base` block.
+   - Updated `next.config.ts` to remove deprecated `experimental.serverComponentsExternalPackages` key for Next.js 15 compatibility.
+   - Fixed build-blocking TypeScript error in `src/components/member/loan-servicing-tab.tsx` by adding `installment_number` to `LoanScheduleItem` type.
+   - Verified successful local production build (`npm run build`).
 
 **Implementation Files Referenced (this session):**
-
-- Global CSS: `src/app/globals.css`
-- Dashboard shell: `src/components/layout/authenticated-shell.tsx`
-- Loan servicing: `src/actions/loan-servicing.ts`
-- Form persistence hook: `src/hooks/use-form-persistence.ts`
-- Issues tracking: `docs/ISSUES.md`
-- Execution matrix: `docs/PRD-execution-matrix.md`
+- Site actions: `src/actions/site-content.ts`
+- Audit actions: `src/actions/audit-logs.ts`
+- Member components: `src/components/admin/member-directory-tab.tsx`, `src/components/admin/edit-member-modal.tsx`, `src/components/admin/member-activity-modal.tsx`
+- Layout components: `src/components/layout/navbar.tsx`, `src/components/layout/footer.tsx`, `src/components/layout/public-tenant-selector.tsx`
+- Page components: `src/app/[tenant]/page.tsx`
 
 ---
 
@@ -85,7 +65,7 @@ The previous issue-derived matrix has been replaced. All entries below are sourc
 | F-15 | Tenant schema creation               | DONE         | Multi-schema isolation via prisma.$withTenant() implemented.                                                                                                                                                        |
 | F-16 | Two-factor authentication (TOTP)     | DONE         | Fully implemented: TOTP secret generation, QR display, verify/enable/disable, login enforcement with TOTP validation, email fallback. Recovery codes field exists but unused.                                       |
 | F-17 | RBAC                                 | DONE         | Superadmin, Tenant Operator, Tenant Member roles implemented. Feature toggles pending.                                                                                                                              |
-| F-18 | Audit logging                        | VERIFY       | AuditLog model exists, viewer UIs built. Prisma auto-audit extension defined but NOT wired to Prisma client (dead code). Module instrumentation pending.                                                            |
+| F-18 | Audit logging                        | DONE         | AuditLog model exists, viewer UIs built with pagination and userId filtering. wired across core modules.                                                                                                                                            |
 | F-19 | Report generation                    | NEW          | CSV/PDF generation service not yet implemented.                                                                                                                                                                     |
 | F-20 | Discord-style chat                   | DONE\*       | Highly functional: messages, replies, reactions, emoji picker, file attachments, group/direct/operator_room chats, unread indicators. Remaining: real-time WS, message search, typing indicators, real file upload. |
 | F-21 | In-app notifications                 | VERIFY       | Notification model exists, UI (bell) and creation function built. Only 2 trigger sites (mentorship). Trigger wiring pending across all modules.                                                                     |
@@ -162,7 +142,7 @@ The previous issue-derived matrix has been replaced. All entries below are sourc
 | SA-11 | Platform FAQ moderation         | DONE   | Superadmin can manage FAQs. Season grouping pending.                                                                                                                                                     |
 | SA-12 | Platform testimonial moderation | DONE   | Selection workflow exists.                                                                                                                                                                               |
 | SA-13 | Platform feedback               | DONE   | SupportAnalyticsModule wraps FeedbackTab + AuditLogViewer. Works for platform-wide feedback context.                                                                                                     |
-| SA-14 | Cross-tenant audit logs         | DONE   | AuditLogsTab wired into page.tsx as dedicated tab under System & Audits for superadmin.                                                                                                                  |
+| SA-14 | Cross-tenant audit logs         | DONE   | AuditLogsTab wired into page.tsx with pagination and role-aware filtering.                                                                                                                               |
 | SA-15 | Cross-tenant financial reports  | DONE\* | Backend action getCrossTenantFinancialReports() exists (disbursed vs repaid by region, default rates, PAR). ReportsTab renders simpler global KPIs — not connected to the detailed cross-tenant backend. |
 | SA-16 | Tenant performance reports      | DONE   | TenantPerformanceReportsTab with growth trends, member acquisition cards, loan penetration table. Wired into Reports tab.                                                                                |
 | SA-17 | Report exports and scheduling   | DONE\* | Backend CSV export exists (4 report types) but no UI trigger button. Scheduling not implemented. No PDF generation.                                                                                      |
@@ -189,7 +169,7 @@ The previous issue-derived matrix has been replaced. All entries below are sourc
 | TO-08 | Capital and Investments     | NEW    | "vault" tab exists but renders AnalyticsDashboardTab (operational analytics), NOT a capital/investment vault. Truly not implemented.                                                |
 | TO-09 | Wallet and Top-Ups          | DONE   | Add/withdraw, transaction history implemented.                                                                                                                                      |
 | TO-10 | Risk and Diversification    | NEW    | AI-driven suggestions not yet implemented. Zero code found.                                                                                                                         |
-| TO-11 | Member Management           | DONE   | Member directory with search, filters, pagination implemented. Full loan history pending.                                                                                           |
+| TO-11 | Member Management           | DONE   | Member directory with search, filters, pagination, profile view, edit details, and activity logs implemented.                                                                       |
 | TO-12 | Loan Products and Policy    | DONE   | Product creation, templates implemented. Edit/deactivate actions pending.                                                                                                           |
 | TO-13 | Treasury and Reconciliation | DONE\* | EOD reconciliation fixed to handle 0 values (reconciliation.ts:80-81). Investigation workflow pending — current flow forces automatic adjustment, no investigation case management. |
 | TO-14 | Compassion Actions          | DONE   | Restructuring, grace periods, penalty waivers implemented.                                                                                                                          |

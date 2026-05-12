@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
+import { useForm } from "react-hook-form";
 import { Badge } from "@/components/ui/badge";
 import {
   Bell, Building2, Link2, Landmark,
@@ -29,6 +30,15 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { toast } from "sonner";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { useFormPersistence } from "@/hooks/use-form-persistence";
 
 type LinkedAccount = {
   id: string;
@@ -99,6 +109,13 @@ type MemberSettingsTabProps = {
   };
 };
 
+type ProfileFormValues = {
+  email: string;
+  phone: string;
+  occupation: string;
+  businessName: string;
+};
+
 export function MemberSettingsTab({
   profile,
   tenant,
@@ -122,16 +139,26 @@ export function MemberSettingsTab({
   const [bankAccountNumber, setBankAccountNumber] = useState("");
   const [bankHolderName, setBankHolderName] = useState("");
 
-  // Editable personal info
-  const [editingField, setEditingField] = useState<string | null>(null);
-  const [displayEmail, setDisplayEmail] = useState(profile.email);
-  const [displayPhone, setDisplayPhone] = useState(profile.phone || "");
-  const [displayOccupation, setDisplayOccupation] = useState(profile.occupation || "");
-  const [displayBusinessName, setDisplayBusinessName] = useState(profile.businessName || "");
-  const [editEmail, setEditEmail] = useState(profile.email);
-  const [editPhone, setEditPhone] = useState(profile.phone || "");
-  const [editOccupation, setEditOccupation] = useState(profile.occupation || "");
-  const [editBusinessName, setEditBusinessName] = useState(profile.businessName || "");
+  // Editable personal info — managed via react-hook-form + useFormPersistence
+  const form = useForm<ProfileFormValues>({
+    defaultValues: {
+      email: profile.email,
+      phone: profile.phone || "",
+      occupation: profile.occupation || "",
+      businessName: profile.businessName || "",
+    },
+  });
+
+  const watchedProfileValues = form.watch();
+  const formDataAsRecord = useMemo(() => watchedProfileValues as unknown as Record<string, unknown>, [watchedProfileValues]);
+  const { draftFound, clearPersistence, dismissDraftNotice } = useFormPersistence(
+    "member-profile-settings",
+    formDataAsRecord,
+    (restored) => {
+      form.reset(restored as ProfileFormValues);
+    },
+    true,
+  );
 
   // Avatar
   const [avatarPreview, setAvatarPreview] = useState<string | null>(profile.avatarUrl || null);
@@ -228,45 +255,17 @@ export function MemberSettingsTab({
     );
   };
 
-  const handleSaveEdit = (field: string) => {
-    const profileEdits = JSON.parse(localStorage.getItem("agapay_profile_edits") || "{}");
-    switch (field) {
-      case "Email":
-        profileEdits.email = editEmail;
-        setDisplayEmail(editEmail);
-        break;
-      case "Phone":
-        profileEdits.phone = editPhone;
-        setDisplayPhone(editPhone);
-        break;
-      case "Occupation":
-        profileEdits.occupation = editOccupation;
-        setDisplayOccupation(editOccupation);
-        break;
-      case "Business":
-        profileEdits.businessName = editBusinessName;
-        setDisplayBusinessName(editBusinessName);
-        break;
-    }
-    localStorage.setItem("agapay_profile_edits", JSON.stringify(profileEdits));
-    toast.success(`${field} updated successfully`);
-    setEditingField(null);
-  };
-
+  // Form persistence: auto-save profile edits to localStorage with draft recovery
   useEffect(() => {
     try {
-      const saved = localStorage.getItem("agapay_profile_edits");
-      if (saved) {
-        const parsed = JSON.parse(saved);
-        if (parsed.email) { setDisplayEmail(parsed.email); setEditEmail(parsed.email); }
-        if (parsed.phone) { setDisplayPhone(parsed.phone); setEditPhone(parsed.phone); }
-        if (parsed.occupation) { setDisplayOccupation(parsed.occupation); setEditOccupation(parsed.occupation); }
-        if (parsed.businessName) { setDisplayBusinessName(parsed.businessName); setEditBusinessName(parsed.businessName); }
-      }
       const savedAvatar = localStorage.getItem("agapay_avatar_url");
       if (savedAvatar) setAvatarPreview(savedAvatar);
     } catch { /* ignore */ }
   }, []);
+
+  const handleSubmitProfile = (values: ProfileFormValues) => {
+    toast.success("Profile updated successfully");
+  };
 
   const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -314,63 +313,20 @@ export function MemberSettingsTab({
     toast.success("Backup downloaded successfully");
   };
 
-  const renderEditableField = (
-    label: string,
-    field: string,
-    value: string,
-    editValue: string,
-    setEditValue: (v: string) => void,
-    readOnly?: boolean,
-  ) => {
-    const isEditing = editingField === field;
-    return (
-      <div className="rounded-xl border border-slate-100 bg-slate-50 px-4 py-3 relative group">
-        <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-slate-400">{label}</p>
-        <div className="mt-1 flex items-center gap-2">
-          {isEditing ? (
-            <Input
-              value={editValue}
-              onChange={(e) => setEditValue(e.target.value)}
-              className="h-8 text-sm rounded-lg"
-              autoFocus
-            />
-          ) : (
-            <p className="text-sm font-semibold text-slate-900">{value}</p>
-          )}
-        </div>
-        {!readOnly && (
-          <div className="absolute right-2 top-2 opacity-0 group-hover:opacity-100 transition-opacity">
-            {isEditing ? (
-              <div className="flex gap-1">
-                <button
-                  type="button"
-                  onClick={() => { handleSaveEdit(label); setEditingField(null); }}
-                  className="text-[10px] font-bold uppercase text-emerald-600 hover:text-emerald-700 bg-white rounded-md px-2 py-1 border border-slate-200"
-                >
-                  Save
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setEditingField(null)}
-                  className="text-[10px] font-bold uppercase text-slate-400 hover:text-slate-600 bg-white rounded-md px-2 py-1 border border-slate-200"
-                >
-                  Cancel
-                </button>
-              </div>
-            ) : (
-              <button
-                type="button"
-                onClick={() => setEditingField(field)}
-                className="text-[10px] font-bold uppercase text-blue-600 hover:text-blue-700 bg-white rounded-md px-2 py-1 border border-slate-200"
-              >
-                Edit
-              </button>
-            )}
-          </div>
-        )}
-      </div>
-    );
-  };
+// Profile fields config for display-only (no editing)
+type ReadOnlyFieldProps = {
+  label: string;
+  value: string;
+};
+
+function ReadOnlyField({ label, value }: ReadOnlyFieldProps) {
+  return (
+    <div className="rounded-xl border border-slate-100 bg-slate-50 px-4 py-3">
+      <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-slate-400">{label}</p>
+      <p className="mt-1 text-sm font-semibold text-slate-900">{value}</p>
+    </div>
+  );
+}
 
   return (
     <div className="space-y-5 animate-in fade-in slide-in-from-bottom-4 duration-500">
@@ -435,14 +391,78 @@ export function MemberSettingsTab({
                 <p className="text-xs text-slate-500">@{profile.username}</p>
               </div>
             </div>
-            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-              {renderEditableField("Full Name", "fullName", profile.fullName, profile.fullName, () => {}, true)}
-              {renderEditableField("Username", "username", profile.username, profile.username, () => {}, true)}
-              {renderEditableField("Email", "email", displayEmail, editEmail, setEditEmail)}
-              {renderEditableField("Phone", "phone", displayPhone || "Not saved", editPhone, setEditPhone)}
-              {renderEditableField("Occupation", "occupation", displayOccupation || "Not saved", editOccupation, setEditOccupation)}
-              {renderEditableField("Business", "businessName", displayBusinessName || "Not saved", editBusinessName, setEditBusinessName)}
-            </div>
+            {/* Draft notice banner */}
+            {draftFound && (
+              <div className="mb-4 flex items-center gap-3 rounded-2xl border border-amber-200 bg-amber-50 px-5 py-3 text-sm text-amber-800">
+                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-amber-100 text-amber-600 text-xs font-bold">!</div>
+                <p className="flex-1 font-medium">We found a saved draft from your last session. Continue where you left off.</p>
+                <button
+                  type="button"
+                  onClick={() => { clearPersistence(); dismissDraftNotice(); }}
+                  className="text-xs font-bold text-amber-600 hover:text-amber-800 underline"
+                >
+                  Dismiss
+                </button>
+              </div>
+            )}
+            <Form {...form}>
+              <form onSubmit={form.handleSubmit(handleSubmitProfile)} className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                <ReadOnlyField label="Full Name" value={profile.fullName} />
+                <ReadOnlyField label="Username" value={profile.username} />
+                <FormField
+                  control={form.control}
+                  name="email"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-col">
+                      <FormLabel className="text-[11px] font-bold uppercase tracking-[0.18em] text-slate-400">Email</FormLabel>
+                      <FormControl>
+                        <Input {...field} className="h-8 text-sm rounded-lg" />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="phone"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-col">
+                      <FormLabel className="text-[11px] font-bold uppercase tracking-[0.18em] text-slate-400">Phone</FormLabel>
+                      <FormControl>
+                        <Input {...field} className="h-8 text-sm rounded-lg" />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="occupation"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-col">
+                      <FormLabel className="text-[11px] font-bold uppercase tracking-[0.18em] text-slate-400">Occupation</FormLabel>
+                      <FormControl>
+                        <Input {...field} className="h-8 text-sm rounded-lg" />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="businessName"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-col">
+                      <FormLabel className="text-[11px] font-bold uppercase tracking-[0.18em] text-slate-400">Business Name</FormLabel>
+                      <FormControl>
+                        <Input {...field} className="h-8 text-sm rounded-lg" />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </form>
+            </Form>
             <div className="mt-4 rounded-xl border border-slate-100 bg-slate-50 px-4 py-3 text-sm text-slate-600">
               Member since{" "}
               <span className="font-semibold text-slate-800">

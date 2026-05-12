@@ -10,9 +10,16 @@ import { PublicTenantSelector } from "@/components/layout/public-tenant-selector
 interface NavbarProps {
   forceSolid?: boolean;
   tenants?: any[];
+  brandColor?: string | null;
+  tenantLogo?: string | null;
 }
 
-export function Navbar({ forceSolid = false, tenants = [] }: NavbarProps) {
+export function Navbar({ 
+  forceSolid = false, 
+  tenants = [], 
+  brandColor,
+  tenantLogo
+}: NavbarProps) {
   const { data: session, status } = useSession();
   const [isMounted, setIsMounted] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
@@ -54,13 +61,21 @@ export function Navbar({ forceSolid = false, tenants = [] }: NavbarProps) {
         {/* Logo */}
         <Link href="/" className="flex items-center gap-4 group cursor-pointer">
           <div className="w-32 h-12 flex items-center justify-center transition-transform group-hover:scale-105">
-            <img
-              src="/images/agapay_titled.png"
-              alt="Agapay"
-              className={`w-32 h-32 object-contain transition-all duration-500 ${
-                isScrolled ? "" : "brightness-0 invert"
-              }`}
-            />
+            {tenantLogo ? (
+              <img 
+                src={tenantLogo} 
+                alt="Logo" 
+                className="w-full h-full object-contain"
+              />
+            ) : (
+              <img
+                src="/images/agapay_titled.png"
+                alt="Agapay"
+                className={`w-32 h-32 object-contain transition-all duration-500 ${
+                  isScrolled ? "" : "brightness-0 invert"
+                }`}
+              />
+            )}
           </div>
         </Link>
 
@@ -72,9 +87,12 @@ export function Navbar({ forceSolid = false, tenants = [] }: NavbarProps) {
               href={item.href}
               className={`text-sm font-bold transition-colors flex flex-col items-center group ${
                 isScrolled
+                  ? `${isScrolled ? "text-slate-700" : "text-white/90"}`
+                : isScrolled
                   ? "text-slate-700 hover:text-emerald-600"
                   : "text-white/90 hover:text-white"
               }`}
+              style={brandColor && isScrolled ? { color: brandColor } : {}}
             >
               <span className="group-hover:translate-y-[-2px] transition-transform">
                 {item.label}
@@ -95,12 +113,14 @@ export function Navbar({ forceSolid = false, tenants = [] }: NavbarProps) {
                     ? "bg-emerald-600 text-white hover:bg-emerald-700 shadow-emerald-900/10"
                     : "bg-white text-emerald-900 hover:bg-emerald-50 shadow-white/10"
                 }`}
+                style={brandColor && isScrolled ? { backgroundColor: brandColor } : {}}
               />
             )}
             <AuthOrDashboard
               isMounted={isMounted}
               session={session}
               status={status}
+              brandColor={brandColor}
             />
           </div>
           <button
@@ -146,6 +166,7 @@ export function Navbar({ forceSolid = false, tenants = [] }: NavbarProps) {
                 closeMenu={() => setIsMenuOpen(false)}
                 session={session}
                 status={status}
+                brandColor={brandColor}
               />
             </div>
           </nav>
@@ -161,12 +182,14 @@ function AuthOrDashboard({
   isMounted,
   session,
   status,
+  brandColor,
 }: {
   isMobile?: boolean;
   closeMenu?: () => void;
   isMounted: boolean;
   session: any;
   status: string;
+  brandColor?: string | null;
 }) {
   if (!isMounted) return null;
   if (status === "loading") return null;
@@ -183,6 +206,7 @@ function AuthOrDashboard({
             ? "w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold h-12 px-8 rounded-2xl flex items-center justify-center gap-2"
             : "bg-emerald-600 hover:bg-emerald-700 text-white font-bold h-12 px-8 rounded-full shadow-lg shadow-emerald-900/20 transition-all flex items-center gap-2"
         }
+        style={brandColor ? { backgroundColor: brandColor } : {}}
       >
         <LayoutDashboard className="w-4 h-4" />{" "}
         {isMobile ? "Go to Dashboard" : "Dashboard"}

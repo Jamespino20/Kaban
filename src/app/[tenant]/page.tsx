@@ -67,7 +67,12 @@ export default async function TenantIndexPage({
 
   return (
     <div className="relative min-h-screen bg-slate-50 flex flex-col items-center font-sans overflow-x-hidden text-slate-950">
-      <Navbar tenants={activeTenants} forceSolid />
+      <Navbar 
+        tenants={activeTenants} 
+        forceSolid 
+        brandColor={brandColor} 
+        tenantLogo={tenantData.logo_url}
+      />
 
       <main className="relative z-20 w-full flex flex-col items-center">
         {/* Hero Section */}
@@ -215,7 +220,7 @@ export default async function TenantIndexPage({
             </div>
           </section>
 
-          <Footer />
+          <Footer brandColor={brandColor} tenantName={tenantData.name} />
         </div>
       </main>
     </div>

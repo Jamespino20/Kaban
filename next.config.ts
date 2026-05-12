@@ -15,9 +15,6 @@ const nextConfig: NextConfig = {
     "bufferutil",
     "utf-8-validate",
   ],
-  experimental: {
-    serverComponentsExternalPackages: ["@prisma/client", "prisma"],
-  },
 };
 
 export default nextConfig;

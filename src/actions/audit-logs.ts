@@ -13,6 +13,7 @@ type AuditFilters = {
   page?: number;
   pageSize?: number;
   tenantId?: number;
+  userId?: number;
 };
 
 export async function getAuditLogsPaginated(filters?: AuditFilters) {
@@ -28,6 +29,10 @@ export async function getAuditLogsPaginated(filters?: AuditFilters) {
 
     if (tenantId) {
       where.tenant_id = tenantId;
+    }
+
+    if (filters?.userId) {
+      where.user_id = filters.userId;
     }
 
     if (filters?.module) {
@@ -90,11 +95,14 @@ export async function getAuditLogsPaginated(filters?: AuditFilters) {
   }
 }
 
-export async function getAuditLogStats(tenantId?: number) {
+export async function getAuditLogStats(tenantId?: number, userId?: number) {
   const session = await requireTanawSession();
 
   try {
-    const where = tenantId ? { tenant_id: tenantId } : {};
+    const where: any = {};
+    if (tenantId) where.tenant_id = tenantId;
+    if (userId) where.user_id = userId;
+
     const totalLogs = await prisma.auditLog.count({ where });
 
     const byCategory = await prisma.auditLog.groupBy({
