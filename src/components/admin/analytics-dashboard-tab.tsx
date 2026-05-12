@@ -135,7 +135,7 @@ export async function AnalyticsDashboardTab() {
             </div>
             <BarChart3 className="w-5 h-5 text-muted-foreground" />
           </div>
-          <div className="h-48 w-full bg-slate-50/50 dark:bg-slate-800/50 rounded-2xl flex items-end justify-between p-6 gap-2 border border-slate-100 dark:border-slate-700/50">
+          <div className="h-48 w-full bg-slate-50/50 rounded-2xl flex items-end justify-between p-6 gap-2 border border-slate-100">
             {operational?.repaymentVelocity.length ? (
               operational.repaymentVelocity.slice(-15).map(
                 (d: { date: string; amount: number }, i: number) => (
@@ -146,7 +146,7 @@ export async function AnalyticsDashboardTab() {
                       height: `${Math.max(5, (d.amount / Math.max(...operational.repaymentVelocity.map((x: { amount: number }) => x.amount))) * 100)}%`,
                     }}
                   >
-                    <div className="absolute -top-12 left-1/2 -translate-x-1/2 bg-slate-900 text-white text-[10px] px-3 py-1.5 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-20 shadow-xl dark:bg-slate-700">
+                    <div className="absolute -top-12 left-1/2 -translate-x-1/2 bg-slate-900 text-white text-[10px] px-3 py-1.5 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-20 shadow-xl">
                       {d.date}: ₱{d.amount.toLocaleString()}
                     </div>
                   </div>
@@ -158,7 +158,7 @@ export async function AnalyticsDashboardTab() {
               </div>
             )}
           </div>
-          <div className="flex justify-between items-center bg-slate-50 dark:bg-slate-800/50 p-4 rounded-2xl">
+          <div className="flex justify-between items-center bg-slate-50 p-4 rounded-2xl">
             <div className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
               Velocity Insight
             </div>
@@ -176,7 +176,7 @@ export async function AnalyticsDashboardTab() {
                 Investment Distribution
               </h3>
             </div>
-            <p className="text-[10px] font-black text-rose-500 uppercase tracking-tighter bg-rose-50 dark:bg-rose-950/40 px-2 py-1 rounded-md">
+            <p className="text-[10px] font-black text-rose-500 uppercase tracking-tighter bg-rose-50 px-2 py-1 rounded-md">
               Active Portfolio
             </p>
           </div>
@@ -189,15 +189,15 @@ export async function AnalyticsDashboardTab() {
                 ) => (
                   <div
                     key={idx}
-                    className="flex flex-col gap-2 p-4 bg-slate-50/50 dark:bg-slate-800/30 rounded-2xl border border-slate-100 dark:border-slate-700/50"
+                    className="flex flex-col gap-2 p-4 bg-slate-50/50 rounded-2xl border border-slate-100"
                   >
                     <div className="flex justify-between text-[11px] font-bold text-muted-foreground uppercase tracking-wider">
                       <span>{item.label}</span>
-                      <span className="text-rose-600 dark:text-rose-400">
+                      <span className="text-rose-600">
                         ₱{item.amount.toLocaleString()}
                       </span>
                     </div>
-                    <div className="h-1.5 w-full bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
+                    <div className="h-1.5 w-full bg-slate-200 rounded-full overflow-hidden">
                       <div
                         className="h-full bg-rose-500 rounded-full shadow-[0_0_8px_rgba(244,63,94,0.3)]"
                         style={{
@@ -222,7 +222,7 @@ export async function AnalyticsDashboardTab() {
 
       {/* Investment Business Insights & Capital Allocation */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        <div className="bg-gradient-to-br from-indigo-900 to-slate-900 p-8 rounded-2xl text-white space-y-8 relative overflow-hidden group dark:from-indigo-950 dark:to-slate-950">
+        <div className="bg-gradient-to-br from-indigo-900 to-slate-900 p-8 rounded-2xl text-white space-y-8 relative overflow-hidden group">
           <div className="relative z-10 space-y-6">
             <div className="flex items-center gap-3">
               <BarChart3 className="w-5 h-5 text-indigo-400" />
@@ -272,7 +272,7 @@ export async function AnalyticsDashboardTab() {
             </h3>
           </div>
           <div className="space-y-4">
-            <div className="flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-800/30 rounded-2xl border border-slate-100 dark:border-slate-700/50">
+            <div className="flex items-center justify-between p-4 bg-slate-50 rounded-2xl border border-slate-100">
               <div className="flex items-center gap-3">
                 <Banknote className="w-5 h-5 text-emerald-500" />
                 <div>
@@ -288,7 +288,7 @@ export async function AnalyticsDashboardTab() {
                 ₱{(integrity?.treasuryBalance ?? 0).toLocaleString()}
               </p>
             </div>
-            <div className="flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-800/30 rounded-2xl border border-slate-100 dark:border-slate-700/50">
+            <div className="flex items-center justify-between p-4 bg-slate-50 rounded-2xl border border-slate-100">
               <div className="flex items-center gap-3">
                 <PiggyBank className="w-5 h-5 text-blue-500" />
                 <div>
@@ -304,7 +304,7 @@ export async function AnalyticsDashboardTab() {
                 ₱{(integrity?.savingsPoolTotal ?? 0).toLocaleString()}
               </p>
             </div>
-            <div className="flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-800/30 rounded-2xl border border-slate-100 dark:border-slate-700/50">
+            <div className="flex items-center justify-between p-4 bg-slate-50 rounded-2xl border border-slate-100">
               <div className="flex items-center gap-3">
                 <TrendingUp className="w-5 h-5 text-amber-500" />
                 <div>
@@ -321,7 +321,7 @@ export async function AnalyticsDashboardTab() {
               </p>
             </div>
           </div>
-          <p className="text-xs text-muted-foreground italic bg-slate-50 dark:bg-slate-800/30 p-4 rounded-2xl border border-slate-100 dark:border-slate-700/50">
+          <p className="text-xs text-muted-foreground italic bg-slate-50 p-4 rounded-2xl border border-slate-100">
             Capital Utilization Rate:{" "}
             <span className="font-bold text-foreground">{utilizationRate}%</span>{" "}
             — {Number.parseFloat(utilizationRate) > 60 ? "Healthy" : "Under-utilized"} deployment of available funds.

@@ -68,12 +68,15 @@ export function TenantManagementTab({
   });
 
   const groupedByRegion = sortByRegion
-    ? filteredTenants.reduce((acc: Record<string, any[]>, t: any) => {
-        const region = t.tenant_group?.name || "Unassigned";
-        if (!acc[region]) acc[region] = [];
-        acc[region].push(t);
-        return acc;
-      }, {} as Record<string, any[]>)
+    ? filteredTenants.reduce(
+        (acc: Record<string, any[]>, t: any) => {
+          const region = t.tenant_group?.name || "Unassigned";
+          if (!acc[region]) acc[region] = [];
+          acc[region].push(t);
+          return acc;
+        },
+        {} as Record<string, any[]>,
+      )
     : { "All Tenants": filteredTenants };
 
   if (sortByRegion) {
@@ -247,7 +250,7 @@ export function TenantManagementTab({
                   <Plus className="w-4 h-4 mr-2" /> Add Tenant
                 </Button>
               </DialogTrigger>
-              <DialogContent className="max-w-[1400px]">
+              <DialogContent className="max-w-7xl">
                 <DialogHeader>
                   <DialogTitle>Create New Tenant (Tenant)</DialogTitle>
                 </DialogHeader>
@@ -327,7 +330,9 @@ export function TenantManagementTab({
         Object.entries(groupedByRegion).map(([region, regionTenants]) => (
           <div key={region} className="space-y-4">
             <div className="flex items-center gap-3 border-b border-slate-200 pb-2">
-              <h3 className="text-lg font-display font-bold text-slate-900">{region}</h3>
+              <h3 className="text-lg font-display font-bold text-slate-900">
+                {region}
+              </h3>
               <span className="rounded-full bg-slate-100 px-2.5 py-0.5 text-[10px] font-bold text-slate-500">
                 {regionTenants.length}
               </span>
@@ -374,7 +379,11 @@ export function TenantManagementTab({
                       </div>
                       <div className="bg-slate-100 rounded-lg p-2">
                         <span className="block text-xl font-black text-slate-800">
-                          {t.entitlement_status === "active" ? "Active" : t.entitlement_status === "suspended" ? "Suspended" : "Prospect"}
+                          {t.entitlement_status === "active"
+                            ? "Active"
+                            : t.entitlement_status === "suspended"
+                              ? "Suspended"
+                              : "Prospect"}
                         </span>
                         <span className="text-[10px] uppercase text-slate-500 font-bold">
                           Status
@@ -395,25 +404,34 @@ export function TenantManagementTab({
                         <p>
                           Last activity:{" "}
                           <span className="font-semibold text-slate-700">
-                            {new Date(t.updated_at).toLocaleDateString("en-PH", {
-                              month: "short",
-                              day: "numeric",
-                              year: "numeric",
-                              hour: "2-digit",
-                              minute: "2-digit",
-                            })}
+                            {new Date(t.updated_at).toLocaleDateString(
+                              "en-PH",
+                              {
+                                month: "short",
+                                day: "numeric",
+                                year: "numeric",
+                                hour: "2-digit",
+                                minute: "2-digit",
+                              },
+                            )}
                           </span>
                         </p>
                       ) : null}
                       {t.is_active ? (
-                        <p className="text-emerald-700 font-semibold">System online</p>
+                        <p className="text-emerald-700 font-semibold">
+                          System online
+                        </p>
                       ) : (
-                        <p className="text-red-600 font-semibold">System offline</p>
+                        <p className="text-red-600 font-semibold">
+                          System offline
+                        </p>
                       )}
                       {t.tenant_group?.reg_code ? (
                         <p>
                           Reg Code:{" "}
-                          <span className="font-semibold text-slate-700">{t.tenant_group.reg_code}</span>
+                          <span className="font-semibold text-slate-700">
+                            {t.tenant_group.reg_code}
+                          </span>
                         </p>
                       ) : null}
                       {t.entitlement_reference ? (
@@ -458,7 +476,9 @@ export function TenantManagementTab({
                           <Button
                             variant="destructive"
                             className="text-xs font-bold"
-                            onClick={() => handleDecommission(t.tenant_id, t.name)}
+                            onClick={() =>
+                              handleDecommission(t.tenant_id, t.name)
+                            }
                             disabled={isPending || t.slug === "main-tenant"}
                           >
                             <PowerOff className="w-4 h-4 mr-2" />
@@ -473,7 +493,8 @@ export function TenantManagementTab({
                               "text-xs font-bold",
                             )}
                           >
-                            <ExternalLink className="w-4 h-4 mr-2" /> View Homepage
+                            <ExternalLink className="w-4 h-4 mr-2" /> View
+                            Homepage
                           </a>
                         </div>
                       </div>
@@ -488,7 +509,8 @@ export function TenantManagementTab({
                               href={`/api/admin/backups/${t.decommissioned_backups[0].id}`}
                               className="flex items-center justify-center w-full py-2.5 px-4 bg-emerald-600 text-white rounded-xl text-sm font-bold hover:bg-emerald-700 transition-colors"
                             >
-                              <Download className="w-4 h-4 mr-2" /> Download Snapshot
+                              <Download className="w-4 h-4 mr-2" /> Download
+                              Snapshot
                             </a>
                           )}
                         <label className="flex items-center justify-center w-full py-2.5 px-4 border-2 border-dashed border-slate-300 text-slate-500 rounded-xl text-sm font-bold hover:border-emerald-400 hover:text-emerald-600 transition-colors cursor-pointer">
@@ -499,11 +521,14 @@ export function TenantManagementTab({
                             onChange={async (e) => {
                               const file = e.target.files?.[0];
                               if (!file) return;
-                              toast.info(`Backup file "${file.name}" selected. Upload and restore coming soon.`);
+                              toast.info(
+                                `Backup file "${file.name}" selected. Upload and restore coming soon.`,
+                              );
                               e.target.value = "";
                             }}
                           />
-                          <Upload className="w-4 h-4 mr-2" /> Upload Backup to Restore
+                          <Upload className="w-4 h-4 mr-2" /> Upload Backup to
+                          Restore
                         </label>
                         <Button
                           variant="outline"
