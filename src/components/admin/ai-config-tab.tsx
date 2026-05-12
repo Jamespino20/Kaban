@@ -278,7 +278,7 @@ export function AIConfigTab() {
                 </label>
                 <Input
                   type="number"
-                  value={config.analysisConfig?.maxLoanAmountToAnalyze || ""}
+                  value={config.analysisConfig?.maxLoanAmountToAnalyze ?? ""}
                   onChange={(e) =>
                     setConfig({
                       ...config,
@@ -297,7 +297,7 @@ export function AIConfigTab() {
                 <Input
                   type="number"
                   value={
-                    config.analysisConfig?.minDataPointsForInsights || ""
+                    config.analysisConfig?.minDataPointsForInsights ?? ""
                   }
                   onChange={(e) =>
                     setConfig({
@@ -318,7 +318,7 @@ export function AIConfigTab() {
                   type="number"
                   step="0.1"
                   value={
-                    config.analysisConfig?.anomalyDetectionThreshold || ""
+                    config.analysisConfig?.anomalyDetectionThreshold ?? ""
                   }
                   onChange={(e) =>
                     setConfig({

@@ -277,7 +277,8 @@ export function CommunityTab({
         toast.error(result.error);
         return;
       }
-      const nextThread = await getConversationThread(selectedConversationId!);
+      if (!selectedConversationId) return;
+      const nextThread = await getConversationThread(selectedConversationId);
       setThread(nextThread);
     });
   };

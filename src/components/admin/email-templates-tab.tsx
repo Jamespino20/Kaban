@@ -100,7 +100,7 @@ export function EmailTemplatesTab() {
     setIsLoading(true);
     const res = await getEmailTemplates();
     if (res.success && res.data) {
-      setTemplates(res.data as unknown as Template[]);
+      setTemplates(res.data as Template[]);
     } else {
       toast.error(res.error || "Failed to load templates");
     }

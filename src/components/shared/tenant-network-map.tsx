@@ -1,6 +1,6 @@
 "use client";
 
-import { MapPin, Building2, ExternalLink, Plus, Minus } from "lucide-react";
+import { MapPin,  ExternalLink, Plus, Minus } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 

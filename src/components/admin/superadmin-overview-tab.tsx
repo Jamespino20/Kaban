@@ -28,14 +28,15 @@ export default async function SuperadminOverviewTab() {
   }
 
   // Construct a trust breakdown for the global platform index
-  // Note: For superadmin, this reflects platform-wide averages
+  // Note: For superadmin, this reflects platform-wide averages.
+  // Sub-scores use the overall score as a simplified aggregate.
   const globalTrustBreakdown: TrustScoreBreakdown = {
     score: data.globalTrustScore,
-    paymentScore: data.globalTrustScore, // Assumed equal for platform aggregate
+    paymentScore: data.globalTrustScore,
     businessScore: data.globalTrustScore,
     peerScore: data.globalTrustScore,
     guarantorScore: data.globalTrustScore,
-    tier: InterestTier.T1_5_PERCENT, // Default baseline
+    tier: InterestTier.T1_5_PERCENT,
   };
 
   // Calculate growth rates (placeholder - would compare with previous period)
