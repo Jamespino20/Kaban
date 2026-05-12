@@ -374,37 +374,46 @@ export function TenantManagementTab({
                       </div>
                       <div className="bg-slate-100 rounded-lg p-2">
                         <span className="block text-xl font-black text-slate-800">
-                          {t._count.loans}
+                          {t.entitlement_status === "active" ? "Active" : t.entitlement_status === "suspended" ? "Suspended" : "Prospect"}
                         </span>
                         <span className="text-[10px] uppercase text-slate-500 font-bold">
-                          Loans
+                          Status
                         </span>
                       </div>
                       <div className="bg-slate-100 rounded-lg p-2">
                         <span className="block text-xl font-black text-slate-800">
-                          {t._count.savings}
+                          {t._count.system_files || 0}
                         </span>
                         <span className="text-[10px] uppercase text-slate-500 font-bold">
-                          Savings
+                          Files
                         </span>
                       </div>
                     </div>
 
                     <div className="mb-4 space-y-2 text-xs text-slate-500">
-                      {t.lifetime_availed_at ? (
+                      {t.updated_at ? (
                         <p>
-                          First availed:{" "}
+                          Last activity:{" "}
                           <span className="font-semibold text-slate-700">
-                            {new Date(t.lifetime_availed_at).toLocaleDateString("en-PH")}
+                            {new Date(t.updated_at).toLocaleDateString("en-PH", {
+                              month: "short",
+                              day: "numeric",
+                              year: "numeric",
+                              hour: "2-digit",
+                              minute: "2-digit",
+                            })}
                           </span>
                         </p>
+                      ) : null}
+                      {t.is_active ? (
+                        <p className="text-emerald-700 font-semibold">System online</p>
                       ) : (
-                        <p className="text-amber-700">Not yet availed.</p>
+                        <p className="text-red-600 font-semibold">System offline</p>
                       )}
-                      {t.plan_name ? (
+                      {t.tenant_group?.reg_code ? (
                         <p>
-                          Plan:{" "}
-                          <span className="font-semibold text-slate-700">{t.plan_name}</span>
+                          Reg Code:{" "}
+                          <span className="font-semibold text-slate-700">{t.tenant_group.reg_code}</span>
                         </p>
                       ) : null}
                       {t.entitlement_reference ? (
@@ -413,12 +422,6 @@ export function TenantManagementTab({
                           <span className="font-semibold text-slate-700">
                             {t.entitlement_reference}
                           </span>
-                        </p>
-                      ) : null}
-                      {t.tenant_group?.reg_code ? (
-                        <p>
-                          Reg Code:{" "}
-                          <span className="font-semibold text-slate-700">{t.tenant_group.reg_code}</span>
                         </p>
                       ) : null}
                     </div>

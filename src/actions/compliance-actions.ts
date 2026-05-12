@@ -37,6 +37,7 @@ export const submitCoopApplication = async (values: {
   email: string;
   phone: string;
   region: string;
+  tenant_group_id?: number;
   membersCount: string;
   message?: string;
   selectedPlanId?: string;
@@ -79,6 +80,7 @@ export const submitCoopApplication = async (values: {
         name: values.name,
         slug: `${slug}-${Math.floor(Math.random() * 1000)}`,
         entitlement_status: "prospect",
+        tenant_group_id: values.tenant_group_id ?? null,
         entitlement_notes: `Plan: ${planLabel} (${cycleLabel}). Application from ${values.email}. Phone: ${values.phone}. Region: ${values.region}. Estimated Members: ${values.membersCount}. Message: ${values.message}${docNotes}${billingNotes}`,
       },
     });

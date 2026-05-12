@@ -249,18 +249,6 @@ export default async function AgapayTanawPage({
       category: "System & Audits",
     },
     {
-      value: "health",
-      label: "System Health",
-      icon: "activity",
-      category: "System & Audits",
-    },
-    {
-      value: "risk",
-      label: "Fraud & Risk",
-      icon: "shield",
-      category: "System & Audits",
-    },
-    {
       value: "audit",
       label: "Audit Logs",
       icon: "audit",
@@ -275,7 +263,7 @@ export default async function AgapayTanawPage({
   ];
 
   const operatorNav: ShellNavItem[] = [
-    // Core Operations
+    // 1. Core Operations
     {
       value: "overview",
       label: "Overview",
@@ -293,21 +281,23 @@ export default async function AgapayTanawPage({
       category: "Core Operations",
     },
 
-    // Capital & Investments
+    // 2. Capital
     {
       value: "vault",
       label: "Capital & Investments",
       icon: "wallet",
+      category: "Capital",
     },
 
-    // Member Management
+    // 3. Members
     {
       value: "members",
       label: "Member Management",
       icon: "members",
+      category: "Members",
     },
 
-    // Loan Operations
+    // 4. Loan Operations
     {
       value: "products",
       label: "Loan Products & Policy",
@@ -321,7 +311,7 @@ export default async function AgapayTanawPage({
       category: "Loan Operations",
     },
 
-    // Storefront
+    // 5. Storefront
     {
       value: "content",
       label: "Content & Branding",
@@ -335,21 +325,26 @@ export default async function AgapayTanawPage({
       category: "Storefront",
     },
 
-    // Feedback & Support
+    // 6. Support & Analytics
     {
       value: "feedback",
       label: "Support & Analytics",
       icon: "feedback",
+      category: "Support & Analytics",
     },
+
+    // 7. System (bottom)
     {
       value: "audit",
       label: "Audit Logs",
       icon: "audit",
+      category: "System",
     },
     {
       value: "settings",
       label: "Settings",
       icon: "settings",
+      category: "System",
     },
   ];
 
@@ -532,9 +527,6 @@ export default async function AgapayTanawPage({
         {/* Superadmin Only Modules */}
         {isSuperAdmin && (
           <>
-            <TabsContent value="health" className="outline-none">
-              <SystemHealthTab />
-            </TabsContent>
             <TabsContent value="tenants" className="outline-none">
               <TenantManagementTab
                 initialTenants={tenants}
@@ -548,19 +540,31 @@ export default async function AgapayTanawPage({
               <div className="space-y-6">
                 <ReportsTab />
                 <TenantPerformanceReportsTab />
+                <div className="border-t border-slate-200 pt-6">
+                  <h3 className="text-2xl font-bold font-display text-slate-900 mb-4">
+                    System Health
+                  </h3>
+                  <SystemHealthTab />
+                </div>
+                <div className="border-t border-slate-200 pt-6">
+                  <h3 className="text-2xl font-bold font-display text-slate-900 mb-4">
+                    Fraud & Risk Monitoring
+                  </h3>
+                  <FraudRiskTab />
+                </div>
               </div>
-            </TabsContent>
-            <TabsContent
-              value="risk"
-              className="animate-in fade-in slide-in-from-bottom-4 duration-500"
-            >
-              <FraudRiskTab />
             </TabsContent>
             <TabsContent value="email-templates" className="outline-none">
               <EmailTemplatesTab />
             </TabsContent>
             <TabsContent value="ai-config" className="outline-none">
               <AIConfigTab />
+            </TabsContent>
+            <TabsContent value="subscriptions" className="outline-none">
+              <SubscriptionsModule
+                initialPlans={subscriptionPlans}
+                initialTenants={tenantSubscriptions}
+              />
             </TabsContent>
           </>
         )}

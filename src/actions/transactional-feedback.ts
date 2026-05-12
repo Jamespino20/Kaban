@@ -64,6 +64,64 @@ export async function submitContextualFeedback(
   }
 }
 
+const SurveySchema = z.object({
+  ratings: z.record(z.string(), z.number()),
+  comment: z.string().optional(),
+  tenantSlug: z.string().optional(),
+});
+
+export async function submitTrustLinkedSurvey(input: z.infer<typeof SurveySchema>) {
+  try {
+    const session = await auth();
+    if (!session?.user) {
+      return { error: "Unauthorized" };
+    }
+
+    const parsed = SurveySchema.parse(input);
+    const userId = Number(session.user.id);
+    const tenantId = session.user.tenantId;
+
+    const data: any = {
+      user_id: userId,
+      name: session.user.name || "Anonymous",
+      email: session.user.email,
+      category: "survey",
+      subject: "Satisfaction Survey (Trust-Linked)",
+      message: JSON.stringify({
+        ratings: parsed.ratings,
+        comment: parsed.comment,
+        submittedAt: new Date().toISOString(),
+      }),
+      status: "closed",
+      metadata: {
+        survey_type: "trust_score_feedback",
+        ratings: parsed.ratings,
+        average_rating:
+          Object.values(parsed.ratings).reduce((a: number, b: number) => a + b, 0) /
+          Math.max(Object.keys(parsed.ratings).length, 1),
+      },
+    };
+
+    if (tenantId) {
+      await prisma.$withTenant(tenantId, async (tx) => {
+        await tx.feedbackEntry.create({
+          data: {
+            ...data,
+            tenant_id: tenantId,
+          },
+        });
+      });
+    } else {
+      await prisma.feedbackEntry.create({ data });
+    }
+
+    return { success: "Survey submitted! Responses are linked to your profile and will contribute to trust score calculations." };
+  } catch (error: any) {
+    console.error("Survey submission error:", error);
+    return { error: "Unable to submit survey. Please try again." };
+  }
+}
+
 export async function getUserFeedbackTickets() {
   try {
     const session = await auth();

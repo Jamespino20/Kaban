@@ -6,7 +6,7 @@ import {
   requireAdminSession,
   requireAuthenticatedSession,
 } from "@/lib/authorization";
-import { PaymentStatus, ScheduleStatus } from "@prisma/client";
+import { PaymentStatus, ScheduleStatus, Prisma } from "@prisma/client";
 import { revalidatePath } from "next/cache";
 import {
   buildRepaymentSchedule,
@@ -240,6 +240,20 @@ export async function releaseLoanFunds(
           status: "active",
         },
       });
+
+      const schedules = buildRepaymentSchedule({
+        loanId,
+        approvedAt: loan.approved_at || new Date(),
+        termMonths: loan.term_months,
+        principalAmount: Number(loan.principal_amount),
+        totalInterest: Number(loan.interest_applied),
+        processingFee: Number(loan.fees_applied),
+        frequency: loan.repayment_frequency,
+      });
+
+      await tx.loanSchedule.createMany({
+        data: schedules.map((s) => ({ ...s, tenant_id: targetTenantId })),
+      });
     });
 
     revalidatePath("/agapay-tanaw");
@@ -327,7 +341,7 @@ export async function processFullPayment(
       }
 
       const remainingPrincipal = unpaidSchedules.reduce(
-        (sum: number, s: any) => sum + Number(s.principal_due),
+        (sum: number, s: any) => sum + Number(s.principal_amount),
         0,
       );
 
@@ -397,6 +411,75 @@ export async function verifySubmittedPayment(
           verified_at: new Date(),
           verified_by: session.user.user_id,
         },
+      });
+
+      // Apply payment to unpaid schedules
+      const schedules = await tx.loanSchedule.findMany({
+        where: {
+          loan_id: payment.loan_id,
+          status: { in: [ScheduleStatus.pending, ScheduleStatus.overdue] },
+        },
+        orderBy: { installment_number: "asc" },
+      });
+
+      let remaining = Number(payment.amount_paid);
+      for (const schedule of schedules) {
+        const scheduleDue = Number(schedule.total_due);
+        if (remaining + 0.01 < scheduleDue) break;
+
+        await tx.loanSchedule.update({
+          where: { schedule_id: schedule.schedule_id },
+          data: {
+            status: ScheduleStatus.paid,
+            paid_at: new Date(),
+          },
+        });
+        remaining -= scheduleDue;
+      }
+
+      const appliedAmount = Number(payment.amount_paid) - remaining;
+
+      // Update loan balance
+      await tx.loan.update({
+        where: { loan_id: payment.loan_id },
+        data: {
+          balance_remaining: {
+            decrement: new Prisma.Decimal(appliedAmount),
+          },
+        },
+      });
+
+      // Check if fully paid and update status
+      const updatedLoan = await tx.loan.findUnique({
+        where: { loan_id: payment.loan_id },
+        select: { balance_remaining: true },
+      });
+
+      if (updatedLoan && Number(updatedLoan.balance_remaining) <= 0) {
+        await tx.loan.update({
+          where: { loan_id: payment.loan_id },
+          data: { status: "paid" },
+        });
+      }
+
+      // Post ledger entries
+      await postLedgerEntry(tx, {
+        description: `Loan Repayment Verified: ${payment.payment_reference}`,
+        createdBy: session.user.user_id,
+        loanId: payment.loan_id,
+        metadata: { source: "repayment_verification", paymentId: payment.payment_id },
+        entries: [
+          {
+            accountCode: "CASH_EQUIVALENTS",
+            debit: appliedAmount,
+            credit: 0,
+          },
+          {
+            accountCode: "LOAN_RECEIVABLES",
+            debit: 0,
+            credit: appliedAmount,
+          },
+        ],
       });
 
       return { success: "Payment verified successfully." };

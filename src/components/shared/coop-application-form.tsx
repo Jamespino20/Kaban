@@ -1,11 +1,19 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState, useTransition, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
 import { submitCoopApplication } from "@/actions/compliance-actions";
+import { getRegions } from "@/actions/tenant-management";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { PlanCard } from "./plan-card";
 import {
   Building2,
@@ -28,12 +36,18 @@ type Step = "info" | "plan" | "docs" | "payment";
 export function CoopApplicationForm() {
   const [isPending, startTransition] = useTransition();
   const [currentStep, setCurrentStep] = useState<Step>("info");
+  const [regions, setRegions] = useState<{ id: number; name: string }[]>([]);
+
+  useEffect(() => {
+    getRegions().then((data) => setRegions(data ?? []));
+  }, []);
 
   const [formData, setFormData] = useState({
     name: "",
     email: "",
     phone: "",
     region: "",
+    tenant_group_id: null as number | null,
     membersCount: "",
     message: "",
     selectedPlanId: "pro",
@@ -75,6 +89,7 @@ export function CoopApplicationForm() {
     startTransition(async () => {
       const res = await submitCoopApplication({
         ...formData,
+        tenant_group_id: formData.tenant_group_id ?? undefined,
       });
 
       if (res.error) {
@@ -88,6 +103,7 @@ export function CoopApplicationForm() {
         email: "",
         phone: "",
         region: "",
+        tenant_group_id: null,
         membersCount: "",
         message: "",
         selectedPlanId: "pro",
@@ -113,7 +129,7 @@ export function CoopApplicationForm() {
     formData.name &&
     formData.email &&
     formData.phone &&
-    formData.region &&
+    formData.tenant_group_id != null &&
     formData.membersCount;
 
   const isDocsValid = !!formData.docs.validId;
@@ -122,7 +138,9 @@ export function CoopApplicationForm() {
     {
       id: "core",
       name: "Core",
-      price: "19,990",
+      price: "3,500",
+      billingLabel: "3 months",
+      priceLabel: "₱3,500 / 3 months",
       description: "Ideal for new cooperatives who want to get started.",
       icon: "core" as const,
       features: [
@@ -136,7 +154,9 @@ export function CoopApplicationForm() {
     {
       id: "pro",
       name: "Professional",
-      price: "49,990",
+      price: "6,500",
+      billingLabel: "6 months",
+      priceLabel: "₱6,500 / 6 months",
       description: "For growing cooperatives needing advanced tools.",
       icon: "pro" as const,
       isPopular: true,
@@ -151,7 +171,9 @@ export function CoopApplicationForm() {
     {
       id: "enterprise",
       name: "Enterprise",
-      price: "99,990",
+      price: "12,000",
+      billingLabel: "12 months",
+      priceLabel: "₱12,000 / 12 months",
       description: "Full-scale solution for large and multi-tenant coops.",
       icon: "enterprise" as const,
       features: [
@@ -269,14 +291,28 @@ export function CoopApplicationForm() {
               </FormField>
             </div>
 
-            <FormField label="Region / Location" icon={MapPin}>
-              <Input
-                name="region"
-                value={formData.region}
-                onChange={handleChange}
-                placeholder="Ex. NCR, Quezon City"
-                className="rounded-2xl h-14 pl-11 bg-slate-50 border-slate-200 focus:bg-white focus:border-emerald-500 transition-all font-medium"
-              />
+            <FormField label="Region / Tenant Group" icon={MapPin}>
+              <Select
+                value={formData.tenant_group_id?.toString() ?? ""}
+                onValueChange={(val) =>
+                  setFormData((prev) => ({
+                    ...prev,
+                    tenant_group_id: parseInt(val),
+                    region: regions.find((r) => r.id === parseInt(val))?.name ?? "",
+                  }))
+                }
+              >
+                <SelectTrigger className="rounded-2xl h-14 pl-11 bg-slate-50 border-slate-200 focus:bg-white focus:border-emerald-500 transition-all font-medium">
+                  <SelectValue placeholder="Select a region..." />
+                </SelectTrigger>
+                <SelectContent>
+                  {regions.map((r) => (
+                    <SelectItem key={r.id} value={r.id.toString()}>
+                      {r.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </FormField>
 
             <Button
@@ -394,18 +430,12 @@ export function CoopApplicationForm() {
                 Back
               </Button>
               <Button
-                onClick={handleSubmit}
-                disabled={isPending || !isDocsValid}
+                onClick={handleNext}
+                disabled={!isDocsValid}
                 className="flex-1 h-16 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-black italic text-lg shadow-xl shadow-emerald-500/20 group transition-all"
               >
-                {isPending ? (
-                  <Loader2 className="w-6 h-6 animate-spin mx-auto" />
-                ) : (
-                  <>
-                    Submit Application
-                    <Send className="w-5 h-5 ml-3 group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
-                  </>
-                )}
+                Next: Payment
+                <ChevronRight className="w-5 h-5 ml-3 group-hover:translate-x-1 transition-transform" />
               </Button>
             </div>
           </motion.div>
@@ -433,10 +463,8 @@ export function CoopApplicationForm() {
                     Plan
                   </p>
                   <p className="text-sm text-slate-500">
-                    ₱
                     {plans.find((p) => p.id === formData.selectedPlanId)
-                      ?.price || "49,990"}
-                    /month
+                      ?.priceLabel || "₱6,500 / 6 months"}
                   </p>
                 </div>
                 <div className="bg-white rounded-2xl px-4 py-2 text-emerald-700 font-black text-sm border border-emerald-200">

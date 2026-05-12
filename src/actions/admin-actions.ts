@@ -638,3 +638,93 @@ export async function manuallyDeclareDefault(loanId: number) {
     return { error: message };
   }
 }
+
+export async function updateMemberStatus(
+  userId: number,
+  status: "active" | "suspended" | "deactivated",
+) {
+  const session = await requireTanawSession();
+  const tenantId = session.user.tenantId;
+
+  try {
+    const update = () =>
+      prisma.user.update({
+        where: { user_id: userId },
+        data: { status },
+      });
+
+    if (tenantId) {
+      await prisma.$withTenant(tenantId, async (tx) => {
+        await tx.user.update({
+          where: { user_id: userId },
+          data: { status },
+        });
+      });
+    } else {
+      await update();
+    }
+
+    revalidatePath("/agapay-tanaw");
+    return { success: `Member status updated to ${status}.` };
+  } catch (error) {
+    console.error("updateMemberStatus failed:", error);
+    return { error: "Failed to update member status." };
+  }
+}
+
+export async function resetMemberPassword(userId: number) {
+  const session = await requireTanawSession();
+
+  try {
+    const user = await prisma.user.findUnique({
+      where: { user_id: userId },
+      select: { email: true, tenant_id: true },
+    });
+
+    if (!user) return { error: "User not found." };
+
+    const token = crypto.randomUUID();
+    await prisma.passwordResetToken.create({
+      data: {
+        email: user.email,
+        token,
+        expires: new Date(Date.now() + 3600_000),
+        tenant_id: user.tenant_id,
+      },
+    });
+
+    revalidatePath("/agapay-tanaw");
+    return { success: `Password reset link sent. Token: ${token}` };
+  } catch (error) {
+    console.error("resetMemberPassword failed:", error);
+    return { error: "Failed to reset password." };
+  }
+}
+
+export async function sendMemberNotification(
+  userId: number,
+  title: string,
+  body: string,
+) {
+  const session = await requireTanawSession();
+  const tenantId = session.user.tenantId;
+
+  try {
+    await prisma.notification.create({
+      data: {
+        tenant_id: tenantId,
+        user_id: userId,
+        type: "system_alert",
+        title,
+        body,
+        channel: "in_app",
+      },
+    });
+
+    revalidatePath("/agapay-tanaw");
+    return { success: "Notification sent." };
+  } catch (error) {
+    console.error("sendMemberNotification failed:", error);
+    return { error: "Failed to send notification." };
+  }
+}

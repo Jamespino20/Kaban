@@ -1287,6 +1287,43 @@ export async function updateAIConfig(data: {
   }
 }
 
+// Superadmin: Get all tenant conversations for chat
+export async function getAllTenantConversations() {
+  try {
+    const session = await requireSuperadminSession();
+    const conversations = await prisma.conversation.findMany({
+      where: {
+        type: "operator_room",
+      },
+      include: {
+        tenant: {
+          select: { name: true },
+        },
+        _count: {
+          select: { messages: true },
+        },
+      },
+      orderBy: { updated_at: "desc" },
+      take: 50,
+    });
+    return {
+      success: true,
+      data: conversations.map((c: any) => ({
+        id: c.id,
+        title: c.title || `Operator Room - ${c.tenant?.name || "Unknown"}`,
+        messageCount: c._count.messages,
+        updatedAt: c.updated_at,
+      })),
+    };
+  } catch (error) {
+    console.error("Failed to fetch tenant conversations:", error);
+    return {
+      success: false,
+      error: "Failed to load conversations",
+    };
+  }
+}
+
 // SA-24: Email/SMS Templates
 export async function getNotificationTemplates() {
   const session = await requireSuperadminSession();

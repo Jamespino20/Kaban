@@ -66,7 +66,7 @@ export async function getTenants() {
       include: {
         tenant_group: true,
         _count: {
-          select: { users: true, loans: true, savings: true },
+          select: { users: true, loans: true, savings: true, system_files: true },
         },
       },
       orderBy: {

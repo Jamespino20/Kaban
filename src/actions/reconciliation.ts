@@ -193,11 +193,19 @@ export async function resolveAndSignEndOfDay(reason?: string) {
         Number(eodData.holdings.totalTreasuryBalance);
       const transactionId = crypto.randomUUID();
 
-      const entries = [];
+      const entries: Array<{
+        transaction_id: string;
+        accountId: number;
+        tenant_id: number;
+        debit: number;
+        credit: number;
+        description: string;
+        created_by: number;
+      }> = [];
       if (diff > 0) {
         entries.push({
           transaction_id: transactionId,
-          account_id: treasuryAccount.id,
+          accountId: treasuryAccount.id,
           tenant_id: tenantId,
           debit: diff,
           credit: 0,
@@ -206,7 +214,7 @@ export async function resolveAndSignEndOfDay(reason?: string) {
         });
         entries.push({
           transaction_id: transactionId,
-          account_id: discrepancyAccount.id,
+          accountId: discrepancyAccount.id,
           tenant_id: tenantId,
           debit: 0,
           credit: diff,
@@ -217,7 +225,7 @@ export async function resolveAndSignEndOfDay(reason?: string) {
         const absDiff = Math.abs(diff);
         entries.push({
           transaction_id: transactionId,
-          account_id: treasuryAccount.id,
+          accountId: treasuryAccount.id,
           tenant_id: tenantId,
           debit: 0,
           credit: absDiff,
@@ -226,7 +234,7 @@ export async function resolveAndSignEndOfDay(reason?: string) {
         });
         entries.push({
           transaction_id: transactionId,
-          account_id: discrepancyAccount.id,
+          accountId: discrepancyAccount.id,
           tenant_id: tenantId,
           debit: absDiff,
           credit: 0,
@@ -236,7 +244,19 @@ export async function resolveAndSignEndOfDay(reason?: string) {
       }
 
       if (entries.length > 0) {
-        await tx.businessLedger.createMany({ data: entries });
+        for (const entry of entries) {
+          await tx.businessLedger.create({
+            data: {
+              transaction_id: entry.transaction_id,
+              account: { connect: { id: entry.accountId } },
+              tenant_id: entry.tenant_id,
+              debit: entry.debit,
+              credit: entry.credit,
+              description: entry.description,
+              created_by: entry.created_by,
+            },
+          });
+        }
       }
     }
 

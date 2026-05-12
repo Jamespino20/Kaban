@@ -247,7 +247,9 @@ export function SuperadminApprovalsTab({ initialApplications = [] }: ApprovalsTa
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
-                        <DropdownMenuItem>
+                        <DropdownMenuItem
+                          onClick={() => setExpandedCard(app.application_id === expandedCard ? null : app.application_id)}
+                        >
                           <Eye className="h-4 w-4 mr-2" />
                           View Details
                         </DropdownMenuItem>

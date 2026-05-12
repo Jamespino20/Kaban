@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState, useTransition } from "react";
+import { useEffect, useMemo, useRef, useState, useTransition, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
@@ -48,6 +48,36 @@ type CommunityOverview = Awaited<
 >;
 
 const QUICK_REACTIONS = ["👍", "❤️", "🙏", "👏"];
+
+function isSameDay(date1: Date, date2: Date) {
+  return (
+    date1.getFullYear() === date2.getFullYear() &&
+    date1.getMonth() === date2.getMonth() &&
+    date1.getDate() === date2.getDate()
+  );
+}
+
+function shouldGroupMessages(a: any, b: any) {
+  if (!a || !b) return false;
+  if (a.senderName !== b.senderName) return false;
+  const timeA = new Date(a.createdAt).getTime();
+  const timeB = new Date(b.createdAt).getTime();
+  return Math.abs(timeA - timeB) < 300000; // 5 minutes
+}
+
+function formatDateSeparator(date: Date) {
+  const today = new Date();
+  const yesterday = new Date(today);
+  yesterday.setDate(yesterday.getDate() - 1);
+
+  if (isSameDay(date, today)) return "Today";
+  if (isSameDay(date, yesterday)) return "Yesterday";
+  return date.toLocaleDateString("en-PH", {
+    month: "long",
+    day: "numeric",
+    year: "numeric",
+  });
+}
 
 export function CommunityTab({
   initialData,
@@ -711,134 +741,186 @@ export function CommunityTab({
                     No messages here yet. Be the first.
                   </p>
                 ) : (
-                  thread.messages
-                    .slice()
-                    .reverse()
-                    .map((message: any) => (
-                      <div
-                        key={message.id}
-                        className="group rounded-2xl border border-slate-100 bg-white px-4 py-3 transition-colors hover:bg-slate-50"
-                      >
-                        <div className="flex items-center justify-between gap-3">
-                          <div className="flex items-center gap-2">
-                            <p className="text-sm font-bold text-slate-900">
-                              {message.senderName}
-                            </p>
-                            <p className="text-[10px] uppercase tracking-[0.16em] text-emerald-600/70">
-                              {new Date(message.createdAt).toLocaleString(
-                                "en-PH",
-                                {
-                                  month: "short",
-                                  day: "numeric",
-                                  hour: "numeric",
-                                  minute: "2-digit",
-                                },
-                              )}
-                            </p>
-                          </div>
-                          <div className="flex items-center gap-1 opacity-0 transition-opacity group-hover:opacity-100">
-                            <div className="group/reaction relative">
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                className="h-6 w-6 rounded-full"
-                              >
-                                <SmilePlus className="h-3 w-3 text-slate-400 hover:text-emerald-600" />
-                              </Button>
-                              <div className="absolute right-6 top-1/2 z-10 hidden -translate-y-1/2 gap-1 rounded-full border border-slate-100 bg-white px-2 py-1 shadow-md animate-in fade-in zoom-in-95 group-hover/reaction:flex">
-                                {QUICK_REACTIONS.map((emoji) => (
-                                  <button
-                                    key={emoji}
-                                    className="flex h-6 w-6 items-center justify-center rounded-full text-sm hover:bg-slate-100"
+                  (() => {
+                    const reversed = thread.messages.slice().reverse();
+                    const grouped: { date: string; items: any[] }[] = [];
+                    let lastDate = "";
+
+                    reversed.forEach((msg: any, idx: number) => {
+                      const msgDate = new Date(msg.createdAt);
+                      const dateKey = msgDate.toDateString();
+
+                      if (dateKey !== lastDate) {
+                        lastDate = dateKey;
+                        grouped.push({ date: dateKey, items: [msg] });
+                      } else {
+                        const prev = reversed[idx - 1];
+                        if (shouldGroupMessages(prev, msg)) {
+                          grouped[grouped.length - 1].items.push(msg);
+                        } else {
+                          grouped.push({ date: dateKey, items: [msg] });
+                        }
+                      }
+                    });
+
+                    return grouped.map((group, gi) => (
+                      <div key={group.date + "-" + gi}>
+                        <div className="flex items-center gap-3 py-3">
+                          <div className="flex-1 h-px bg-slate-100" />
+                          <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400 px-2">
+                            {formatDateSeparator(new Date(group.date))}
+                          </span>
+                          <div className="flex-1 h-px bg-slate-100" />
+                        </div>
+                        {group.items.map((message: any, mi: number) => {
+                          const isGrouped = mi > 0 && shouldGroupMessages(group.items[mi - 1], message);
+                          return (
+                            <div
+                              key={message.id}
+                              className={`group transition-colors ${isGrouped ? "pt-0.5" : "pt-3"}`}
+                            >
+                              <div className={`flex items-start gap-3 ${isGrouped ? "ml-12" : ""}`}>
+                                {!isGrouped && (
+                                  <div
+                                    className="flex h-9 w-9 shrink-0 cursor-pointer items-center justify-center rounded-xl bg-emerald-100 text-sm font-bold text-emerald-700 hover:bg-emerald-200 transition-colors mt-0.5"
+                                    onClick={() => {
+                                      const user = discoverableDirectory.find(
+                                        (u: any) => u.name === message.senderName
+                                      );
+                                      if (user) {
+                                        setSelectedProfile(user);
+                                        setProfilePopupOpen(true);
+                                      }
+                                    }}
+                                    title={message.senderName}
+                                  >
+                                    {message.senderName
+                                      ?.substring(0, 2)
+                                      .toUpperCase()}
+                                  </div>
+                                )}
+                                <div className="flex-1 min-w-0">
+                                  <div className={`flex items-center gap-2 ${isGrouped ? "justify-between" : ""}`}>
+                                    {!isGrouped && (
+                                      <p className="text-sm font-bold text-slate-900">
+                                        {message.senderName}
+                                      </p>
+                                    )}
+                                    <p className={`text-[10px] uppercase tracking-[0.16em] text-slate-400 ${isGrouped ? "" : "ml-auto"}`}>
+                                      {new Date(message.createdAt).toLocaleTimeString("en-PH", {
+                                        hour: "numeric",
+                                        minute: "2-digit",
+                                      })}
+                                    </p>
+                                  </div>
+
+                                  {message.replyTo && (
+                                    <div className="mt-1 mb-1.5 rounded-r-lg border-l-2 border-emerald-300 bg-emerald-50/50 py-1 pl-3">
+                                      <p className="text-xs font-bold text-emerald-800">
+                                        {message.replyTo.senderName}
+                                      </p>
+                                      <p className="line-clamp-1 text-xs text-slate-600">
+                                        {message.replyTo.content}
+                                      </p>
+                                    </div>
+                                  )}
+
+                                  <p className="whitespace-pre-wrap text-sm leading-6 text-slate-700 break-words">
+                                    {message.content}
+                                  </p>
+
+                                  {message.attachments?.length > 0 && (
+                                    <div className="mt-2 flex flex-wrap gap-2">
+                                      {message.attachments.map((file: any) => (
+                                        <a
+                                          href={file.fileUrl}
+                                          target="_blank"
+                                          title={file.fileName}
+                                          key={file.id}
+                                          className="flex max-w-[200px] items-center gap-2 rounded-xl border border-slate-200 bg-slate-100 px-3 py-2 text-xs text-slate-700 transition-colors hover:border-emerald-200 hover:bg-emerald-50"
+                                        >
+                                          <FileText className="h-4 w-4 shrink-0 text-emerald-600" />
+                                          <span className="truncate">
+                                            {file.fileName}
+                                          </span>
+                                        </a>
+                                      ))}
+                                    </div>
+                                  )}
+
+                                  {message.reactions?.length > 0 && (
+                                    <div className="mt-1.5 flex flex-wrap gap-1">
+                                      {Array.from(
+                                        new Set(
+                                          message.reactions.map((r: any) => r.emoji),
+                                        ),
+                                      ).map((emoji: any) => {
+                                        const count = message.reactions.filter(
+                                          (r: any) => r.emoji === emoji,
+                                        ).length;
+                                        return (
+                                          <button
+                                            key={emoji}
+                                            onClick={() =>
+                                              handleReaction(message.id, emoji)
+                                            }
+                                            className="flex items-center gap-1.5 rounded-full border border-slate-100 bg-slate-50 px-2 py-0.5 text-[11px] hover:bg-emerald-50"
+                                          >
+                                            <span>{emoji}</span>
+                                            <span className="font-bold text-slate-500">
+                                              {count}
+                                            </span>
+                                          </button>
+                                        );
+                                      })}
+                                    </div>
+                                  )}
+                                </div>
+                                <div className="flex items-center gap-1 opacity-0 transition-opacity group-hover:opacity-100 shrink-0">
+                                  <div className="group/reaction relative">
+                                    <Button
+                                      variant="ghost"
+                                      size="icon"
+                                      className="h-6 w-6 rounded-full"
+                                    >
+                                      <SmilePlus className="h-3 w-3 text-slate-400 hover:text-emerald-600" />
+                                    </Button>
+                                    <div className="absolute right-6 top-1/2 z-10 hidden -translate-y-1/2 gap-1 rounded-full border border-slate-100 bg-white px-2 py-1 shadow-md animate-in fade-in zoom-in-95 group-hover/reaction:flex">
+                                      {QUICK_REACTIONS.map((emoji) => (
+                                        <button
+                                          key={emoji}
+                                          className="flex h-6 w-6 items-center justify-center rounded-full text-sm hover:bg-slate-100"
+                                          onClick={() =>
+                                            handleReaction(message.id, emoji)
+                                          }
+                                        >
+                                          {emoji}
+                                        </button>
+                                      ))}
+                                    </div>
+                                  </div>
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className="h-6 w-6 rounded-full"
                                     onClick={() =>
-                                      handleReaction(message.id, emoji)
+                                      setReplyToMessage({
+                                        id: message.id,
+                                        senderName: message.senderName,
+                                        content: message.content,
+                                      })
                                     }
                                   >
-                                    {emoji}
-                                  </button>
-                                ))}
+                                    <Reply className="h-3 w-3 text-slate-400 hover:text-emerald-600" />
+                                  </Button>
+                                </div>
                               </div>
                             </div>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="h-6 w-6 rounded-full"
-                              onClick={() =>
-                                setReplyToMessage({
-                                  id: message.id,
-                                  senderName: message.senderName,
-                                  content: message.content,
-                                })
-                              }
-                            >
-                              <Reply className="h-3 w-3 text-slate-400 hover:text-emerald-600" />
-                            </Button>
-                          </div>
-                        </div>
-
-                        {message.replyTo && (
-                          <div className="mt-1 mb-2 rounded-r-lg border-l-2 border-emerald-300 bg-emerald-50/50 py-1 pl-3">
-                            <p className="text-xs font-bold text-emerald-800">
-                              {message.replyTo.senderName}
-                            </p>
-                            <p className="line-clamp-1 text-xs text-slate-600">
-                              {message.replyTo.content}
-                            </p>
-                          </div>
-                        )}
-
-                        <p className="mt-1 whitespace-pre-wrap text-sm leading-6 text-slate-700">
-                          {message.content}
-                        </p>
-
-                        {message.attachments?.length > 0 && (
-                          <div className="mt-3 flex flex-wrap gap-2">
-                            {message.attachments.map((file: any) => (
-                              <a
-                                href={file.fileUrl}
-                                target="_blank"
-                                title={file.fileName}
-                                key={file.id}
-                                className="flex max-w-[200px] items-center gap-2 rounded-xl border border-slate-200 bg-slate-100 px-3 py-2 text-xs text-slate-700 transition-colors hover:border-emerald-200 hover:bg-emerald-50"
-                              >
-                                <FileText className="h-4 w-4 shrink-0 text-emerald-600" />
-                                <span className="truncate">
-                                  {file.fileName}
-                                </span>
-                              </a>
-                            ))}
-                          </div>
-                        )}
-
-                        {message.reactions?.length > 0 && (
-                          <div className="mt-2 flex flex-wrap gap-1">
-                            {Array.from(
-                              new Set(
-                                message.reactions.map((r: any) => r.emoji),
-                              ),
-                            ).map((emoji: any) => {
-                              const count = message.reactions.filter(
-                                (r: any) => r.emoji === emoji,
-                              ).length;
-                              return (
-                                <button
-                                  key={emoji}
-                                  onClick={() =>
-                                    handleReaction(message.id, emoji)
-                                  }
-                                  className="flex items-center gap-1.5 rounded-full border border-slate-100 bg-slate-50 px-2 py-0.5 text-[11px] hover:bg-emerald-50"
-                                >
-                                  <span>{emoji}</span>
-                                  <span className="font-bold text-slate-500">
-                                    {count}
-                                  </span>
-                                </button>
-                              );
-                            })}
-                          </div>
-                        )}
+                          );
+                        })}
                       </div>
-                    ))
+                    ));
+                  })()
                 )}
               </div>
 

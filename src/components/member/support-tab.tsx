@@ -33,7 +33,7 @@ import {
   FileText,
   Loader2,
 } from "lucide-react";
-import { submitContextualFeedback } from "@/actions/transactional-feedback";
+import { submitContextualFeedback, submitTrustLinkedSurvey } from "@/actions/transactional-feedback";
 
 interface SupportTicket {
   id: number;
@@ -316,7 +316,7 @@ export function SupportTab({ tenantSlug, tickets = [] }: SupportTabProps) {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <SurveyForm />
+            <SurveyForm tenantSlug={tenantSlug} />
           </CardContent>
         </Card>
       </TabsContent>
@@ -332,9 +332,7 @@ const SURVEY_QUESTIONS = [
   { id: "q5", label: "How satisfied are you with the mobile app experience?" },
 ];
 
-const SURVEY_STORAGE_KEY = "agapay_survey_responses";
-
-function SurveyForm() {
+function SurveyForm({ tenantSlug }: { tenantSlug?: string }) {
   const [ratings, setRatings] = useState<Record<string, number>>({});
   const [comment, setComment] = useState("");
   const [submitted, setSubmitted] = useState(false);
@@ -345,13 +343,20 @@ function SurveyForm() {
   const handleSubmit = async () => {
     if (!allRated) return;
     setIsSubmitting(true);
-    const payload = { ratings, comment, submittedAt: new Date().toISOString() };
     try {
-      localStorage.setItem(SURVEY_STORAGE_KEY, JSON.stringify(payload));
-      toast.success("Survey submitted! Thank you for your feedback.");
-      setSubmitted(true);
+      const res = await submitTrustLinkedSurvey({
+        ratings,
+        comment,
+        tenantSlug,
+      });
+      if (res?.success) {
+        toast.success(res.success);
+        setSubmitted(true);
+      } else {
+        toast.error(res.error || "Failed to submit survey");
+      }
     } catch {
-      toast.error("Failed to save survey. Please try again.");
+      toast.error("Failed to submit survey. Please try again.");
     } finally {
       setIsSubmitting(false);
     }
@@ -373,6 +378,15 @@ function SurveyForm() {
 
   return (
     <div className="space-y-6">
+      <div className="rounded-2xl border border-amber-100 bg-amber-50/70 p-4 text-sm text-amber-800">
+        <p className="font-bold flex items-center gap-2">
+          <Star className="h-4 w-4" /> Your responses help build your Trust Score
+        </p>
+        <p className="text-xs mt-1 text-amber-700">
+          Survey answers are linked to your profile and contribute to your
+          cooperative trust rating. Honest feedback strengthens the community.
+        </p>
+      </div>
       {SURVEY_QUESTIONS.map((q) => (
         <div key={q.id} className="space-y-2">
           <p className="text-sm font-semibold text-slate-800">{q.label}</p>

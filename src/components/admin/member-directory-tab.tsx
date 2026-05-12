@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState, useTransition } from "react";
 import {
   Users2,
   Search,
@@ -32,6 +32,12 @@ import {
 } from "@/components/ui/dropdown-menu";
 
 import { CreateStaffModal } from "./create-staff-modal";
+import {
+  updateMemberStatus,
+  resetMemberPassword,
+  sendMemberNotification,
+} from "@/actions/admin-actions";
+import { toast } from "sonner";
 
 const ROLE_LABELS: Record<string, string> = {
   member: "Member",
@@ -418,55 +424,7 @@ export function MemberDirectoryTab({
                         </div>
                       </td>
                       <td className="px-6 py-4 text-right">
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <button className="p-2 hover:bg-white hover:shadow-sm rounded-lg transition-all text-slate-400 hover:text-slate-900 border border-transparent hover:border-slate-100 dark:hover:bg-slate-800 dark:hover:text-slate-200">
-                              <MoreVertical className="w-4 h-4" />
-                            </button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent
-                            align="end"
-                            className="w-48 rounded-2xl border-slate-200 p-1.5 shadow-lg"
-                          >
-                            <DropdownMenuItem className="rounded-xl py-2.5 text-sm cursor-pointer">
-                              <Eye className="mr-2.5 h-4 w-4 text-slate-400" />
-                              View Profile
-                            </DropdownMenuItem>
-                            <DropdownMenuItem className="rounded-xl py-2.5 text-sm cursor-pointer">
-                              <UserCog className="mr-2.5 h-4 w-4 text-slate-400" />
-                              Edit Details
-                            </DropdownMenuItem>
-                            <DropdownMenuItem className="rounded-xl py-2.5 text-sm cursor-pointer">
-                              <KeyRound className="mr-2.5 h-4 w-4 text-slate-400" />
-                              Reset Password
-                            </DropdownMenuItem>
-                            <DropdownMenuItem className="rounded-xl py-2.5 text-sm cursor-pointer">
-                              <Activity className="mr-2.5 h-4 w-4 text-slate-400" />
-                              Activity Log
-                            </DropdownMenuItem>
-                            <DropdownMenuItem className="rounded-xl py-2.5 text-sm cursor-pointer">
-                              <Bell className="mr-2.5 h-4 w-4 text-slate-400" />
-                              Send Notification
-                            </DropdownMenuItem>
-                            <DropdownMenuSeparator className="my-1 bg-slate-100" />
-                            {member.status === "active" ? (
-                              <DropdownMenuItem className="rounded-xl py-2.5 text-sm cursor-pointer text-amber-600">
-                                <Ban className="mr-2.5 h-4 w-4" />
-                                Suspend Member
-                              </DropdownMenuItem>
-                            ) : (
-                              <DropdownMenuItem className="rounded-xl py-2.5 text-sm cursor-pointer text-emerald-600">
-                                <CheckCircle2 className="mr-2.5 h-4 w-4" />
-                                Activate Member
-                              </DropdownMenuItem>
-                            )}
-                            <DropdownMenuSeparator className="my-1 bg-slate-100" />
-                            <DropdownMenuItem className="rounded-xl py-2.5 text-sm cursor-pointer text-rose-600">
-                              <Trash2 className="mr-2.5 h-4 w-4" />
-                              Deactivate
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
+                        <MemberRowActions member={member} />
                       </td>
                     </tr>
                   );
@@ -485,6 +443,138 @@ export function MemberDirectoryTab({
         />
       </div>
     </div>
+  );
+}
+
+function MemberRowActions({ member }: { member: any }) {
+  const [isPending, startTransition] = useTransition();
+
+  const handleResetPassword = () => {
+    startTransition(async () => {
+      const res = await resetMemberPassword(member.user_id);
+      if (res.error) toast.error(res.error);
+      else toast.success(res.success);
+    });
+  };
+
+  const handleSendNotification = () => {
+    const title = prompt("Notification title:");
+    if (!title) return;
+    const body = prompt("Notification body:");
+    if (!body) return;
+    startTransition(async () => {
+      const res = await sendMemberNotification(member.user_id, title, body);
+      if (res.error) toast.error(res.error);
+      else toast.success(res.success);
+    });
+  };
+
+  const handleSuspend = () => {
+    if (!confirm("Suspend this member?")) return;
+    startTransition(async () => {
+      const res = await updateMemberStatus(member.user_id, "suspended");
+      if (res.error) toast.error(res.error);
+      else toast.success(res.success);
+    });
+  };
+
+  const handleActivate = () => {
+    if (!confirm("Activate this member?")) return;
+    startTransition(async () => {
+      const res = await updateMemberStatus(member.user_id, "active");
+      if (res.error) toast.error(res.error);
+      else toast.success(res.success);
+    });
+  };
+
+  const handleDeactivate = () => {
+    if (!confirm("Deactivate this member? This action cannot be undone.")) return;
+    startTransition(async () => {
+      const res = await updateMemberStatus(member.user_id, "deactivated");
+      if (res.error) toast.error(res.error);
+      else toast.success(res.success);
+    });
+  };
+
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <button className="p-2 hover:bg-white hover:shadow-sm rounded-lg transition-all text-slate-400 hover:text-slate-900 border border-transparent hover:border-slate-100">
+          <MoreVertical className="w-4 h-4" />
+        </button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent
+        align="end"
+        className="w-48 rounded-2xl border-slate-200 p-1.5 shadow-lg"
+      >
+        <DropdownMenuItem
+          className="rounded-xl py-2.5 text-sm cursor-pointer"
+          onClick={() => toast.success("View Profile — feature coming soon")}
+        >
+          <Eye className="mr-2.5 h-4 w-4 text-slate-400" />
+          View Profile
+        </DropdownMenuItem>
+        <DropdownMenuItem
+          className="rounded-xl py-2.5 text-sm cursor-pointer"
+          onClick={() => toast.success("Edit Details — feature coming soon")}
+        >
+          <UserCog className="mr-2.5 h-4 w-4 text-slate-400" />
+          Edit Details
+        </DropdownMenuItem>
+        <DropdownMenuItem
+          className="rounded-xl py-2.5 text-sm cursor-pointer"
+          onClick={handleResetPassword}
+          disabled={isPending}
+        >
+          <KeyRound className="mr-2.5 h-4 w-4 text-slate-400" />
+          Reset Password
+        </DropdownMenuItem>
+        <DropdownMenuItem
+          className="rounded-xl py-2.5 text-sm cursor-pointer"
+          onClick={() => toast.success("Activity Log — feature coming soon")}
+        >
+          <Activity className="mr-2.5 h-4 w-4 text-slate-400" />
+          Activity Log
+        </DropdownMenuItem>
+        <DropdownMenuItem
+          className="rounded-xl py-2.5 text-sm cursor-pointer"
+          onClick={handleSendNotification}
+          disabled={isPending}
+        >
+          <Bell className="mr-2.5 h-4 w-4 text-slate-400" />
+          Send Notification
+        </DropdownMenuItem>
+        <DropdownMenuSeparator className="my-1 bg-slate-100" />
+        {member.status === "active" ? (
+          <DropdownMenuItem
+            className="rounded-xl py-2.5 text-sm cursor-pointer text-amber-600"
+            onClick={handleSuspend}
+            disabled={isPending}
+          >
+            <Ban className="mr-2.5 h-4 w-4" />
+            Suspend Member
+          </DropdownMenuItem>
+        ) : (
+          <DropdownMenuItem
+            className="rounded-xl py-2.5 text-sm cursor-pointer text-emerald-600"
+            onClick={handleActivate}
+            disabled={isPending}
+          >
+            <CheckCircle2 className="mr-2.5 h-4 w-4" />
+            Activate Member
+          </DropdownMenuItem>
+        )}
+        <DropdownMenuSeparator className="my-1 bg-slate-100" />
+        <DropdownMenuItem
+          className="rounded-xl py-2.5 text-sm cursor-pointer text-rose-600"
+          onClick={handleDeactivate}
+          disabled={isPending}
+        >
+          <Trash2 className="mr-2.5 h-4 w-4" />
+          Deactivate
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
 }
 

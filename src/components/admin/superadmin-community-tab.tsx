@@ -19,11 +19,13 @@ import {
   MessageSquareText,
   Send,
   User,
+  Loader2,
 } from "lucide-react";
 import {
   getPlatformAnnouncements,
   createPlatformAnnouncement,
   publishPlatformAnnouncement,
+  broadcastPlatformMessage,
 } from "@/actions/superadmin-actions";
 
 export function SuperadminCommunityTab() {
@@ -109,7 +111,20 @@ function AnnouncementsPanel() {
   const handlePublish = async (id: number) => {
     const result = await publishPlatformAnnouncement(id);
     if (result.success) {
-      toast.success("Announcement published across platform");
+      const ann = announcements.find((a: any) => a.id === id);
+      if (ann) {
+        const broadcastRes = await broadcastPlatformMessage({
+          subject: ann.title,
+          message: ann.content,
+          targetAudience: ann.target_audience || "all",
+          channels: ["in_app"],
+        });
+        if (broadcastRes.success) {
+          toast.success(`Announcement published & sent to ${broadcastRes.data?.recipientCount || 0} users`);
+        } else {
+          toast.success("Announcement published (notification broadcast skipped)");
+        }
+      }
       loadAnnouncements();
     } else {
       toast.error(result.error || "Failed to publish");
@@ -260,45 +275,132 @@ function AnnouncementsPanel() {
 }
 
 function ChatPanel() {
-  const [messages] = useState<any[]>([]);
+  const [conversations, setConversations] = useState<any[]>([]);
+  const [selectedConv, setSelectedConv] = useState<string | null>(null);
+  const [messages, setMessages] = useState<any[]>([]);
   const [input, setInput] = useState("");
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSending, setIsSending] = useState(false);
 
-  const handleSend = () => {
-    if (!input.trim()) return;
-    toast.info("Chat system coming soon");
-    setInput("");
+  useEffect(() => {
+    loadConversations();
+  }, []);
+
+  const loadConversations = async () => {
+    setIsLoading(true);
+    try {
+      const { getConversationThread } = await import("@/actions/community-actions");
+      const { getAllTenantConversations } = await import("@/actions/superadmin-actions");
+      const result = await getAllTenantConversations();
+      if (result.success && result.data) {
+        setConversations(result.data);
+        if (result.data.length > 0) {
+          setSelectedConv(result.data[0].id);
+        }
+      }
+    } catch {
+      // silent
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (!selectedConv) return;
+    (async () => {
+      try {
+        const { getConversationThread } = await import("@/actions/community-actions");
+        const thread = await getConversationThread(selectedConv);
+        setMessages((thread as any)?.messages?.slice().reverse() || []);
+      } catch {
+        // silent
+      }
+    })();
+  }, [selectedConv]);
+
+  const handleSend = async () => {
+    if (!input.trim() || !selectedConv) return;
+    setIsSending(true);
+    try {
+      const { sendConversationMessage } = await import("@/actions/community-actions");
+      const result = await sendConversationMessage({
+        conversationId: selectedConv,
+        content: input,
+      });
+      if (!result.error) {
+        const { getConversationThread } = await import("@/actions/community-actions");
+        const thread = await getConversationThread(selectedConv);
+        setMessages((thread as any)?.messages?.slice().reverse() || []);
+      } else {
+        toast.error(result.error);
+      }
+    } catch {
+      toast.error("Failed to send message");
+    } finally {
+      setIsSending(false);
+      setInput("");
+    }
   };
 
   return (
     <div className="rounded-[1.75rem] border border-slate-200 bg-white shadow-sm overflow-hidden flex flex-col h-[600px]">
-      <div className="bg-slate-50/50 border-b border-slate-100 px-6 py-4">
-        <h3 className="text-sm font-black uppercase tracking-widest text-slate-500 flex items-center gap-2">
-          <MessageSquareText className="w-4 h-4 text-emerald-500" />
-          Tenant Operator Conversations
-        </h3>
-        <p className="text-xs text-slate-400 mt-1">
-          Direct messages with tenant operators across all cooperatives
-        </p>
+      <div className="bg-slate-50/50 border-b border-slate-100 px-6 py-4 flex items-center justify-between">
+        <div>
+          <h3 className="text-sm font-black uppercase tracking-widest text-slate-500 flex items-center gap-2">
+            <MessageSquareText className="w-4 h-4 text-emerald-500" />
+            Tenant Operator Conversations
+          </h3>
+          <p className="text-xs text-slate-400 mt-1">
+            Direct messages with tenant operators across all cooperatives
+          </p>
+        </div>
+        {conversations.length > 0 && (
+          <select
+            value={selectedConv || ""}
+            onChange={(e) => setSelectedConv(e.target.value)}
+            className="rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-xs font-bold text-slate-700"
+          >
+            {conversations.map((c: any) => (
+              <option key={c.id} value={c.id}>
+                {c.title || "Operator Room"}
+              </option>
+            ))}
+          </select>
+        )}
       </div>
 
       <div className="flex-1 overflow-y-auto p-6 space-y-4">
-        {messages.length === 0 ? (
+        {isLoading ? (
+          <div className="flex items-center justify-center h-full text-sm text-slate-400">
+            Loading conversations...
+          </div>
+        ) : messages.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full text-center">
             <MessageSquareText className="h-12 w-12 text-slate-300 mb-4" />
-            <p className="text-slate-500 font-medium">No conversations yet</p>
+            <p className="text-slate-500 font-medium">No messages yet</p>
             <p className="text-slate-400 text-sm mt-1">
-              Messages from tenant operators will appear here
+              {conversations.length > 0
+                ? "Select a conversation and start chatting"
+                : "No operator conversations available yet"}
             </p>
           </div>
         ) : (
-          messages.map((msg, i) => (
-            <div key={i} className="flex items-start gap-3">
+          messages.map((msg: any, i: number) => (
+            <div key={msg.id || i} className="flex items-start gap-3">
               <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-slate-200">
                 <User className="h-4 w-4 text-slate-500" />
               </div>
               <div className="rounded-2xl bg-slate-100 px-4 py-2 max-w-[70%]">
-                <p className="text-sm text-slate-700">{msg.text}</p>
-                <p className="text-[10px] text-slate-400 mt-1">{msg.time}</p>
+                <p className="text-xs font-bold text-slate-600">{msg.senderName}</p>
+                <p className="text-sm text-slate-700 mt-0.5">{msg.content}</p>
+                <p className="text-[10px] text-slate-400 mt-1">
+                  {new Date(msg.createdAt).toLocaleString("en-PH", {
+                    month: "short",
+                    day: "numeric",
+                    hour: "numeric",
+                    minute: "2-digit",
+                  })}
+                </p>
               </div>
             </div>
           ))
@@ -313,14 +415,18 @@ function ChatPanel() {
             placeholder="Type a message to tenant operators..."
             className="rounded-xl"
             onKeyDown={(e) => {
-              if (e.key === "Enter") handleSend();
+              if (e.key === "Enter" && !e.shiftKey) {
+                e.preventDefault();
+                handleSend();
+              }
             }}
           />
           <Button
             className="rounded-xl bg-slate-900 text-white hover:bg-slate-800"
             onClick={handleSend}
+            disabled={isSending || !selectedConv}
           >
-            <Send className="h-4 w-4" />
+            {isSending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
           </Button>
         </div>
       </div>

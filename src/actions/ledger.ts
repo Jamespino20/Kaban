@@ -69,7 +69,7 @@ export async function postLedgerEntry(
     return (tx as any).businessLedger.create({
       data: {
         transaction_id: linkId,
-        account_id: account.id,
+        account: { connect: { id: account.id } },
         loan_id: loanId,
         debit: new Prisma.Decimal(entry.debit),
         credit: new Prisma.Decimal(entry.credit),
