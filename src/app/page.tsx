@@ -6,7 +6,7 @@ export const dynamic = "force-dynamic";
 export const metadata = {
   title: "Agapay | Iyong Agapay, Ating Tagumpay",
   description:
-    "Ang Agapay ay isang cooperative microfinance platform na tumutulong sa tenants, lenders, at members.",
+    "Agapay is a platform system that offers microfinancing cooperative platform services.",
 };
 
 export default async function LandingPage() {
