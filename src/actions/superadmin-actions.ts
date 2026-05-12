@@ -115,7 +115,8 @@ export async function getTenantApplicationsForReview(filters?: {
     }
 
     if (filters?.region) {
-      where.tenant_group_id = filters.region;
+      // Use tenant_group_id for ID-based filtering
+      where.tenant_group_id = parseInt(filters.region);
     }
 
     const applications = await prisma.tenantApplication.findMany({
@@ -378,7 +379,7 @@ export async function getCrossTenantFinancialReports(params: {
         : "";
 
     const regionFilter = params.region
-      ? `AND t.region = '${params.region}'`
+      ? `AND t.tenant_group_id = ${parseInt(params.region)}`
       : "";
 
     // Total disbursed vs repaid by region
@@ -391,9 +392,10 @@ export async function getCrossTenantFinancialReports(params: {
         SUM(CASE WHEN l.status IN ('active', 'delinquent') THEN l.balance_remaining ELSE 0 END) as outstanding_balance,
         AVG(l.interest_applied) as avg_interest_rate
       FROM tenants t
+      LEFT JOIN tenant_groups tg ON tg.id = t.tenant_group_id
       LEFT JOIN loans l ON l.tenant_id = t.tenant_id ${dateFilter}
       WHERE t.entitlement_status = 'active' ${regionFilter}
-      GROUP BY t.region
+      GROUP BY tg.id, tg.name
       ORDER BY total_disbursed DESC
     `;
 
@@ -409,9 +411,10 @@ export async function getCrossTenantFinancialReports(params: {
           2
         ) as default_rate_percent
       FROM tenants t
+      LEFT JOIN tenant_groups tg ON tg.id = t.tenant_group_id
       LEFT JOIN loans l ON l.tenant_id = t.tenant_id
       WHERE t.entitlement_status = 'active'
-      GROUP BY t.region
+      GROUP BY tg.id, tg.name
       ORDER BY default_rate_percent DESC
     `;
 
@@ -427,9 +430,10 @@ export async function getCrossTenantFinancialReports(params: {
           2
         ) as risk_percentage
       FROM tenants t
+      LEFT JOIN tenant_groups tg ON tg.id = t.tenant_group_id
       LEFT JOIN loans l ON l.tenant_id = t.tenant_id AND l.status != 'paid'
       WHERE t.entitlement_status = 'active'
-      GROUP BY t.region
+      GROUP BY tg.id, tg.name
       ORDER BY risk_percentage DESC
     `;
 
@@ -562,7 +566,7 @@ export async function exportFinancialReportCSV(params: {
             ? `AND l.applied_at BETWEEN '${params.startDate.toISOString()}' AND '${params.endDate.toISOString()}'`
             : "";
         const regionFilterF = params.region
-          ? `AND t.region = '${params.region}'`
+          ? `AND t.tenant_group_id = ${parseInt(params.region)}`
           : "";
 
         query = `
@@ -575,9 +579,10 @@ export async function exportFinancialReportCSV(params: {
             SUM(CASE WHEN l.status IN ('active', 'delinquent') THEN l.balance_remaining ELSE 0 END) as outstanding,
             ROUND(CAST(SUM(CASE WHEN l.status = 'defaulted' THEN 1 ELSE 0 END) AS FLOAT) / NULLIF(COUNT(l.loan_id), 0) * 100, 2) as default_rate
           FROM tenants t
+          LEFT JOIN tenant_groups tg ON tg.id = t.tenant_group_id
           LEFT JOIN loans l ON l.tenant_id = t.tenant_id ${dateFilterF}
           WHERE t.entitlement_status = 'active' ${regionFilterF}
-          GROUP BY t.tenant_id, t.name, t.region
+          GROUP BY t.tenant_id, t.name, tg.name
           ORDER BY total_disbursed DESC
         `;
         filename = `financial-report-${new Date().toISOString().split("T")[0]}.csv`;
@@ -800,9 +805,10 @@ export async function getFraudRiskMonitoring() {
           2
         ) as default_rate_percent
       FROM tenants t
+      LEFT JOIN tenant_groups tg ON tg.id = t.tenant_group_id
       LEFT JOIN loans l ON l.tenant_id = t.tenant_id
       WHERE t.entitlement_status = 'active'
-      GROUP BY t.tenant_id, t.name, t.region
+      GROUP BY t.tenant_id, t.name, tg.name
       HAVING COUNT(l.loan_id) > 10
       ORDER BY default_rate_percent DESC
       LIMIT 20

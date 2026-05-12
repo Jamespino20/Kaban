@@ -390,313 +390,141 @@ export function CommunityTab({
   }
 
   return (
-    <div className="grid grid-cols-1 gap-5 xl:grid-cols-[0.92fr_1.08fr]">
-      <div className="space-y-5">
-        <section className="dashboard-card p-4">
-          <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
-            <div>
-              <h2 className="text-sm font-black uppercase tracking-[0.18em] text-slate-500">
-                Community Pulse
-              </h2>
-              <p className="text-xs text-slate-500">
-                A more compact view of conversations, mentorship, and tenant
-                support.
-              </p>
-            </div>
-            <div className="grid grid-cols-2 gap-2 md:min-w-[220px]">
-              <PulseStat label="Conversations" value={allConversationCount} />
-              <PulseStat label="Unread" value={unreadCount} accent="emerald" />
+    <>
+    <div className="flex h-[calc(100vh-120px)] max-h-[860px] gap-0 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+      {/* Discord-style Sidebar: Channels & DMs */}
+      <aside className="flex w-[280px] shrink-0 flex-col overflow-hidden border-r border-slate-200 bg-slate-50">
+        <div className="flex items-center justify-between border-b border-slate-200 px-4 py-3">
+          <h2 className="text-xs font-black uppercase tracking-[0.18em] text-slate-500">
+            Agapay Community
+          </h2>
+          <div className="flex items-center gap-2">
+            <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-bold text-slate-600">
+              {unreadCount} new
+            </span>
+          </div>
+        </div>
+        <div className="flex-1 overflow-y-auto space-y-4 p-3">
+          {/* Support Rooms */}
+          <div>
+            <h3 className="mb-1 flex items-center gap-1.5 px-2 text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">
+              <Users className="h-3 w-3" /> Support
+            </h3>
+            <div className="space-y-0.5">
+              {initialData.operatorRooms.map((room: any) => (
+                <button
+                  key={room.id}
+                  onClick={() => setSelectedConversationId(room.id)}
+                  className={`flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-left text-sm transition-colors ${
+                    room.id === selectedConversationId
+                      ? "bg-emerald-100 text-emerald-900"
+                      : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
+                  }`}
+                >
+                  <Headphones className="h-4 w-4 shrink-0" />
+                  <span className="flex-1 truncate text-xs font-semibold">
+                    {room.title || "Operator"}
+                  </span>
+                  {room.hasUnread && <span className="h-2 w-2 rounded-full bg-emerald-500" />}
+                </button>
+              ))}
+              {initialData.operatorRooms.length === 0 && (
+                <p className="px-2 py-2 text-xs text-slate-400">No support channels</p>
+              )}
             </div>
           </div>
-        </section>
 
-        <section className="dashboard-card p-4">
-          <div className="mb-3 flex items-center gap-2">
-            <Users className="h-4 w-4 text-emerald-600" />
-            <div>
-              <h2 className="text-sm font-black uppercase tracking-[0.18em] text-slate-500">
-                Support Rooms
-              </h2>
-              <p className="text-xs text-slate-500">
-                Help, announcements, and operator support.
-              </p>
+          {/* Direct Messages */}
+          <div>
+            <h3 className="mb-1 flex items-center gap-1.5 px-2 text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">
+              <MessageSquareText className="h-3 w-3" /> Direct Messages
+            </h3>
+            <div className="space-y-0.5">
+              {initialData.directConversations.map((conversation: any) => (
+                <button
+                  key={conversation.id}
+                  onClick={() => setSelectedConversationId(conversation.id)}
+                  className={`flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-left text-sm transition-colors ${
+                    conversation.id === selectedConversationId
+                      ? "bg-indigo-100 text-indigo-900"
+                      : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
+                  }`}
+                >
+                  <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-slate-200 text-[10px] font-bold text-slate-600">
+                    {(conversation.counterparty?.name || "?").charAt(0)}
+                  </div>
+                  <span className="flex-1 truncate text-xs font-semibold">
+                    {conversation.counterparty?.name || "Direct Message"}
+                  </span>
+                  {conversation.hasUnread && <span className="h-2 w-2 rounded-full bg-indigo-500" />}
+                </button>
+              ))}
+              {initialData.directConversations.length === 0 && (
+                <p className="px-2 py-2 text-xs text-slate-400">No conversations yet</p>
+              )}
             </div>
           </div>
-          <div className="space-y-2">
-            {initialData.operatorRooms.length > 0 && (
-              <div className="mb-3 rounded-2xl border border-emerald-100 bg-emerald-50/70 p-3">
-                <p className="text-xs font-bold text-emerald-700">
-                  Need help? Contact your cooperative operator directly.
-                </p>
-                {initialData.operatorRooms.slice(0, 1).map((room: any) => (
-                  <Button
-                    key={room.id}
-                    size="sm"
-                    className="mt-2 w-full rounded-xl bg-emerald-600 text-white hover:bg-emerald-700"
-                    onClick={() => setSelectedConversationId(room.id)}
+
+          {/* Group Chats */}
+          {(initialData.groupChats || []).length > 0 && (
+            <div>
+              <h3 className="mb-1 flex items-center gap-1.5 px-2 text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">
+                <Layers3 className="h-3 w-3" /> Groups
+              </h3>
+              <div className="space-y-0.5">
+                {(initialData.groupChats || []).map((group: any) => (
+                  <button
+                    key={group.id}
+                    onClick={() => setSelectedConversationId(group.id)}
+                    className={`flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-left text-sm transition-colors ${
+                      group.id === selectedConversationId
+                        ? "bg-violet-100 text-violet-900"
+                        : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
+                    }`}
                   >
-                    <Headphones className="mr-2 h-4 w-4" />
-                    Message Operator
-                  </Button>
+                    <Layers3 className="h-4 w-4 shrink-0" />
+                    <span className="flex-1 truncate text-xs font-semibold">{group.title}</span>
+                    {group.hasUnread && <span className="h-2 w-2 rounded-full bg-violet-500" />}
+                  </button>
                 ))}
               </div>
-            )}
-            {initialData.operatorRooms.map((room: any) => (
-              <ConversationButton
-                key={room.id}
-                title={room.title || "Support Room"}
-                subtitle={room.lastMessagePreview || "No new conversations yet."}
-                meta={
-                  room.lastMessageSender
-                    ? `Last: ${room.lastMessageSender}`
-                    : "Support room"
-                }
-                active={room.id === selectedConversationId}
-                unread={room.hasUnread}
-                onClick={() => setSelectedConversationId(room.id)}
-              />
-            ))}
-          </div>
-        </section>
-
-        <section className="dashboard-card p-4">
-          <div className="mb-3 flex items-center gap-2">
-            <MessageSquareText className="h-4 w-4 text-indigo-600" />
-            <div>
-              <h2 className="text-sm font-black uppercase tracking-[0.18em] text-slate-500">
-                Direct Messages
-              </h2>
-              <p className="text-xs text-slate-500">
-                Personal conversation for mentorship and guarantorship.
-              </p>
             </div>
-          </div>
-          <div className="space-y-2">
-            {initialData.directConversations.length === 0 ? (
-              <p className="rounded-2xl border border-dashed border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-500">
-                You don't have any direct conversations yet. Select a Ka-Agapay below
-                to start.
-              </p>
-            ) : (
-              initialData.directConversations.map((conversation: any) => (
-                <ConversationButton
-                  key={conversation.id}
-                  title={conversation.counterparty?.name || "Direct Message"}
-                  subtitle={
-                    conversation.lastMessagePreview ||
-                    conversation.counterparty?.subtitle ||
-                    "No messages yet."
-                  }
-                  meta={conversation.counterparty?.role || "direct"}
-                  active={conversation.id === selectedConversationId}
-                  unread={conversation.hasUnread}
-                  onClick={() => setSelectedConversationId(conversation.id)}
-                />
-              ))
-            )}
-          </div>
-        </section>
+          )}
 
-        <section className="dashboard-card p-4">
-          <div className="mb-3 flex items-center gap-2">
-            <Layers3 className="h-4 w-4 text-violet-600" />
-            <div>
-              <h2 className="text-sm font-black uppercase tracking-[0.18em] text-slate-500">
-                Group Chats
-              </h2>
-              <p className="text-xs text-slate-500">
-                Small working groups for support, coaching, and
-                reminders.
-              </p>
-            </div>
-          </div>
-
-          <div className="space-y-2">
-            {(initialData.groupChats || []).length === 0 ? (
-              <p className="rounded-2xl border border-dashed border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-500">
-                You don't have any group chats yet. Create a small support group
-                below.
-              </p>
-            ) : (
-              (initialData.groupChats || []).map((group: any) => (
-                <ConversationButton
-                  key={group.id}
-                  title={group.title}
-                  subtitle={group.lastMessagePreview || "No conversations yet."}
-                  meta={`${group.participantCount} participants`}
-                  active={group.id === selectedConversationId}
-                  unread={group.hasUnread}
-                  onClick={() => setSelectedConversationId(group.id)}
-                />
-              ))
-            )}
-          </div>
-
-          <div className="mt-4 space-y-3 rounded-2xl border border-violet-100 bg-violet-50/70 p-4">
-            <p className="text-xs font-black uppercase tracking-[0.18em] text-violet-700">
-              Create Group Chat
-            </p>
-            <Input
-              value={newGroupTitle}
-              onChange={(event) => setNewGroupTitle(event.target.value)}
-              placeholder="Example: Repayment Support Circle"
-              className="rounded-xl bg-white"
-            />
-            <div className="max-h-40 space-y-2 overflow-y-auto pr-1">
-              {discoverableDirectory.map((user: any) => (
-                <label
+          {/* Divider */}
+          <div className="border-t border-slate-200 pt-3">
+            <h3 className="mb-1 flex items-center gap-1.5 px-2 text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">
+              <Handshake className="h-3 w-3" /> Discover
+            </h3>
+            <div className="space-y-0.5">
+              {discoverableDirectory.slice(0, 8).map((user: any) => (
+                <button
                   key={user.userId}
-                  className="flex items-center gap-3 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700"
+                  onClick={() => handleStartConversation(user.userId)}
+                  className="flex w-full items-center gap-2.5 rounded-lg px-2.5 py-1.5 text-left text-xs text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-700"
                 >
-                  <input
-                    type="checkbox"
-                    checked={groupParticipantIds.includes(user.userId)}
-                    onChange={() => toggleGroupParticipant(user.userId)}
-                    className="h-4 w-4 rounded border-slate-300"
-                  />
-                  <span className="flex-1">
-                    <span className="font-semibold text-slate-900">
-                      {user.name}
-                    </span>{" "}
-                    <span className="text-xs text-slate-500">
-                      ({user.role})
-                    </span>
-                  </span>
-                </label>
-              ))}
-            </div>
-            <Button
-              className="w-full rounded-xl bg-violet-600 text-white hover:bg-violet-700"
-              onClick={handleCreateGroup}
-              disabled={isPending}
-            >
-              {isPending ? (
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              ) : (
-                <PlusCircle className="mr-2 h-4 w-4" />
-              )}
-              Create Group Chat
-            </Button>
-          </div>
-        </section>
-
-        <section className="dashboard-card p-4">
-          <div className="mb-3 flex items-center gap-2">
-            <Handshake className="h-4 w-4 text-amber-600" />
-            <div>
-              <h2 className="text-sm font-black uppercase tracking-[0.18em] text-slate-500">
-                Ka-Agapay Discovery
-              </h2>
-              <p className="text-xs text-slate-500">
-                Find a mentor, guarantor-fit, or chat first before making a request.
-              </p>
-            </div>
-          </div>
-          <div className="max-h-[22rem] space-y-2 overflow-y-auto pr-1">
-            {discoverableDirectory.map((user: any) => (
-              <div
-                key={user.userId}
-                className="rounded-2xl border border-slate-100 bg-slate-50 px-3 py-3"
-              >
-                <div className="flex items-start justify-between gap-3">
-                  <div
-                    className="flex cursor-pointer items-start gap-3 flex-1 min-w-0"
-                    onClick={() => {
-                      setSelectedProfile(user);
-                      setProfilePopupOpen(true);
-                    }}
-                  >
-                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-emerald-100 text-sm font-bold text-emerald-700">
-                      {user.name.substring(0, 2).toUpperCase()}
-                    </div>
-                    <div className="min-w-0">
-                      <p className="text-sm font-bold text-slate-900">
-                        {user.name}
-                      </p>
-                      <p className="text-xs text-slate-500">{user.subtitle}</p>
-                      <p className="mt-1 text-[10px] font-bold uppercase tracking-[0.18em] text-slate-400">
-                        {user.role}
-                        {typeof user.averageVouchScore === "number"
-                          ? ` - vouch ${user.averageVouchScore.toFixed(1)}`
-                          : ""}
-                      </p>
-                    </div>
+                  <div className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-amber-100 text-[8px] font-bold text-amber-700">
+                    {user.name.charAt(0)}
                   </div>
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    className="rounded-xl"
-                    onClick={() => handleStartConversation(user.userId)}
-                    disabled={isPending}
-                  >
-                    Message
-                  </Button>
-                </div>
-              </div>
-            ))}
-          </div>
-
-          <div className="mt-4 space-y-3 rounded-2xl border border-amber-100 bg-amber-50/70 p-4">
-            <p className="text-xs font-black uppercase tracking-[0.18em] text-amber-700">
-              Formal Mentorship Request
-            </p>
-            <select
-              value={selectedMentorId}
-              onChange={(event) => setSelectedMentorId(event.target.value)}
-              className="h-10 w-full rounded-xl border border-slate-200 bg-white px-3 text-sm text-slate-700"
-            >
-              <option value="">Select a mentor or guarantor-fit</option>
-              {discoverableDirectory.map((user: any) => (
-                <option key={user.userId} value={String(user.userId)}>
-                  {user.name} ({user.role})
-                </option>
+                  <span className="truncate">{user.name}</span>
+                </button>
               ))}
-            </select>
-            <Input
-              value={focusArea}
-              onChange={(event) => setFocusArea(event.target.value)}
-              placeholder="Focus area: business, repayment habit, tenant onboarding"
-              className="rounded-xl"
-            />
-            <textarea
-              value={mentorNotes}
-              onChange={(event) => setMentorNotes(event.target.value)}
-              placeholder="Tell us why you want to approach them."
-              className="min-h-20 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700"
-            />
-            <Button
-              className="w-full rounded-xl bg-amber-500 text-white hover:bg-amber-600"
-              onClick={handleRequestMentorship}
-              disabled={isPending}
-            >
-              {isPending ? (
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              ) : (
-                <Handshake className="mr-2 h-4 w-4" />
-              )}
-              Request mentorship endorsement
-            </Button>
+            </div>
           </div>
-        </section>
-      </div>
+        </div>
+      </aside>
 
-      <div className="flex h-[calc(100vh-150px)] max-h-[900px] flex-col space-y-5">
-        <section className="dashboard-card flex flex-1 flex-col overflow-hidden p-4">
-          <div className="mb-3 shrink-0 border-b border-slate-100 pb-3">
-            <div className="flex items-center justify-between gap-3">
-              <div>
-                <h2 className="text-sm font-black uppercase tracking-[0.18em] text-slate-500">
-                  Active Thread
-                </h2>
-                {thread && (
-                  <p className="mt-1 text-sm font-bold text-slate-900">
-                    {activeConversationLabel}
-                  </p>
-                )}
-              </div>
-              {thread && (
-                <span className="rounded-full bg-slate-100 px-3 py-1 text-[10px] font-black uppercase tracking-[0.16em] text-slate-500">
-                  {thread.type === "tenant_room"
+      {/* Main Chat Area + Mentorship */}
+      <div className="flex flex-1 flex-col overflow-hidden">
+        {/* Chat Header */}
+        <div className="flex items-center justify-between border-b border-slate-200 px-5 py-3 shrink-0">
+          <div>
+            <h2 className="text-sm font-bold text-slate-900">
+              {activeConversationLabel}
+            </h2>
+            {thread && (
+              <span className="text-[10px] font-medium uppercase tracking-wider text-slate-400">
+                {thread.type === "tenant_room"
                     ? "room"
                     : thread.type === "group_chat"
                       ? "group"
@@ -1042,46 +870,39 @@ export function CommunityTab({
               </div>
             </>
           )}
-        </section>
+        </div>
 
-        <section className="dashboard-card shrink-0 p-4">
-          <h2 className="text-sm font-black uppercase tracking-[0.18em] text-slate-500">
+        {/* Mentorship Status inline */}
+        <details className="border-t border-slate-100 shrink-0">
+          <summary className="flex cursor-pointer items-center gap-2 px-5 py-2 text-[10px] font-black uppercase tracking-[0.18em] text-slate-500 hover:bg-slate-50 transition-colors">
+            <Handshake className="h-3 w-3" />
             Mentorship Status
-          </h2>
-          <div className="mt-3 space-y-2">
+            {initialData.mentorships.length > 0 && (
+              <span className="ml-auto rounded-full bg-amber-100 px-2 py-0.5 text-[9px] text-amber-700">
+                {initialData.mentorships.length}
+              </span>
+            )}
+          </summary>
+          <div className="border-t border-slate-100 bg-slate-50 px-5 py-3 space-y-2 max-h-32 overflow-y-auto">
             {initialData.mentorships.length === 0 ? (
-              <p className="rounded-2xl border border-dashed border-slate-200 bg-slate-50 px-4 py-4 text-sm text-slate-500">
-                You don't have any active or pending mentorship relationships.
-              </p>
+              <p className="text-xs text-slate-400">No mentorship relationships yet</p>
             ) : (
               initialData.mentorships.map((mentorship: any) => (
-                <div
-                  key={mentorship.id}
-                  className="rounded-2xl border border-slate-100 bg-slate-50 px-4 py-3"
-                >
-                  <div className="flex items-center justify-between gap-3">
-                    <div>
-                      <p className="text-sm font-bold text-slate-900">
-                        {mentorship.requesterName} - {mentorship.mentorName}
-                      </p>
-                      <p className="text-xs text-slate-500">
-                        {mentorship.focusArea || "General community support"}
-                      </p>
-                    </div>
-                    <span className="rounded-full bg-slate-900 px-3 py-1 text-[10px] font-black uppercase tracking-[0.16em] text-white">
-                      {mentorship.status.replaceAll("_", " ")}
-                    </span>
+                <div key={mentorship.id} className="flex items-center justify-between gap-2 rounded-lg bg-white px-3 py-2 text-xs shadow-sm">
+                  <div>
+                    <span className="font-semibold text-slate-900">{mentorship.mentorName}</span>
+                    <span className="text-slate-500"> — {mentorship.focusArea || "General"}</span>
                   </div>
-                  {mentorship.endorsedBy ? (
-                    <p className="mt-2 text-[11px] text-slate-500">
-                      Endorsed by {mentorship.endorsedBy}
-                    </p>
-                  ) : null}
+                  <span className={`rounded-full px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider ${
+                    mentorship.status === "active" ? "bg-emerald-100 text-emerald-700" : "bg-amber-100 text-amber-700"
+                  }`}>
+                    {mentorship.status.replaceAll("_", " ")}
+                  </span>
                 </div>
               ))
             )}
           </div>
-        </section>
+        </details>
       </div>
 
       <MemberProfilePopup
@@ -1090,73 +911,8 @@ export function CommunityTab({
         onOpenChange={setProfilePopupOpen}
         onStartConversation={handleStartConversation}
       />
-    </div>
+    </>
   );
 }
 
-function ConversationButton({
-  title,
-  subtitle,
-  meta,
-  active,
-  unread,
-  onClick,
-}: {
-  title: string;
-  subtitle: string;
-  meta?: string;
-  active: boolean;
-  unread: boolean;
-  onClick: () => void;
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className={`flex w-full items-start justify-between gap-3 rounded-2xl border px-3 py-3 text-left transition-all ${
-        active
-          ? "border-emerald-200 bg-emerald-50"
-          : "border-slate-100 bg-slate-50 hover:border-slate-200 hover:bg-white"
-      }`}
-    >
-      <div className="min-w-0">
-        <p className="truncate text-sm font-bold text-slate-900">{title}</p>
-        <p className="mt-1 line-clamp-2 text-xs leading-5 text-slate-500">
-          {subtitle}
-        </p>
-        {meta ? (
-          <p className="mt-1 text-[10px] font-bold uppercase tracking-[0.16em] text-slate-400">
-            {meta}
-          </p>
-        ) : null}
-      </div>
-      {unread ? (
-        <span className="mt-1 h-2.5 w-2.5 shrink-0 rounded-full bg-emerald-500" />
-      ) : null}
-    </button>
-  );
-}
 
-function PulseStat({
-  label,
-  value,
-  accent = "slate",
-}: {
-  label: string;
-  value: number;
-  accent?: "slate" | "emerald";
-}) {
-  const accentClasses =
-    accent === "emerald"
-      ? "border-emerald-200 bg-emerald-50 text-emerald-700"
-      : "border-slate-200 bg-slate-50 text-slate-700";
-
-  return (
-    <div className={`rounded-xl border px-3 py-2 ${accentClasses}`}>
-      <p className="text-[11px] font-semibold uppercase tracking-wide">
-        {label}
-      </p>
-      <p className="mt-1 text-lg font-bold text-slate-900">{value}</p>
-    </div>
-  );
-}

@@ -57,7 +57,7 @@ function normalizeHexColor(color?: string | null) {
 
 function hexToRgb(hex: string) {
   const normalized = hex.replace("#", "");
-  const parsed = Number.parseInt(normalized, 16);
+  const parsed = parseInt(normalized, 16);
 
   return {
     r: (parsed >> 16) & 255,
@@ -122,7 +122,7 @@ const ICON_MAP = {
   reconciliation: FileText,
   activity: HeartPulse,
   shield: ShieldAlert,
-  check: HeartPulse, // Using HeartPulse as placeholder for check if needed
+  check: HeartPulse,
   subscriptions: CreditCard,
   mail: Mail,
   bot: Bot,
@@ -170,22 +170,22 @@ export function AuthenticatedShell({
   const getFontFamily = (pairing: string | null) => {
     switch (pairing) {
       case "roboto_playfair":
-        return "'Playfair Display', serif";
+        return "'Fraunces', serif";
       case "montserrat_poppins":
-        return "'Poppins', sans-serif";
+        return "'Fraunces', serif";
       default:
-        return "'Outfit', sans-serif";
+        return "'Fraunces', serif";
     }
   };
 
   const getBodyFontFamily = (pairing: string | null) => {
     switch (pairing) {
       case "roboto_playfair":
-        return "'Roboto', sans-serif";
+        return "'Plus Jakarta Sans', sans-serif";
       case "montserrat_poppins":
-        return "'Montserrat', sans-serif";
+        return "'Plus Jakarta Sans', sans-serif";
       default:
-        return "'Inter', sans-serif";
+        return "'Plus Jakarta Sans', sans-serif";
     }
   };
 
@@ -212,7 +212,6 @@ export function AuthenticatedShell({
   const getContrastColor = (hex?: string | null) => {
     if (!hex) return "white";
     const { r, g, b } = hexToRgb(hex);
-    // Standard relative luminance formula
     const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
     return luminance > 0.6 ? "black" : "white";
   };
@@ -223,10 +222,11 @@ export function AuthenticatedShell({
   const sidebarMutedClass = isLight ? "text-slate-600" : "text-white/70";
   const sidebarBorderClass = isLight ? "border-slate-950/10" : "border-white/10";
   const sidebarHoverTextClass = isLight ? "hover:text-slate-950" : "hover:text-white";
-  const sidebarActiveClass =
-    "data-[state=active]:bg-primary/20 data-[state=active]:border-primary/40 data-[state=active]:text-white";
+  const sidebarActiveClass = isLight
+    ? "data-[state=active]:bg-slate-950/10 data-[state=active]:border-slate-950/30 data-[state=active]:text-slate-950"
+    : "data-[state=active]:bg-primary/20 data-[state=active]:border-primary/40 data-[state=active]:text-white";
   const iconBgContrastClass = isLight
-    ? "bg-slate-950/5 group-data-[state=active]:bg-primary/20 group-data-[state=active]:text-white"
+    ? "bg-slate-950/5 group-data-[state=active]:bg-slate-950/10 group-data-[state=active]:text-slate-950"
     : "bg-white/5 group-data-[state=active]:bg-primary/20 group-data-[state=active]:text-white";
   const badgeContrastClass = isLight
     ? "bg-slate-950/20 text-slate-950 border border-slate-950/10"
@@ -238,11 +238,14 @@ export function AuthenticatedShell({
       ? `linear-gradient(180deg, ${rgba(normalizedTenantColor, 0.14)}, transparent 55%)`
       : "linear-gradient(180deg, #0f172a 0%, #152133 100%)",
   } as React.CSSProperties;
+  
   const mainPaneStyle = {
-    backgroundImage: normalizedTenantColor
-      ? `radial-gradient(circle at top, ${rgba(normalizedTenantColor, 0.12)}, transparent 32%), linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%)`
-      : `radial-gradient(circle at top, rgba(16,185,129,0.08), transparent 30%), linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%)`,
+    background: normalizedTenantColor
+      ? `radial-gradient(circle at top right, ${rgba(normalizedTenantColor, 0.04)}, transparent 60%)`
+      : "none",
+    backgroundColor: "#f8fafc",
   } as React.CSSProperties;
+
   const portalBadgeStyle = normalizedTenantColor
     ? ({
         borderColor: rgba(normalizedTenantColor, 0.22),
@@ -252,9 +255,6 @@ export function AuthenticatedShell({
     : undefined;
 
   useEffect(() => {
-    // Delay enabling scroll so Radix's focus-triggered scrollIntoView
-    // cannot shift the nav container during mount.
-
     requestAnimationFrame(() => {
       requestAnimationFrame(() => setNavReady(true));
     });
@@ -354,7 +354,7 @@ export function AuthenticatedShell({
 
       <div
         ref={navScrollRef}
-        className={`flex-1 px-3 pt-4 pb-3 ${navReady ? "overflow-y-auto" : "overflow-y-hidden"}`}
+        className={`flex-1 px-4 pt-4 pb-3 ${navReady ? "overflow-y-auto" : "overflow-y-hidden"}`}
       >
         <TabsList className="flex h-auto w-full flex-col justify-start gap-1 bg-transparent p-0">
           {(() => {
@@ -370,7 +370,7 @@ export function AuthenticatedShell({
                 {!collapsed && (
                   <h3
                     className={cn(
-                      "pl-14 mb-2 text-[10px] font-black uppercase tracking-[0.2em]",
+                      "px-4 mb-2 text-[10px] font-black uppercase tracking-[0.2em] font-accent",
                       sidebarMutedClass,
                     )}
                   >
@@ -394,11 +394,11 @@ export function AuthenticatedShell({
                         window.dispatchEvent(event);
                       }}
                       className={cn(
-                        "group h-auto w-full justify-start rounded-2xl border border-transparent px-3 py-2.5 text-left transition-all cursor-pointer",
+                        "group h-auto w-full justify-start rounded-2xl border border-transparent px-4 py-2.5 text-left transition-all cursor-pointer",
                         sidebarMutedClass,
                         sidebarHoverTextClass,
                         sidebarActiveClass,
-                        collapsed ? "xl:px-3" : "",
+                        collapsed ? "xl:px-4" : "",
                       )}
                     >
                       <div className="flex w-full items-center gap-3">
@@ -413,7 +413,7 @@ export function AuthenticatedShell({
                             collapsed ? "xl:hidden" : "",
                           )}
                         >
-                          <p className="truncate text-[13px] font-bold">
+                          <p className="truncate text-[13px] font-bold font-sans">
                             {item.label}
                           </p>
                         </div>
@@ -455,8 +455,8 @@ export function AuthenticatedShell({
 
   return (
     <div
-      className="min-h-screen bg-slate-950 text-white lg:flex lg:h-screen lg:overflow-hidden"
-      style={cssVars}
+      className="min-h-screen text-white lg:flex lg:h-screen lg:overflow-hidden"
+      style={{ ...cssVars, backgroundColor: normalizedTenantColor || "#0f172a" }}
     >
       <div
         className={`fixed inset-0 z-40 bg-slate-950/55 backdrop-blur-sm transition-opacity duration-200 lg:hidden ${
@@ -469,38 +469,38 @@ export function AuthenticatedShell({
 
       <div
         aria-hidden="true"
-        className={`hidden lg:block lg:flex-shrink-0 lg:w-[18.5rem] ${
-          collapsed ? "xl:w-[6.5rem]" : "xl:w-[21rem]"
+        className={`hidden lg:block lg:flex-shrink-0 lg:w-[17.5rem] ${
+          collapsed ? "xl:w-[6.5rem]" : "xl:w-[17.5rem]"
         }`}
       />
 
       <aside
-        className={`fixed inset-y-0 left-0 z-50 h-screen w-[min(88vw,20rem)] -translate-x-full transition-transform duration-300 lg:w-[18.5rem] lg:translate-x-0 ${
-          collapsed ? "xl:w-[6.5rem]" : "xl:w-[21rem]"
+        className={`fixed inset-y-0 left-0 z-50 h-screen w-[min(88vw,20rem)] -translate-x-full transition-transform duration-300 lg:w-[17.5rem] lg:translate-x-0 ${
+          collapsed ? "xl:w-[6.5rem]" : "xl:w-[17.5rem]"
         } ${mobileOpen ? "translate-x-0" : ""}`}
       >
         {renderSidebar()}
       </aside>
 
       <div
-        className="min-w-0 flex-1 text-slate-950 lg:h-screen lg:overflow-y-auto"
+        className="min-w-0 flex-1 text-slate-900 lg:h-screen lg:overflow-y-auto"
         style={mainPaneStyle}
       >
-        <div className="border-b border-slate-200/80 bg-white/88 px-5 py-5 backdrop-blur-xl md:px-8 lg:sticky lg:top-0 lg:z-20">
-          <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-            <div className="space-y-3">
+        <div className="border-b border-slate-200/80 bg-white/95 px-5 py-4 backdrop-blur-xl md:px-8 lg:sticky lg:top-0 lg:z-20 shadow-sm">
+          <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+            <div className="space-y-2">
               <div className="flex items-center gap-3 lg:hidden">
                 <Button
                   variant="outline"
                   size="icon"
                   onClick={() => setMobileOpen(true)}
-                  className="rounded-2xl border-slate-200 bg-white text-slate-700 shadow-sm hover:bg-slate-50"
+                  className="rounded-xl border-slate-200 bg-white text-slate-700 shadow-sm hover:bg-slate-50"
                   title="Open navigation"
                 >
                   <Menu className="h-5 w-5" />
                 </Button>
                 <div className="min-w-0">
-                  <p className="text-sm font-black italic tracking-tight text-slate-900">
+                  <p className="text-sm font-bold italic tracking-tight text-slate-900" style={{ fontFamily: "var(--font-display)" }}>
                     Agapay
                   </p>
                   <p className="text-[10px] uppercase tracking-[0.2em] text-slate-500">
@@ -511,16 +511,15 @@ export function AuthenticatedShell({
 
               <div className="space-y-1" style={{ fontFamily: "var(--font-display)" }}>
                 {portalLabel ? (
-                  <p className="text-xs uppercase tracking-[0.24em] text-slate-500">
+                  <p className="text-xs uppercase tracking-[0.24em] text-slate-500 font-semibold font-accent">
                     {portalLabel}
                   </p>
                 ) : null}
-                <h1 className="text-3xl font-display font-bold italic tracking-tight text-slate-950 md:text-4xl">
+                <h1 className="text-2xl font-heading font-bold italic tracking-tight text-slate-950 md:text-3xl">
                   {title}
                 </h1>
                 <p
-                  className="max-w-3xl text-sm text-slate-500 md:text-base"
-                  style={{ fontFamily: "var(--font-sans)" }}
+                  className="max-w-3xl text-sm text-slate-500 md:text-sm font-sans"
                 >
                   {subtitle}
                 </p>
@@ -533,38 +532,63 @@ export function AuthenticatedShell({
               <NotificationBell />
 
               <div
-                className={`hidden md:inline-flex items-center gap-3 rounded-full border p-1 pr-5 ${dynamicStyles.badge}`}
+                className={`hidden md:inline-flex items-center gap-3 rounded-xl border p-1 pr-4 ${dynamicStyles.badge}`}
                 style={portalBadgeStyle}
               >
                 <div
-                  className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full font-black bg-white/90 shadow-sm"
+                  className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg font-bold bg-white/90 shadow-sm text-sm"
                   style={{ color: normalizedTenantColor || "#0f172a" }}
                 >
                   {accountName.slice(0, 2).toUpperCase()}
                 </div>
                 <div className="hidden lg:block text-left text-current">
-                  <p className="text-sm font-bold leading-none">
+                  <p className="text-sm font-semibold leading-none font-accent">
                     {accountName}
                   </p>
-                  <p className="text-[9px] font-black uppercase tracking-[0.2em] opacity-80 leading-tight mt-1">
+                  <p className="text-[10px] font-semibold uppercase tracking-[0.2em] opacity-80 leading-tight mt-0.5">
                     {accountRole}
                   </p>
                 </div>
               </div>
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => signOut({ callbackUrl: `/${tenantSlug}` })}
-                className="rounded-full text-slate-400 hover:text-red-500 hover:bg-red-50 ml-1"
-                title="Sign Out"
-              >
-                <LogOut className="h-5 w-5" />
-              </Button>
+              <div className="flex items-center gap-1">
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100"
+                      title="More actions"
+                    >
+                      <MoreVertical className="h-5 w-5" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-48 rounded-xl">
+                    <DropdownMenuLabel className="font-accent">Actions</DropdownMenuLabel>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem onClick={() => window.history.pushState(null, "", `/${tenantSlug}/${accountRole === "member" ? "agapay-pintig" : "agapay-tanaw"}?tab=settings`)}>
+                      <Settings2 className="mr-2 h-4 w-4" />
+                      Settings
+                    </DropdownMenuItem>
+                    <DropdownMenuItem>
+                      <FileText className="mr-2 h-4 w-4" />
+                      View Reports
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem
+                      onClick={() => signOut({ callbackUrl: `/${tenantSlug}` })}
+                      className="text-red-600 focus:text-red-600"
+                    >
+                      <LogOut className="mr-2 h-4 w-4" />
+                      Sign Out
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
             </div>
           </div>
         </div>
 
-        <div data-dashboard-scroll className="p-5 md:p-8">
+        <div data-dashboard-scroll className="px-5 py-5 md:px-[48px] md:py-8">
           {children}
         </div>
       </div>

@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Plus_Jakarta_Sans, Fraunces } from "next/font/google";
+import { Plus_Jakarta_Sans, Fraunces, Outfit } from "next/font/google";
 import "./globals.css";
 import { Toaster } from "@/components/ui/sonner";
 import { AuthProvider } from "@/components/providers/session-provider";
@@ -13,6 +13,11 @@ const plusJakartaSans = Plus_Jakarta_Sans({
 
 const fraunces = Fraunces({
   variable: "--font-fraunces",
+  subsets: ["latin"],
+});
+
+const outfit = Outfit({
+  variable: "--font-outfit",
   subsets: ["latin"],
 });
 
@@ -72,7 +77,7 @@ export default function RootLayout({
   return (
     <html lang="en" className="antialiased" suppressHydrationWarning>
       <body
-        className={`${plusJakartaSans.variable} ${fraunces.variable} font-sans selection:bg-emerald-100 selection:text-emerald-900 transition-colors duration-300`}
+        className={`${plusJakartaSans.variable} ${fraunces.variable} ${outfit.variable} font-sans selection:bg-emerald-100 selection:text-emerald-900 transition-colors duration-300`}
       >
         <ThemeProvider
           attribute="class"

@@ -6,6 +6,9 @@
   --color-foreground: var(--foreground);
   --font-sans: var(--font-sans);
   --font-display: var(--font-display);
+  --font-heading: var(--font-heading);
+  --font-accent: var(--font-accent);
+  --font-numbers: var(--font-numbers);
   --font-mono: var(--font-mono);
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
@@ -54,7 +57,7 @@
   --primary-foreground: #ffffff;
   --secondary: #3b82f6;
   --secondary-foreground: #ffffff;
-  --muted: #e2e8f0;
+  --muted: #f1f5f9;
   --muted-foreground: #64748b;
   --accent: #10b981;
   --accent-foreground: #ffffff;
@@ -68,14 +71,14 @@
   --chart-4: #93c5fd;
   --chart-5: #bfdbfe;
   --radius: 0.5rem;
-  --font-display: var(--font-fraunces), "Outfit", ui-serif, serif;
-  --font-sans: var(--font-sans), "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-fraunces), "Fraunces", "Outfit", ui-serif, serif;
+  --font-sans: var(--font-sans), "Plus Jakarta Sans", "Inter", ui-sans-serif, system-ui, sans-serif;
   --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
   --sidebar: #ffffff;
   --sidebar-foreground: #1e3a8a;
   --sidebar-primary: #2563eb;
   --sidebar-primary-foreground: #ffffff;
-  --sidebar-accent: #e2e8f0;
+  --sidebar-accent: #f1f5f9;
   --sidebar-accent-foreground: #1e3a8a;
   --sidebar-border: #e2e8f0;
   --sidebar-ring: #93c5fd;
@@ -99,6 +102,74 @@
 
   .font-display {
     font-family: var(--font-display) !important;
+  }
+
+  .card {
+    @apply rounded-xl border border-border bg-card p-6 shadow-sm transition-all duration-200;
+  }
+
+  .card:hover {
+    @apply shadow-md;
+  }
+
+  .dashboard-card {
+    @apply rounded-xl border border-border bg-card p-6 shadow-sm transition-all duration-200;
+  }
+
+  .dashboard-card:hover {
+    @apply shadow-md;
+  }
+
+  .dashboard-card-strong {
+    @apply rounded-xl border border-slate-200 bg-slate-950 text-white p-6 shadow-sm transition-all duration-200;
+  }
+
+  .btn-primary {
+    @apply bg-primary text-primary-foreground px-6 py-3 rounded-xl font-semibold transition-all duration-200 cursor-pointer;
+  }
+
+  .btn-primary:hover {
+    opacity: 0.9;
+  }
+
+  .input {
+    @apply w-full rounded-xl border border-border bg-white px-4 py-3 text-base text-foreground transition-all duration-200;
+  }
+
+  .input:focus {
+    @apply border-primary ring-2 ring-primary/30 outline-none;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-display);
+  }
+}
+
+  html {
+    @apply scroll-smooth;
+    font-family: var(--font-sans);
+  }
+
+  body {
+    @apply bg-background text-foreground antialiased min-h-screen;
+    font-family: var(--font-sans);
+    transition: background-color 0.3s ease, color 0.3s ease;
+  }
+
+  .font-display {
+    font-family: var(--font-display) !important;
+  }
+
+  .font-heading {
+    font-family: var(--font-heading) !important;
+  }
+
+  .font-accent {
+    font-family: var(--font-accent) !important;
+  }
+
+  .font-numbers {
+    font-family: var(--font-numbers) !important;
   }
 
   .card {

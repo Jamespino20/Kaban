@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 
-import { useState, useTransition, useEffect } from "react";
+import { useState, useTransition, useEffect, useMemo } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -24,6 +24,7 @@ import {
   Building2,
   FileText,
 } from "lucide-react";
+import { useFormPersistence } from "@/hooks/use-form-persistence";
 
 import {
   Form,
@@ -163,6 +164,17 @@ export function EnhancedRegisterForm({
     },
   });
 
+  const watchedValues = form.watch();
+  const formDataAsRecord = useMemo(() => watchedValues as unknown as Record<string, unknown>, [watchedValues]);
+  const { draftFound, clearPersistence, dismissDraftNotice } = useFormPersistence(
+    "member-registration",
+    formDataAsRecord,
+    (restored) => {
+      form.reset(restored as unknown as z.infer<typeof EnhancedRegisterSchema>);
+    },
+    !successData,
+  );
+
   // Pre-select logic
   useEffect(() => {
     if (preselectedTenantId) {
@@ -189,6 +201,13 @@ export function EnhancedRegisterForm({
     };
     fetchData();
   }, []);
+
+  // Clear draft when registration succeeds
+  useEffect(() => {
+    if (successData) {
+      dismissDraftNotice();
+    }
+  }, [successData, dismissDraftNotice]);
 
   if (!isMounted) return null;
 
@@ -419,6 +438,20 @@ export function EnhancedRegisterForm({
             </div>
           </div>
         ) : (
+          <>
+          {draftFound && (
+            <div className="mb-6 flex items-center gap-3 rounded-2xl border border-amber-200 bg-amber-50 px-5 py-3 text-sm text-amber-800">
+              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-amber-100 text-amber-600 text-xs font-bold">!</div>
+              <p className="flex-1 font-medium">We found a saved draft from your last session. Continue where you left off.</p>
+              <button
+                type="button"
+                onClick={() => { clearPersistence(); dismissDraftNotice(); }}
+                className="text-xs font-bold text-amber-600 hover:text-amber-800 underline"
+              >
+                Dismiss
+              </button>
+            </div>
+          )}
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
               {step === 1 && (
@@ -1105,6 +1138,7 @@ export function EnhancedRegisterForm({
               </div>
             </form>
           </Form>
+          </>
         )}
       </div>
     </div>

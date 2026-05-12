@@ -9,7 +9,15 @@ const nextConfig: NextConfig = {
       },
     ],
   },
-  serverExternalPackages: ["@prisma/client", "prisma"],
+  serverExternalPackages: [
+    "@prisma/client",
+    "prisma",
+    "bufferutil",
+    "utf-8-validate",
+  ],
+  experimental: {
+    serverComponentsExternalPackages: ["@prisma/client", "prisma"],
+  },
 };
 
 export default nextConfig;

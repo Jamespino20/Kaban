@@ -307,7 +307,7 @@ export default async function AgapayPintigPage({
             <div className="dashboard-card p-8 space-y-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <h3 className="font-display font-bold text-slate-900 italic text-xl">
+                  <h3 className="font-heading font-bold text-slate-900 italic text-xl">
                     Loan Capability Meter
                   </h3>
                   <p className="text-sm text-slate-500">
@@ -321,7 +321,7 @@ export default async function AgapayPintigPage({
 
               <div className="relative pt-4">
                 <div className="flex items-end justify-between mb-2">
-                  <p className="text-4xl font-display font-bold text-slate-900">
+                  <p className="text-4xl font-numbers font-bold text-slate-900">
                     {formatCurrency(availableCredit)}
                   </p>
                   <Badge
@@ -351,7 +351,7 @@ export default async function AgapayPintigPage({
                 <div className="w-12 h-12 rounded-2xl bg-primary flex items-center justify-center mb-6 shadow-lg shadow-primary/20">
                   <Wallet className="w-6 h-6" />
                 </div>
-                <h3 className="text-2xl font-display font-medium leading-tight">
+                <h3 className="text-2xl font-heading font-medium leading-tight">
                   Repayment <br /> Report
                 </h3>
                 <p className="text-slate-400 text-xs mt-2 max-w-[180px]">
@@ -388,7 +388,7 @@ export default async function AgapayPintigPage({
                 <h3 className="mb-1 text-sm font-bold uppercase tracking-widest text-slate-400">
                   {item.label}
                 </h3>
-                <p className={`text-3xl font-display font-bold ${item.color}`}>
+                <p className={`text-3xl font-numbers font-bold ${item.color}`}>
                   {item.value}
                 </p>
               </div>
@@ -408,7 +408,7 @@ export default async function AgapayPintigPage({
                 </div>
                 <div className="flex items-center gap-3">
                   <div
-                    className={`text-4xl font-display font-bold ${trustScoreValue >= 700 ? "text-emerald-600" : trustScoreValue >= 400 ? "text-amber-600" : "text-red-600"}`}
+                    className={`text-4xl font-numbers font-bold ${trustScoreValue >= 700 ? "text-emerald-600" : trustScoreValue >= 400 ? "text-amber-600" : "text-red-600"}`}
                   >
                     {trustScoreValue}
                   </div>
@@ -506,7 +506,7 @@ export default async function AgapayPintigPage({
                 <LayoutDashboard className="h-10 w-10 text-primary/30" />
               </div>
               <div className="space-y-2">
-                <h2 className="text-2xl font-display font-bold text-slate-800">
+                <h2 className="text-2xl font-heading font-bold text-slate-800">
                   Start with your Dashboard
                 </h2>
                 <p className="mx-auto max-w-md text-slate-500">
@@ -517,7 +517,7 @@ export default async function AgapayPintigPage({
             </div>
           ) : (
             <div className="dashboard-card">
-              <h2 className="mb-6 text-xl font-display font-bold text-slate-800">
+              <h2 className="mb-6 text-xl font-heading font-bold text-slate-800">
                 Recent Activity
               </h2>
               <p className="italic text-slate-400">

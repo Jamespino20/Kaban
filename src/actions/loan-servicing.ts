@@ -425,17 +425,27 @@ export async function verifySubmittedPayment(
       let remaining = Number(payment.amount_paid);
       for (const schedule of schedules) {
         const scheduleDue = Number(schedule.total_due);
-        if (remaining + 0.01 < scheduleDue) break;
+        if (remaining + 0.01 < scheduleDue) {
+          // Partial payment: apply to this schedule but don't mark fully paid
+          await tx.loanSchedule.update({
+            where: { schedule_id: schedule.schedule_id },
+            data: {
+              amount_paid: { increment: new Prisma.Decimal(remaining) },
+            },
+          });
+          break;
+        }
 
         await tx.loanSchedule.update({
           where: { schedule_id: schedule.schedule_id },
           data: {
             status: ScheduleStatus.paid,
             paid_at: new Date(),
+            amount_paid: scheduleDue,
           },
         });
         remaining -= scheduleDue;
-      }
+      } 
 
       const appliedAmount = Number(payment.amount_paid) - remaining;
 
@@ -464,6 +474,7 @@ export async function verifySubmittedPayment(
 
       // Post ledger entries
       await postLedgerEntry(tx, {
+        tenantId,
         description: `Loan Repayment Verified: ${payment.payment_reference}`,
         createdBy: session.user.user_id,
         loanId: payment.loan_id,

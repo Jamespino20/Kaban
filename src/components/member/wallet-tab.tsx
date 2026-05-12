@@ -297,9 +297,28 @@ export function WalletTab({ savings, transactions }: WalletTabProps) {
                 </div>
 
                 <div className="space-y-2">
-                  <label className="text-xs font-black uppercase tracking-widest text-slate-400">
-                    Amount (PHP)
-                  </label>
+                  <div className="flex items-center justify-between">
+                    <label className="text-xs font-black uppercase tracking-widest text-slate-400">
+                      Amount (PHP)
+                    </label>
+                    <span className="text-xs text-slate-400">₱{depositAmount || "0"}</span>
+                  </div>
+                  <div className="flex flex-wrap gap-2 mb-3">
+                    {[100, 500, 1000, 2000, 5000, 10000].map((preset) => (
+                      <button
+                        key={preset}
+                        type="button"
+                        onClick={() => setDepositAmount(String(preset))}
+                        className={`rounded-xl border px-3 py-1.5 text-xs font-bold transition-colors ${
+                          Number(depositAmount) === preset
+                            ? "border-emerald-500 bg-emerald-50 text-emerald-700"
+                            : "border-slate-200 text-slate-500 hover:border-emerald-200 hover:bg-emerald-50 hover:text-emerald-600"
+                        }`}
+                      >
+                        ₱{preset.toLocaleString()}
+                      </button>
+                    ))}
+                  </div>
                   <div className="relative">
                     <span className="absolute left-4 top-1/2 -translate-y-1/2 text-lg font-bold text-slate-400">
                       ₱

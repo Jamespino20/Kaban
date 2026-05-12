@@ -48,7 +48,8 @@ import { getCommunityStaffSummary, getCommunityDashboardData } from "@/actions/c
 import { SuperadminCommunityTab } from "@/components/admin/superadmin-community-tab";
 import { CommunityOperationsTab } from "@/components/admin/community-operations-tab";
 import { CommunityTab } from "@/components/member/community-tab";
-import { AnalyticsDashboardTab } from "@/components/admin/analytics-dashboard-tab";
+import { OperatorVaultTab } from "@/components/admin/operator-vault-tab";
+import { TanawPollingWrapper } from "@/components/admin/tanaw-polling-wrapper";
 import { ReconciliationTab } from "@/components/admin/reconciliation-tab";
 import { SubscriptionSettings } from "@/components/admin/subscription-settings";
 import { SystemFileManagement } from "@/components/admin/system-file-management";
@@ -375,6 +376,7 @@ export default async function AgapayTanawPage({
       navItems={navItems}
       tenantSlug={tenant}
     >
+      <TanawPollingWrapper>
       <div className="space-y-5">
         {reconciliation && !reconciliation.holdings.isTreasuryHealthy && (
           <div className="dashboard-card border-red-200 bg-red-50 text-slate-900 animate-in fade-in slide-in-from-top-4 duration-500 flex flex-col md:flex-row items-center gap-6">
@@ -382,7 +384,7 @@ export default async function AgapayTanawPage({
               <ShieldAlert className="h-7 w-7" />
             </div>
             <div className="flex-1 text-center md:text-left space-y-1">
-              <h3 className="text-xl font-display font-bold text-red-900 italic">
+              <h3 className="text-xl font-heading font-bold text-red-900 italic">
                 Imbalance Alert: Treasury Pulse Check Failed
               </h3>
               <p className="text-red-700 font-medium">
@@ -436,7 +438,7 @@ export default async function AgapayTanawPage({
             {!isGlobalSuperadminView && (
               <div className="dashboard-card lg:col-span-2 flex flex-col md:flex-row items-center gap-8 p-6">
                 <div className="flex-1 text-center md:text-left">
-                  <h3 className="text-xl font-display font-bold text-slate-900">
+                  <h3 className="text-xl font-heading font-bold text-slate-900">
                     Cooperative Trust Index
                   </h3>
                   <p className="text-slate-500 text-sm mt-1 mb-6">
@@ -459,7 +461,7 @@ export default async function AgapayTanawPage({
                 <div className="w-12 h-12 rounded-2xl bg-primary shadow-[0_0_20px_color-mix(in_srgb,var(--primary)_30%,transparent)] flex items-center justify-center mb-6">
                   <TrendingUp className="w-6 h-6 text-white" />
                 </div>
-                <h3 className="text-2xl font-display font-medium leading-tight">
+                <h3 className="text-2xl font-heading font-medium leading-tight">
                   Portfolio <br />
                   Status
                 </h3>
@@ -507,7 +509,7 @@ export default async function AgapayTanawPage({
         {isOperator && (
           <>
             <TabsContent value="vault" className="outline-none">
-              <AnalyticsDashboardTab />
+              <OperatorVaultTab />
             </TabsContent>
             <TabsContent value="members" className="outline-none">
               <MemberDirectoryTab
@@ -545,13 +547,13 @@ export default async function AgapayTanawPage({
                 <ReportsTab />
                 <TenantPerformanceReportsTab />
                 <div className="border-t border-slate-200 pt-6">
-                  <h3 className="text-2xl font-bold font-display text-slate-900 mb-4">
+                  <h3 className="text-2xl font-bold font-heading text-slate-900 mb-4">
                     System Health
                   </h3>
                   <SystemHealthTab />
                 </div>
                 <div className="border-t border-slate-200 pt-6">
-                  <h3 className="text-2xl font-bold font-display text-slate-900 mb-4">
+                  <h3 className="text-2xl font-bold font-heading text-slate-900 mb-4">
                     Fraud & Risk Monitoring
                   </h3>
                   <FraudRiskTab />
@@ -666,7 +668,7 @@ export default async function AgapayTanawPage({
               )}
 
               <div className="px-4 text-center space-y-2">
-                <h2 className="text-3xl font-display font-bold text-slate-900 italic">
+                <h2 className="text-3xl font-heading font-bold text-slate-900 italic">
                   Account Security
                 </h2>
                 <p className="text-slate-500">Secure your access with 2FA.</p>
@@ -678,6 +680,7 @@ export default async function AgapayTanawPage({
           </div>
         </TabsContent>
       </div>
+      </TanawPollingWrapper>
     </DashboardTabsShell>
   );
 }

@@ -29,6 +29,8 @@ export async function approveWalletTopUp(requestId: number) {
       });
 
       if (!request) return { error: "Request not found." };
+      if (request.status === "verified")
+        return { error: "This top-up has already been processed automatically." };
       if (request.status !== "pending")
         return { error: "Request is not pending." };
 
@@ -80,6 +82,7 @@ export async function approveWalletTopUp(requestId: number) {
 
       // 5. Post Ledger Entry: DR Cash, CR Savings
       await postLedgerEntry(tx, {
+        tenantId,
         description: `Wallet Top-up Verified: Req #${requestId}`,
         createdBy: adminId,
         metadata: { source: "topup", transactionId: trans.transaction_id },
@@ -102,7 +105,7 @@ export async function approveWalletTopUp(requestId: number) {
     });
   } catch (error) {
     console.error("approveWalletTopUp failed:", error);
-    return { error: "Failed to approve top up." };
+    return { error: `Failed to approve top-up: ${error instanceof Error ? error.message : "Unknown server error. Please try again or contact support."}` };
   }
 }
 
@@ -128,7 +131,7 @@ export async function rejectWalletTopUp(requestId: number) {
     return { success: "Top-up request successfully rejected." };
   } catch (error) {
     console.error("rejectWalletTopUp failed:", error);
-    return { error: "Failed to reject top up." };
+    return { error: `Failed to reject top-up: ${error instanceof Error ? error.message : "The request may have already been processed."}` };
   }
 }
 
@@ -181,8 +184,9 @@ export async function requestWalletTopUp(
     return { error: "Deposit amount must be greater than zero." };
 
   try {
-    await prisma.$withTenant(tenantId, async (tx) => {
-      await tx.topUpRequest.create({
+    return await prisma.$withTenant(tenantId, async (tx) => {
+      // Auto-process: create top-up request record for audit
+      const request = await tx.topUpRequest.create({
         data: {
           tenant_id: tenantId,
           user_id: userId,
@@ -190,18 +194,64 @@ export async function requestWalletTopUp(
           receipt_url: receiptUrl || null,
           method_label: methodLabel || null,
           external_reference: externalReference || null,
-          status: "pending",
+          status: "verified",
+          processed_at: new Date(),
+          processed_by: userId,
         },
       });
-    });
 
-    return {
-      success:
-        "Your top-up request has been successfully submitted. Please wait for admin approval.",
-    };
+      // Auto-update wallet balance
+      let wallet = await tx.savingsAccount.findFirst({
+        where: { user_id: userId, account_type: AccountType.personal_wallet },
+      });
+      if (!wallet) {
+        wallet = await tx.savingsAccount.create({
+          data: {
+            user_id: userId,
+            tenant_id: tenantId,
+            account_type: AccountType.personal_wallet,
+            balance: new Prisma.Decimal(amount),
+          },
+        });
+      } else {
+        await tx.savingsAccount.update({
+          where: { account_id: wallet.account_id },
+          data: { balance: { increment: new Prisma.Decimal(amount) } },
+        });
+      }
+
+      // Log savings transaction
+      await tx.savingsTransaction.create({
+        data: {
+          account_id: wallet.account_id,
+          tenant_id: tenantId,
+          transaction_type: TransactionType.deposit,
+          amount: new Prisma.Decimal(amount),
+          reference: `AUTO-TOPUP-${request.id}`,
+          processed_by: userId,
+        },
+      });
+
+      // Post ledger entry
+      await postLedgerEntry(tx, {
+        tenantId,
+        description: `Auto Top-up: Req #${request.id}`,
+        createdBy: userId,
+        metadata: { source: "auto_topup", transactionId: request.id },
+        entries: [
+          { accountCode: "CASH_EQUIVALENTS", debit: Number(amount), credit: 0 },
+          { accountCode: "MEMBER_SAVINGS", debit: 0, credit: Number(amount) },
+        ],
+      });
+
+      revalidatePath("/agapay-pintig");
+      return {
+        success: `Your top-up of ₱${Number(amount).toLocaleString()} has been processed automatically and credited to your wallet.`,
+      };
+    });
   } catch (error) {
     console.error("requestWalletTopUp failed:", error);
-    return { error: "Failed to process deposit request." };
+    return { error: `Deposit failed: ${error instanceof Error ? error.message : "Please check your connection and try again."}` };
   }
 }
 
@@ -225,7 +275,7 @@ export async function payLoanWithWallet(loanId: number, amount: number) {
       });
 
       if (!wallet || Number(wallet.balance) < amount) {
-        throw new Error("Kulang ang pondo sa iyong wallet.");
+        throw new Error("Insufficient wallet balance. Please top up your wallet before making this payment.");
       }
 
       // 2. Deduct from wallet
@@ -284,6 +334,7 @@ export async function payLoanWithWallet(loanId: number, amount: number) {
 
       // 6. Post Ledger Entry (Double-Entry truth)
       await postLedgerEntry(tx, {
+        tenantId,
         description: `Loan Repayment via Wallet: Loan #${loanId}`,
         createdBy: userId,
         loanId: loanId,
@@ -415,6 +466,7 @@ export async function processPosTransaction(data: {
 
         // 3. Ledger: DR Cash, CR Savings
         await postLedgerEntry(tx, {
+          tenantId,
           description: `POS Cash Deposit: ${data.reference}`,
           createdBy: operatorId,
           metadata: {
@@ -487,6 +539,7 @@ export async function processPosTransaction(data: {
 
         // Ledger: DR Cash, CR Loan Receivables
         await postLedgerEntry(tx, {
+          tenantId,
           description: `POS Cash Repayment: ${data.reference}`,
           createdBy: operatorId,
           loanId: loan.loan_id,

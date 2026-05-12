@@ -232,6 +232,7 @@ export async function enforceLoanDefault(
     });
 
     await postLedgerEntry(tx, {
+      tenantId: loan.tenant_id,
       description: `Guarantor wallet recovery for ${loan.loan_reference}`,
       createdBy: actorUserId,
       entries: [

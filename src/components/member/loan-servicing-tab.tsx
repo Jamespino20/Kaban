@@ -257,7 +257,7 @@ function LoanSummaryCard({
             <MetricCard
               icon={<CreditCard className="w-3 h-3" />}
               label="Installments"
-              value={`${paidSchedules}/${totalSchedules}`}
+              value={totalSchedules === 0 ? "—" : `${paidSchedules}/${totalSchedules}`}
             />
             <MetricCard
               icon={<ReceiptText className="w-3 h-3" />}
@@ -266,13 +266,13 @@ function LoanSummaryCard({
             />
           </div>
 
-          {loan.schedules.length > 0 && (
-            <div>
-              <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-1">Schedule</p>
+          <div>
+            <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-1">Schedule</p>
+            {loan.schedules.length > 0 ? (
               <div className="max-h-32 overflow-y-auto space-y-1 pr-1">
                 {loan.schedules.map((s) => (
                   <div key={s.schedule_id} className="flex items-center justify-between rounded-lg bg-slate-50 px-3 py-1.5 text-xs">
-                    <span className="text-slate-600">Installment #{s.schedule_id}</span>
+                    <span className="text-slate-600">Installment #{s.installment_number}</span>
                     <div className="flex items-center gap-2">
                       <span className="font-mono text-slate-900">
                         ₱{Number(s.total_due).toLocaleString()}
@@ -288,8 +288,12 @@ function LoanSummaryCard({
                   </div>
                 ))}
               </div>
-            </div>
-          )}
+            ) : (
+              <p className="rounded-lg bg-slate-50 px-3 py-3 text-xs text-slate-400 text-center">
+                Payment schedule being set up by your cooperative. You can still submit a payment below.
+              </p>
+            )}
+          </div>
 
           {loan.payments.length > 0 && (
             <div>

@@ -79,7 +79,7 @@ export function KPIMetricCard({
           <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
             {label}
           </p>
-          <p className="text-3xl font-display font-bold text-slate-900 tracking-tight">
+          <p className="text-3xl font-numbers font-bold text-slate-900 tracking-tight">
             {value}
           </p>
         </div>

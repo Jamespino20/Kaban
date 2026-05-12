@@ -136,9 +136,9 @@ export function TenantNetworkMap({ tenants = [] }: { tenants?: Tenant[] }) {
                     key={`line-${b.id}`}
                     d={`M${activeTenant.x} ${activeTenant.y} Q${(activeTenant.x + b.x) / 2} ${Math.min(activeTenant.y, b.y) - 10} ${b.x} ${b.y}`}
                     stroke="url(#islandGrad)"
-                    strokeWidth="0.5"
+                    strokeWidth={0.5 / zoom}
                     fill="none"
-                    strokeDasharray="2,2"
+                    strokeDasharray={`${2 / zoom},${2 / zoom}`}
                     className="animate-pulse"
                   />
                 ))}
@@ -157,7 +157,7 @@ export function TenantNetworkMap({ tenants = [] }: { tenants?: Tenant[] }) {
               <circle
                 cx={tenant.x}
                 cy={tenant.y}
-                r="5"
+                r={5 / zoom}
                 className={`fill-emerald-400/20 transition-all duration-500 ${
                   activeTenant?.id === tenant.id
                     ? "scale-150 opacity-100"
@@ -168,7 +168,7 @@ export function TenantNetworkMap({ tenants = [] }: { tenants?: Tenant[] }) {
               <circle
                 cx={tenant.x}
                 cy={tenant.y}
-                r={activeTenant?.id === tenant.id ? "3.5" : "2.5"}
+                r={(activeTenant?.id === tenant.id ? 3.5 : 2.5) / zoom}
                 className={`transition-all duration-300 ${
                   activeTenant?.id === tenant.id
                     ? "fill-emerald-600"
@@ -179,7 +179,7 @@ export function TenantNetworkMap({ tenants = [] }: { tenants?: Tenant[] }) {
               <circle
                 cx={tenant.x}
                 cy={tenant.y}
-                r="1"
+                r={1 / zoom}
                 className="fill-white shadow-sm"
               />
               {/* Ripple */}
@@ -187,8 +187,9 @@ export function TenantNetworkMap({ tenants = [] }: { tenants?: Tenant[] }) {
                 <circle
                   cx={tenant.x}
                   cy={tenant.y}
-                  r="8"
-                  className="fill-none stroke-emerald-500/30 stroke-1 animate-ping"
+                  r={8 / zoom}
+                  className="fill-none stroke-emerald-500/30 stroke-[0.5] animate-ping"
+                  style={{ strokeWidth: 1 / zoom }}
                 />
               )}
             </g>

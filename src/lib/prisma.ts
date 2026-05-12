@@ -11,14 +11,6 @@ declare global {
   var prisma: PrismaClient | undefined;
 }
 
-const getAdapterMode = () => {
-  const explicitMode = process.env.AGAPAY_PRISMA_ADAPTER?.toLowerCase();
-  if (explicitMode === "http" || explicitMode === "ws") {
-    return explicitMode;
-  }
-  return "ws";
-};
-
 export const getPrisma = () => {
   if (prismaInstance) return prismaInstance;
 
@@ -50,11 +42,11 @@ export const getPrisma = () => {
     return null as any;
   }
 
-  const adapterMode = getAdapterMode();
-  const adapter =
-    adapterMode === "ws"
-      ? new PrismaNeon({ connectionString } as any)
-      : new PrismaNeonHttp(connectionString, {} as any);
+  const adapterMode = process.env.AGAPAY_PRISMA_ADAPTER?.toLowerCase();
+  const useHttp = adapterMode === "http" || process.env.VERCEL_ENV === "production";
+  const adapter = useHttp
+    ? new PrismaNeonHttp(connectionString, {} as any)
+    : new PrismaNeon({ connectionString } as any);
 
   prismaInstance = new PrismaClient({
     adapter,

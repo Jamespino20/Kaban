@@ -9,6 +9,7 @@ import { Prisma } from "@prisma/client";
 export async function postLedgerEntry(
   tx: Prisma.TransactionClient,
   params: {
+    tenantId: number;
     entries: {
       accountCode: string;
       debit: number;
@@ -22,6 +23,7 @@ export async function postLedgerEntry(
   },
 ) {
   const {
+    tenantId,
     entries,
     description,
     createdBy,
@@ -69,6 +71,7 @@ export async function postLedgerEntry(
     return (tx as any).businessLedger.create({
       data: {
         transaction_id: linkId,
+        tenant_id: tenantId,
         account: { connect: { id: account.id } },
         loan_id: loanId,
         debit: new Prisma.Decimal(entry.debit),

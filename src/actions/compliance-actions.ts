@@ -75,13 +75,19 @@ export const submitCoopApplication = async (values: {
       ? `\nBilling: ${values.billing.name} (${values.billing.email}), ${values.billing.address}, ${values.billing.city} ${values.billing.zip}. Card: ****${values.billing.cardLast4}`
       : "";
 
-    await prisma.tenant.create({
+    const application = await prisma.tenantApplication.create({
       data: {
-        name: values.name,
-        slug: `${slug}-${Math.floor(Math.random() * 1000)}`,
-        entitlement_status: "prospect",
+        tenant_name: values.name,
+        tenant_slug: `${slug}-${Math.floor(Math.random() * 1000)}`,
+        applicant_name: values.billing?.name || values.name,
+        applicant_email: values.email,
+        applicant_phone: values.phone,
+        estimated_members: parseInt(values.membersCount) || 0,
         tenant_group_id: values.tenant_group_id ?? null,
-        entitlement_notes: `Plan: ${planLabel} (${cycleLabel}). Application from ${values.email}. Phone: ${values.phone}. Region: ${values.region}. Estimated Members: ${values.membersCount}. Message: ${values.message}${docNotes}${billingNotes}`,
+        status: "pending",
+        submitted_by: 0, // Using 0 for Guest/Public submissions
+        documents: values.docs ? (values.docs as any) : null,
+        brand_color: "#10b981", // Default Emerald
       },
     });
 

@@ -225,11 +225,37 @@ export const LoanApplicationForm = ({
             <FormField
               control={form.control}
               name="amount"
-              render={({ field }) => (
+              render={({ field }) => {
+                const min = Number(product.min_amount);
+                const max = Number(product.max_amount);
+                const step = Math.max(500, Math.ceil((max - min) / 5 / 500) * 500);
+                const presets: number[] = [];
+                for (let p = min + step; p < max; p += step) {
+                  presets.push(p);
+                }
+                return (
                 <FormItem>
                   <FormLabel className="text-[10px] font-bold uppercase tracking-widest text-slate-400">
                     Loan Amount (PHP)
                   </FormLabel>
+                  {presets.length > 1 && (
+                    <div className="flex flex-wrap gap-2 mb-2">
+                      {presets.slice(0, 4).map((preset) => (
+                        <button
+                          key={preset}
+                          type="button"
+                          onClick={() => field.onChange(preset)}
+                          className={`rounded-xl border px-3 py-1.5 text-[10px] font-bold transition-colors ${
+                            Number(field.value) === preset
+                              ? "border-emerald-500 bg-emerald-50 text-emerald-700"
+                              : "border-slate-200 text-slate-500 hover:border-emerald-200 hover:bg-emerald-50 hover:text-emerald-600"
+                          }`}
+                        >
+                          ₱{preset.toLocaleString()}
+                        </button>
+                      ))}
+                    </div>
+                  )}
                   <FormControl>
                     <Input
                       {...field}
@@ -239,19 +265,19 @@ export const LoanApplicationForm = ({
                       }
                       type="number"
                       step="500"
-                      min={product.min_amount}
-                      max={product.max_amount}
+                      min={min}
+                      max={max}
                       disabled={isPending}
                       className="h-14 rounded-2xl border-slate-100 text-xl font-bold font-display focus:border-emerald-500 focus:ring-emerald-500/20"
                     />
                   </FormControl>
                   <p className="text-xs text-slate-500">
-                    Available: ₱{Number(product.min_amount).toLocaleString()} -
-                    ₱{Number(product.max_amount).toLocaleString()}
+                    Available: ₱{min.toLocaleString()} — ₱{max.toLocaleString()}
                   </p>
                   <FormMessage />
                 </FormItem>
-              )}
+                );
+              }}
             />
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">

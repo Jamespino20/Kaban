@@ -16,51 +16,51 @@ The previous issue-derived matrix has been replaced. All entries below are sourc
 
 ---
 
-## IMPLEMENTATION NOTES (Updated 2026-05-11)
+## IMPLEMENTATION NOTES (Updated 2026-05-12)
 
-### Completed Fixes in This Session:
+### Completed Fixes in Session 2026-05-12:
 
-1. **Platform Homepage:**
-   - S-07 (SaaS pricing): Updated to PRD specs: Core ₱3,500/3mo, Pro ₱6,500/6mo, Enterprise ₱12,000/12mo
-   - S-05 (Loan Calculator): Added disclaimer that calculator shows example business operations
-   - Hero buttons: Changed to "Apply for Agapay" and "Loan Calculator" per PRD ISSUE 483
-   - S-11 (Footer): Removed Management, Partners, Security, Cookie Settings links per PRD ISSUES 497, 500
-   - UI-19 (Custom scrollbar): Already implemented in globals.css (green circle scrollbar)
-   - Global custom scrollbar implemented in `src/app/globals.css` lines 148-174
+1. **Systemwide CSS & Fonts:**
+   - Font fallbacks properly configured: Fraunces for display headings, Plus Jakarta Sans for body text
+   - Premium SaaS styling: rounded-xl on cards, buttons, inputs; proper font hierarchy (headings auto-use display font)
+   - Card border-radius updated from rounded-lg to rounded-xl across base styles
+   - Button border-radius updated from rounded-md to rounded-xl
+   - Input border-radius updated from rounded-md to rounded-xl
+   - Auto-applied `font-display` to all h1-h6 elements globally
 
-2. **Tanaw/Pintig Dashboards:**
-   - UI-19 (Custom scrollbar): Implemented
-   - UI-20 (Inactivity timeout): Implemented in `src/components/auth/idle-session-timer.tsx`
-   - UI-25 (Logout redirect): Fixed to redirect to tenant homepage, not platform (per PRD ISSUE 527)
-   - Three-dot actions: Already implemented in authenticated-shell.tsx header
-   - Dark mode: Already supported via CSS variables
-   - "Powered by Agapay" branding: Already in sidebar (lines 293-297 in authenticated-shell.tsx)
-   - Signout fix: Changed callbackUrl from "/" to `/${tenantSlug}` in authenticated-shell.tsx:546
+2. **Dashboard Shell (authenticated-shell.tsx):**
+   - Sidebar width optimized to 280px (17.5rem) per design system
+   - Sidebar contrast-aware text: properly calculates text (black/white) based on brand color luminance
+   - Active state styling differentiates light vs dark sidebar backgrounds
+   - Fixed main pane background: clean `#f8fafc` with subtle brand color radial gradient
+   - Outer container now uses tenant brand color instead of hardcoded `bg-slate-950`
+   - Header styling cleaned up: reduced padding, consistent shadow, better spacing
+   - Three-dot actions dropdown implemented with Settings, View Reports, and Sign Out options
+   - Category header labels use `px-4` alignment matching nav items for consistent spacing
 
-3. **Tenant Operator Fixes:**
-   - TO-13 (Treasury reconciliation): Fixed 0-value false positive (changed condition in reconciliation.ts:80-81)
-   - Wallet notes field: Removed invalid `notes` field from prisma SavingsTransaction (wallet-actions.ts:405)
-   - Platform feedback: Fixed to allow platform context without tenant (transactional-feedback.ts updated)
+3. **Repayment Processing Fix (loan-servicing.ts):**
+   - Fixed `verifySubmittedPayment` function: partial payments now correctly apply to the current schedule
+   - Previously, a payment less than a full schedule amount would silently break and apply nothing
+   - Now partial payments are recorded against the schedule via `amount_paid` increment
+   - This prevents the "softlock" where processed repayments don't update loan status
 
-4. **Constants Already Implemented:**
-   - All interest tiers (CP-10 through CP-14): Implemented in `src/lib/microfinance-policy.ts` TIER_POLICIES
-   - Loan amounts (CP-15 through CP-19): P2,000-P1,000,000 range in MICROFINANCE_POLICY
-   - Penalty staircase (CP-21): Implemented in calculateMissedInstallmentPenalty()
-   - Processing fee (CP-22): P20 in MICROFINANCE_POLICY
-   - Service fee (CP-23): P50 in MICROFINANCE_POLICY
-   - Member tenant limit (CP-25): maxTenantMembershipsPerUser: 2 in MICROFINANCE_POLICY
+4. **Form Persistence:**
+   - `useFormPersistence` hook confirmed working in loan-application-form.tsx and pos-system-tab.tsx
+   - Supports localStorage save/restore with 24-hour expiry, beforeunload warning, draft clearing
 
-**Implementation Files Referenced:**
+5. **ISSUES.md Updated:**
+   - All fixed items marked with [x]
+   - Partially fixed items marked with [~]
+   - Remaining items marked with [ ] for continued work
 
-- Platform homepage: `src/components/shared/landing-client.tsx`
-- Platform footer: `src/components/layout/footer.tsx`
-- Dashboard shell: `src/components/layout/authenticated-shell.tsx`
+**Implementation Files Referenced (this session):**
+
 - Global CSS: `src/app/globals.css`
-- Idle timer: `src/components/auth/idle-session-timer.tsx`
-- Wallet actions: `src/actions/wallet-actions.ts`
-- Reconciliation: `src/actions/reconciliation.ts`
-- Feedback: `src/actions/transactional-feedback.ts`
-- Policy: `src/lib/microfinance-policy.ts`
+- Dashboard shell: `src/components/layout/authenticated-shell.tsx`
+- Loan servicing: `src/actions/loan-servicing.ts`
+- Form persistence hook: `src/hooks/use-form-persistence.ts`
+- Issues tracking: `docs/ISSUES.md`
+- Execution matrix: `docs/PRD-execution-matrix.md`
 
 ---
 
