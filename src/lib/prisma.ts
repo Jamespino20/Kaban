@@ -1,8 +1,6 @@
 import "dotenv/config";
 import { PrismaClient } from "@prisma/client";
 import { PrismaNeon, PrismaNeonHttp } from "@prisma/adapter-neon";
-import { neonConfig } from "@neondatabase/serverless";
-import ws from "ws";
 import { getDbUrl } from "@/lib/db-url";
 
 let prismaInstance: PrismaClient | undefined;
@@ -14,18 +12,10 @@ declare global {
 export const getPrisma = () => {
   if (prismaInstance) return prismaInstance;
 
-  // Ensure DB initializes on Vercel build so unstable_cache gets populated.
-  // if (process.env.NEXT_PHASE === "phase-production-build") {
-  //   console.log("AGAPAY_PRISMA: Skipping initialization during build phase.");
-  //   return null as any;
-  // }
-
   const rawUrl = getDbUrl();
   const connectionString = rawUrl
     ? rawUrl.replace(/["'\r\n\s]/g, "").trim()
     : "";
-
-  neonConfig.webSocketConstructor = ws;
 
   console.log("AGAPAY_PRISMA: Initializing adapter (Lazy)...");
 
@@ -43,7 +33,7 @@ export const getPrisma = () => {
   }
 
   const adapterMode = process.env.AGAPAY_PRISMA_ADAPTER?.toLowerCase();
-  const useHttp = adapterMode === "http"; // HTTP only if explicitly requested
+  const useHttp = adapterMode === "ws" ? false : true; // Default to HTTP adapter for stability
   const adapter = useHttp
     ? new PrismaNeonHttp(connectionString, {} as any)
     : new PrismaNeon({ connectionString } as any);

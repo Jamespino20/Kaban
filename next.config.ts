@@ -14,6 +14,7 @@ const nextConfig: NextConfig = {
     "prisma",
     "bufferutil",
     "utf-8-validate",
+    "ws",
   ],
 };
 
