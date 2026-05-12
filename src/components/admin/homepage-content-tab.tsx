@@ -12,8 +12,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
   BadgeCheck,
+  BellRing,
   Clock3,
   FileStack,
+  MessageSquareWarning,
   ShieldCheck,
   Trash2,
 } from "lucide-react";
@@ -71,28 +73,12 @@ export function HomepageContentTab({
   return (
     <div className="grid grid-cols-1 2xl:grid-cols-5 gap-8">
       <div className="2xl:col-span-3 space-y-8">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <WorkflowSummaryCard
-            icon={<Clock3 className="w-5 h-5 text-amber-600" />}
-            label="Pending FAQs"
-            value={faqGroups.pending.length}
-            tone="amber"
+        {role === "operator" && (
+          <SuperadminRequestsSection
+            pendingTestimonials={testimonialGroups.pending}
+            rejectedTestimonials={testimonialGroups.rejected}
           />
-          <WorkflowSummaryCard
-            icon={<FileStack className="w-5 h-5 text-blue-600" />}
-            label="Pending Testimonials"
-            value={testimonialGroups.pending.length}
-            tone="blue"
-          />
-          <WorkflowSummaryCard
-            icon={<BadgeCheck className="w-5 h-5 text-emerald-600" />}
-            label="Published Entries"
-            value={
-              faqGroups.published.length + testimonialGroups.published.length
-            }
-            tone="emerald"
-          />
-        </div>
+        )}
 
         <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
           <ContentSectionCard
@@ -427,6 +413,122 @@ function ContentRecordCard({
           </div>
         </div>
       ) : null}
+    </div>
+  );
+}
+
+function SuperadminRequestsSection({
+  pendingTestimonials,
+  rejectedTestimonials,
+}: {
+  pendingTestimonials: HomepageTestimonialRecord[];
+  rejectedTestimonials: HomepageTestimonialRecord[];
+}) {
+  const hasRequests =
+    pendingTestimonials.length > 0 || rejectedTestimonials.length > 0;
+
+  return (
+    <div className="rounded-[2rem] border border-amber-200 bg-amber-50/50 p-6 shadow-sm space-y-4">
+      <div className="flex items-center gap-3">
+        <div className="w-10 h-10 rounded-xl bg-amber-100 flex items-center justify-center">
+          <BellRing className="w-5 h-5 text-amber-700" />
+        </div>
+        <div>
+          <h3 className="text-lg font-display font-bold text-slate-900 italic">
+            Superadmin Requests
+          </h3>
+          <p className="text-sm text-slate-500">
+            Status ng iyong mga isinumiteng testimonial proposal
+          </p>
+        </div>
+      </div>
+
+      {!hasRequests ? (
+        <div className="rounded-2xl border border-dashed border-amber-200 bg-white p-5 text-sm text-slate-500 flex items-center gap-3">
+          <MessageSquareWarning className="w-5 h-5 text-slate-300" />
+          Wala pang mga proposal. Magpasa ng testimonial proposal sa itaas.
+        </div>
+      ) : (
+        <div className="space-y-3">
+          {pendingTestimonials.length > 0 && (
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <h4 className="text-xs font-bold uppercase tracking-wider text-amber-700">
+                  Awaiting Review
+                </h4>
+                <span className="text-xs rounded-full bg-amber-100 px-2 py-0.5 font-bold text-amber-600">
+                  {pendingTestimonials.length}
+                </span>
+              </div>
+              <div className="space-y-2">
+                {pendingTestimonials.map((item) => (
+                  <div
+                    key={item.id}
+                    className="rounded-xl border border-amber-200 bg-white p-4 flex items-start gap-3"
+                  >
+                    <Clock3 className="w-5 h-5 text-amber-500 mt-0.5 shrink-0" />
+                    <div className="min-w-0 flex-1">
+                      <p className="font-bold text-slate-900 text-sm truncate">
+                        {item.name}
+                      </p>
+                      <p className="text-xs text-slate-500">
+                        {item.role_label}
+                      </p>
+                      <span className="mt-1 inline-block rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-bold text-amber-700">
+                        Pending Superadmin Review
+                      </span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {rejectedTestimonials.length > 0 && (
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <h4 className="text-xs font-bold uppercase tracking-wider text-rose-600">
+                  Needs Revision
+                </h4>
+                <span className="text-xs rounded-full bg-rose-100 px-2 py-0.5 font-bold text-rose-600">
+                  {rejectedTestimonials.length}
+                </span>
+              </div>
+              <div className="space-y-2">
+                {rejectedTestimonials.map((item) => (
+                  <div
+                    key={item.id}
+                    className="rounded-xl border border-rose-200 bg-white p-4 space-y-2"
+                  >
+                    <div className="flex items-start gap-3">
+                      <MessageSquareWarning className="w-5 h-5 text-rose-500 mt-0.5 shrink-0" />
+                      <div className="min-w-0 flex-1">
+                        <p className="font-bold text-slate-900 text-sm truncate">
+                          {item.name}
+                        </p>
+                        <p className="text-xs text-slate-500">
+                          {item.role_label}
+                        </p>
+                        <span className="mt-1 inline-block rounded-full bg-rose-100 px-2 py-0.5 text-[10px] font-bold text-rose-700">
+                          Rejected
+                        </span>
+                      </div>
+                    </div>
+                    {item.review_notes && (
+                      <div className="rounded-lg bg-rose-50 p-3 text-xs text-slate-600 border border-rose-100">
+                        <strong className="text-rose-800">
+                          Feedback mula sa Superadmin:
+                        </strong>{" "}
+                        {item.review_notes}
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }

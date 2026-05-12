@@ -36,6 +36,7 @@ function PolicyChip({ label, value }: { label: string; value: string }) {
 export const LoanProductsTab = () => {
   const [products, setProducts] = useState<any[]>([]);
   const [isOpen, setIsOpen] = useState(false);
+  const [expandedPolicyId, setExpandedPolicyId] = useState<string | null>(null);
 
   const fetchProducts = async () => {
     try {
@@ -139,6 +140,9 @@ export const LoanProductsTab = () => {
                   Term
                 </th>
                 <th className="p-5 text-xs font-bold uppercase tracking-widest text-slate-400">
+                  Policy
+                </th>
+                <th className="p-5 text-xs font-bold uppercase tracking-widest text-slate-400">
                   Status
                 </th>
               </tr>
@@ -147,7 +151,7 @@ export const LoanProductsTab = () => {
               {products.length === 0 ? (
                 <tr>
                   <td
-                    colSpan={8}
+                    colSpan={9}
                     className="p-20 text-center italic text-slate-400"
                   >
                     This tenant has no loan products yet. Products start empty
@@ -218,6 +222,32 @@ export const LoanProductsTab = () => {
                       <span className="text-xs">
                         Up to {product.max_term_months} months
                       </span>
+                    </td>
+                    <td className="p-5">
+                      <div
+                        className="cursor-pointer group"
+                        onClick={() =>
+                          setExpandedPolicyId(
+                            expandedPolicyId === product.product_id
+                              ? null
+                              : product.product_id,
+                          )
+                        }
+                      >
+                        {product.description ? (
+                          <span className="text-xs text-slate-500">
+                            {expandedPolicyId === product.product_id
+                              ? product.description
+                              : product.description.length > 60
+                                ? product.description.substring(0, 60) + "..."
+                                : product.description}
+                          </span>
+                        ) : (
+                          <span className="text-xs text-slate-300 italic">
+                            No policy set
+                          </span>
+                        )}
+                      </div>
                     </td>
                     <td className="p-5">
                       {product.is_active ? (

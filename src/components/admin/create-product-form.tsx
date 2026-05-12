@@ -179,6 +179,27 @@ export const CreateProductForm = ({ onSuccess }: CreateProductFormProps) => {
           )}
         />
 
+        {/* Policy Terms */}
+        <FormField
+          control={form.control}
+          name="description"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Policies & Conditions</FormLabel>
+              <FormControl>
+                <textarea
+                  {...field}
+                  value={field.value ?? ""}
+                  disabled={isPending}
+                  placeholder="Eligibility requirements, late payment policies, special terms..."
+                  className="min-h-24 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 resize-y"
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
         <div className="grid grid-cols-2 gap-4">
           <FormField
             control={form.control}

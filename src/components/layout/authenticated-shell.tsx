@@ -14,6 +14,7 @@ import { TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { signOut } from "next-auth/react";
 import {
   AlertTriangle,
+  Bot,
   ChevronLeft,
   ChevronRight,
   FileText,
@@ -21,6 +22,7 @@ import {
   History,
   LayoutDashboard,
   LogOut,
+  Mail,
   Menu,
   Settings2,
   ShieldAlert,
@@ -33,6 +35,7 @@ import {
   TrendingUp,
   Sun,
   Moon,
+  CreditCard,
 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { useTheme } from "next-themes";
@@ -96,7 +99,10 @@ export type ShellIconName =
   | "reconciliation"
   | "activity"
   | "shield"
-  | "check";
+  | "check"
+  | "subscriptions"
+  | "mail"
+  | "bot";
 
 const ICON_MAP = {
   overview: LayoutDashboard,
@@ -118,6 +124,9 @@ const ICON_MAP = {
   activity: HeartPulse,
   shield: ShieldAlert,
   check: HeartPulse, // Using HeartPulse as placeholder for check if needed
+  subscriptions: CreditCard,
+  mail: Mail,
+  bot: Bot,
 } satisfies Record<ShellIconName, React.ComponentType<{ className?: string }>>;
 
 export function AuthenticatedShell({

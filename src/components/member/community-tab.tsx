@@ -568,17 +568,28 @@ export function CommunityTab({
                 className="rounded-2xl border border-slate-100 bg-slate-50 px-3 py-3"
               >
                 <div className="flex items-start justify-between gap-3">
-                  <div>
-                    <p className="text-sm font-bold text-slate-900">
-                      {user.name}
-                    </p>
-                    <p className="text-xs text-slate-500">{user.subtitle}</p>
-                    <p className="mt-1 text-[10px] font-bold uppercase tracking-[0.18em] text-slate-400">
-                      {user.role}
-                      {typeof user.averageVouchScore === "number"
-                        ? ` - vouch ${user.averageVouchScore.toFixed(1)}`
-                        : ""}
-                    </p>
+                  <div
+                    className="flex cursor-pointer items-start gap-3 flex-1 min-w-0"
+                    onClick={() => {
+                      setSelectedProfile(user);
+                      setProfilePopupOpen(true);
+                    }}
+                  >
+                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-emerald-100 text-sm font-bold text-emerald-700">
+                      {user.name.substring(0, 2).toUpperCase()}
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-sm font-bold text-slate-900">
+                        {user.name}
+                      </p>
+                      <p className="text-xs text-slate-500">{user.subtitle}</p>
+                      <p className="mt-1 text-[10px] font-bold uppercase tracking-[0.18em] text-slate-400">
+                        {user.role}
+                        {typeof user.averageVouchScore === "number"
+                          ? ` - vouch ${user.averageVouchScore.toFixed(1)}`
+                          : ""}
+                      </p>
+                    </div>
                   </div>
                   <Button
                     size="sm"

@@ -61,6 +61,10 @@ import { SuperadminApprovalsTab } from "@/components/admin/superadmin-approvals-
 import { AuditLogViewer } from "@/components/admin/audit-log-viewer";
 import { TenantPerformanceReportsTab } from "@/components/admin/tenant-performance-reports-tab";
 import { AdminProfileSettings } from "@/components/admin/admin-profile-settings";
+import { EmailTemplatesTab } from "@/components/admin/email-templates-tab";
+import { AIConfigTab } from "@/components/admin/ai-config-tab";
+import { SubscriptionsModule } from "@/components/admin/subscriptions-module";
+import { getAllSubscriptionPlans, getAllTenantSubscriptions } from "@/actions/subscription-actions";
 
 function SystemFileManagementSkeleton() {
   return (
@@ -136,6 +140,14 @@ export default async function AgapayTanawPage({
     ? await getHomepageContentAdmin()
     : { faqs: [], testimonials: [] };
   const feedbackEntries = canViewFeedback ? await getFeedbackEntries() : [];
+  const [allPlansRes, allTenantSubsRes] = isSuperAdmin
+    ? await Promise.all([
+        getAllSubscriptionPlans(),
+        getAllTenantSubscriptions(),
+      ])
+    : [{ success: false, plans: [] }, { success: false, tenants: [] }];
+  const subscriptionPlans = allPlansRes.success ? allPlansRes.plans || [] : [];
+  const tenantSubscriptions = allTenantSubsRes.success ? allTenantSubsRes.tenants || [] : [];
   const communitySummary = await getCommunityStaffSummary();
   const operatorCommunityData = isOperator ? await getCommunityDashboardData() : null;
   const currentTenantIdentity =
@@ -208,6 +220,24 @@ export default async function AgapayTanawPage({
       value: "feedback",
       label: "Feedback",
       icon: "feedback",
+      category: "Platform Strategy",
+    },
+    {
+      value: "email-templates",
+      label: "Email Templates",
+      icon: "mail",
+      category: "Platform Strategy",
+    },
+    {
+      value: "ai-config",
+      label: "AI Config",
+      icon: "bot",
+      category: "Platform Strategy",
+    },
+    {
+      value: "subscriptions",
+      label: "Subscriptions",
+      icon: "subscriptions",
       category: "Platform Strategy",
     },
 
@@ -525,6 +555,12 @@ export default async function AgapayTanawPage({
               className="animate-in fade-in slide-in-from-bottom-4 duration-500"
             >
               <FraudRiskTab />
+            </TabsContent>
+            <TabsContent value="email-templates" className="outline-none">
+              <EmailTemplatesTab />
+            </TabsContent>
+            <TabsContent value="ai-config" className="outline-none">
+              <AIConfigTab />
             </TabsContent>
           </>
         )}

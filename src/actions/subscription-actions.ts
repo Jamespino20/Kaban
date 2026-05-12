@@ -123,6 +123,76 @@ export async function availLifetimeFranchise(
     return { success: false, error: "Failed to process lifetime purchase." };
   }
 }
+export async function getAllSubscriptionPlans() {
+  try {
+    const session = await requireTanawSession();
+    if (session.user.role !== "superadmin") {
+      return { success: false, error: "Unauthorized. Superadmin only." };
+    }
+    const plans = await prisma.subscriptionPlan.findMany({
+      orderBy: { price_monthly: "asc" },
+    });
+    return { success: true, plans };
+  } catch (error) {
+    console.error("Failed to fetch all plans:", error);
+    return { success: false, error: "Failed to fetch subscription plans." };
+  }
+}
+
+export async function updateSubscriptionPlan(
+  planId: number,
+  data: {
+    tier_name?: string;
+    price_monthly?: number;
+    price_annually?: number;
+    max_members?: number;
+    max_storage_mb?: number;
+    features?: string[];
+    is_active?: boolean;
+  },
+) {
+  try {
+    const session = await requireTanawSession();
+    if (session.user.role !== "superadmin") {
+      return { success: false, error: "Unauthorized. Superadmin only." };
+    }
+    const plan = await prisma.subscriptionPlan.update({
+      where: { id: planId },
+      data: {
+        ...data,
+        price_monthly: data.price_monthly !== undefined ? data.price_monthly : undefined,
+        price_annually: data.price_annually !== undefined ? data.price_annually : undefined,
+      },
+    });
+    revalidatePath("/agapay-tanaw");
+    return { success: true, plan };
+  } catch (error) {
+    console.error("Failed to update plan:", error);
+    return { success: false, error: "Failed to update subscription plan." };
+  }
+}
+
+export async function getAllTenantSubscriptions() {
+  try {
+    const session = await requireTanawSession();
+    if (session.user.role !== "superadmin") {
+      return { success: false, error: "Unauthorized. Superadmin only." };
+    }
+    const tenants = await prisma.tenant.findMany({
+      orderBy: { name: "asc" },
+      include: {
+        tenantSubscription: {
+          include: { plan: true },
+        },
+      },
+    });
+    return { success: true, tenants };
+  } catch (error) {
+    console.error("Failed to fetch tenant subscriptions:", error);
+    return { success: false, error: "Failed to fetch tenant subscriptions." };
+  }
+}
+
 export async function approveSubscriptionUpgrade(tenantId: number) {
   try {
     const session = await requireTanawSession();

@@ -661,6 +661,67 @@ export async function reviewHomepageTestimonialProposal(
   }
 }
 
+// Superadmin: Browse published testimonials from all tenants
+export async function getTenantTestimonialsForPlatform() {
+  const session = await requireSuperadminSession();
+
+  try {
+    const testimonials = await prisma.homepageTestimonial.findMany({
+      where: {
+        tenant_id: { not: null },
+        workflow_status: "published",
+      },
+      orderBy: [{ created_at: "desc" }],
+      include: {
+        tenant: { select: { name: true } },
+        submitted_by_user: { select: { username: true } },
+      },
+    });
+
+    return { success: true, testimonials };
+  } catch (error) {
+    console.error("Failed to fetch tenant testimonials:", error);
+    return { success: false, error: "Failed to load tenant testimonials" };
+  }
+}
+
+// Superadmin: Pick a tenant testimonial for the platform homepage
+export async function pickTenantTestimonialForPlatform(id: number) {
+  try {
+    const session = await requireSuperadminSession();
+
+    const testimonial = await prisma.homepageTestimonial.findUnique({
+      where: { id },
+    });
+
+    if (!testimonial) return { error: "Testimonial not found" };
+    if (!testimonial.tenant_id)
+      return { error: "Testimonial is already on the platform" };
+
+    await prisma.homepageTestimonial.create({
+      data: {
+        tenant_id: null,
+        name: testimonial.name,
+        role_label: testimonial.role_label,
+        photo_url: testimonial.photo_url,
+        content: testimonial.content,
+        season_tag: testimonial.season_tag,
+        is_active: true,
+        sort_order: testimonial.sort_order,
+        workflow_status: "published",
+        submitted_by_user_id: session.user.user_id,
+        reviewed_by_user_id: session.user.user_id,
+      },
+    });
+
+    revalidateContentPaths();
+    return { success: "Testimonial has been picked for the platform homepage." };
+  } catch (error) {
+    console.error("pickTenantTestimonialForPlatform failed:", error);
+    return { error: "Failed to pick testimonial for platform." };
+  }
+}
+
 export async function deleteHomepageFaq(id: number) {
   try {
     const session = await requireSuperadminSession();

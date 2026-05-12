@@ -28,8 +28,10 @@ import {
 } from "@/components/ui/dialog";
 import {
   getPlatformContentModeration,
+  getTenantTestimonialsForPlatform,
   moderatePlatformFaq,
   moderatePlatformTestimonial,
+  pickTenantTestimonialForPlatform,
   bulkUpdatePlatformSeason,
 } from "@/actions/site-content";
 
@@ -69,11 +71,30 @@ type PlatformTestimonial = {
   reviewed_by_user: { user_id?: number; username: string } | null | undefined;
 };
 
+type TenantTestimonial = {
+  id: number;
+  name: string;
+  role_label: string;
+  content: string;
+  photo_url: string | null;
+  season_tag: string | null;
+  is_active: boolean;
+  workflow_status: string;
+  sort_order: number;
+  review_notes: string | null;
+  created_at: Date;
+  submitted_by_user: { username: string } | null;
+  tenant: { name: string } | null;
+};
+
 export function PlatformContentModerationTab() {
   const [faqs, setFaqs] = useState<PlatformFaq[]>([]);
   const [testimonials, setTestimonials] = useState<PlatformTestimonial[]>([]);
+  const [tenantTestimonials, setTenantTestimonials] = useState<
+    TenantTestimonial[]
+  >([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<"faq" | "testimonial">("faq");
+  const [activeTab, setActiveTab] = useState<"faq" | "testimonial" | "tenant-testimonials">("faq");
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
 
@@ -84,16 +105,23 @@ export function PlatformContentModerationTab() {
   const loadContent = async () => {
     setIsLoading(true);
     try {
-      const result = await getPlatformContentModeration();
-      if (result.success) {
+      const [platResult, tenantResult] = await Promise.all([
+        getPlatformContentModeration(),
+        getTenantTestimonialsForPlatform(),
+      ]);
+      if (platResult.success) {
         const validFaqs =
-          result.faqs?.filter((faq) => faq && faq.submitted_by_user) || [];
+          platResult.faqs?.filter((faq) => faq && faq.submitted_by_user) || [];
         const validTestimonials =
-          result.testimonials?.filter((t) => t && t.submitted_by_user) || [];
+          platResult.testimonials?.filter((t) => t && t.submitted_by_user) ||
+          [];
         setFaqs(validFaqs);
         setTestimonials(validTestimonials);
       } else {
-        toast.error(result.error || "Failed to load content");
+        toast.error(platResult.error || "Failed to load content");
+      }
+      if (tenantResult.success) {
+        setTenantTestimonials(tenantResult.testimonials ?? []);
       }
     } catch (error) {
       console.error("Failed to load content:", error);
@@ -146,6 +174,21 @@ export function PlatformContentModerationTab() {
     } catch (error) {
       console.error("Failed to moderate testimonial:", error);
       toast.error("Failed to moderate testimonial");
+    }
+  };
+
+  const handlePickForPlatform = async (id: number) => {
+    try {
+      const result = await pickTenantTestimonialForPlatform(id);
+      if (result.success) {
+        toast.success(result.success);
+        loadContent();
+      } else {
+        toast.error(result.error || "Failed to pick testimonial");
+      }
+    } catch (error) {
+      console.error("Failed to pick testimonial:", error);
+      toast.error("Failed to pick testimonial");
     }
   };
 
@@ -267,6 +310,22 @@ export function PlatformContentModerationTab() {
           {pendingTestimonials > 0 && (
             <span className="ml-1 px-1.5 py-0.5 text-xs bg-amber-100 text-amber-700 rounded-full">
               {pendingTestimonials}
+            </span>
+          )}
+        </button>
+        <button
+          onClick={() => setActiveTab("tenant-testimonials")}
+          className={`flex items-center gap-2 px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
+            activeTab === "tenant-testimonials"
+              ? "border-slate-900 text-slate-900"
+              : "border-transparent text-slate-500 hover:text-slate-700"
+          }`}
+        >
+          <Edit3 className="w-4 h-4" />
+          Tenant Testimonials
+          {tenantTestimonials.length > 0 && (
+            <span className="ml-1 px-1.5 py-0.5 text-xs bg-blue-100 text-blue-700 rounded-full">
+              {tenantTestimonials.length}
             </span>
           )}
         </button>
@@ -469,7 +528,7 @@ export function PlatformContentModerationTab() {
             ))
           )}
         </div>
-      ) : (
+      ) : activeTab === "testimonial" ? (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {filteredTestimonials.length === 0 ? (
             <Card className="md:col-span-2">
@@ -553,6 +612,88 @@ export function PlatformContentModerationTab() {
                 </CardContent>
               </Card>
             ))
+          )}
+        </div>
+      ) : (
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <p className="text-sm text-slate-500">
+              Published testimonials mula sa lahat ng tenants. Pumili ng
+              ilalagay sa platform homepage.
+            </p>
+          </div>
+          {tenantTestimonials.length === 0 ? (
+            <Card>
+              <CardContent className="py-12 text-center">
+                <Quote className="w-12 h-12 text-slate-200 mx-auto mb-4" />
+                <p className="text-slate-500">
+                  No published testimonials from tenants yet.
+                </p>
+              </CardContent>
+            </Card>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {tenantTestimonials.map((t) => (
+                <Card key={t.id} className="overflow-hidden border-blue-200">
+                  <CardHeader className="pb-2 bg-blue-50/50">
+                    <div className="flex items-start justify-between">
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs px-2 py-0.5 bg-blue-100 text-blue-700 rounded-full font-bold">
+                          {t.tenant?.name || "Unknown Tenant"}
+                        </span>
+                        {t.season_tag && (
+                          <span className="text-xs px-2 py-0.5 bg-slate-100 text-slate-600 rounded-full">
+                            {t.season_tag}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="flex items-start gap-4 mb-4">
+                      {t.photo_url ? (
+                        <img
+                          src={t.photo_url}
+                          alt={t.name}
+                          className="w-14 h-14 rounded-full object-cover"
+                        />
+                      ) : (
+                        <div className="w-14 h-14 rounded-full bg-slate-200 flex items-center justify-center">
+                          <span className="text-lg font-bold text-slate-400">
+                            {t.name.charAt(0)}
+                          </span>
+                        </div>
+                      )}
+                      <div className="flex-1 min-w-0">
+                        <h3 className="font-semibold text-slate-900 truncate">
+                          {t.name}
+                        </h3>
+                        <p className="text-sm text-slate-500">
+                          {t.role_label}
+                        </p>
+                      </div>
+                    </div>
+                    <p className="text-sm text-slate-600 italic mb-4">
+                      &ldquo;{t.content}&rdquo;
+                    </p>
+                    <div className="flex items-center justify-between pt-3 border-t border-slate-100">
+                      <div className="text-xs text-slate-400">
+                        Submitted by{" "}
+                        {t.submitted_by_user?.username || "Unknown"}
+                      </div>
+                      <Button
+                        size="sm"
+                        onClick={() => handlePickForPlatform(t.id)}
+                        className="bg-emerald-600 hover:bg-emerald-700 text-white"
+                      >
+                        <CheckCircle className="w-4 h-4 mr-1" />
+                        Pick for Platform
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
           )}
         </div>
       )}
