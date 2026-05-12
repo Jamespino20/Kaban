@@ -209,37 +209,13 @@ export function AuthenticatedShell({
       "border-primary/25 bg-primary/12 text-primary hover:border-primary/35 hover:bg-primary/18",
   };
 
-  const getContrastColor = (hex?: string | null) => {
-    if (!hex) return "white";
-    const { r, g, b } = hexToRgb(hex);
-    // Standard relative luminance formula
-    const luminance = (0.2126 * r + 0.7152 * g + 0.0722 * b) / 255;
-    // Lower threshold (0.5 instead of 0.6) for better black text on medium-light backgrounds
-    return luminance > 0.5 ? "black" : "white";
-  };
-
-  const contrastColor = getContrastColor(normalizedTenantColor);
-  const isLight = contrastColor === "black";
-  const sidebarTextClass = isLight ? "text-slate-900" : "text-white";
-  const sidebarMutedClass = isLight ? "text-slate-500" : "text-white/60";
-  const sidebarBorderClass = isLight ? "border-slate-900/10" : "border-white/10";
-  const sidebarHoverTextClass = isLight ? "hover:text-slate-950" : "hover:text-white";
-  const sidebarActiveClass = isLight
-    ? "data-[state=active]:bg-slate-900/15 data-[state=active]:border-slate-900/25 data-[state=active]:text-slate-900"
-    : "data-[state=active]:bg-white/15 data-[state=active]:border-white/25 data-[state=active]:text-white";
-  const iconBgContrastClass = isLight
-    ? "bg-slate-900/5 group-data-[state=active]:bg-slate-900/20 group-data-[state=active]:text-slate-900"
-    : "bg-white/10 group-data-[state=active]:bg-white/20 group-data-[state=active]:text-white";
-  const badgeContrastClass = isLight
-    ? "bg-slate-900/10 text-slate-900 border border-slate-900/20"
-    : "bg-white/20 text-white border border-white/10";
-
-  const sidebarStyle = {
-    backgroundColor: normalizedTenantColor || "#0f172a",
-    backgroundImage: normalizedTenantColor
-      ? `linear-gradient(180deg, ${rgba(normalizedTenantColor, 0.14)}, transparent 55%)`
-      : "linear-gradient(180deg, #0f172a 0%, #152133 100%)",
-  } as React.CSSProperties;
+  const sidebarTextClass = "text-slate-900";
+  const sidebarMutedClass = "text-slate-500";
+  const sidebarBorderClass = "border-slate-200";
+  const sidebarHoverTextClass = "hover:bg-slate-100 hover:text-slate-900";
+  const sidebarActiveClass = "data-[state=active]:bg-primary/10 data-[state=active]:text-primary data-[state=active]:font-semibold";
+  const iconBgContrastClass = "bg-transparent text-slate-500 group-data-[state=active]:text-primary";
+  const badgeContrastClass = "bg-slate-100 text-slate-900 border border-slate-200";
   
   const mainPaneStyle = {
     background: normalizedTenantColor
@@ -264,14 +240,10 @@ export function AuthenticatedShell({
 
   const renderSidebar = () => (
     <div
-      className={cn("flex h-full flex-col", sidebarTextClass)}
-      style={{
-        backgroundColor: normalizedTenantColor || "#0f172a",
-        ...sidebarStyle,
-      }}
+      className={cn("flex h-full flex-col bg-white border-r", sidebarTextClass, sidebarBorderClass)}
     >
       <div
-        className={`h-1 w-full ${isLight ? "bg-slate-950/20" : "bg-white/20"}`}
+        className={`h-1 w-full bg-slate-100`}
       />
       <div
         className={cn("flex flex-col border-b p-4 space-y-4", sidebarBorderClass)}
@@ -320,7 +292,7 @@ export function AuthenticatedShell({
                   <img
                     src="/images/agapay_titled.png"
                     alt="Agapay"
-                    className={`h-4 object-contain ${isLight ? "brightness-0" : "brightness-0 invert"}`}
+                    className={`h-4 object-contain brightness-0`}
                   />
                 </div>
               </div>
@@ -457,8 +429,8 @@ export function AuthenticatedShell({
 
   return (
     <div
-      className="min-h-screen text-white lg:flex lg:h-screen lg:overflow-hidden"
-      style={{ ...cssVars, backgroundColor: normalizedTenantColor || "#0f172a" }}
+      className="min-h-screen text-slate-900 bg-slate-50 lg:flex lg:h-screen lg:overflow-hidden"
+      style={{ ...cssVars }}
     >
       <div
         className={`fixed inset-0 z-40 bg-slate-950/55 backdrop-blur-sm transition-opacity duration-200 lg:hidden ${
