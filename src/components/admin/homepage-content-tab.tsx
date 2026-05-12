@@ -180,7 +180,7 @@ function WorkflowSummaryCard({
   };
 
   return (
-    <div className={`rounded-[1.75rem] border p-5 ${tones[tone]}`}>
+    <div className={`rounded-2xl border p-5 ${tones[tone]}`}>
       <div className="flex items-center justify-between">
         <span className="text-sm font-bold uppercase tracking-wider text-slate-500">
           {label}
@@ -202,7 +202,7 @@ function ContentSectionCard({
   children: React.ReactNode;
 }) {
   return (
-    <div className="rounded-[2rem] border border-slate-200 bg-white p-6 shadow-sm space-y-6">
+    <div className="dashboard-card p-6 space-y-6">
       <div className="space-y-2">
         <h3 className="text-2xl font-display font-bold text-slate-900 italic">
           {title}
@@ -335,7 +335,7 @@ function ContentRecordCard({
   };
 
   return (
-    <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4 space-y-3">
+    <div className="dashboard-card p-4 space-y-3">
       <div className="flex flex-wrap items-center gap-2">
         <span className="rounded-full bg-white px-3 py-1 text-[11px] font-bold uppercase tracking-wider text-slate-600">
           {STATUS_LABELS[item.workflow_status] ?? item.workflow_status}
@@ -428,7 +428,7 @@ function SuperadminRequestsSection({
     pendingTestimonials.length > 0 || rejectedTestimonials.length > 0;
 
   return (
-    <div className="rounded-[2rem] border border-amber-200 bg-amber-50/50 p-6 shadow-sm space-y-4">
+    <div className="rounded-2xl border border-amber-200 bg-amber-50/50 p-6 shadow-sm space-y-4">
       <div className="flex items-center gap-3">
         <div className="w-10 h-10 rounded-xl bg-amber-100 flex items-center justify-center">
           <BellRing className="w-5 h-5 text-amber-700" />
@@ -559,7 +559,7 @@ function FaqEditor({ role }: { role: string }) {
   };
 
   return (
-    <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4 space-y-3">
+    <div className="dashboard-card p-4 space-y-3">
       <p className="text-sm font-bold text-slate-700">
         {role === "superadmin"
           ? "Magdagdag ng direktang published FAQ"
@@ -626,7 +626,7 @@ function TestimonialEditor({ role }: { role: string }) {
   };
 
   return (
-    <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4 space-y-3">
+    <div className="dashboard-card p-4 space-y-3">
       <p className="text-sm font-bold text-slate-700">
         {role === "superadmin"
           ? "Magdagdag ng direktang published testimonial"

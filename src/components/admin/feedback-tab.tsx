@@ -105,7 +105,7 @@ export function FeedbackTab({
         />
       </div>
 
-      <div className="rounded-[1.75rem] border border-slate-200/70 bg-white/90 p-4 shadow-sm">
+      <div className="dashboard-card p-4">
         <div className="mb-4 flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
           <div className="space-y-1">
             <p className="text-[11px] font-black uppercase tracking-[0.2em] text-slate-400">
@@ -121,7 +121,7 @@ export function FeedbackTab({
             </p>
           </div>
 
-          <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3">
+          <div className="dashboard-card p-4">
             <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400">
               Filtered Results
             </p>
@@ -176,7 +176,7 @@ export function FeedbackTab({
 
         <div className="space-y-3">
           {paginatedEntries.length === 0 ? (
-            <div className="rounded-[1.5rem] border border-dashed border-slate-200 bg-slate-50 p-6 text-sm text-slate-500">
+            <div className="rounded-xl border border-dashed border-slate-200 bg-slate-50 p-6 text-sm text-slate-500">
               No feedback entries at the moment.
             </div>
           ) : (
@@ -248,7 +248,7 @@ function FeedbackMetric({
   };
 
   return (
-    <div className={`rounded-[1.5rem] border p-4 ${toneClass[tone]}`}>
+    <div className={`rounded-xl border p-4 ${toneClass[tone]}`}>
       <div className="flex items-center justify-between">
         <span className="text-xs font-bold uppercase tracking-[0.18em] text-slate-500">
           {label}
@@ -277,7 +277,7 @@ function FeedbackRow({ entry }: { entry: FeedbackItem }) {
   };
 
   return (
-    <div className="space-y-3 rounded-[1.5rem] border border-slate-200/70 bg-white p-4 shadow-sm">
+    <div className="space-y-3 rounded-xl border border-slate-200/70 bg-white p-4 shadow-sm">
       <div className="flex flex-col gap-3 xl:flex-row xl:items-start xl:justify-between">
         <div className="min-w-0 flex-1 space-y-2">
           <div className="flex flex-wrap items-center gap-2">
@@ -325,7 +325,7 @@ function FeedbackRow({ entry }: { entry: FeedbackItem }) {
         </div>
       </div>
 
-      <div className="whitespace-pre-line rounded-2xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-700">
+      <div className="dashboard-card p-4 text-sm text-slate-700 whitespace-pre-line">
         {entry.message}
       </div>
     </div>

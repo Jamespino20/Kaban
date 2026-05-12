@@ -343,7 +343,7 @@ function ChatPanel() {
   };
 
   return (
-    <div className="rounded-[1.75rem] border border-slate-200 bg-white shadow-sm overflow-hidden flex flex-col h-[600px]">
+    <div className="dashboard-card overflow-hidden flex flex-col h-[600px]">
       <div className="bg-slate-50/50 border-b border-slate-100 px-6 py-4 flex items-center justify-between">
         <div>
           <h3 className="text-sm font-black uppercase tracking-widest text-slate-500 flex items-center gap-2">

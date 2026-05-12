@@ -46,7 +46,7 @@ export default async function SuperadminOverviewTab() {
   return (
     <div className="space-y-6">
       {/* Global KPIs */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <KPIMetricCard
           label="Total Platform Funds"
           value={`₱${(data.totalFunds / 1000000).toFixed(1)}M`}
@@ -71,7 +71,7 @@ export default async function SuperadminOverviewTab() {
 
       {/* Trust Score Section */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
-        <div className="bg-white/70 backdrop-blur-xl p-6 rounded-[1.75rem] border border-slate-200/60 shadow-sm flex flex-col md:flex-row items-center gap-8">
+        <div className="dashboard-card bg-white/70 backdrop-blur-xl p-6 flex flex-col md:flex-row items-center gap-8">
           <div className="flex-1 md:text-left">
             <h3 className="text-xl font-display font-bold text-slate-900">
               Platform Trust Index
@@ -89,7 +89,7 @@ export default async function SuperadminOverviewTab() {
         </div>
 
         {/* Recent Activity */}
-        <div className="bg-white/70 backdrop-blur-xl p-6 rounded-[1.75rem] border border-slate-200/60 shadow-sm">
+        <div className="dashboard-card bg-white/70 backdrop-blur-xl p-6">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-xl font-display font-bold text-slate-900">
               Recent Platform Activity
@@ -117,7 +117,7 @@ export default async function SuperadminOverviewTab() {
         </div>
 
         {/* AI Snapshot Summary */}
-        <div className="bg-white/70 backdrop-blur-xl p-6 rounded-[1.75rem] border border-slate-200/60 shadow-sm">
+        <div className="dashboard-card bg-white/70 backdrop-blur-xl p-6">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-xl font-display font-bold text-slate-900">
               AI Platform Insights

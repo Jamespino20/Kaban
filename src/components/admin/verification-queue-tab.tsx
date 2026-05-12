@@ -117,7 +117,7 @@ export function VerificationQueueTab({ data }: VerificationQueueTabProps) {
 
   return (
     <div className="space-y-4">
-      <div className="rounded-[1.75rem] border border-slate-200/70 bg-white/90 p-4 shadow-sm">
+      <div className="dashboard-card p-4">
         <div className="mb-4 flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
           <div className="space-y-1">
             <p className="text-[11px] font-black uppercase tracking-[0.2em] text-slate-400">
@@ -132,7 +132,7 @@ export function VerificationQueueTab({ data }: VerificationQueueTabProps) {
             </p>
           </div>
 
-          <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3">
+          <div className="dashboard-card p-4">
             <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400">
               Active Queue
             </p>

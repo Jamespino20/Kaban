@@ -155,7 +155,7 @@ export function CommunityOperationsTab({
 
       <div className="grid grid-cols-1 gap-4 xl:grid-cols-[1fr_1.5fr]">
         <section className="space-y-4">
-          <Card className="rounded-[1.75rem] border-slate-200 shadow-sm overflow-hidden">
+          <Card className="rounded-2xl border-slate-200 shadow-sm overflow-hidden">
             <CardHeader className="bg-slate-50/50 border-b border-slate-100">
               <CardTitle className="text-sm font-black uppercase tracking-widest flex items-center gap-2">
                 <Megaphone className="w-4 h-4 text-emerald-500" />
@@ -215,6 +215,7 @@ export function CommunityOperationsTab({
                       <SelectItem value="all">All Users</SelectItem>
                       <SelectItem value="admins">Admins Only</SelectItem>
                       <SelectItem value="members">Members Only</SelectItem>
+                      <SelectItem value="lenders">Lenders Only</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -252,7 +253,7 @@ export function CommunityOperationsTab({
             </CardContent>
           </Card>
 
-          <Card className="rounded-[1.75rem] border-slate-200 shadow-sm overflow-hidden">
+          <Card className="rounded-2xl border-slate-200 shadow-sm overflow-hidden">
             <CardHeader className="bg-slate-50/50 border-b border-slate-100">
               <CardTitle className="text-sm font-black uppercase tracking-widest">
                 Active Announcements
@@ -308,7 +309,7 @@ export function CommunityOperationsTab({
         </section>
 
         <div className="space-y-4">
-          <section className="rounded-[1.75rem] border border-slate-200 bg-white p-4 shadow-sm h-[320px] overflow-y-auto">
+          <section className="dashboard-card p-4 h-[320px] overflow-y-auto">
             <div className="mb-3 flex flex-col gap-1 border-b border-slate-100 pb-3">
               <h3 className="text-sm font-black uppercase tracking-[0.18em] text-slate-500">
                 Mentorship Endorsement Queue
@@ -331,7 +332,7 @@ export function CommunityOperationsTab({
             </div>
           </section>
 
-          <section className="rounded-[1.75rem] border border-slate-200 bg-white p-4 shadow-sm h-[320px] overflow-y-auto">
+          <section className="dashboard-card p-4 h-[320px] overflow-y-auto">
             <div className="mb-3 flex flex-col gap-1 border-b border-slate-100 pb-3">
               <h3 className="text-sm font-black uppercase tracking-[0.18em] text-slate-500">
                 Recent Community Activity

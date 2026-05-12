@@ -53,7 +53,7 @@ export const LoanProductsTab = () => {
 
   return (
     <div className="space-y-6">
-      <div className="rounded-[1.75rem] border border-slate-200/70 bg-white/90 p-5 shadow-sm">
+      <div className="dashboard-card p-5">
         <div className="flex flex-col justify-between gap-4 md:flex-row md:items-start">
           <div className="space-y-1">
           <p className="text-[11px] font-black uppercase tracking-[0.2em] text-slate-400">

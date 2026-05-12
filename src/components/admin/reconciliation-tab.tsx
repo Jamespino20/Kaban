@@ -174,7 +174,7 @@ export function ReconciliationTab() {
 
   return (
     <div className="space-y-6 max-w-5xl mx-auto pb-10">
-      <div className="rounded-[1.75rem] border border-slate-200/70 bg-white/90 p-5 shadow-sm">
+      <div className="dashboard-card p-6">
         <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
         <div className="space-y-1">
           <p className="text-[11px] font-black uppercase tracking-[0.2em] text-slate-400">
@@ -365,7 +365,7 @@ export function ReconciliationTab() {
             across {data.targetDate.toLocaleDateString("en-PH")}.
           </p>
         </section>
-        <section className={`md:col-span-2 rounded-[1.75rem] border p-6 shadow-sm ${data.holdings.isTreasuryHealthy ? "border-slate-200 bg-white" : "border-amber-200 bg-amber-50/40"}`}>
+        <section className={`md:col-span-2 dashboard-card p-6 ${data.holdings.isTreasuryHealthy ? "border-slate-200 bg-white" : "border-amber-200 bg-amber-50/40"}`}>
           <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
             <div>
               <h3 className="text-sm font-black uppercase tracking-[0.18em] text-slate-500">

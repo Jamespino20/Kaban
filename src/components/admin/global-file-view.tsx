@@ -107,7 +107,7 @@ export function GlobalFileView({ tenantId }: { tenantId?: number }) {
         </div>
       </div>
 
-      <div className="rounded-[1.75rem] border border-slate-200 bg-white overflow-hidden shadow-sm">
+      <div className="dashboard-card overflow-hidden p-0">
         <Table>
           <TableHeader className="bg-slate-50/50">
             <TableRow>

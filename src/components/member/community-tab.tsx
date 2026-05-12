@@ -374,7 +374,7 @@ export function CommunityTab({
 
   if (initialData.requiresTenantContext) {
     return (
-      <div className="rounded-[1.75rem] border border-amber-200 bg-amber-50/80 p-5 shadow-sm">
+      <div className="dashboard-card border-amber-200 bg-amber-50/80 p-5">
         <p className="text-[11px] font-black uppercase tracking-[0.22em] text-amber-700">
           Tenant Context Needed
         </p>
@@ -392,7 +392,7 @@ export function CommunityTab({
   return (
     <div className="grid grid-cols-1 gap-5 xl:grid-cols-[0.92fr_1.08fr]">
       <div className="space-y-5">
-        <section className="rounded-[1.75rem] border border-slate-200 bg-white p-4 shadow-sm">
+        <section className="dashboard-card p-4">
           <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
             <div>
               <h2 className="text-sm font-black uppercase tracking-[0.18em] text-slate-500">
@@ -410,7 +410,7 @@ export function CommunityTab({
           </div>
         </section>
 
-        <section className="rounded-[1.75rem] border border-slate-200 bg-white p-4 shadow-sm">
+        <section className="dashboard-card p-4">
           <div className="mb-3 flex items-center gap-2">
             <Users className="h-4 w-4 text-emerald-600" />
             <div>
@@ -459,7 +459,7 @@ export function CommunityTab({
           </div>
         </section>
 
-        <section className="rounded-[1.75rem] border border-slate-200 bg-white p-4 shadow-sm">
+        <section className="dashboard-card p-4">
           <div className="mb-3 flex items-center gap-2">
             <MessageSquareText className="h-4 w-4 text-indigo-600" />
             <div>
@@ -497,7 +497,7 @@ export function CommunityTab({
           </div>
         </section>
 
-        <section className="rounded-[1.75rem] border border-slate-200 bg-white p-4 shadow-sm">
+        <section className="dashboard-card p-4">
           <div className="mb-3 flex items-center gap-2">
             <Layers3 className="h-4 w-4 text-violet-600" />
             <div>
@@ -580,7 +580,7 @@ export function CommunityTab({
           </div>
         </section>
 
-        <section className="rounded-[1.75rem] border border-slate-200 bg-white p-4 shadow-sm">
+        <section className="dashboard-card p-4">
           <div className="mb-3 flex items-center gap-2">
             <Handshake className="h-4 w-4 text-amber-600" />
             <div>
@@ -681,7 +681,7 @@ export function CommunityTab({
       </div>
 
       <div className="flex h-[calc(100vh-150px)] max-h-[900px] flex-col space-y-5">
-        <section className="flex flex-1 flex-col overflow-hidden rounded-[1.75rem] border border-slate-200 bg-white p-4 shadow-sm">
+        <section className="dashboard-card flex flex-1 flex-col overflow-hidden p-4">
           <div className="mb-3 shrink-0 border-b border-slate-100 pb-3">
             <div className="flex items-center justify-between gap-3">
               <div>
@@ -1044,7 +1044,7 @@ export function CommunityTab({
           )}
         </section>
 
-        <section className="shrink-0 rounded-[1.75rem] border border-slate-200 bg-white p-4 shadow-sm">
+        <section className="dashboard-card shrink-0 p-4">
           <h2 className="text-sm font-black uppercase tracking-[0.18em] text-slate-500">
             Mentorship Status
           </h2>

@@ -73,7 +73,7 @@ export function TopUpQueueTab({ requests }: TopUpQueueTabProps) {
   return (
     <div className="space-y-4">
       {/* Header */}
-      <div className="rounded-[1.75rem] border border-slate-200/70 bg-white/90 p-5 shadow-sm">
+      <div className="dashboard-card p-5">
         <div className="flex items-start gap-4">
           <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-amber-50 text-amber-600">
             <Wallet className="h-5 w-5" />

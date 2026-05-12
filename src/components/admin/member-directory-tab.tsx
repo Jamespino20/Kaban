@@ -158,7 +158,7 @@ export function MemberDirectoryTab({
 
   return (
     <div className="space-y-6">
-      <div className="rounded-[1.75rem] border border-slate-200/70 bg-white/90 p-5 shadow-sm">
+      <div className="dashboard-card p-5">
         <div className="mb-4 flex flex-col gap-1">
           <p className="text-[11px] font-black uppercase tracking-[0.2em] text-slate-400">
             Tenant Operator
@@ -189,7 +189,7 @@ export function MemberDirectoryTab({
                   <SelectValue placeholder="Tenant" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">Sanga: Lahat</SelectItem>
+                  <SelectItem value="all">All Tenants</SelectItem>
                   {tenantNames.map((b: any) => (
                     <SelectItem key={b} value={b}>
                       {b}
@@ -402,7 +402,7 @@ export function MemberDirectoryTab({
                       <td className="px-6 py-4 text-sm font-medium text-slate-600">
                         <div className="space-y-1">
                           <p className="font-bold text-slate-900">
-                            {formatTier(member.interest_tier)}
+                            Trust: {member.trust_score ?? "N/A"}
                           </p>
                           <p className="text-[10px] uppercase tracking-widest text-slate-400">
                             Vouch: {vouchScore} / 10
@@ -509,14 +509,14 @@ function MemberRowActions({ member }: { member: any }) {
       >
         <DropdownMenuItem
           className="rounded-xl py-2.5 text-sm cursor-pointer"
-          onClick={() => toast.success("View Profile — feature coming soon")}
+          onClick={() => toast.info("View member profile details including loan history, documents, and trust scores.")}
         >
           <Eye className="mr-2.5 h-4 w-4 text-slate-400" />
           View Profile
         </DropdownMenuItem>
         <DropdownMenuItem
           className="rounded-xl py-2.5 text-sm cursor-pointer"
-          onClick={() => toast.success("Edit Details — feature coming soon")}
+          onClick={() => toast.info("Edit member details such as contact information and account status.")}
         >
           <UserCog className="mr-2.5 h-4 w-4 text-slate-400" />
           Edit Details
@@ -531,7 +531,7 @@ function MemberRowActions({ member }: { member: any }) {
         </DropdownMenuItem>
         <DropdownMenuItem
           className="rounded-xl py-2.5 text-sm cursor-pointer"
-          onClick={() => toast.success("Activity Log — feature coming soon")}
+          onClick={() => toast.info("View member activity log including login history, loan applications, and payments.")}
         >
           <Activity className="mr-2.5 h-4 w-4 text-slate-400" />
           Activity Log

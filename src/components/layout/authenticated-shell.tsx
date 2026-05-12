@@ -38,7 +38,6 @@ import {
   CreditCard,
 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
-import { useTheme } from "next-themes";
 import { cn } from "@/lib/utils";
 import { TenantSelector } from "@/components/layout/tenant-selector";
 
@@ -164,8 +163,6 @@ export function AuthenticatedShell({
   const [mobileOpen, setMobileOpen] = useState(false);
   const [navReady, setNavReady] = useState(false);
   const navScrollRef = useRef<HTMLDivElement>(null);
-  const { resolvedTheme } = useTheme();
-  const isDark = resolvedTheme === "dark";
 
   const normalizedTenantColor = normalizeHexColor(tenantBrandColor);
   const normalizedAccentColor = normalizeHexColor(tenantAccentColor);
@@ -243,8 +240,8 @@ export function AuthenticatedShell({
   } as React.CSSProperties;
   const mainPaneStyle = {
     backgroundImage: normalizedTenantColor
-      ? `radial-gradient(circle at top, ${rgba(normalizedTenantColor, 0.12)}, transparent 32%), linear-gradient(180deg, ${isDark ? "#0f172a" : "#f8fafc"} 0%, ${isDark ? "#1e293b" : "#f1f5f9"} 100%)`
-      : `radial-gradient(circle at top, ${isDark ? "rgba(30,41,59,0.3)" : "rgba(16,185,129,0.08)"}, transparent 30%), linear-gradient(180deg, ${isDark ? "#0f172a" : "#f8fafc"} 0%, ${isDark ? "#1e293b" : "#f1f5f9"} 100%)`,
+      ? `radial-gradient(circle at top, ${rgba(normalizedTenantColor, 0.12)}, transparent 32%), linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%)`
+      : `radial-gradient(circle at top, rgba(16,185,129,0.08), transparent 30%), linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%)`,
   } as React.CSSProperties;
   const portalBadgeStyle = normalizedTenantColor
     ? ({
@@ -262,43 +259,6 @@ export function AuthenticatedShell({
       requestAnimationFrame(() => setNavReady(true));
     });
   }, []);
-
-  const ThemeToggle = ({
-    className,
-    contrastClass,
-  }: {
-    className?: string;
-    contrastClass?: string;
-  }) => {
-    const { theme, setTheme } = useTheme();
-    const [mounted, setMounted] = useState(false);
-
-    useEffect(() => setMounted(true), []);
-
-    if (!mounted) {
-      return <div className="h-5 w-5" />;
-    }
-
-    return (
-      <Button
-        variant="ghost"
-        size="icon"
-        onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-        className={cn(
-          "h-7 w-7 rounded-full transition-all",
-          className,
-          contrastClass,
-        )}
-        title={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
-      >
-        {theme === "dark" ? (
-          <Sun className="h-3.5 w-3.5" />
-        ) : (
-          <Moon className="h-3.5 w-3.5" />
-        )}
-      </Button>
-    );
-  };
 
   const renderSidebar = () => (
     <div
@@ -480,10 +440,6 @@ export function AuthenticatedShell({
 
       <div className={cn("border-t p-3", sidebarBorderClass)}>
         <div className="flex items-center justify-center gap-2 px-4 py-2">
-          <ThemeToggle
-            className={sidebarMutedClass}
-            contrastClass={sidebarHoverTextClass}
-          />
           <p
             className={cn(
               "text-[10px] font-bold uppercase tracking-[0.2em]",
@@ -527,10 +483,10 @@ export function AuthenticatedShell({
       </aside>
 
       <div
-        className="min-w-0 flex-1 text-slate-950 dark:text-slate-100 lg:h-screen lg:overflow-y-auto"
+        className="min-w-0 flex-1 text-slate-950 lg:h-screen lg:overflow-y-auto"
         style={mainPaneStyle}
       >
-        <div className="border-b border-slate-200/80 bg-white/88 px-5 py-5 backdrop-blur-xl md:px-8 lg:sticky lg:top-0 lg:z-20 dark:border-slate-700/60 dark:bg-slate-900/88">
+        <div className="border-b border-slate-200/80 bg-white/88 px-5 py-5 backdrop-blur-xl md:px-8 lg:sticky lg:top-0 lg:z-20">
           <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
             <div className="space-y-3">
               <div className="flex items-center gap-3 lg:hidden">
@@ -538,16 +494,16 @@ export function AuthenticatedShell({
                   variant="outline"
                   size="icon"
                   onClick={() => setMobileOpen(true)}
-                  className="rounded-2xl border-slate-200 bg-white text-slate-700 shadow-sm hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700"
+                  className="rounded-2xl border-slate-200 bg-white text-slate-700 shadow-sm hover:bg-slate-50"
                   title="Open navigation"
                 >
                   <Menu className="h-5 w-5" />
                 </Button>
                 <div className="min-w-0">
-                  <p className="text-sm font-black italic tracking-tight text-slate-900 dark:text-slate-100">
+                  <p className="text-sm font-black italic tracking-tight text-slate-900">
                     Agapay
                   </p>
-                  <p className="text-[10px] uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">
+                  <p className="text-[10px] uppercase tracking-[0.2em] text-slate-500">
                     Cooperative SaaS
                   </p>
                 </div>
@@ -555,15 +511,15 @@ export function AuthenticatedShell({
 
               <div className="space-y-1" style={{ fontFamily: "var(--font-display)" }}>
                 {portalLabel ? (
-                  <p className="text-xs uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">
+                  <p className="text-xs uppercase tracking-[0.24em] text-slate-500">
                     {portalLabel}
                   </p>
                 ) : null}
-                <h1 className="text-3xl font-display font-bold italic tracking-tight text-slate-950 md:text-4xl dark:text-white">
+                <h1 className="text-3xl font-display font-bold italic tracking-tight text-slate-950 md:text-4xl">
                   {title}
                 </h1>
                 <p
-                  className="max-w-3xl text-sm text-slate-500 md:text-base dark:text-slate-400"
+                  className="max-w-3xl text-sm text-slate-500 md:text-base"
                   style={{ fontFamily: "var(--font-sans)" }}
                 >
                   {subtitle}
@@ -571,11 +527,7 @@ export function AuthenticatedShell({
               </div>
             </div>
             <div className="flex items-center gap-3 self-start lg:self-auto">
-              <ThemeToggle
-                className="hidden lg:flex text-slate-400 hover:text-slate-600 dark:text-slate-400 dark:hover:text-slate-200"
-                contrastClass=""
-              />
-              {accountRole === "member" && (
+                {accountRole === "member" && (
                 <TenantSelector currentTenant={tenantSlug} />
               )}
               <NotificationBell />
@@ -603,7 +555,7 @@ export function AuthenticatedShell({
                 variant="ghost"
                 size="icon"
                 onClick={() => signOut({ callbackUrl: `/${tenantSlug}` })}
-                className="rounded-full text-slate-400 hover:text-red-500 hover:bg-red-50 ml-1 dark:hover:bg-red-900/30"
+                className="rounded-full text-slate-400 hover:text-red-500 hover:bg-red-50 ml-1"
                 title="Sign Out"
               >
                 <LogOut className="h-5 w-5" />

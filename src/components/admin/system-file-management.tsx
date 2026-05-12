@@ -96,7 +96,7 @@ export function SystemFileManagement({ tenantId }: { tenantId?: number }) {
 
   return (
     <div className="space-y-6 animate-in fade-in duration-500">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white/60 backdrop-blur-md p-4 rounded-2xl border border-slate-200 shadow-sm">
+      <div className="dashboard-card p-4 flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white/60 backdrop-blur-md">
         <div className="relative flex-1 max-w-md">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
           <Input

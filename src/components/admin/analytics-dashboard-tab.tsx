@@ -48,7 +48,7 @@ export async function AnalyticsDashboardTab() {
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
       {/* Investment Overview Section */}
       {operational && (
-        <div className="p-8 rounded-[2rem] border bg-gradient-to-br from-slate-900 to-slate-800 text-white relative overflow-hidden">
+        <div className="p-8 rounded-2xl border bg-gradient-to-br from-slate-900 to-slate-800 text-white relative overflow-hidden">
           <div className="relative z-10 flex flex-col md:flex-row items-start md:items-center gap-8 justify-between">
             <div className="flex items-center gap-6">
               <div className="w-16 h-16 rounded-full bg-emerald-500 flex items-center justify-center shadow-lg">
@@ -146,7 +146,7 @@ export async function AnalyticsDashboardTab() {
                       height: `${Math.max(5, (d.amount / Math.max(...operational.repaymentVelocity.map((x: { amount: number }) => x.amount))) * 100)}%`,
                     }}
                   >
-                    <div className="absolute -top-12 left-1/2 -translate-x-1/2 bg-slate-900 text-white text-[10px] px-3 py-1.5 rounded-[10px] opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-20 shadow-xl dark:bg-slate-700">
+                    <div className="absolute -top-12 left-1/2 -translate-x-1/2 bg-slate-900 text-white text-[10px] px-3 py-1.5 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-20 shadow-xl dark:bg-slate-700">
                       {d.date}: ₱{d.amount.toLocaleString()}
                     </div>
                   </div>
@@ -222,7 +222,7 @@ export async function AnalyticsDashboardTab() {
 
       {/* Investment Business Insights & Capital Allocation */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        <div className="bg-gradient-to-br from-indigo-900 to-slate-900 p-8 rounded-[2rem] text-white space-y-8 relative overflow-hidden group dark:from-indigo-950 dark:to-slate-950">
+        <div className="bg-gradient-to-br from-indigo-900 to-slate-900 p-8 rounded-2xl text-white space-y-8 relative overflow-hidden group dark:from-indigo-950 dark:to-slate-950">
           <div className="relative z-10 space-y-6">
             <div className="flex items-center gap-3">
               <BarChart3 className="w-5 h-5 text-indigo-400" />

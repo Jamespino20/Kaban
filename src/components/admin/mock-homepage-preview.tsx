@@ -24,7 +24,7 @@ export function MockHomepagePreview({ branding, content }: MockPreviewProps) {
     "Filipino-first na lending platform para sa mga miyembro at cooperative tenants.";
 
   return (
-    <div className="w-full h-full bg-slate-50 overflow-hidden flex flex-col border border-slate-200 rounded-[2rem] shadow-inner relative group">
+    <div className="w-full h-full bg-slate-50 overflow-hidden flex flex-col border border-slate-200 rounded-2xl shadow-inner relative group">
       {/* Mini Navbar */}
       <nav className="h-10 bg-white border-b border-slate-100 flex items-center justify-between px-4 sticky top-0 z-10">
         <div className="flex items-center gap-1.5">
