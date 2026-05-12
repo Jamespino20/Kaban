@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Agapay Microfinance - Daily Financial Sign-off</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-tertiary-fixed": "#2a1700",
+                        "background": "#0b1326",
+                        "surface-container": "#171f33",
+                        "secondary-fixed": "#6ffbbe",
+                        "on-primary-fixed": "#00174b",
+                        "on-background": "#dae2fd",
+                        "on-error": "#690005",
+                        "primary-container": "#2563eb",
+                        "primary-fixed": "#dbe1ff",
+                        "inverse-on-surface": "#283044",
+                        "surface-container-high": "#222a3d",
+                        "tertiary-fixed": "#ffddb8",
+                        "outline-variant": "#434655",
+                        "primary-fixed-dim": "#b4c5ff",
+                        "on-primary": "#002a78",
+                        "error-container": "#93000a",
+                        "secondary-container": "#00a572",
+                        "on-tertiary": "#472a00",
+                        "tertiary": "#ffb95f",
+                        "on-tertiary-container": "#ffeedd",
+                        "surface-variant": "#2d3449",
+                        "on-surface": "#dae2fd",
+                        "on-secondary": "#003824",
+                        "on-secondary-container": "#00311f",
+                        "secondary-fixed-dim": "#4edea3",
+                        "on-secondary-fixed": "#002113",
+                        "on-primary-container": "#eeefff",
+                        "inverse-surface": "#dae2fd",
+                        "on-primary-fixed-variant": "#003ea8",
+                        "tertiary-container": "#996100",
+                        "surface-container-low": "#131b2e",
+                        "surface-dim": "#0b1326",
+                        "on-secondary-fixed-variant": "#005236",
+                        "primary": "#b4c5ff",
+                        "on-error-container": "#ffdad6",
+                        "surface-bright": "#31394d",
+                        "surface": "#0b1326",
+                        "outline": "#8d90a0",
+                        "on-tertiary-fixed-variant": "#653e00",
+                        "surface-container-highest": "#2d3449",
+                        "surface-tint": "#b4c5ff",
+                        "on-surface-variant": "#c3c6d7",
+                        "inverse-primary": "#0053db",
+                        "error": "#ffb4ab",
+                        "tertiary-fixed-dim": "#ffb95f",
+                        "surface-container-lowest": "#060e20",
+                        "secondary": "#4edea3"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    "spacing": {
+                        "sidebar_width": "280px",
+                        "stack_md": "16px",
+                        "stack_lg": "24px",
+                        "margin_desktop": "32px",
+                        "gutter": "24px",
+                        "container_max_width": "1440px",
+                        "margin_mobile": "16px",
+                        "stack_sm": "8px"
+                    },
+                    "fontFamily": {
+                        "body-lg": ["Inter"],
+                        "body-sm": ["Inter"],
+                        "display-lg": ["Outfit"],
+                        "headline-sm": ["Outfit"],
+                        "body-md": ["Inter"],
+                        "mono-data": ["Inter"],
+                        "label-md": ["Inter"],
+                        "headline-lg": ["Outfit"],
+                        "headline-md": ["Outfit"]
+                    },
+                    "fontSize": {
+                        "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
+                        "body-sm": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                        "display-lg": ["48px", {"lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                        "headline-sm": ["20px", {"lineHeight": "28px", "fontWeight": "500"}],
+                        "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                        "mono-data": ["14px", {"lineHeight": "20px", "fontWeight": "500"}],
+                        "label-md": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "600"}],
+                        "headline-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                        "headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "600"}]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .icon-fill {
+            font-variation-settings: 'FILL' 1;
+        }
+    </style>
+</head>
+<body class="bg-background text-on-background font-body-md antialiased h-screen overflow-hidden flex">
+<!-- SideNavBar -->
+<nav class="fixed left-0 top-0 h-full w-sidebar_width bg-surface-container dark:bg-surface-container border-r border-outline-variant flex flex-col py-stack_lg z-50 transition-transform duration-300 md:translate-x-0 -translate-x-full">
+<div class="px-margin_desktop mb-stack_lg flex items-center gap-3">
+<img alt="Company Logo" class="w-8 h-8 rounded-full object-cover" data-alt="A minimal, abstract geometric logo design featuring sharp, interwoven metallic shapes on a deep dark blue background. The lighting is subtle, highlighting the sleek edges of the corporate emblem. The aesthetic is modern, institutional, and highly professional, reflecting a secure financial brand." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBooF9T3NYkW6sTivlRtGrnSTSnPspXaEYpKxM5oa0pXjN1-mTZTtj94gGqClpVmT7sP-K9COzcUVFyE336T-aMrR-Z8XxwFiEP_yr1tidrsST0QDxSDeQYTRrDEHwgVdp5ol6HU8NQEZNTF07JJEdQBPDZMFgFRpHgA_7Yr4PEaN8KjMZcKIZQhipVCZwjbbJADCjAlSjsyq7vCiTDrSXx9mdqqfcAKqyNfg5ZTLReKxNAZRViz7qGr1aMf7iHpHfXLcYJ2MjDLrs"/>
+<div>
+<h1 class="font-headline-md text-headline-md font-bold text-on-surface">Agapay Microfinance</h1>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Institutional Portal</p>
+</div>
+</div>
+<div class="px-4 mb-stack_md">
+<button class="w-full bg-primary-container text-on-primary-container hover:bg-primary-fixed-dim transition-colors py-2 px-4 rounded-lg font-label-md text-label-md flex items-center justify-center gap-2">
+<span class="material-symbols-outlined icon-fill">add</span>
+                New Disbursement
+            </button>
+</div>
+<ul class="flex-1 space-y-1">
+<li>
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:bg-surface-container-highest hover:text-on-surface transition-colors font-body-md text-body-md" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+                    Dashboard
+                </a>
+</li>
+<li>
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:bg-surface-container-highest hover:text-on-surface transition-colors font-body-md text-body-md" href="#">
+<span class="material-symbols-outlined">payments</span>
+                    Loans
+                </a>
+</li>
+<li>
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:bg-surface-container-highest hover:text-on-surface transition-colors font-body-md text-body-md" href="#">
+<span class="material-symbols-outlined">account_balance_wallet</span>
+                    Collections
+                </a>
+</li>
+<li>
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:bg-surface-container-highest hover:text-on-surface transition-colors font-body-md text-body-md" href="#">
+<span class="material-symbols-outlined">group</span>
+                    Clients
+                </a>
+</li>
+<li>
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface border-l-4 border-primary bg-surface-container-high transition-colors font-body-md text-body-md translate-x-1 duration-200" href="#">
+<span class="material-symbols-outlined">assessment</span>
+                    Reports
+                </a>
+</li>
+</ul>
+<div class="mt-auto px-4 space-y-1">
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:bg-surface-container-highest hover:text-on-surface transition-colors font-body-md text-body-md" href="#">
+<span class="material-symbols-outlined">settings</span>
+                Settings
+            </a>
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:bg-surface-container-highest hover:text-on-surface transition-colors font-body-md text-body-md" href="#">
+<span class="material-symbols-outlined">logout</span>
+                Sign Out
+            </a>
+</div>
+</nav>
+<!-- Main Content Area -->
+<div class="flex-1 ml-0 md:ml-sidebar_width flex flex-col h-full overflow-hidden">
+<!-- TopNavBar -->
+<header class="docked full-width top-0 sticky z-40 bg-surface dark:bg-surface border-b border-outline-variant shadow-sm h-16 px-margin_desktop flex justify-between items-center shrink-0">
+<div class="flex items-center gap-4">
+<button class="md:hidden text-on-surface-variant hover:text-primary transition-opacity">
+<span class="material-symbols-outlined">menu</span>
+</button>
+<div class="font-headline-md text-headline-md font-semibold text-primary">Agapay SaaS</div>
+</div>
+<div class="flex items-center gap-4">
+<button class="text-on-surface-variant hover:text-primary transition-opacity">
+<span class="material-symbols-outlined">notifications</span>
+</button>
+<button class="text-on-surface-variant hover:text-primary transition-opacity">
+<span class="material-symbols-outlined">help_outline</span>
+</button>
+<div class="h-6 w-px bg-outline-variant mx-2"></div>
+<div class="flex items-center gap-3">
+<span class="text-on-surface-variant font-label-md text-label-md hidden sm:block">Administrator</span>
+<img alt="User Avatar" class="w-8 h-8 rounded-full border border-outline-variant object-cover" data-alt="A professional headshot of a corporate executive in a modern office setting. The lighting is crisp and even, highlighting a confident expression. The background is slightly blurred, showing a sleek, dark-themed corporate workspace. The overall aesthetic is polished, modern, and business-focused." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCRBBNKwXA4MqKlObSB7pydZYpAY-cfC-u5L8TbR8ylMfdX781juIcjIJvWwycnbl2BYoP78lB2s-zXFxP_qXL9KCigAcUB1G7J0z50NL5uHf7vtVILHmIvRuSgNJODU02L1vB9CS46lucqfkV-X0CGz_FENguOLAF1xOUrV8pb0ye4XYdBUJ0xNCsrO07PZUpO9WltLQ6t7A35QNCOWH3RVsRxFjTWLV5nVoo1NshW3kUKihJhHPldNMGWiC5f0za30Bb23P_eW5k"/>
+</div>
+</div>
+</header>
+<!-- Scrollable Canvas -->
+<main class="flex-1 overflow-y-auto p-margin_mobile md:p-margin_desktop">
+<div class="max-w-container_max_width mx-auto space-y-stack_lg">
+<!-- Page Header -->
+<div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+<div>
+<h2 class="font-headline-lg text-headline-lg text-on-surface">Daily Financial Sign-off</h2>
+<p class="font-body-md text-body-md text-on-surface-variant mt-1">End of Day (EOD) Reconciliation Module for Oct 24, 2023</p>
+</div>
+<div class="flex items-center gap-3">
+<button class="px-4 py-2 border border-outline-variant rounded bg-surface-container text-on-surface font-label-md text-label-md hover:bg-surface-container-high transition-colors">
+                            Export Report
+                        </button>
+<button class="px-4 py-2 bg-primary-container text-on-primary-container rounded font-label-md text-label-md hover:bg-primary-fixed-dim transition-colors flex items-center gap-2">
+<span class="material-symbols-outlined icon-fill text-[18px]">lock</span>
+                            Sign-off EOD
+                        </button>
+</div>
+</div>
+<!-- Bento Grid: Key Metrics -->
+<div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-gutter">
+<!-- Cash In -->
+<div class="bg-surface-container border border-outline-variant rounded-xl p-stack_md flex flex-col justify-between">
+<div class="flex justify-between items-start mb-2">
+<span class="font-label-md text-label-md text-on-surface-variant uppercase">Total Cash In</span>
+<span class="material-symbols-outlined text-secondary-container">arrow_downward</span>
+</div>
+<div>
+<div class="font-headline-lg text-headline-lg text-on-surface">₱ 1,450,000</div>
+<div class="flex items-center gap-2 mt-2">
+<span class="px-2 py-0.5 rounded bg-secondary-container/10 text-secondary-container font-label-md text-[10px] border border-secondary-container/20">+12% vs avg</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">Deposits &amp; Repayments</span>
+</div>
+</div>
+</div>
+<!-- Cash Out -->
+<div class="bg-surface-container border border-outline-variant rounded-xl p-stack_md flex flex-col justify-between">
+<div class="flex justify-between items-start mb-2">
+<span class="font-label-md text-label-md text-on-surface-variant uppercase">Total Cash Out</span>
+<span class="material-symbols-outlined text-tertiary">arrow_upward</span>
+</div>
+<div>
+<div class="font-headline-lg text-headline-lg text-on-surface">₱ 820,000</div>
+<div class="flex items-center gap-2 mt-2">
+<span class="px-2 py-0.5 rounded bg-tertiary/10 text-tertiary font-label-md text-[10px] border border-tertiary/20">-5% vs avg</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">Disbursements</span>
+</div>
+</div>
+</div>
+<!-- Net Position -->
+<div class="bg-surface-container border border-outline-variant rounded-xl p-stack_md flex flex-col justify-between">
+<div class="flex justify-between items-start mb-2">
+<span class="font-label-md text-label-md text-on-surface-variant uppercase">Net Position</span>
+<span class="material-symbols-outlined text-primary">account_balance</span>
+</div>
+<div>
+<div class="font-headline-lg text-headline-lg text-primary">₱ 630,000</div>
+<div class="mt-2">
+<span class="font-body-sm text-body-sm text-on-surface-variant">Daily Operating Surplus</span>
+</div>
+</div>
+</div>
+<!-- Discrepancy Status -->
+<div class="bg-surface-container border border-outline-variant rounded-xl p-stack_md flex flex-col justify-between">
+<div class="flex justify-between items-start mb-2">
+<span class="font-label-md text-label-md text-on-surface-variant uppercase">Treasury Check</span>
+<span class="material-symbols-outlined text-secondary-container icon-fill">check_circle</span>
+</div>
+<div>
+<div class="font-headline-lg text-headline-lg text-secondary-container">Matched</div>
+<div class="mt-2 flex items-center gap-2">
+<span class="font-body-sm text-body-sm text-on-surface-variant">System balance equals physical vault</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Main Data Section -->
+<div class="grid grid-cols-1 xl:grid-cols-3 gap-gutter">
+<!-- Ledger Table (Spans 2 columns) -->
+<div class="xl:col-span-2 bg-surface-container border border-outline-variant rounded-xl overflow-hidden flex flex-col">
+<div class="p-4 border-b border-outline-variant flex justify-between items-center bg-surface-container-high">
+<h3 class="font-headline-sm text-headline-sm text-on-surface">Transaction Ledger</h3>
+<div class="flex gap-2">
+<button class="p-1.5 rounded hover:bg-surface-container-highest text-on-surface-variant transition-colors">
+<span class="material-symbols-outlined text-[20px]">filter_list</span>
+</button>
+<button class="p-1.5 rounded hover:bg-surface-container-highest text-on-surface-variant transition-colors">
+<span class="material-symbols-outlined text-[20px]">search</span>
+</button>
+</div>
+</div>
+<div class="flex-1 overflow-auto">
+<table class="w-full text-left border-collapse">
+<thead class="bg-surface-container-low font-label-md text-label-md text-on-surface-variant border-b border-outline-variant">
+<tr>
+<th class="py-3 px-4 font-normal">Time</th>
+<th class="py-3 px-4 font-normal">Type</th>
+<th class="py-3 px-4 font-normal">Reference ID</th>
+<th class="py-3 px-4 font-normal text-right">Amount</th>
+<th class="py-3 px-4 font-normal text-center">Status</th>
+</tr>
+</thead>
+<tbody class="font-mono-data text-mono-data text-on-surface divide-y divide-outline-variant/50">
+<tr class="hover:bg-surface-container-highest/50 transition-colors">
+<td class="py-3 px-4 text-on-surface-variant font-body-sm text-body-sm">16:45</td>
+<td class="py-3 px-4">Group Repayment</td>
+<td class="py-3 px-4 text-primary">GRP-892-COL</td>
+<td class="py-3 px-4 text-right text-secondary-container">+ ₱ 45,000</td>
+<td class="py-3 px-4 text-center">
+<span class="inline-block px-2 py-1 rounded bg-secondary-container/10 text-secondary-container font-label-md text-[10px] border border-secondary-container/20">Cleared</span>
+</td>
+</tr>
+<tr class="hover:bg-surface-container-highest/50 transition-colors">
+<td class="py-3 px-4 text-on-surface-variant font-body-sm text-body-sm">15:20</td>
+<td class="py-3 px-4">Loan Disbursement</td>
+<td class="py-3 px-4 text-primary">LN-774-DIS</td>
+<td class="py-3 px-4 text-right text-on-surface">- ₱ 120,000</td>
+<td class="py-3 px-4 text-center">
+<span class="inline-block px-2 py-1 rounded bg-secondary-container/10 text-secondary-container font-label-md text-[10px] border border-secondary-container/20">Cleared</span>
+</td>
+</tr>
+<tr class="hover:bg-surface-container-highest/50 transition-colors bg-error-container/5">
+<td class="py-3 px-4 text-on-surface-variant font-body-sm text-body-sm">14:10</td>
+<td class="py-3 px-4">Individual Repayment</td>
+<td class="py-3 px-4 text-primary">IND-331-COL</td>
+<td class="py-3 px-4 text-right text-secondary-container">+ ₱ 8,500</td>
+<td class="py-3 px-4 text-center">
+<span class="inline-block px-2 py-1 rounded bg-error/10 text-error font-label-md text-[10px] border border-error/20">Disputed</span>
+</td>
+</tr>
+<tr class="hover:bg-surface-container-highest/50 transition-colors">
+<td class="py-3 px-4 text-on-surface-variant font-body-sm text-body-sm">11:05</td>
+<td class="py-3 px-4">Cash Deposit</td>
+<td class="py-3 px-4 text-primary">DEP-002-BNK</td>
+<td class="py-3 px-4 text-right text-secondary-container">+ ₱ 500,000</td>
+<td class="py-3 px-4 text-center">
+<span class="inline-block px-2 py-1 rounded bg-secondary-container/10 text-secondary-container font-label-md text-[10px] border border-secondary-container/20">Cleared</span>
+</td>
+</tr>
+<tr class="hover:bg-surface-container-highest/50 transition-colors">
+<td class="py-3 px-4 text-on-surface-variant font-body-sm text-body-sm">09:30</td>
+<td class="py-3 px-4">Loan Disbursement</td>
+<td class="py-3 px-4 text-primary">LN-773-DIS</td>
+<td class="py-3 px-4 text-right text-on-surface">- ₱ 250,000</td>
+<td class="py-3 px-4 text-center">
+<span class="inline-block px-2 py-1 rounded bg-secondary-container/10 text-secondary-container font-label-md text-[10px] border border-secondary-container/20">Cleared</span>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<!-- Right Column: Discrepancy & Sign-off -->
+<div class="flex flex-col gap-stack_lg">
+<!-- Flag Discrepancy Form -->
+<div class="bg-surface-container border border-outline-variant rounded-xl p-stack_md">
+<h3 class="font-headline-sm text-headline-sm text-on-surface mb-4 flex items-center gap-2">
+<span class="material-symbols-outlined text-tertiary">warning</span>
+                                Flag Discrepancy
+                            </h3>
+<form class="space-y-4">
+<div>
+<label class="block font-label-md text-label-md text-on-surface-variant mb-1">Reference ID</label>
+<input class="w-full bg-surface border border-outline-variant rounded p-2 text-on-surface focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all font-mono-data text-mono-data" placeholder="e.g. IND-331-COL" type="text"/>
+</div>
+<div>
+<label class="block font-label-md text-label-md text-on-surface-variant mb-1">Reason</label>
+<select class="w-full bg-surface border border-outline-variant rounded p-2 text-on-surface focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all font-body-sm text-body-sm">
+<option>Shortage in Physical Cash</option>
+<option>Overage in Physical Cash</option>
+<option>System Entry Error</option>
+<option>Other</option>
+</select>
+</div>
+<button class="w-full py-2 border border-outline-variant rounded text-on-surface hover:bg-surface-container-highest transition-colors font-label-md text-label-md" type="button">
+                                    Submit Flag
+                                </button>
+</form>
+</div>
+<!-- Sign-off Requirements -->
+<div class="bg-surface-container border border-outline-variant rounded-xl p-stack_md flex-1">
+<h3 class="font-headline-sm text-headline-sm text-on-surface mb-4">Sign-off Checklist</h3>
+<ul class="space-y-3">
+<li class="flex items-start gap-3">
+<span class="material-symbols-outlined text-secondary-container mt-0.5">check_box</span>
+<div>
+<div class="font-body-md text-body-md text-on-surface">Vault Count Verified</div>
+<div class="font-body-sm text-body-sm text-on-surface-variant">Manager confirmed physical count.</div>
+</div>
+</li>
+<li class="flex items-start gap-3">
+<span class="material-symbols-outlined text-secondary-container mt-0.5">check_box</span>
+<div>
+<div class="font-body-md text-body-md text-on-surface">Disbursements Reconciled</div>
+<div class="font-body-sm text-body-sm text-on-surface-variant">All out-flows matched to approved loans.</div>
+</div>
+</li>
+<li class="flex items-start gap-3 opacity-50">
+<span class="material-symbols-outlined text-on-surface-variant mt-0.5">check_box_outline_blank</span>
+<div>
+<div class="font-body-md text-body-md text-on-surface">Digital Signature Pending</div>
+<div class="font-body-sm text-body-sm text-on-surface-variant">Requires 2FA authentication to lock ledger.</div>
+</div>
+</li>
+</ul>
+</div>
+</div>
+</div>
+</div>
+</main>
+</div>
+</body></html>

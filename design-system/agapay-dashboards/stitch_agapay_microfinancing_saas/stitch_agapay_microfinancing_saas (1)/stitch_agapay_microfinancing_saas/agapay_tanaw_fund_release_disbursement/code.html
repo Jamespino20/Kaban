@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Fund Release &amp; Disbursement - Agapay SaaS</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=Outfit:wght@500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-tertiary-fixed": "#2a1700",
+                        "background": "#0b1326",
+                        "surface-container": "#171f33",
+                        "secondary-fixed": "#6ffbbe",
+                        "on-primary-fixed": "#00174b",
+                        "on-background": "#dae2fd",
+                        "on-error": "#690005",
+                        "primary-container": "#2563eb",
+                        "primary-fixed": "#dbe1ff",
+                        "inverse-on-surface": "#283044",
+                        "surface-container-high": "#222a3d",
+                        "tertiary-fixed": "#ffddb8",
+                        "outline-variant": "#434655",
+                        "primary-fixed-dim": "#b4c5ff",
+                        "on-primary": "#002a78",
+                        "error-container": "#93000a",
+                        "secondary-container": "#00a572",
+                        "on-tertiary": "#472a00",
+                        "tertiary": "#ffb95f",
+                        "on-tertiary-container": "#ffeedd",
+                        "surface-variant": "#2d3449",
+                        "on-surface": "#dae2fd",
+                        "on-secondary": "#003824",
+                        "on-secondary-container": "#00311f",
+                        "secondary-fixed-dim": "#4edea3",
+                        "on-secondary-fixed": "#002113",
+                        "on-primary-container": "#eeefff",
+                        "inverse-surface": "#dae2fd",
+                        "on-primary-fixed-variant": "#003ea8",
+                        "tertiary-container": "#996100",
+                        "surface-container-low": "#131b2e",
+                        "surface-dim": "#0b1326",
+                        "on-secondary-fixed-variant": "#005236",
+                        "primary": "#b4c5ff",
+                        "on-error-container": "#ffdad6",
+                        "surface-bright": "#31394d",
+                        "surface": "#0b1326",
+                        "outline": "#8d90a0",
+                        "on-tertiary-fixed-variant": "#653e00",
+                        "surface-container-highest": "#2d3449",
+                        "surface-tint": "#b4c5ff",
+                        "on-surface-variant": "#c3c6d7",
+                        "inverse-primary": "#0053db",
+                        "error": "#ffb4ab",
+                        "tertiary-fixed-dim": "#ffb95f",
+                        "surface-container-lowest": "#060e20",
+                        "secondary": "#4edea3"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    "spacing": {
+                        "sidebar_width": "280px",
+                        "stack_md": "16px",
+                        "stack_lg": "24px",
+                        "margin_desktop": "32px",
+                        "gutter": "24px",
+                        "container_max_width": "1440px",
+                        "margin_mobile": "16px",
+                        "stack_sm": "8px"
+                    },
+                    "fontFamily": {
+                        "body-lg": ["Inter"],
+                        "body-sm": ["Inter"],
+                        "display-lg": ["Outfit"],
+                        "headline-sm": ["Outfit"],
+                        "body-md": ["Inter"],
+                        "mono-data": ["Inter"],
+                        "label-md": ["Inter"],
+                        "headline-lg": ["Outfit"],
+                        "headline-md": ["Outfit"]
+                    },
+                    "fontSize": {
+                        "body-lg": ["18px", { "lineHeight": "28px", "fontWeight": "400" }],
+                        "body-sm": ["14px", { "lineHeight": "20px", "fontWeight": "400" }],
+                        "display-lg": ["48px", { "lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+                        "headline-sm": ["20px", { "lineHeight": "28px", "fontWeight": "500" }],
+                        "body-md": ["16px", { "lineHeight": "24px", "fontWeight": "400" }],
+                        "mono-data": ["14px", { "lineHeight": "20px", "fontWeight": "500" }],
+                        "label-md": ["12px", { "lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "600" }],
+                        "headline-lg": ["32px", { "lineHeight": "40px", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+                        "headline-md": ["24px", { "lineHeight": "32px", "fontWeight": "600" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .icon-fill {
+            font-variation-settings: 'FILL' 1;
+        }
+        
+        /* Custom scrollbar for data tables to match dark theme */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #434655; /* outline-variant */
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #8d90a0; /* outline */
+        }
+    </style>
+</head>
+<body class="bg-background text-on-background font-body-md text-body-md h-screen w-screen overflow-hidden flex selection:bg-primary-container selection:text-on-primary-container">
+<!-- SideNavBar (Shared Component) -->
+<nav class="bg-surface-container fixed left-0 top-0 h-full w-sidebar_width border-r border-outline-variant flex flex-col py-stack_lg z-50">
+<!-- Brand Header -->
+<div class="px-6 mb-8 flex items-center gap-4">
+<div class="w-10 h-10 rounded-xl bg-primary-container flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-on-primary-container icon-fill">account_balance</span>
+</div>
+<div>
+<h1 class="font-headline-md text-headline-md font-bold text-on-surface tracking-tight leading-none">Agapay Microfinance</h1>
+<p class="font-label-md text-label-md text-on-surface-variant mt-1">Institutional Portal</p>
+</div>
+</div>
+<!-- CTA -->
+<div class="px-4 mb-6">
+<button class="w-full bg-primary-container hover:bg-primary-fixed-dim text-on-primary-container font-label-md text-label-md py-3 rounded-xl flex items-center justify-center gap-2 transition-colors">
+<span class="material-symbols-outlined text-[20px]">add</span>
+                New Disbursement
+            </button>
+</div>
+<!-- Navigation Links -->
+<div class="flex flex-col flex-1 gap-1">
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:bg-surface-container-highest hover:text-on-surface transition-colors" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+<span class="font-label-md text-label-md">Dashboard</span>
+</a>
+<!-- Active State: Fund Release logic falls under Loans -->
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface border-l-4 border-primary bg-surface-container-high translate-x-1 duration-200" href="#">
+<span class="material-symbols-outlined icon-fill text-primary">payments</span>
+<span class="font-label-md text-label-md text-primary">Loans</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:bg-surface-container-highest hover:text-on-surface transition-colors" href="#">
+<span class="material-symbols-outlined">account_balance_wallet</span>
+<span class="font-label-md text-label-md">Collections</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:bg-surface-container-highest hover:text-on-surface transition-colors" href="#">
+<span class="material-symbols-outlined">group</span>
+<span class="font-label-md text-label-md">Clients</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:bg-surface-container-highest hover:text-on-surface transition-colors" href="#">
+<span class="material-symbols-outlined">assessment</span>
+<span class="font-label-md text-label-md">Reports</span>
+</a>
+</div>
+<!-- Footer Links -->
+<div class="flex flex-col gap-1 mt-auto pt-4 border-t border-outline-variant px-2">
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:bg-surface-container-highest hover:text-on-surface transition-colors rounded-lg" href="#">
+<span class="material-symbols-outlined">settings</span>
+<span class="font-label-md text-label-md">Settings</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:bg-surface-container-highest hover:text-on-surface transition-colors rounded-lg" href="#">
+<span class="material-symbols-outlined">logout</span>
+<span class="font-label-md text-label-md">Sign Out</span>
+</a>
+</div>
+</nav>
+<!-- Main Content Wrapper -->
+<div class="flex flex-col flex-1 ml-sidebar_width h-full relative">
+<!-- TopNavBar (Shared Component) -->
+<header class="bg-surface docked full-width top-0 sticky z-40 border-b border-outline-variant flex justify-between items-center h-16 px-margin_desktop shadow-sm shrink-0">
+<!-- Left: Search (from JSON config search_bar: on_left) -->
+<div class="flex items-center w-96 relative">
+<span class="material-symbols-outlined absolute left-3 text-on-surface-variant text-[20px]">search</span>
+<input class="w-full bg-surface-container-low border border-outline-variant text-on-surface font-body-sm text-body-sm rounded-lg pl-10 pr-4 py-2 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all placeholder:text-on-surface-variant" placeholder="Search loans, clients, or references..." type="text"/>
+</div>
+<!-- Right: Actions & Profile -->
+<div class="flex items-center gap-6">
+<div class="flex items-center gap-4 text-on-surface-variant">
+<button class="hover:text-primary transition-opacity duration-150 relative">
+<span class="material-symbols-outlined">notifications</span>
+<span class="absolute top-0 right-0 w-2 h-2 bg-error rounded-full"></span>
+</button>
+<button class="hover:text-primary transition-opacity duration-150">
+<span class="material-symbols-outlined">help_outline</span>
+</button>
+</div>
+<div class="h-8 w-px bg-outline-variant mx-2"></div>
+<div class="flex items-center gap-3 cursor-pointer group">
+<div class="text-right hidden md:block">
+<p class="font-label-md text-label-md text-on-surface group-hover:text-primary transition-colors">Administrator</p>
+<p class="font-body-sm text-[11px] text-on-surface-variant">System Owner</p>
+</div>
+<div class="w-9 h-9 rounded-full bg-surface-container-highest border border-outline-variant overflow-hidden shrink-0">
+<img alt="User Avatar" class="w-full h-full object-cover" data-alt="A professional headshot of an administrator in a corporate setting, soft lighting, neutral background, reflecting a trustworthy institutional aesthetic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDlf8kq5xWjAcxatQHQcLttVVpd4Y7svwk7T8O3P8dGdA26RLw4PwMRTZ6y42WF-lNtFIaE1oAOcCAcOqN6Kg9tdyjd_Yx8AURxv7Ddo4vh4tLYSjRHXWdkL79_ucca9p9B5QAfSRJHDZZ2LfulIZrCQs6NWcmhOI-uyIYvHMy3CUsfK58cU4e-n2-GDLVfLSF_ssO9jtuF4_G585y4G8SsvuWRQlKyD3Nd0KkGcVlec88NFHX_0f2CLizk1mwvb5Dgu7-Zl_QvLgc"/>
+</div>
+</div>
+</div>
+</header>
+<!-- Scrollable Canvas -->
+<main class="flex-1 overflow-y-auto bg-background p-margin_desktop pb-24">
+<div class="max-w-container_max_width mx-auto">
+<!-- Page Header Area -->
+<div class="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-stack_lg">
+<div>
+<div class="flex items-center gap-2 mb-2">
+<span class="font-label-md text-label-md text-primary uppercase tracking-wider">Disbursement Module</span>
+<span class="material-symbols-outlined text-outline text-[16px]">chevron_right</span>
+<span class="font-label-md text-label-md text-on-surface-variant">Pending Release</span>
+</div>
+<h2 class="font-headline-lg text-headline-lg text-on-surface">Fund Release</h2>
+<p class="font-body-md text-body-md text-on-surface-variant mt-1 max-w-2xl">Review and process loans that have been approved and are awaiting final disbursement to client accounts.</p>
+</div>
+<div class="flex items-center gap-3">
+<button class="bg-surface-container border border-outline-variant text-on-surface font-label-md text-label-md px-4 py-2.5 rounded-lg flex items-center gap-2 hover:bg-surface-container-high transition-colors">
+<span class="material-symbols-outlined text-[18px]">filter_list</span>
+                            Filter
+                        </button>
+<button class="bg-primary hover:bg-primary-fixed-dim text-on-primary border border-transparent font-label-md text-label-md px-5 py-2.5 rounded-lg flex items-center gap-2 transition-all shadow-sm">
+<span class="material-symbols-outlined text-[18px]">all_out</span>
+                            Batch Release (4)
+                        </button>
+</div>
+</div>
+<!-- Metrics / Bento Grid -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-gutter mb-stack_lg">
+<!-- Metric 1: Total Pending -->
+<div class="bg-surface-container rounded-xl p-stack_md border border-outline-variant relative overflow-hidden group">
+<div class="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
+<div class="flex items-start justify-between relative z-10">
+<div>
+<p class="font-label-md text-label-md text-on-surface-variant mb-1">Total Pending Release</p>
+<p class="font-display-lg text-display-lg text-on-surface">₱1,245,000</p>
+</div>
+<div class="w-10 h-10 rounded-lg bg-surface-container-high flex items-center justify-center border border-outline-variant">
+<span class="material-symbols-outlined text-primary">account_balance_wallet</span>
+</div>
+</div>
+<div class="mt-4 flex items-center gap-2 text-secondary relative z-10">
+<span class="material-symbols-outlined text-[16px]">trending_up</span>
+<span class="font-label-md text-label-md">+12% vs last week</span>
+</div>
+</div>
+<!-- Metric 2: Count Ready -->
+<div class="bg-surface-container rounded-xl p-stack_md border border-outline-variant relative overflow-hidden group">
+<div class="absolute inset-0 bg-gradient-to-br from-secondary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
+<div class="flex items-start justify-between relative z-10">
+<div>
+<p class="font-label-md text-label-md text-on-surface-variant mb-1">Loans Ready for Disburse</p>
+<p class="font-display-lg text-display-lg text-on-surface">24</p>
+</div>
+<div class="w-10 h-10 rounded-lg bg-surface-container-high flex items-center justify-center border border-outline-variant">
+<span class="material-symbols-outlined text-on-surface">checklist</span>
+</div>
+</div>
+<div class="mt-4 flex gap-2 relative z-10">
+<span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-semibold bg-surface-variant text-on-surface-variant border border-outline-variant">15 GCash</span>
+<span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-semibold bg-surface-variant text-on-surface-variant border border-outline-variant">6 Bank</span>
+<span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-semibold bg-surface-variant text-on-surface-variant border border-outline-variant">3 Cash</span>
+</div>
+</div>
+<!-- Metric 3: Disbursed Today -->
+<div class="bg-surface-container rounded-xl p-stack_md border border-outline-variant relative overflow-hidden group">
+<div class="absolute inset-0 bg-gradient-to-br from-tertiary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
+<div class="flex items-start justify-between relative z-10">
+<div>
+<p class="font-label-md text-label-md text-on-surface-variant mb-1">Disbursed Today</p>
+<p class="font-display-lg text-display-lg text-on-surface">₱450,000</p>
+</div>
+<div class="w-10 h-10 rounded-lg bg-surface-container-high flex items-center justify-center border border-outline-variant">
+<span class="material-symbols-outlined text-tertiary">task_alt</span>
+</div>
+</div>
+<div class="mt-4 flex items-center gap-2 text-on-surface-variant relative z-10">
+<div class="w-full bg-surface-variant h-1.5 rounded-full overflow-hidden">
+<div class="bg-tertiary h-full w-[65%] rounded-full"></div>
+</div>
+<span class="font-mono-data text-mono-data text-[11px]">65% of daily target</span>
+</div>
+</div>
+</div>
+<!-- High-End Data List (The Core Module) -->
+<div class="bg-surface-container rounded-xl border border-outline-variant overflow-hidden shadow-sm flex flex-col">
+<!-- Table Header -->
+<div class="bg-surface-container-high border-b border-outline-variant px-6 py-4 grid grid-cols-12 gap-4 items-center">
+<div class="col-span-1 flex items-center justify-center">
+<input class="rounded border-outline-variant bg-background text-primary focus:ring-primary focus:ring-offset-background" type="checkbox"/>
+</div>
+<div class="col-span-3 font-label-md text-label-md text-on-surface-variant uppercase tracking-wider">Client &amp; Application</div>
+<div class="col-span-2 font-label-md text-label-md text-on-surface-variant uppercase tracking-wider text-right">Approved Amount</div>
+<div class="col-span-3 font-label-md text-label-md text-on-surface-variant uppercase tracking-wider pl-4">Disbursement Method</div>
+<div class="col-span-1 font-label-md text-label-md text-on-surface-variant uppercase tracking-wider text-center">Status</div>
+<div class="col-span-2 font-label-md text-label-md text-on-surface-variant uppercase tracking-wider text-right">Action</div>
+</div>
+<!-- List Body -->
+<div class="flex flex-col divide-y divide-outline-variant">
+<!-- Row 1: GCash -->
+<div class="px-6 py-4 grid grid-cols-12 gap-4 items-center hover:bg-surface-container-highest transition-colors group">
+<div class="col-span-1 flex items-center justify-center">
+<input class="rounded border-outline-variant bg-background text-primary focus:ring-primary focus:ring-offset-background" type="checkbox"/>
+</div>
+<div class="col-span-3 flex items-center gap-3">
+<div class="w-10 h-10 rounded-full bg-surface-variant flex items-center justify-center font-headline-sm text-headline-sm text-on-surface shrink-0">
+                                    MR
+                                </div>
+<div>
+<p class="font-headline-sm text-[15px] leading-tight text-on-surface font-medium">Maria Reyes</p>
+<p class="font-mono-data text-[12px] text-on-surface-variant mt-0.5">APP-2023-1042 • SME Micro</p>
+</div>
+</div>
+<div class="col-span-2 text-right">
+<p class="font-mono-data text-mono-data text-on-surface font-semibold text-[16px]">₱ 50,000.00</p>
+</div>
+<div class="col-span-3 pl-4 flex items-center gap-2">
+<div class="w-8 h-8 rounded bg-[#005CEE]/10 border border-[#005CEE]/20 flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-[#005CEE] text-[18px]">phone_iphone</span>
+</div>
+<div>
+<p class="font-label-md text-[13px] text-on-surface">GCash Transfer</p>
+<p class="font-mono-data text-[12px] text-on-surface-variant">0917-XXX-4589</p>
+</div>
+</div>
+<div class="col-span-1 flex justify-center">
+<span class="inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-bold bg-secondary/10 text-secondary border border-secondary/20 uppercase tracking-widest">
+                                    Ready
+                                </span>
+</div>
+<div class="col-span-2 flex justify-end">
+<button class="bg-transparent border border-outline hover:border-primary hover:text-primary text-on-surface font-label-md text-label-md px-4 py-2 rounded-lg transition-colors flex items-center gap-2">
+                                    Disburse Fund
+                                    <span class="material-symbols-outlined text-[16px]">arrow_forward</span>
+</button>
+</div>
+</div>
+<!-- Row 2: Bank Transfer -->
+<div class="px-6 py-4 grid grid-cols-12 gap-4 items-center hover:bg-surface-container-highest transition-colors group">
+<div class="col-span-1 flex items-center justify-center">
+<input class="rounded border-outline-variant bg-background text-primary focus:ring-primary focus:ring-offset-background" type="checkbox"/>
+</div>
+<div class="col-span-3 flex items-center gap-3">
+<div class="w-10 h-10 rounded-full bg-surface-variant flex items-center justify-center font-headline-sm text-headline-sm text-on-surface shrink-0">
+                                    JS
+                                </div>
+<div>
+<p class="font-headline-sm text-[15px] leading-tight text-on-surface font-medium">Juan Santos Jr.</p>
+<p class="font-mono-data text-[12px] text-on-surface-variant mt-0.5">APP-2023-1088 • Agri Loan</p>
+</div>
+</div>
+<div class="col-span-2 text-right">
+<p class="font-mono-data text-mono-data text-on-surface font-semibold text-[16px]">₱ 125,000.00</p>
+</div>
+<div class="col-span-3 pl-4 flex items-center gap-2">
+<div class="w-8 h-8 rounded bg-tertiary/10 border border-tertiary/20 flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-tertiary text-[18px]">account_balance</span>
+</div>
+<div>
+<p class="font-label-md text-[13px] text-on-surface">BDO Unibank</p>
+<p class="font-mono-data text-[12px] text-on-surface-variant">XXXX-XXXX-1234</p>
+</div>
+</div>
+<div class="col-span-1 flex justify-center">
+<span class="inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-bold bg-secondary/10 text-secondary border border-secondary/20 uppercase tracking-widest">
+                                    Ready
+                                </span>
+</div>
+<div class="col-span-2 flex justify-end">
+<button class="bg-transparent border border-outline hover:border-primary hover:text-primary text-on-surface font-label-md text-label-md px-4 py-2 rounded-lg transition-colors flex items-center gap-2">
+                                    Disburse Fund
+                                    <span class="material-symbols-outlined text-[16px]">arrow_forward</span>
+</button>
+</div>
+</div>
+<!-- Row 3: Cash Pick-up -->
+<div class="px-6 py-4 grid grid-cols-12 gap-4 items-center hover:bg-surface-container-highest transition-colors group">
+<div class="col-span-1 flex items-center justify-center">
+<input class="rounded border-outline-variant bg-background text-primary focus:ring-primary focus:ring-offset-background" type="checkbox"/>
+</div>
+<div class="col-span-3 flex items-center gap-3">
+<div class="w-10 h-10 rounded-full bg-surface-variant flex items-center justify-center font-headline-sm text-headline-sm text-on-surface shrink-0">
+                                    AL
+                                </div>
+<div>
+<p class="font-headline-sm text-[15px] leading-tight text-on-surface font-medium">Ana Lim</p>
+<p class="font-mono-data text-[12px] text-on-surface-variant mt-0.5">APP-2023-1102 • Personal</p>
+</div>
+</div>
+<div class="col-span-2 text-right">
+<p class="font-mono-data text-mono-data text-on-surface font-semibold text-[16px]">₱ 15,000.00</p>
+</div>
+<div class="col-span-3 pl-4 flex items-center gap-2">
+<div class="w-8 h-8 rounded bg-surface-variant border border-outline-variant flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-on-surface text-[18px]">payments</span>
+</div>
+<div>
+<p class="font-label-md text-[13px] text-on-surface">Cash Pick-up</p>
+<p class="font-mono-data text-[12px] text-on-surface-variant">Makati Main Branch</p>
+</div>
+</div>
+<div class="col-span-1 flex justify-center">
+<span class="inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-bold bg-secondary/10 text-secondary border border-secondary/20 uppercase tracking-widest">
+                                    Ready
+                                </span>
+</div>
+<div class="col-span-2 flex justify-end">
+<button class="bg-transparent border border-outline hover:border-primary hover:text-primary text-on-surface font-label-md text-label-md px-4 py-2 rounded-lg transition-colors flex items-center gap-2">
+                                    Disburse Fund
+                                    <span class="material-symbols-outlined text-[16px]">arrow_forward</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Pagination Footer -->
+<div class="bg-surface-container-high border-t border-outline-variant px-6 py-4 flex items-center justify-between">
+<p class="font-body-sm text-body-sm text-on-surface-variant">Showing <span class="font-medium text-on-surface">1</span> to <span class="font-medium text-on-surface">3</span> of <span class="font-medium text-on-surface">24</span> ready loans</p>
+<div class="flex items-center gap-2">
+<button class="w-8 h-8 flex items-center justify-center rounded border border-outline-variant text-on-surface-variant hover:bg-surface-variant hover:text-on-surface disabled:opacity-50" disabled="">
+<span class="material-symbols-outlined text-[18px]">chevron_left</span>
+</button>
+<button class="w-8 h-8 flex items-center justify-center rounded border border-outline-variant bg-surface-variant text-on-surface">1</button>
+<button class="w-8 h-8 flex items-center justify-center rounded border border-outline-variant text-on-surface-variant hover:bg-surface-variant hover:text-on-surface">2</button>
+<span class="text-on-surface-variant">...</span>
+<button class="w-8 h-8 flex items-center justify-center rounded border border-outline-variant text-on-surface-variant hover:bg-surface-variant hover:text-on-surface">8</button>
+<button class="w-8 h-8 flex items-center justify-center rounded border border-outline-variant text-on-surface-variant hover:bg-surface-variant hover:text-on-surface">
+<span class="material-symbols-outlined text-[18px]">chevron_right</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+</main>
+</div>
+<!-- 
+      Disbursement Confirmation Modal 
+      Note: Displayed block for visual demonstration of the requested UI state. 
+      In a real app, this would be hidden until triggered.
+    -->
+<div class="fixed inset-0 bg-[#060e20]/80 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
+<div class="bg-surface-container-high rounded-xl shadow-2xl border border-outline-variant w-full max-w-lg overflow-hidden flex flex-col">
+<!-- Modal Header -->
+<div class="px-6 py-5 border-b border-outline-variant flex items-center justify-between bg-surface-container">
+<h3 class="font-headline-md text-[20px] font-semibold text-on-surface flex items-center gap-2">
+<span class="material-symbols-outlined text-primary">send_money</span>
+                    Confirm Disbursement
+                </h3>
+<button class="text-on-surface-variant hover:text-on-surface transition-colors">
+<span class="material-symbols-outlined">close</span>
+</button>
+</div>
+<!-- Modal Body -->
+<div class="p-6 flex flex-col gap-6">
+<!-- Warning/Info Banner -->
+<div class="bg-surface-variant/50 border border-outline-variant rounded-lg p-4 flex gap-3">
+<span class="material-symbols-outlined text-tertiary text-[20px] shrink-0">info</span>
+<p class="font-body-sm text-[13px] text-on-surface-variant leading-relaxed">
+                        You are about to record the release of funds for this application. Ensure the transfer via the external channel (GCash) has been completed successfully before confirming.
+                    </p>
+</div>
+<!-- Transaction Summary Card -->
+<div class="bg-surface-container rounded-lg border border-outline-variant p-4">
+<div class="grid grid-cols-2 gap-y-4">
+<div>
+<p class="font-label-md text-[11px] text-on-surface-variant uppercase tracking-wider mb-1">Client Name</p>
+<p class="font-body-md text-on-surface font-medium">Maria Reyes</p>
+</div>
+<div>
+<p class="font-label-md text-[11px] text-on-surface-variant uppercase tracking-wider mb-1">Application Ref</p>
+<p class="font-mono-data text-[13px] text-on-surface">APP-2023-1042</p>
+</div>
+<div class="col-span-2 border-t border-outline-variant my-1"></div>
+<div>
+<p class="font-label-md text-[11px] text-on-surface-variant uppercase tracking-wider mb-1">Disbursement Method</p>
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-[#005CEE] text-[16px]">phone_iphone</span>
+<p class="font-body-md text-on-surface">GCash (0917-XXX-4589)</p>
+</div>
+</div>
+<div>
+<p class="font-label-md text-[11px] text-on-surface-variant uppercase tracking-wider mb-1">Amount to Release</p>
+<p class="font-mono-data text-[18px] text-secondary font-bold">₱ 50,000.00</p>
+</div>
+</div>
+</div>
+<!-- Input Area -->
+<div>
+<label class="block font-label-md text-[13px] text-on-surface mb-2">Transaction Reference Number <span class="text-error">*</span></label>
+<input class="w-full bg-background border border-outline-variant text-on-surface font-mono-data rounded-lg px-4 py-3 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all placeholder:text-outline" placeholder="e.g., GCASH-REF-0099812" type="text"/>
+<p class="font-body-sm text-[12px] text-on-surface-variant mt-2">Enter the reference number provided by the disbursement channel.</p>
+</div>
+</div>
+<!-- Modal Footer -->
+<div class="px-6 py-4 border-t border-outline-variant bg-surface-container flex items-center justify-end gap-3 mt-auto">
+<button class="px-5 py-2.5 rounded-lg font-label-md text-label-md text-on-surface hover:bg-surface-variant transition-colors">
+                    Cancel
+                </button>
+<button class="bg-primary hover:bg-primary-fixed-dim text-on-primary px-6 py-2.5 rounded-lg font-label-md text-label-md shadow-sm transition-colors flex items-center gap-2">
+<span class="material-symbols-outlined text-[18px]">check_circle</span>
+                    Confirm Release
+                </button>
+</div>
+</div>
+</div>
+</body></html>

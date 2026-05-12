@@ -359,7 +359,7 @@ export function EnhancedRegisterForm({
       <div className="bg-emerald-600 p-8 text-white relative overflow-hidden">
         <div className="relative z-10">
           <h2 className="text-3xl font-display font-bold italic">
-            Get Started with Agapay
+            Create Your Account
           </h2>
           <p className="text-emerald-50 text-sm mt-1">
             Step {step} of 4: {getStepTitle(step)}

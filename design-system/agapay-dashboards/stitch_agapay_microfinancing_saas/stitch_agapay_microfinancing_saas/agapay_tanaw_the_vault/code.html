@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Agapay Tanaw: The Vault</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=Outfit:wght@500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "tertiary-fixed-dim": "#ffb95f",
+                        "surface-container-high": "#222a3d",
+                        "primary-container": "#2563eb",
+                        "error": "#ffb4ab",
+                        "secondary-container": "#00a572",
+                        "on-tertiary-fixed-variant": "#653e00",
+                        "on-secondary": "#003824",
+                        "inverse-primary": "#0053db",
+                        "on-primary-fixed": "#00174b",
+                        "on-background": "#dae2fd",
+                        "surface": "#0b1326",
+                        "surface-tint": "#b4c5ff",
+                        "surface-container-highest": "#2d3449",
+                        "primary": "#b4c5ff",
+                        "on-error": "#690005",
+                        "on-error-container": "#ffdad6",
+                        "on-secondary-fixed-variant": "#005236",
+                        "inverse-surface": "#dae2fd",
+                        "primary-fixed": "#dbe1ff",
+                        "surface-container-lowest": "#060e20",
+                        "surface-container-low": "#131b2e",
+                        "surface-container": "#171f33",
+                        "outline": "#8d90a0",
+                        "on-primary-fixed-variant": "#003ea8",
+                        "surface-bright": "#31394d",
+                        "tertiary-fixed": "#ffddb8",
+                        "on-tertiary": "#472a00",
+                        "surface-variant": "#2d3449",
+                        "surface-dim": "#0b1326",
+                        "secondary": "#4edea3",
+                        "on-primary-container": "#eeefff",
+                        "on-tertiary-fixed": "#2a1700",
+                        "on-tertiary-container": "#ffeedd",
+                        "inverse-on-surface": "#283044",
+                        "on-surface-variant": "#c3c6d7",
+                        "tertiary": "#ffb95f",
+                        "outline-variant": "#434655",
+                        "secondary-fixed-dim": "#4edea3",
+                        "on-secondary-fixed": "#002113",
+                        "secondary-fixed": "#6ffbbe",
+                        "on-primary": "#002a78",
+                        "error-container": "#93000a",
+                        "background": "#0b1326",
+                        "tertiary-container": "#996100",
+                        "on-secondary-container": "#00311f",
+                        "primary-fixed-dim": "#b4c5ff",
+                        "on-surface": "#dae2fd"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    "spacing": {
+                        "container_max_width": "1440px",
+                        "stack_md": "16px",
+                        "gutter": "24px",
+                        "stack_lg": "24px",
+                        "sidebar_width": "280px",
+                        "margin_desktop": "32px",
+                        "margin_mobile": "16px",
+                        "stack_sm": "8px"
+                    },
+                    "fontFamily": {
+                        "body-sm": ["Inter"],
+                        "mono-data": ["Inter"],
+                        "headline-sm": ["Outfit"],
+                        "display-lg": ["Outfit"],
+                        "headline-lg": ["Outfit"],
+                        "body-md": ["Inter"],
+                        "label-md": ["Inter"],
+                        "headline-md": ["Outfit"],
+                        "body-lg": ["Inter"]
+                    },
+                    "fontSize": {
+                        "body-sm": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                        "mono-data": ["14px", {"lineHeight": "20px", "fontWeight": "500"}],
+                        "headline-sm": ["20px", {"lineHeight": "28px", "fontWeight": "500"}],
+                        "display-lg": ["48px", {"lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                        "headline-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                        "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                        "label-md": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "600"}],
+                        "headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                        "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}]
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-background text-on-background min-h-screen flex font-body-md overflow-hidden">
+<!-- SideNavBar (Desktop) -->
+<nav class="hidden md:flex flex-col w-sidebar_width h-screen sticky left-0 top-0 bg-surface-container border-r border-outline-variant py-stack_lg z-20">
+<div class="px-gutter mb-8">
+<h1 class="font-headline-md text-headline-md text-on-surface font-bold">Agapay</h1>
+<p class="font-label-md text-label-md text-on-surface-variant">Microfinance OS</p>
+</div>
+<div class="px-4 mb-6">
+<button class="w-full bg-primary text-on-primary font-label-md text-label-md py-3 px-4 rounded-full hover:bg-primary-fixed transition-colors flex items-center justify-center gap-2">
+<span class="material-symbols-outlined text-[18px]">add</span>
+                New Disbursement
+            </button>
+</div>
+<div class="flex-1 overflow-y-auto">
+<ul class="space-y-1">
+<!-- Inactive -->
+<li>
+<a class="text-on-surface-variant flex items-center px-4 py-3 hover:bg-surface-container-high hover:text-on-surface transition-all duration-200 ease-in-out font-label-md text-label-md gap-3" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+                        Dashboard
+                    </a>
+</li>
+<li>
+<a class="text-on-surface-variant flex items-center px-4 py-3 hover:bg-surface-container-high hover:text-on-surface transition-all duration-200 ease-in-out font-label-md text-label-md gap-3" href="#">
+<span class="material-symbols-outlined">payments</span>
+                        Loans
+                    </a>
+</li>
+<!-- Active -->
+<li>
+<a class="text-on-surface border-l-4 border-secondary bg-surface-container-highest flex items-center px-4 py-3 transition-all duration-200 ease-in-out font-label-md text-label-md gap-3" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">account_balance</span>
+                        The Vault
+                    </a>
+</li>
+<li>
+<a class="text-on-surface-variant flex items-center px-4 py-3 hover:bg-surface-container-high hover:text-on-surface transition-all duration-200 ease-in-out font-label-md text-label-md gap-3" href="#">
+<span class="material-symbols-outlined">groups</span>
+                        Members
+                    </a>
+</li>
+<li>
+<a class="text-on-surface-variant flex items-center px-4 py-3 hover:bg-surface-container-high hover:text-on-surface transition-all duration-200 ease-in-out font-label-md text-label-md gap-3" href="#">
+<span class="material-symbols-outlined">forum</span>
+                        Community
+                    </a>
+</li>
+</ul>
+</div>
+<div class="mt-auto border-t border-outline-variant pt-4">
+<ul class="space-y-1">
+<li>
+<a class="text-on-surface-variant flex items-center px-4 py-3 hover:bg-surface-container-high hover:text-on-surface transition-all duration-200 ease-in-out font-label-md text-label-md gap-3" href="#">
+<span class="material-symbols-outlined">help</span>
+                        Support
+                    </a>
+</li>
+<li>
+<a class="text-on-surface-variant flex items-center px-4 py-3 hover:bg-surface-container-high hover:text-on-surface transition-all duration-200 ease-in-out font-label-md text-label-md gap-3" href="#">
+<span class="material-symbols-outlined">logout</span>
+                        Logout
+                    </a>
+</li>
+</ul>
+</div>
+</nav>
+<!-- Main Content Canvas -->
+<main class="flex-1 flex flex-col h-screen overflow-y-auto relative bg-background">
+<!-- TopNavBar (Mobile mainly, or contextual top bar) -->
+<header class="md:hidden flex justify-between items-center w-full px-gutter h-16 bg-surface border-b border-outline-variant sticky top-0 z-10">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-on-surface cursor-pointer">menu</span>
+<span class="text-headline-md font-headline-md font-bold text-primary">Agapay</span>
+</div>
+<div class="flex items-center gap-4">
+<span class="material-symbols-outlined text-on-surface-variant cursor-pointer hover:bg-surface-container-high p-2 rounded-full">search</span>
+<span class="material-symbols-outlined text-on-surface-variant cursor-pointer hover:bg-surface-container-high p-2 rounded-full">notifications</span>
+<span class="material-symbols-outlined text-on-surface-variant cursor-pointer hover:bg-surface-container-high p-2 rounded-full">settings</span>
+</div>
+</header>
+<div class="p-margin_mobile md:p-margin_desktop max-w-container_max_width mx-auto w-full space-y-stack_lg">
+<!-- Page Header -->
+<div class="flex flex-col md:flex-row md:items-end justify-between gap-4 border-b border-outline-variant pb-6">
+<div>
+<h2 class="font-headline-lg text-headline-lg text-on-surface">The Vault</h2>
+<p class="font-body-md text-body-md text-on-surface-variant mt-1">Operator Treasury &amp; Daily Liquidity Management</p>
+</div>
+<div class="flex items-center gap-3">
+<span class="font-mono-data text-mono-data text-on-surface-variant bg-surface-container px-3 py-1.5 rounded-lg border border-outline-variant">
+                        Server Time: 16:42 PHT
+                    </span>
+</div>
+</div>
+<!-- KPI Bento Grid -->
+<section class="grid grid-cols-1 md:grid-cols-3 gap-stack_md">
+<!-- Tenant Funds -->
+<div class="bg-surface-container border border-outline-variant rounded-xl p-stack_lg relative overflow-hidden group hover:border-primary/50 transition-colors">
+<div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+<span class="material-symbols-outlined text-[64px] text-primary">account_balance_wallet</span>
+</div>
+<h3 class="font-headline-sm text-headline-sm text-on-surface-variant flex items-center gap-2">
+<span class="w-2 h-2 rounded-full bg-primary"></span>
+                        Tenant Funds
+                    </h3>
+<div class="mt-4">
+<span class="font-display-lg text-display-lg text-on-surface">₱12.4M</span>
+</div>
+<div class="mt-4 flex items-center gap-2">
+<span class="bg-secondary/10 text-secondary px-2 py-1 rounded font-label-md text-label-md flex items-center gap-1 border border-secondary/20">
+<span class="material-symbols-outlined text-[14px]">trending_up</span> +2.4%
+                        </span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">vs last month</span>
+</div>
+</div>
+<!-- Lender Liquidity -->
+<div class="bg-surface-container border border-outline-variant rounded-xl p-stack_lg relative overflow-hidden group hover:border-primary/50 transition-colors">
+<div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+<span class="material-symbols-outlined text-[64px] text-secondary">water_drop</span>
+</div>
+<h3 class="font-headline-sm text-headline-sm text-on-surface-variant flex items-center gap-2">
+<span class="w-2 h-2 rounded-full bg-secondary"></span>
+                        Lender Liquidity
+                    </h3>
+<div class="mt-4">
+<span class="font-display-lg text-display-lg text-on-surface">₱4.2M</span>
+</div>
+<div class="mt-4 flex items-center gap-2">
+<span class="bg-surface-container-highest text-on-surface px-2 py-1 rounded font-label-md text-label-md flex items-center gap-1 border border-outline-variant">
+<span class="material-symbols-outlined text-[14px]">horizontal_rule</span> Stable
+                        </span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">Ready for deployment</span>
+</div>
+</div>
+<!-- Personal Portfolio -->
+<div class="bg-surface-container border border-outline-variant rounded-xl p-stack_lg relative overflow-hidden group hover:border-primary/50 transition-colors">
+<div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+<span class="material-symbols-outlined text-[64px] text-tertiary">pie_chart</span>
+</div>
+<h3 class="font-headline-sm text-headline-sm text-on-surface-variant flex items-center gap-2">
+<span class="w-2 h-2 rounded-full bg-tertiary"></span>
+                        Personal Portfolio
+                    </h3>
+<div class="mt-4">
+<span class="font-display-lg text-display-lg text-on-surface">₱850k</span>
+</div>
+<div class="mt-4 flex items-center gap-2">
+<span class="bg-secondary/10 text-secondary px-2 py-1 rounded font-label-md text-label-md flex items-center gap-1 border border-secondary/20">
+<span class="material-symbols-outlined text-[14px]">arrow_upward</span> 12.1% ROI
+                        </span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">Annualized</span>
+</div>
+</div>
+</section>
+<!-- Daily Reconciliation -->
+<section class="bg-surface-container-high border border-outline-variant rounded-xl p-stack_lg flex flex-col md:flex-row items-center justify-between gap-6 shadow-lg shadow-black/20">
+<div class="flex-1 w-full">
+<div class="flex items-center gap-3 mb-2">
+<span class="material-symbols-outlined text-primary">fact_check</span>
+<h3 class="font-headline-sm text-headline-sm text-on-surface">Daily Reconciliation (EOD)</h3>
+</div>
+<div class="flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-8 mt-4">
+<div>
+<p class="font-label-md text-label-md text-on-surface-variant uppercase">Total Disbursed</p>
+<p class="font-headline-md text-headline-md text-tertiary font-bold mt-1">₱ 120,500</p>
+</div>
+<div class="hidden sm:block w-px h-10 bg-outline-variant"></div>
+<div>
+<p class="font-label-md text-label-md text-on-surface-variant uppercase">Total Collected</p>
+<p class="font-headline-md text-headline-md text-secondary font-bold mt-1">₱ 142,300</p>
+</div>
+<div class="hidden sm:block w-px h-10 bg-outline-variant"></div>
+<div>
+<p class="font-label-md text-label-md text-on-surface-variant uppercase">Net Position</p>
+<p class="font-headline-md text-headline-md text-on-surface font-bold mt-1">+ ₱ 21,800</p>
+</div>
+</div>
+</div>
+<div class="w-full md:w-auto shrink-0 flex flex-col items-end gap-2">
+<button class="w-full md:w-auto bg-primary text-on-primary hover:bg-primary-fixed transition-colors font-label-md text-label-md py-3 px-8 rounded-full flex items-center justify-center gap-2">
+<span class="material-symbols-outlined text-[18px]">verified</span>
+                        Sign-Off EOD
+                    </button>
+<span class="font-label-md text-label-md text-on-surface-variant">Pending Operator Approval</span>
+</div>
+</section>
+<!-- Lower Split Section -->
+<div class="grid grid-cols-1 xl:grid-cols-3 gap-stack_lg pb-12">
+<!-- Investment Portfolio Table (Spans 2 columns on extra large screens) -->
+<section class="xl:col-span-2 bg-surface-container border border-outline-variant rounded-xl overflow-hidden flex flex-col">
+<div class="p-stack_md border-b border-outline-variant flex justify-between items-center bg-surface-container-highest">
+<h3 class="font-headline-sm text-headline-sm text-on-surface flex items-center gap-2">
+<span class="material-symbols-outlined text-on-surface-variant">monitoring</span>
+                            Personal Investment Portfolio
+                        </h3>
+<button class="text-primary font-label-md text-label-md hover:text-primary-fixed transition-colors">View All</button>
+</div>
+<div class="overflow-x-auto">
+<table class="w-full text-left border-collapse">
+<thead>
+<tr class="bg-surface-container-low border-b border-outline-variant">
+<th class="p-4 font-label-md text-label-md text-on-surface-variant uppercase tracking-wider">Asset / ID</th>
+<th class="p-4 font-label-md text-label-md text-on-surface-variant uppercase tracking-wider">Invested</th>
+<th class="p-4 font-label-md text-label-md text-on-surface-variant uppercase tracking-wider">Current ROI</th>
+<th class="p-4 font-label-md text-label-md text-on-surface-variant uppercase tracking-wider">Status &amp; Risk</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-outline-variant">
+<tr class="hover:bg-surface-container-high transition-colors">
+<td class="p-4">
+<div class="font-mono-data text-mono-data text-on-surface">L-2023-089A</div>
+<div class="font-body-sm text-body-sm text-on-surface-variant mt-0.5">Sari-Sari Store Expansion</div>
+</td>
+<td class="p-4 font-mono-data text-mono-data text-on-surface">₱ 150,000</td>
+<td class="p-4 font-mono-data text-mono-data text-secondary">14.2%</td>
+<td class="p-4">
+<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-secondary/10 text-secondary border border-secondary/20 font-label-md text-label-md">
+<span class="w-1.5 h-1.5 rounded-full bg-secondary"></span> Performing
+                                        </span>
+</td>
+</tr>
+<tr class="hover:bg-surface-container-high transition-colors">
+<td class="p-4">
+<div class="font-mono-data text-mono-data text-on-surface">L-2023-112B</div>
+<div class="font-body-sm text-body-sm text-on-surface-variant mt-0.5">Tricycle Fleet Upgrade</div>
+</td>
+<td class="p-4 font-mono-data text-mono-data text-on-surface">₱ 300,000</td>
+<td class="p-4 font-mono-data text-mono-data text-secondary">11.8%</td>
+<td class="p-4">
+<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-secondary/10 text-secondary border border-secondary/20 font-label-md text-label-md">
+<span class="w-1.5 h-1.5 rounded-full bg-secondary"></span> Performing
+                                        </span>
+</td>
+</tr>
+<tr class="hover:bg-surface-container-high transition-colors bg-tertiary/5">
+<td class="p-4">
+<div class="font-mono-data text-mono-data text-on-surface">L-2023-045C</div>
+<div class="font-body-sm text-body-sm text-on-surface-variant mt-0.5">Agri-Supply Restock</div>
+</td>
+<td class="p-4 font-mono-data text-mono-data text-on-surface">₱ 75,000</td>
+<td class="p-4 font-mono-data text-mono-data text-tertiary">8.5%</td>
+<td class="p-4">
+<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-tertiary/10 text-tertiary border border-tertiary/20 font-label-md text-label-md">
+<span class="w-1.5 h-1.5 rounded-full bg-tertiary"></span> Grace Period
+                                        </span>
+</td>
+</tr>
+<tr class="hover:bg-surface-container-high transition-colors">
+<td class="p-4">
+<div class="font-mono-data text-mono-data text-on-surface">L-2023-201A</div>
+<div class="font-body-sm text-body-sm text-on-surface-variant mt-0.5">Market Stall Setup</div>
+</td>
+<td class="p-4 font-mono-data text-mono-data text-on-surface">₱ 220,000</td>
+<td class="p-4 font-mono-data text-mono-data text-secondary">15.0%</td>
+<td class="p-4">
+<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-secondary/10 text-secondary border border-secondary/20 font-label-md text-label-md">
+<span class="w-1.5 h-1.5 rounded-full bg-secondary"></span> Performing
+                                        </span>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<!-- Wallet Management -->
+<section class="bg-surface-container border border-outline-variant rounded-xl flex flex-col">
+<div class="p-stack_md border-b border-outline-variant bg-surface-container-highest">
+<h3 class="font-headline-sm text-headline-sm text-on-surface flex items-center gap-2">
+<span class="material-symbols-outlined text-on-surface-variant">account_balance</span>
+                            Wallet Management
+                        </h3>
+</div>
+<div class="p-stack_md border-b border-outline-variant space-y-4">
+<div class="grid grid-cols-2 gap-3">
+<button class="bg-surface-bright border border-outline hover:border-primary text-on-surface font-label-md text-label-md py-2.5 rounded-lg transition-colors flex items-center justify-center gap-2">
+<span class="material-symbols-outlined text-[18px]">download</span>
+                                Deposit
+                            </button>
+<button class="bg-surface-bright border border-outline hover:border-tertiary text-on-surface font-label-md text-label-md py-2.5 rounded-lg transition-colors flex items-center justify-center gap-2">
+<span class="material-symbols-outlined text-[18px]">upload</span>
+                                Withdraw
+                            </button>
+</div>
+</div>
+<div class="p-stack_md flex-1">
+<h4 class="font-label-md text-label-md text-on-surface-variant uppercase mb-4 tracking-wider">Recent Transactions</h4>
+<div class="space-y-4">
+<!-- Tx Item -->
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-full bg-secondary/10 text-secondary flex items-center justify-center border border-secondary/20">
+<span class="material-symbols-outlined text-[20px]">arrow_downward</span>
+</div>
+<div>
+<p class="font-body-sm text-body-sm text-on-surface font-medium">Repayment Received</p>
+<p class="font-label-md text-label-md text-on-surface-variant mt-0.5">L-2023-089A</p>
+</div>
+</div>
+<span class="font-mono-data text-mono-data text-secondary">+ ₱ 12,500</span>
+</div>
+<!-- Tx Item -->
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-full bg-primary/10 text-primary flex items-center justify-center border border-primary/20">
+<span class="material-symbols-outlined text-[20px]">download</span>
+</div>
+<div>
+<p class="font-body-sm text-body-sm text-on-surface font-medium">Wallet Deposit</p>
+<p class="font-label-md text-label-md text-on-surface-variant mt-0.5">Bank Transfer</p>
+</div>
+</div>
+<span class="font-mono-data text-mono-data text-primary">+ ₱ 50,000</span>
+</div>
+<!-- Tx Item -->
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-full bg-tertiary/10 text-tertiary flex items-center justify-center border border-tertiary/20">
+<span class="material-symbols-outlined text-[20px]">upload</span>
+</div>
+<div>
+<p class="font-body-sm text-body-sm text-on-surface font-medium">Fund Withdrawal</p>
+<p class="font-label-md text-label-md text-on-surface-variant mt-0.5">To UnionBank</p>
+</div>
+</div>
+<span class="font-mono-data text-mono-data text-on-surface">- ₱ 25,000</span>
+</div>
+</div>
+</div>
+</section>
+</div>
+</div>
+</main>
+</body></html>

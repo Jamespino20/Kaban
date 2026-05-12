@@ -456,7 +456,7 @@ export default async function AgapayTanawPage({
               className={`${isGlobalSuperadminView ? "lg:col-span-3" : ""} dashboard-card-strong flex flex-col justify-between overflow-hidden relative group min-h-[240px]`}
             >
               <div className="relative z-10 space-y-4">
-                <div className="w-12 h-12 rounded-2xl bg-emerald-500 shadow-[0_0_20px_rgba(16,185,129,0.3)] flex items-center justify-center mb-6">
+                <div className="w-12 h-12 rounded-2xl bg-primary shadow-[0_0_20px_color-mix(in_srgb,var(--primary)_30%,transparent)] flex items-center justify-center mb-6">
                   <TrendingUp className="w-6 h-6 text-white" />
                 </div>
                 <h3 className="text-2xl font-display font-medium leading-tight">
@@ -474,13 +474,13 @@ export default async function AgapayTanawPage({
                 </p>
                 <div className="h-1.5 w-full bg-white/10 rounded-full overflow-hidden">
                   <div
-                    className="h-full bg-emerald-500 rounded-full shadow-[0_0_10px_rgba(16,185,129,0.5)] transition-all duration-1000"
+                    className="h-full bg-primary rounded-full shadow-[0_0_10px_color-mix(in_srgb,var(--primary)_50%,transparent)] transition-all duration-1000"
                     style={{ width: "88%" }}
                   />
                 </div>
               </div>
 
-              <div className="absolute -bottom-10 -right-10 w-48 h-48 bg-emerald-500/10 rounded-full blur-3xl group-hover:bg-emerald-500/20 transition-all duration-500" />
+              <div className="absolute -bottom-10 -right-10 w-48 h-48 bg-primary/10 rounded-full blur-3xl group-hover:bg-primary/20 transition-all duration-500" />
             </div>
           </div>
         </TabsContent>

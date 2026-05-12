@@ -234,7 +234,7 @@ function LoanSummaryCard({
           </p>
         </div>
         <div className="text-right">
-          <p className="text-sm font-bold text-emerald-600">
+          <p className="text-sm font-bold text-primary">
             ₱{Number(loan.balance_remaining).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
           </p>
           <span className={`inline-block rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider ${cfg.bg} ${cfg.color}`}>
@@ -298,7 +298,7 @@ function LoanSummaryCard({
                 {loan.payments.map((p) => (
                   <div key={p.payment_id} className="flex items-center justify-between rounded-lg bg-slate-50 px-3 py-1.5 text-xs">
                     <span className="text-slate-600 truncate">{p.payment_method?.provider_name || "Payment"}</span>
-                    <span className="font-bold text-emerald-600">₱{Number(p.amount_paid).toLocaleString()}</span>
+                    <span className="font-bold text-primary">₱{Number(p.amount_paid).toLocaleString()}</span>
                   </div>
                 ))}
               </div>
@@ -428,7 +428,7 @@ function LoanActions({
             setAmount(String(suggestedAmount));
             setOpen(true);
           }}
-          className="rounded-xl text-xs border-emerald-200 text-emerald-700 hover:bg-emerald-50"
+          className="rounded-xl text-xs border-primary/20 text-primary hover:bg-primary/10"
         >
           ₱{suggestedAmount.toLocaleString()} installment
         </Button>
@@ -619,7 +619,7 @@ function LoanActions({
             <Button
               disabled={isPending || !amount || !methodId || !reference.trim()}
               onClick={handleSubmit}
-              className="w-full rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white"
+              className="w-full rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground"
             >
               Submit for Verification
             </Button>
@@ -671,7 +671,7 @@ function LoanActions({
                   toast.success("Thank you! Your feedback has been sent.");
                 });
               }}
-              className="w-full rounded-xl bg-emerald-600 text-white hover:bg-emerald-700"
+              className="w-full rounded-xl bg-primary text-primary-foreground hover:bg-primary/90"
             >
               Submit Feedback
             </Button>

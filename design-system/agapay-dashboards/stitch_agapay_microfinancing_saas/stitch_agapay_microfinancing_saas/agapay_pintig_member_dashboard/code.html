@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Agapay Pintig - Member Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#ec5b13",
+                        "background-light": "#f8f6f6",
+                        "background-dark": "#221610",
+                    },
+                    fontFamily: {
+                        "display": ["Public Sans"]
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+</head>
+<body class="bg-background-light text-background-dark font-display">
+<div class="relative flex h-auto min-h-screen w-full flex-row">
+<!-- Sidebar Navigation -->
+<div class="flex h-screen w-64 flex-col bg-white border-r border-gray-200 fixed top-0 left-0">
+<div class="flex items-center gap-4 px-6 py-5 border-b border-gray-200">
+<div class="size-6 text-primary">
+<svg fill="none" viewbox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+<path clip-rule="evenodd" d="M39.475 21.6262C40.358 21.4363 40.6863 21.5589 40.7581 21.5934C40.7876 21.655 40.8547 21.857 40.8082 22.3336C40.7408 23.0255 40.4502 24.0046 39.8572 25.2301C38.6799 27.6631 36.5085 30.6631 33.5858 33.5858C30.6631 36.5085 27.6632 38.6799 25.2301 39.8572C24.0046 40.4502 23.0255 40.7407 22.3336 40.8082C21.8571 40.8547 21.6551 40.7875 21.5934 40.7581C21.5589 40.6863 21.4363 40.358 21.6262 39.475C21.8562 38.4054 22.4689 36.9657 23.5038 35.2817C24.7575 33.2417 26.5497 30.9744 28.7621 28.762C30.9744 26.5497 33.2417 24.7574 35.2817 23.5037C36.9657 22.4689 38.4054 21.8562 39.475 21.6262ZM4.41189 29.2403L18.7597 43.5881C19.8813 44.7097 21.4027 44.9179 22.7217 44.7893C24.0585 44.659 25.5148 44.1631 26.9723 43.4579C29.9052 42.0387 33.2618 39.5667 36.4142 36.4142C39.5667 33.2618 42.0387 29.9052 43.4579 26.9723C44.1631 25.5148 44.659 24.0585 44.7893 22.7217C44.9179 21.4027 44.7097 19.8813 43.5881 18.7597L29.2403 4.41187C27.8527 3.02428 25.8765 3.02573 24.2861 3.36776C22.6081 3.72863 20.7334 4.58419 18.8396 5.74801C16.4978 7.18716 13.9881 9.18353 11.5858 11.5858C9.18354 13.988 7.18717 16.4978 5.74802 18.8396C4.58421 20.7334 3.72865 22.6081 3.36778 24.2861C3.02574 25.8765 3.02429 27.8527 4.41189 29.2403Z" fill="currentColor" fill-rule="evenodd"></path>
+</svg>
+</div>
+<h2 class="text-background-dark text-lg font-bold leading-tight tracking-[-0.015em]">Agapay Pintig</h2>
+</div>
+<div class="flex flex-col gap-4 p-4 flex-1 overflow-y-auto">
+<div class="flex gap-3 mb-4 items-center">
+<div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-12" data-alt="A close-up portrait of a cheerful community member in a bright, modern setting. The lighting is soft and natural, creating an inviting light-mode aesthetic. Warm, subtle orange accents hint at the primary brand color (#ec5b13). The background is a clean, minimalist off-white space." style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuA2QC47F2ToZ7jnfD-bp2DBShFrpUWsW6SnTCp5Zwgza3usehfuzfRWmLPjFoX9RblXq53En2zDKcDlt7b5LG_k6SjNdIxHmw40Mxz4uzEayTJM2RCGNGcMOKGbsW9aURrtfeM3IWqarRmEkpiA-Je83Iz1Cc5HKMwEMnYrhutTE_7IiQEa1N31YKvNhcyn-cK6gkImeI3M6BoIy-dYKax07MOumTT_baeorua1i1CdlzikVDgIdjDdS9vBxWaMTcBjbtVR6MlITqw");'></div>
+<div class="flex flex-col">
+<h1 class="text-background-dark text-base font-semibold leading-normal">Juan Dela Cruz</h1>
+<p class="text-gray-500 text-sm font-normal leading-normal">Tenant Member</p>
+</div>
+</div>
+<nav class="flex flex-col gap-2">
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-xl bg-primary/10 text-primary" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">home</span>
+<span class="text-sm font-medium leading-normal">Overview</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-gray-600 hover:bg-gray-100 transition-colors" href="#">
+<span class="material-symbols-outlined">payments</span>
+<span class="text-sm font-medium leading-normal">My Loans</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-gray-600 hover:bg-gray-100 transition-colors" href="#">
+<span class="material-symbols-outlined">receipt_long</span>
+<span class="text-sm font-medium leading-normal">Payments</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-gray-600 hover:bg-gray-100 transition-colors" href="#">
+<span class="material-symbols-outlined">groups</span>
+<span class="text-sm font-medium leading-normal">Community</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-gray-600 hover:bg-gray-100 transition-colors" href="#">
+<span class="material-symbols-outlined">person</span>
+<span class="text-sm font-medium leading-normal">Profile</span>
+</a>
+</nav>
+</div>
+<div class="p-4 border-t border-gray-200">
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-gray-600 hover:bg-gray-100 transition-colors" href="#">
+<span class="material-symbols-outlined">logout</span>
+<span class="text-sm font-medium leading-normal">Log Out</span>
+</a>
+</div>
+</div>
+<!-- Main Content -->
+<div class="flex-1 ml-64 p-8 overflow-y-auto">
+<header class="flex justify-between items-center mb-8">
+<div>
+<h1 class="text-3xl font-bold text-background-dark mb-1">Welcome back, Juan!</h1>
+<p class="text-gray-500">Here is your financial summary.</p>
+</div>
+<div class="flex gap-3">
+<button class="bg-white border border-gray-200 text-background-dark px-4 py-2 rounded-lg font-medium hover:bg-gray-50 transition-colors flex items-center gap-2 shadow-sm">
+<span class="material-symbols-outlined text-sm">notifications</span>
+</button>
+</div>
+</header>
+<!-- KPIs -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+<div class="bg-white rounded-xl p-6 shadow-sm border border-gray-100 flex flex-col justify-between h-full">
+<div class="flex justify-between items-start mb-4">
+<p class="text-gray-500 text-sm font-medium uppercase tracking-wide">Active Loan Balance</p>
+<div class="p-2 bg-primary/10 rounded-full text-primary">
+<span class="material-symbols-outlined text-xl">account_balance_wallet</span>
+</div>
+</div>
+<div>
+<p class="text-3xl font-bold text-background-dark">₱15,000</p>
+<p class="text-sm text-green-600 mt-2 flex items-center gap-1">
+<span class="material-symbols-outlined text-sm">trending_down</span>
+<span>-₱2,500 from last month</span>
+</p>
+</div>
+</div>
+<div class="bg-white rounded-xl p-6 shadow-sm border border-gray-100 flex flex-col justify-between h-full">
+<div class="flex justify-between items-start mb-4">
+<p class="text-gray-500 text-sm font-medium uppercase tracking-wide">Next Due Date</p>
+<div class="p-2 bg-blue-50 rounded-full text-blue-600">
+<span class="material-symbols-outlined text-xl">calendar_today</span>
+</div>
+</div>
+<div>
+<p class="text-3xl font-bold text-background-dark">Oct 15, 2023</p>
+<p class="text-sm text-gray-500 mt-2">In 12 days</p>
+</div>
+</div>
+<div class="bg-white rounded-xl p-6 shadow-sm border border-gray-100 flex flex-col justify-between h-full">
+<div class="flex justify-between items-start mb-4">
+<p class="text-gray-500 text-sm font-medium uppercase tracking-wide">Trust Score</p>
+<div class="p-2 bg-green-50 rounded-full text-green-600">
+<span class="material-symbols-outlined text-xl">verified</span>
+</div>
+</div>
+<div>
+<div class="flex items-end gap-2">
+<p class="text-3xl font-bold text-background-dark">850</p>
+<p class="text-gray-500 mb-1">/ 1000</p>
+</div>
+<div class="w-full bg-gray-200 rounded-full h-2 mt-3">
+<div class="bg-green-500 h-2 rounded-full" style="width: 85%"></div>
+</div>
+<p class="text-sm text-gray-500 mt-2">Excellent standing</p>
+</div>
+</div>
+</div>
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+<!-- Left Column: Tips & Actions -->
+<div class="lg:col-span-2 flex flex-col gap-8">
+<!-- Financial Tip -->
+<div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden relative">
+<div class="absolute right-0 top-0 h-full w-1/3 bg-gradient-to-l from-primary/5 to-transparent pointer-events-none"></div>
+<div class="p-6 relative z-10 flex gap-6 items-start">
+<div class="p-3 bg-primary/10 rounded-full text-primary shrink-0">
+<span class="material-symbols-outlined text-2xl">lightbulb</span>
+</div>
+<div>
+<h3 class="text-lg font-bold text-background-dark mb-2">Financial Tip for You</h3>
+<p class="text-gray-600 mb-4">Based on your payment history, paying your next installment 3 days early will boost your Trust Score by 15 points, unlocking higher loan limits for next month.</p>
+<button class="text-primary font-medium text-sm hover:underline flex items-center gap-1">
+                                View detailed insights <span class="material-symbols-outlined text-sm">arrow_forward</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Quick Actions -->
+<div>
+<h3 class="text-xl font-bold text-background-dark mb-4">Quick Actions</h3>
+<div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+<button class="bg-primary text-white p-4 rounded-xl font-medium hover:bg-orange-700 transition-colors flex items-center justify-center gap-2 shadow-sm">
+<span class="material-symbols-outlined">add_circle</span>
+                            Apply for Loan
+                        </button>
+<button class="bg-white border border-primary text-primary p-4 rounded-xl font-medium hover:bg-primary/5 transition-colors flex items-center justify-center gap-2 shadow-sm">
+<span class="material-symbols-outlined">payment</span>
+                            Make a Payment
+                        </button>
+</div>
+</div>
+</div>
+<!-- Right Column: Recent Transactions -->
+<div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+<div class="flex justify-between items-center mb-6">
+<h3 class="text-lg font-bold text-background-dark">Recent Transactions</h3>
+<button class="text-primary text-sm font-medium hover:underline">View All</button>
+</div>
+<div class="flex flex-col gap-4">
+<!-- Transaction Item -->
+<div class="flex justify-between items-center pb-4 border-b border-gray-100 last:border-0 last:pb-0">
+<div class="flex items-center gap-3">
+<div class="p-2 bg-green-50 rounded-lg text-green-600 shrink-0">
+<span class="material-symbols-outlined text-sm">arrow_downward</span>
+</div>
+<div>
+<p class="text-sm font-medium text-background-dark">Repayment</p>
+<p class="text-xs text-gray-500">Oct 02, 2023</p>
+</div>
+</div>
+<p class="text-sm font-bold text-green-600">-₱2,500.00</p>
+</div>
+<!-- Transaction Item -->
+<div class="flex justify-between items-center pb-4 border-b border-gray-100 last:border-0 last:pb-0">
+<div class="flex items-center gap-3">
+<div class="p-2 bg-blue-50 rounded-lg text-blue-600 shrink-0">
+<span class="material-symbols-outlined text-sm">arrow_upward</span>
+</div>
+<div>
+<p class="text-sm font-medium text-background-dark">Loan Disbursed</p>
+<p class="text-xs text-gray-500">Sep 15, 2023</p>
+</div>
+</div>
+<p class="text-sm font-bold text-background-dark">+₱17,500.00</p>
+</div>
+<!-- Transaction Item -->
+<div class="flex justify-between items-center pb-4 border-b border-gray-100 last:border-0 last:pb-0">
+<div class="flex items-center gap-3">
+<div class="p-2 bg-green-50 rounded-lg text-green-600 shrink-0">
+<span class="material-symbols-outlined text-sm">arrow_downward</span>
+</div>
+<div>
+<p class="text-sm font-medium text-background-dark">Repayment</p>
+<p class="text-xs text-gray-500">Sep 01, 2023</p>
+</div>
+</div>
+<p class="text-sm font-bold text-green-600">-₱2,500.00</p>
+</div>
+<!-- Transaction Item -->
+<div class="flex justify-between items-center pb-4 border-b border-gray-100 last:border-0 last:pb-0">
+<div class="flex items-center gap-3">
+<div class="p-2 bg-green-50 rounded-lg text-green-600 shrink-0">
+<span class="material-symbols-outlined text-sm">arrow_downward</span>
+</div>
+<div>
+<p class="text-sm font-medium text-background-dark">Repayment</p>
+<p class="text-xs text-gray-500">Aug 01, 2023</p>
+</div>
+</div>
+<p class="text-sm font-bold text-green-600">-₱2,500.00</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</body></html>

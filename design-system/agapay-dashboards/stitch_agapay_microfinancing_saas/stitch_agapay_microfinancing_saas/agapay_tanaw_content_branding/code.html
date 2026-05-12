@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Agapay Tanaw - Operator Dashboard</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+  tailwind.config = {
+    darkMode: "class",
+    theme: {
+      extend: {
+        colors: {
+          "primary": "#ec5b13",
+          "background-light": "#f8f6f6",
+          "background-dark": "#221610",
+        },
+        fontFamily: {
+          "display": ["Public Sans", "sans-serif"]
+        },
+        borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+      },
+    },
+  }
+</script>
+<style>
+  body { font-family: 'Public Sans', sans-serif; }
+</style>
+</head>
+<body class="bg-background-light text-background-dark min-h-screen flex flex-col">
+<div class="relative flex h-auto min-h-screen w-full flex-col group/design-root overflow-x-hidden">
+<div class="layout-container flex h-full grow flex-col">
+<div class="flex flex-1 justify-center">
+<div class="layout-content-container flex flex-col w-full flex-1 md:flex-row">
+<!-- Sidebar -->
+<div class="flex h-auto min-h-screen flex-col justify-between bg-white border-r border-gray-200 p-4 w-full md:w-[280px] flex-shrink-0">
+<div class="flex flex-col gap-4">
+<div class="flex items-center gap-4 text-background-dark px-2 py-4 border-b border-gray-100">
+<div class="size-6 text-primary">
+<svg fill="none" viewbox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+<g clip-path="url(#clip0_6_319)">
+<path d="M8.57829 8.57829C5.52816 11.6284 3.451 15.5145 2.60947 19.7452C1.76794 23.9758 2.19984 28.361 3.85056 32.3462C5.50128 36.3314 8.29667 39.7376 11.8832 42.134C15.4698 44.5305 19.6865 45.8096 24 45.8096C28.3135 45.8096 32.5302 44.5305 36.1168 42.134C39.7033 39.7375 42.4987 36.3314 44.1494 32.3462C45.8002 28.361 46.2321 23.9758 45.3905 19.7452C44.549 15.5145 42.4718 11.6284 39.4217 8.57829L24 24L8.57829 8.57829Z" fill="currentColor"></path>
+</g>
+<defs>
+<clippath id="clip0_6_319"><rect fill="white" height="48" width="48"></rect></clippath>
+</defs>
+</svg>
+</div>
+<h2 class="text-background-dark text-xl font-bold leading-tight tracking-[-0.015em]">Agapay Tanaw</h2>
+</div>
+<div class="flex gap-3 px-2 py-2">
+<div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-10" data-alt="A professional headshot of a middle-aged man with short hair wearing a modern suit. The lighting is bright and even, suited for a corporate profile. The background is a soft, neutral grey to keep the focus on the subject. The overall style is clean, modern, and trustworthy, fitting a financial application interface." style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuDPDmlJvBX_iomrXbc85WgEVyqW6kbmbAfy5BmwhLxFF8BAY7bsW18ue4im-jprik_oCHS0JTSXONRkTvfmItY0onONeWa5VPlnEgt7dZ4IajFFB3_VNTsSmmaPBwGRVbnsExV0orue9G6LfAF75m__kfWbPhpnJ3IcO78C2isIWcgPGhU9qT1Ec4YcJCRcI4np7JD4li_UraUNW1ZCHXHtVGHsGowhWeC-HuS3IyqNZ5cDSXQR-SVyP8XMX5ZO2aR-wMePp4iZJ8Y");'></div>
+<div class="flex flex-col">
+<h1 class="text-background-dark text-base font-semibold leading-normal">Tenant Operator</h1>
+<p class="text-gray-500 text-sm font-normal leading-normal">Admin Dashboard</p>
+</div>
+</div>
+<div class="flex flex-col gap-2 mt-4">
+<div class="flex items-center gap-3 px-3 py-2 text-gray-600 hover:bg-gray-100 rounded-xl transition-colors cursor-pointer">
+<div class="material-symbols-outlined">dashboard</div>
+<p class="text-sm font-medium leading-normal">Dashboard</p>
+</div>
+<div class="flex items-center gap-3 px-3 py-2 text-gray-600 hover:bg-gray-100 rounded-xl transition-colors cursor-pointer">
+<div class="material-symbols-outlined">account_balance</div>
+<p class="text-sm font-medium leading-normal">The Vault</p>
+</div>
+<div class="flex items-center gap-3 px-3 py-2 text-gray-600 hover:bg-gray-100 rounded-xl transition-colors cursor-pointer">
+<div class="material-symbols-outlined">group</div>
+<p class="text-sm font-medium leading-normal">Member Management</p>
+</div>
+<div class="flex items-center gap-3 px-3 py-2 text-gray-600 hover:bg-gray-100 rounded-xl transition-colors cursor-pointer">
+<div class="material-symbols-outlined">description</div>
+<p class="text-sm font-medium leading-normal">Loan Products</p>
+</div>
+<div class="flex items-center gap-3 px-3 py-2 text-gray-600 hover:bg-gray-100 rounded-xl transition-colors cursor-pointer">
+<div class="material-symbols-outlined">fact_check</div>
+<p class="text-sm font-medium leading-normal">Approvals</p>
+</div>
+<div class="flex items-center gap-3 px-3 py-2 rounded-xl bg-primary text-white cursor-pointer">
+<div class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">palette</div>
+<p class="text-white text-sm font-medium leading-normal">Content &amp; Branding</p>
+</div>
+</div>
+</div>
+</div>
+<!-- Main Content -->
+<div class="flex flex-col flex-1 p-4 md:p-8 overflow-y-auto">
+<header class="flex items-center justify-between mb-8 pb-4 border-b border-gray-200">
+<h1 class="text-2xl font-bold text-background-dark">Content &amp; Branding</h1>
+<div class="flex items-center gap-4">
+<button class="relative p-2 text-gray-500 hover:text-primary transition-colors">
+<span class="material-symbols-outlined">notifications</span>
+<span class="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
+</button>
+<button class="p-2 text-gray-500 hover:text-primary transition-colors">
+<span class="material-symbols-outlined">settings</span>
+</button>
+</div>
+</header>
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+<!-- Branding Section -->
+<div class="flex flex-col gap-6 rounded-xl p-6 bg-white shadow-sm border border-gray-100">
+<div class="flex items-center justify-between">
+<h2 class="text-background-dark text-xl font-semibold leading-tight">Branding</h2>
+<button class="text-sm font-medium text-primary hover:underline">Save Changes</button>
+</div>
+<div class="flex flex-col gap-4">
+<div>
+<label class="block text-sm font-medium text-gray-700 mb-2">Cooperative Logo</label>
+<div class="flex items-center gap-4">
+<div class="w-16 h-16 rounded-lg bg-gray-100 flex items-center justify-center border border-gray-200">
+<span class="material-symbols-outlined text-gray-400">image</span>
+</div>
+<button class="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors">Upload New Logo</button>
+</div>
+</div>
+<div class="grid grid-cols-2 gap-4 mt-2">
+<div>
+<label class="block text-sm font-medium text-gray-700 mb-2">Primary Color</label>
+<div class="flex items-center gap-2">
+<div class="w-8 h-8 rounded border border-gray-200 bg-primary"></div>
+<input class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-primary focus:border-primary" type="text" value="#ec5b13"/>
+</div>
+</div>
+<div>
+<label class="block text-sm font-medium text-gray-700 mb-2">Accent Color</label>
+<div class="flex items-center gap-2">
+<div class="w-8 h-8 rounded border border-gray-200 bg-orange-200"></div>
+<input class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-primary focus:border-primary" type="text" value="#fbd9c8"/>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Hero Section -->
+<div class="flex flex-col gap-6 rounded-xl p-6 bg-white shadow-sm border border-gray-100">
+<div class="flex items-center justify-between">
+<h2 class="text-background-dark text-xl font-semibold leading-tight">Hero Section</h2>
+<button class="text-sm font-medium text-primary hover:underline">Save Changes</button>
+</div>
+<div class="flex flex-col gap-4">
+<div>
+<label class="block text-sm font-medium text-gray-700 mb-2">Main Headline</label>
+<input class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-primary focus:border-primary" type="text" value="Empowering Your Financial Future"/>
+</div>
+<div>
+<label class="block text-sm font-medium text-gray-700 mb-2">Subtitle</label>
+<textarea class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-primary focus:border-primary h-24" placeholder="Enter homepage subtitle...">Join our cooperative today and experience personalized loan products designed for your unique needs. We are here to support your growth.</textarea>
+</div>
+</div>
+</div>
+</div>
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
+<!-- Homepage Features / Toggles -->
+<div class="lg:col-span-1 flex flex-col gap-6 rounded-xl p-6 bg-white shadow-sm border border-gray-100 h-fit">
+<h2 class="text-background-dark text-xl font-semibold leading-tight">Homepage Features</h2>
+<p class="text-sm text-gray-500 mb-2">Enable or disable sections on your member-facing homepage.</p>
+<div class="flex flex-col gap-5">
+<div class="flex items-center justify-between">
+<div>
+<p class="font-medium text-background-dark text-sm">Loan Calculator</p>
+<p class="text-xs text-gray-500">Allow members to estimate loan terms.</p>
+</div>
+<label class="relative inline-flex items-center cursor-pointer">
+<input checked="" class="sr-only peer" type="checkbox" value=""/>
+<div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
+</label>
+</div>
+<div class="flex items-center justify-between">
+<div>
+<p class="font-medium text-background-dark text-sm">FAQ Section</p>
+<p class="text-xs text-gray-500">Display frequently asked questions.</p>
+</div>
+<label class="relative inline-flex items-center cursor-pointer">
+<input checked="" class="sr-only peer" type="checkbox" value=""/>
+<div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
+</label>
+</div>
+<div class="flex items-center justify-between">
+<div>
+<p class="font-medium text-background-dark text-sm">Testimonials</p>
+<p class="text-xs text-gray-500">Showcase member success stories.</p>
+</div>
+<label class="relative inline-flex items-center cursor-pointer">
+<input class="sr-only peer" type="checkbox" value=""/>
+<div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
+</label>
+</div>
+</div>
+</div>
+<!-- Content Management Grid -->
+<div class="lg:col-span-2 flex flex-col gap-6">
+<div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+<div class="flex items-center justify-between mb-6">
+<h2 class="text-background-dark text-xl font-semibold leading-tight">Manage FAQs</h2>
+<button class="flex items-center gap-1 text-sm font-medium text-primary hover:underline">
+<span class="material-symbols-outlined text-sm">add</span> Add FAQ
+              </button>
+</div>
+<div class="flex flex-col gap-3">
+<div class="flex items-start justify-between p-4 border border-gray-100 rounded-lg bg-gray-50 group">
+<div>
+<p class="font-medium text-background-dark text-sm mb-1">What are the requirements for a personal loan?</p>
+<p class="text-sm text-gray-500 line-clamp-2">You need two valid IDs, proof of income for the last 3 months, and an active cooperative membership of at least 6 months.</p>
+</div>
+<div class="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+<button class="p-1 text-gray-500 hover:text-primary transition-colors" title="Edit"><span class="material-symbols-outlined text-[20px]">edit</span></button>
+<button class="p-1 text-gray-500 hover:text-red-600 transition-colors" title="Remove"><span class="material-symbols-outlined text-[20px]">delete</span></button>
+</div>
+</div>
+<div class="flex items-start justify-between p-4 border border-gray-100 rounded-lg bg-gray-50 group">
+<div>
+<p class="font-medium text-background-dark text-sm mb-1">How long does the approval process take?</p>
+<p class="text-sm text-gray-500 line-clamp-2">Typically, our loan approval process takes between 3 to 5 business days, provided all required documents are submitted.</p>
+</div>
+<div class="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+<button class="p-1 text-gray-500 hover:text-primary transition-colors" title="Edit"><span class="material-symbols-outlined text-[20px]">edit</span></button>
+<button class="p-1 text-gray-500 hover:text-red-600 transition-colors" title="Remove"><span class="material-symbols-outlined text-[20px]">delete</span></button>
+</div>
+</div>
+</div>
+</div>
+<div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+<div class="flex items-center justify-between mb-6">
+<h2 class="text-background-dark text-xl font-semibold leading-tight">Manage Testimonials</h2>
+<button class="flex items-center gap-1 text-sm font-medium text-primary hover:underline">
+<span class="material-symbols-outlined text-sm">add</span> Add Testimonial
+              </button>
+</div>
+<div class="flex flex-col gap-3">
+<div class="flex items-center justify-between p-4 border border-gray-100 rounded-lg bg-gray-50 group">
+<div class="flex items-center gap-4">
+<div class="w-10 h-10 rounded-full bg-gray-200 flex-shrink-0 flex items-center justify-center text-gray-500 font-bold">
+                  JD
+                </div>
+<div>
+<p class="font-medium text-background-dark text-sm">Jane Doe</p>
+<p class="text-xs text-gray-500">"The agri-loan helped me expand my farm operations significantly."</p>
+</div>
+</div>
+<div class="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+<button class="p-1 text-gray-500 hover:text-primary transition-colors" title="Edit"><span class="material-symbols-outlined text-[20px]">edit</span></button>
+<button class="p-1 text-gray-500 hover:text-red-600 transition-colors" title="Remove"><span class="material-symbols-outlined text-[20px]">delete</span></button>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</body></html>

@@ -72,15 +72,15 @@ export function CompassionActionsTab({ actions }: { actions: any[] }) {
 
   if (actions.length === 0) {
     return (
-      <Card className="border-emerald-100/50 shadow-sm">
+      <Card className="border-primary/10 shadow-sm">
         <CardContent className="flex flex-col items-center justify-center min-h-[300px] text-center">
-          <div className="w-16 h-16 bg-emerald-50 rounded-full flex items-center justify-center mb-4">
-            <HeartPulse className="w-8 h-8 text-emerald-500 opacity-50" />
+          <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mb-4">
+            <HeartPulse className="w-8 h-8 text-primary opacity-50" />
           </div>
-          <p className="text-emerald-900 font-bold font-display text-lg">
+          <p className="font-bold font-display text-lg text-primary">
             Walang Pending Requests
           </p>
-          <p className="text-emerald-600/70 text-sm">
+          <p className="text-sm text-primary/70">
             You have no Compassion Action requests awaiting approval.
           </p>
         </CardContent>
@@ -93,16 +93,16 @@ export function CompassionActionsTab({ actions }: { actions: any[] }) {
       {actions.map((act) => (
         <Card
           key={act.action_id}
-          className="overflow-hidden border-emerald-100 shadow-sm"
+          className="overflow-hidden border-primary/10 shadow-sm"
         >
-          <CardHeader className="bg-emerald-50/50 pb-4">
+          <CardHeader className="bg-primary/[0.05] pb-4">
             <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
               <div className="flex items-start gap-3">
-                <div className="rounded-xl bg-emerald-100 p-2.5 text-emerald-600">
+                <div className="rounded-xl bg-primary/10 p-2.5 text-primary">
                   <HeartPulse className="h-5 w-5" />
                 </div>
                 <div>
-                  <CardTitle className="text-lg text-emerald-950 font-display">
+                  <CardTitle className="text-lg font-display text-primary">
                     {act.requester?.profile?.first_name}{" "}
                     {act.requester?.profile?.last_name}
                   </CardTitle>
@@ -137,7 +137,7 @@ export function CompassionActionsTab({ actions }: { actions: any[] }) {
                       Requested
                     </p>
                     <p className="flex items-center gap-2 text-sm font-medium text-slate-900">
-                      <Clock className="h-4 w-4 text-emerald-600" />
+                      <Clock className="h-4 w-4 text-primary" />
                       {new Date(act.requested_at).toLocaleDateString()}
                     </p>
                   </div>
@@ -171,7 +171,7 @@ export function CompassionActionsTab({ actions }: { actions: any[] }) {
                 {act.loan?.user && (
                   <div className="rounded-xl border border-slate-100 bg-white p-4">
                     <div className="mb-2 flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-slate-500">
-                      <Wallet className="h-4 w-4 text-emerald-600" />
+                      <Wallet className="h-4 w-4 text-primary" />
                       Borrower Snapshot
                     </div>
                     <div className="grid grid-cols-1 gap-2 text-sm text-slate-600 md:grid-cols-2">
@@ -193,8 +193,8 @@ export function CompassionActionsTab({ actions }: { actions: any[] }) {
                 )}
               </div>
 
-              <div className="space-y-3 rounded-xl border border-emerald-100/50 bg-emerald-50/40 p-4">
-                <h4 className="mb-2 text-xs font-bold uppercase tracking-widest text-emerald-800">
+              <div className="space-y-3 rounded-xl border border-primary/10 bg-primary/[0.04] p-4">
+                <h4 className="mb-2 text-xs font-bold uppercase tracking-widest text-primary">
                   Admin Approval Process
                 </h4>
                 {selectedAction === act.action_id ? (
@@ -215,7 +215,7 @@ export function CompassionActionsTab({ actions }: { actions: any[] }) {
                         size="sm"
                         disabled={isPending && processingId === act.action_id}
                         onClick={() => handleProcess(act.action_id, "approved")}
-                        className="bg-emerald-600 hover:bg-emerald-700 text-white flex-1"
+                        className="bg-primary hover:bg-primary/90 text-primary-foreground flex-1"
                       >
                         <CheckCircle2 className="w-4 h-4 mr-2" /> Approve Relief
                       </Button>
@@ -244,7 +244,7 @@ export function CompassionActionsTab({ actions }: { actions: any[] }) {
                   <div className="space-y-3">
                     <div className="rounded-xl border border-white/70 bg-white px-3 py-2 text-sm text-slate-600">
                       <div className="mb-1 flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-slate-500">
-                        <MessageSquareText className="h-4 w-4 text-emerald-600" />
+                        <MessageSquareText className="h-4 w-4 text-primary" />
                         Response needed
                       </div>
                       Magbigay ng malinaw na tugon sa miyembro. Makikita nila
@@ -253,7 +253,7 @@ export function CompassionActionsTab({ actions }: { actions: any[] }) {
                     </div>
                     <Button
                       onClick={() => setSelectedAction(act.action_id)}
-                      className="w-full bg-emerald-600 hover:bg-emerald-700 text-white"
+                      className="w-full bg-primary hover:bg-primary/90 text-primary-foreground"
                     >
                       Review Case & Provide Feedback
                     </Button>

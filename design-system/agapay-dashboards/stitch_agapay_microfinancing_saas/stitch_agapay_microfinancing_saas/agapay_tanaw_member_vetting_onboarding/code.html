@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Member Vetting &amp; Onboarding - Agapay</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=Outfit:wght@500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "on-tertiary-fixed": "#2a1700",
+                      "background": "#0b1326",
+                      "surface-container": "#171f33",
+                      "secondary-fixed": "#6ffbbe",
+                      "on-primary-fixed": "#00174b",
+                      "on-background": "#dae2fd",
+                      "on-error": "#690005",
+                      "primary-container": "#2563eb",
+                      "primary-fixed": "#dbe1ff",
+                      "inverse-on-surface": "#283044",
+                      "surface-container-high": "#222a3d",
+                      "tertiary-fixed": "#ffddb8",
+                      "outline-variant": "#434655",
+                      "primary-fixed-dim": "#b4c5ff",
+                      "on-primary": "#002a78",
+                      "error-container": "#93000a",
+                      "secondary-container": "#00a572",
+                      "on-tertiary": "#472a00",
+                      "tertiary": "#ffb95f",
+                      "on-tertiary-container": "#ffeedd",
+                      "surface-variant": "#2d3449",
+                      "on-surface": "#dae2fd",
+                      "on-secondary": "#003824",
+                      "on-secondary-container": "#00311f",
+                      "secondary-fixed-dim": "#4edea3",
+                      "on-secondary-fixed": "#002113",
+                      "on-primary-container": "#eeefff",
+                      "inverse-surface": "#dae2fd",
+                      "on-primary-fixed-variant": "#003ea8",
+                      "tertiary-container": "#996100",
+                      "surface-container-low": "#131b2e",
+                      "surface-dim": "#0b1326",
+                      "on-secondary-fixed-variant": "#005236",
+                      "primary": "#b4c5ff",
+                      "on-error-container": "#ffdad6",
+                      "surface-bright": "#31394d",
+                      "surface": "#0b1326",
+                      "outline": "#8d90a0",
+                      "on-tertiary-fixed-variant": "#653e00",
+                      "surface-container-highest": "#2d3449",
+                      "surface-tint": "#b4c5ff",
+                      "on-surface-variant": "#c3c6d7",
+                      "inverse-primary": "#0053db",
+                      "error": "#ffb4ab",
+                      "tertiary-fixed-dim": "#ffb95f",
+                      "surface-container-lowest": "#060e20",
+                      "secondary": "#4edea3"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.125rem",
+                      "lg": "0.25rem",
+                      "xl": "0.5rem",
+                      "full": "0.75rem"
+              },
+              "spacing": {
+                      "sidebar_width": "280px",
+                      "stack_md": "16px",
+                      "stack_lg": "24px",
+                      "margin_desktop": "32px",
+                      "gutter": "24px",
+                      "container_max_width": "1440px",
+                      "margin_mobile": "16px",
+                      "stack_sm": "8px"
+              },
+              "fontFamily": {
+                      "body-lg": ["Inter"],
+                      "body-sm": ["Inter"],
+                      "display-lg": ["Outfit"],
+                      "headline-sm": ["Outfit"],
+                      "body-md": ["Inter"],
+                      "mono-data": ["Inter"],
+                      "label-md": ["Inter"],
+                      "headline-lg": ["Outfit"],
+                      "headline-md": ["Outfit"]
+              },
+              "fontSize": {
+                      "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
+                      "body-sm": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                      "display-lg": ["48px", {"lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                      "headline-sm": ["20px", {"lineHeight": "28px", "fontWeight": "500"}],
+                      "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                      "mono-data": ["14px", {"lineHeight": "20px", "fontWeight": "500"}],
+                      "label-md": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "600"}],
+                      "headline-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                      "headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "600"}]
+              }
+            }
+          }
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+          font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .material-symbols-outlined.fill {
+            font-variation-settings: 'FILL' 1;
+        }
+    </style>
+</head>
+<body class="bg-background text-on-surface font-body-md antialiased selection:bg-primary-container selection:text-on-primary-container min-h-screen flex">
+<!-- SideNavBar -->
+<aside class="fixed left-0 top-0 h-full w-sidebar_width bg-surface-container dark:bg-surface-container border-r border-outline-variant flex flex-col z-50 py-stack_lg">
+<div class="px-6 mb-8">
+<h1 class="font-headline-md text-headline-md font-bold text-on-surface tracking-tight">Agapay Microfinance</h1>
+<p class="font-body-sm text-body-sm text-on-surface-variant mt-1">Institutional Portal</p>
+</div>
+<div class="px-4 mb-6">
+<button class="w-full bg-primary-container text-on-primary-container font-label-md text-label-md py-3 rounded-DEFAULT hover:bg-primary-fixed-dim transition-colors flex items-center justify-center gap-2">
+<span class="material-symbols-outlined text-[18px]">add</span>
+                New Disbursement
+            </button>
+</div>
+<nav class="flex-1 flex flex-col gap-1 px-2">
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:bg-surface-container-highest hover:text-on-surface transition-colors rounded-r-DEFAULT" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+<span class="font-label-md text-label-md">Dashboard</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:bg-surface-container-highest hover:text-on-surface transition-colors rounded-r-DEFAULT" href="#">
+<span class="material-symbols-outlined">payments</span>
+<span class="font-label-md text-label-md">Loans</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:bg-surface-container-highest hover:text-on-surface transition-colors rounded-r-DEFAULT" href="#">
+<span class="material-symbols-outlined">account_balance_wallet</span>
+<span class="font-label-md text-label-md">Collections</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface border-l-4 border-primary bg-surface-container-high rounded-r-DEFAULT translate-x-1 duration-200" href="#">
+<span class="material-symbols-outlined">group</span>
+<span class="font-label-md text-label-md">Clients</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:bg-surface-container-highest hover:text-on-surface transition-colors rounded-r-DEFAULT" href="#">
+<span class="material-symbols-outlined">assessment</span>
+<span class="font-label-md text-label-md">Reports</span>
+</a>
+</nav>
+<div class="px-2 mt-auto flex flex-col gap-1 pt-6 border-t border-outline-variant/30">
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:bg-surface-container-highest hover:text-on-surface transition-colors rounded-r-DEFAULT" href="#">
+<span class="material-symbols-outlined">settings</span>
+<span class="font-label-md text-label-md">Settings</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:bg-surface-container-highest hover:text-on-surface transition-colors rounded-r-DEFAULT" href="#">
+<span class="material-symbols-outlined">logout</span>
+<span class="font-label-md text-label-md">Sign Out</span>
+</a>
+</div>
+</aside>
+<!-- Main Content Area -->
+<div class="ml-sidebar_width flex-1 flex flex-col min-h-screen">
+<!-- TopNavBar -->
+<header class="bg-surface dark:bg-surface border-b border-outline-variant shadow-sm docked full-width top-0 sticky z-40 flex justify-between items-center h-16 px-margin_desktop">
+<div class="flex items-center gap-4">
+<h2 class="font-headline-sm text-headline-sm text-on-surface">Identity Verification Queue</h2>
+<span class="bg-surface-container-highest text-on-surface-variant px-2 py-0.5 rounded-DEFAULT font-mono-data text-[12px] border border-outline-variant/50">12 Pending</span>
+</div>
+<div class="flex items-center gap-4">
+<button class="text-on-surface-variant hover:text-primary transition-opacity relative p-2">
+<span class="material-symbols-outlined">search</span>
+</button>
+<div class="h-6 w-px bg-outline-variant/50 mx-2"></div>
+<button class="text-on-surface-variant hover:text-primary transition-opacity relative p-2">
+<span class="material-symbols-outlined">notifications</span>
+<span class="absolute top-1 right-1 w-2 h-2 bg-error rounded-full"></span>
+</button>
+<button class="text-on-surface-variant hover:text-primary transition-opacity p-2">
+<span class="material-symbols-outlined">help_outline</span>
+</button>
+<div class="flex items-center gap-3 pl-4 border-l border-outline-variant/50 ml-2">
+<div class="flex flex-col items-end">
+<span class="font-label-md text-label-md text-on-surface">Administrator</span>
+</div>
+<img alt="User Avatar" class="w-8 h-8 rounded-full border border-outline-variant" data-alt="A small, circular profile picture of an administrator in a dark, professional microfinance application setting. The avatar features a confident individual with a subtle, modern aesthetic, fitting the institutional theme." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCFQNGDC_-1Au6V0jEhQwinVFgCnN_5Zpyem8MckwPvkAelcmsYEJxyVHw-6y5HewntibzxeSSiskJCbkVoM_nt_nZH5QiYoB2hPtJFXwIGkeqQlvuEJpeLoHY7B29ma4PH36Y552eylHVolipGV3AfEYxxjOiO8gkDoCJe8mrMjq2K7lKvKPcu121g0i4frUKhe97tvJYUbLdVuzYvOat0vIWm_qmPnt4BKL2HOr1oyg5v74se_TtvkTkA9HkE378ceqdfObjji70"/>
+</div>
+</div>
+</header>
+<!-- Main Workspace -->
+<main class="flex-1 p-margin_desktop pb-24 max-w-[1600px] mx-auto w-full">
+<!-- Breadcrumb & Header Actions -->
+<div class="flex justify-between items-end mb-stack_lg">
+<div>
+<div class="flex items-center gap-2 text-on-surface-variant font-label-md text-label-md mb-2">
+<a class="hover:text-primary transition-colors" href="#">Clients</a>
+<span class="material-symbols-outlined text-[14px]">chevron_right</span>
+<a class="hover:text-primary transition-colors" href="#">Queue</a>
+<span class="material-symbols-outlined text-[14px]">chevron_right</span>
+<span class="text-on-surface">Application #APP-2023-0891</span>
+</div>
+<h2 class="font-display-lg text-display-lg text-on-surface">Maria Santos</h2>
+</div>
+<div class="flex gap-3">
+<button class="px-4 py-2 border border-outline-variant text-on-surface rounded-DEFAULT font-label-md text-label-md hover:bg-surface-container-high transition-colors">
+                        Previous
+                    </button>
+<button class="px-4 py-2 border border-outline-variant text-on-surface rounded-DEFAULT font-label-md text-label-md hover:bg-surface-container-high transition-colors">
+                        Next in Queue
+                    </button>
+</div>
+</div>
+<!-- Bento Grid Layout -->
+<div class="grid grid-cols-12 gap-gutter">
+<!-- Left Column: Data Review -->
+<div class="col-span-12 xl:col-span-5 flex flex-col gap-stack_md">
+<!-- Applicant Summary -->
+<div class="bg-[#1E293B] border border-[#334155] rounded-lg p-6">
+<div class="flex justify-between items-start mb-6">
+<div>
+<h3 class="font-headline-sm text-headline-sm text-on-surface mb-1">Personal Details</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Submitted Oct 24, 2023 • 09:41 AM</p>
+</div>
+<span class="bg-primary-container/20 text-primary-fixed border border-primary-container px-2.5 py-1 rounded-DEFAULT font-label-md text-label-md flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[16px]">pending_actions</span>
+                                Under Review
+                            </span>
+</div>
+<div class="grid grid-cols-2 gap-y-4 gap-x-6">
+<div>
+<label class="font-label-md text-label-md text-on-surface-variant block mb-1">Full Name</label>
+<div class="font-body-md text-body-md text-on-surface">Maria Corazon Santos</div>
+</div>
+<div>
+<label class="font-label-md text-label-md text-on-surface-variant block mb-1">Date of Birth</label>
+<div class="font-body-md text-body-md text-on-surface">14 Mar 1985 (38 yrs)</div>
+</div>
+<div>
+<label class="font-label-md text-label-md text-on-surface-variant block mb-1">Contact Number</label>
+<div class="font-body-md text-body-md text-on-surface">+63 917 555 0192</div>
+</div>
+<div>
+<label class="font-label-md text-label-md text-on-surface-variant block mb-1">Civil Status</label>
+<div class="font-body-md text-body-md text-on-surface">Married</div>
+</div>
+<div class="col-span-2">
+<label class="font-label-md text-label-md text-on-surface-variant block mb-1">Present Address</label>
+<div class="font-body-md text-body-md text-on-surface">Blk 4 Lot 12, Phase 2, Mabuhay Subdivision, Brgy. San Jose, Antipolo City, Rizal</div>
+</div>
+</div>
+</div>
+<!-- Business Information -->
+<div class="bg-[#1E293B] border border-[#334155] rounded-lg p-6">
+<div class="flex justify-between items-center mb-6">
+<h3 class="font-headline-sm text-headline-sm text-on-surface">Business Profile</h3>
+<button class="text-primary hover:text-primary-fixed transition-colors font-label-md text-label-md flex items-center gap-1">
+<span class="material-symbols-outlined text-[16px]">edit</span>
+                                Edit Note
+                            </button>
+</div>
+<div class="space-y-5">
+<div class="flex items-start gap-4 p-4 bg-surface-container rounded-DEFAULT border border-outline-variant/30">
+<div class="p-2 bg-surface-container-high rounded-DEFAULT text-on-surface-variant">
+<span class="material-symbols-outlined">storefront</span>
+</div>
+<div>
+<div class="font-headline-sm text-headline-sm text-on-surface">Santos Sari-Sari Store</div>
+<div class="font-body-sm text-body-sm text-on-surface-variant mt-1">Retail / General Merchandise • Operating for 3 Years</div>
+</div>
+</div>
+<div class="grid grid-cols-2 gap-4">
+<div>
+<label class="font-label-md text-label-md text-on-surface-variant block mb-1">Declared Daily Income</label>
+<div class="font-mono-data text-[16px] text-on-surface">₱ 2,500.00</div>
+</div>
+<div>
+<label class="font-label-md text-label-md text-on-surface-variant block mb-1">Requested Loan</label>
+<div class="font-mono-data text-[16px] text-primary-fixed">₱ 15,000.00</div>
+</div>
+</div>
+<div class="pt-4 border-t border-outline-variant/30">
+<label class="font-label-md text-label-md text-on-surface-variant block mb-2">Existing Obligations (Self-Declared)</label>
+<div class="flex items-center justify-between p-3 bg-surface-container-low rounded-DEFAULT border border-outline-variant/30">
+<div class="flex items-center gap-3 text-on-surface">
+<span class="material-symbols-outlined text-[18px] text-on-surface-variant">account_balance</span>
+<span class="font-body-sm text-body-sm">Rural Bank of Antipolo</span>
+</div>
+<span class="font-mono-data text-[14px] text-on-surface">₱ 5,000.00 (Current)</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Right Column: Document Verification Viewer -->
+<div class="col-span-12 xl:col-span-7 flex flex-col h-full bg-[#1E293B] border border-[#334155] rounded-lg overflow-hidden relative">
+<!-- Viewer Header -->
+<div class="flex items-center justify-between px-6 py-4 border-b border-[#334155] bg-surface-container">
+<div class="flex gap-2">
+<button class="px-4 py-2 bg-surface-container-high border-b-2 border-primary text-primary font-label-md text-label-md">Valid ID</button>
+<button class="px-4 py-2 text-on-surface-variant hover:text-on-surface font-label-md text-label-md transition-colors">Selfie</button>
+<button class="px-4 py-2 text-on-surface-variant hover:text-on-surface font-label-md text-label-md transition-colors">Brgy. Cert</button>
+<button class="px-4 py-2 text-on-surface-variant hover:text-on-surface font-label-md text-label-md transition-colors">Store Photo</button>
+</div>
+<div class="flex gap-2 text-on-surface-variant">
+<button class="p-1 hover:text-on-surface transition-colors" title="Zoom Out"><span class="material-symbols-outlined">zoom_out</span></button>
+<button class="p-1 hover:text-on-surface transition-colors" title="Zoom In"><span class="material-symbols-outlined">zoom_in</span></button>
+<button class="p-1 hover:text-on-surface transition-colors ml-2" title="Rotate"><span class="material-symbols-outlined">rotate_right</span></button>
+</div>
+</div>
+<!-- Main Document Canvas -->
+<div class="flex-1 bg-surface relative overflow-hidden flex items-center justify-center p-8 min-h-[500px]">
+<!-- Background pattern for viewer -->
+<div class="absolute inset-0 opacity-[0.03]" style="background-image: radial-gradient(#dae2fd 1px, transparent 1px); background-size: 20px 20px;"></div>
+<!-- High Res Document Preview -->
+<div class="relative w-full max-w-2xl shadow-2xl group cursor-crosshair">
+<img alt="Identity Document" class="w-full h-auto rounded-DEFAULT border border-outline-variant shadow-lg" data-alt="A highly detailed, close-up digital rendering of a generic, modern national identity card lying flat on a dark slate surface. The card features a clear portrait area, intricate micro-printing security patterns in subtle cyan and magenta, and crisp typography. The scene is illuminated by a sharp, angled studio light that highlights the plastic texture and a holographic overlay reflecting light. The overall mood is clinical, secure, and professional, perfectly suited for a financial verification dashboard." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAyDpAK02yXR91lGHEnzrYx3dFO-Af4PO2OZyfH5YcuRko8S7Z-dk83uqDss8L9veqD_H3BAg5lUS-LSjrWWMmMDL_PpkvyWEkblTDK8ORKzJy_DA5PfzOPRq3BjAVdStSnOKhaRaq_ma7tx92IZlolcl8Q-GR4Bx77Vf3vWOLPua-KyIvjVLA4wfq9ciQdMxuIuLHSDKT5HGXwt6PPm7Xux7z9M5lSrZ3hTAGHXLaIh3aQQ_06t35HyYwXYy3LPZj2wzTnLVKbE5E"/>
+<!-- OCR Highlight Overlay -->
+<div class="absolute top-[20%] left-[10%] right-[40%] h-[15%] border-2 border-secondary bg-secondary/10 rounded-[2px] opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-start justify-end p-1">
+<span class="bg-secondary text-on-secondary font-mono-data text-[10px] px-1 rounded-sm">Confidence: 98%</span>
+</div>
+</div>
+<!-- Side panel for OCR Extraction results -->
+<div class="absolute right-0 top-0 bottom-0 w-64 bg-[#1E293B]/95 backdrop-blur-md border-l border-[#334155] p-4 transform translate-x-full hover:translate-x-0 transition-transform duration-300 ease-in-out flex flex-col gap-4">
+<div class="flex items-center gap-2 text-secondary mb-2">
+<span class="material-symbols-outlined text-[18px]">document_scanner</span>
+<h4 class="font-label-md text-label-md">OCR Extraction</h4>
+</div>
+<div>
+<label class="font-label-md text-[10px] text-on-surface-variant block">Extracted Name</label>
+<div class="font-mono-data text-sm text-on-surface bg-surface-container p-2 rounded-sm border border-outline-variant/30 flex justify-between items-center mt-1">
+                                    SANTOS, MARIA C.
+                                    <span class="material-symbols-outlined text-[14px] text-secondary">check_circle</span>
+</div>
+</div>
+<div>
+<label class="font-label-md text-[10px] text-on-surface-variant block">ID Number</label>
+<div class="font-mono-data text-sm text-on-surface bg-surface-container p-2 rounded-sm border border-outline-variant/30 flex justify-between items-center mt-1">
+                                    0000-1234-5678-9012
+                                    <span class="material-symbols-outlined text-[14px] text-secondary">check_circle</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Verification Checks -->
+<div class="bg-surface-container border-t border-[#334155] p-4">
+<div class="grid grid-cols-3 gap-4">
+<div class="flex items-center gap-3 p-3 bg-surface-container-high rounded-DEFAULT border border-secondary/30">
+<div class="w-8 h-8 rounded-full bg-secondary/10 flex items-center justify-center text-secondary">
+<span class="material-symbols-outlined text-[18px]">verified_user</span>
+</div>
+<div>
+<div class="font-label-md text-label-md text-on-surface">Face Match</div>
+<div class="font-body-sm text-[12px] text-secondary">Match Score: 94%</div>
+</div>
+</div>
+<div class="flex items-center gap-3 p-3 bg-surface-container-high rounded-DEFAULT border border-secondary/30">
+<div class="w-8 h-8 rounded-full bg-secondary/10 flex items-center justify-center text-secondary">
+<span class="material-symbols-outlined text-[18px]">fact_check</span>
+</div>
+<div>
+<div class="font-label-md text-label-md text-on-surface">Liveness Check</div>
+<div class="font-body-sm text-[12px] text-secondary">Passed (Auto)</div>
+</div>
+</div>
+<div class="flex items-center gap-3 p-3 bg-surface-container-high rounded-DEFAULT border border-amber-500/30">
+<div class="w-8 h-8 rounded-full bg-amber-500/10 flex items-center justify-center text-amber-400">
+<span class="material-symbols-outlined text-[18px]">warning</span>
+</div>
+<div>
+<div class="font-label-md text-label-md text-on-surface">AMLA Watchlist</div>
+<div class="font-body-sm text-[12px] text-amber-400">Review Required</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+<!-- Sticky Action Footer -->
+<div class="fixed bottom-0 right-0 left-sidebar_width bg-[#1E293B] border-t border-[#334155] p-4 px-margin_desktop z-30 flex justify-between items-center shadow-[0_-4px_20px_rgba(0,0,0,0.2)]">
+<div class="flex items-center gap-3 text-on-surface-variant">
+<span class="material-symbols-outlined text-[20px]">info</span>
+<span class="font-body-sm text-body-sm">Ensure all documents are clearly legible before approving.</span>
+</div>
+<div class="flex gap-4">
+<button class="px-6 py-2.5 border border-outline-variant text-on-surface rounded-DEFAULT font-label-md text-label-md hover:bg-surface-container transition-colors flex items-center gap-2">
+<span class="material-symbols-outlined text-[18px]">question_mark</span>
+                    Request Clarification
+                </button>
+<button class="px-6 py-2.5 border border-error text-error rounded-DEFAULT font-label-md text-label-md hover:bg-error/10 transition-colors flex items-center gap-2">
+<span class="material-symbols-outlined text-[18px]">cancel</span>
+                    Reject with Reason
+                </button>
+<button class="px-8 py-2.5 bg-primary-container text-on-primary-container rounded-DEFAULT font-label-md text-label-md hover:bg-primary-fixed-dim transition-colors shadow-lg shadow-primary-container/20 flex items-center gap-2">
+<span class="material-symbols-outlined text-[18px]">how_to_reg</span>
+                    Approve Membership
+                </button>
+</div>
+</div>
+</div>
+</body></html>

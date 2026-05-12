@@ -255,8 +255,8 @@ export function WalletTab({ savings, transactions }: WalletTabProps) {
             </p>
           </div>
 
-          <div className="rounded-2xl border border-emerald-100 bg-emerald-50/70 p-4">
-            <div className="mb-2 flex items-center gap-2 text-emerald-700">
+          <div className="rounded-2xl border border-primary/10 bg-primary/[0.07] p-4">
+            <div className="mb-2 flex items-center gap-2 text-primary">
               <ShieldCheck className="h-4 w-4" />
               <p className="text-xs font-black uppercase tracking-[0.18em]">
                 Simple Guide
@@ -275,12 +275,12 @@ export function WalletTab({ savings, transactions }: WalletTabProps) {
         <div className="mt-4 flex justify-start lg:justify-end">
           <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
             <DialogTrigger asChild>
-              <Button className="rounded-2xl bg-emerald-600 px-5 py-5 font-bold text-white shadow-lg shadow-emerald-900/10 hover:bg-emerald-700">
+              <Button className="rounded-2xl bg-primary px-5 py-5 font-bold text-primary-foreground shadow-lg shadow-primary/10 hover:bg-primary/90">
                 <Plus className="mr-2 h-5 w-5" />
                 Add to Wallet
               </Button>
             </DialogTrigger>
-            <DialogContent className="rounded-[2rem] border-emerald-100 bg-white p-8 sm:max-w-lg">
+            <DialogContent className="rounded-[2rem] border-primary/10 bg-white p-8 sm:max-w-lg">
               <DialogHeader>
                 <DialogTitle className="text-2xl font-display font-bold">
                   Add Funds
@@ -307,7 +307,7 @@ export function WalletTab({ savings, transactions }: WalletTabProps) {
                     <Input
                       type="number"
                       placeholder="0.00"
-                      className="h-14 rounded-2xl border-slate-100 pl-10 text-xl font-display font-bold focus:border-emerald-300 focus:ring-emerald-300"
+                      className="h-14 rounded-2xl border-slate-100 pl-10 text-xl font-display font-bold focus:border-primary/30 focus:ring-primary/30"
                       value={depositAmount}
                       onChange={(e) => setDepositAmount(e.target.value)}
                     />
@@ -319,7 +319,7 @@ export function WalletTab({ savings, transactions }: WalletTabProps) {
                     Deposit Method
                   </label>
                   <Select value={depositMethod} onValueChange={setDepositMethod}>
-                    <SelectTrigger className="h-14 rounded-2xl border-slate-100 text-base font-bold focus:border-emerald-300 focus:ring-emerald-300">
+                    <SelectTrigger className="h-14 rounded-2xl border-slate-100 text-base font-bold focus:border-primary/30 focus:ring-primary/30">
                       <SelectValue placeholder="Select deposit method" />
                     </SelectTrigger>
                     <SelectContent>
@@ -339,7 +339,7 @@ export function WalletTab({ savings, transactions }: WalletTabProps) {
                   <Input
                     type="text"
                     placeholder="e.g. GCash ref #, bank confirmation #"
-                    className="h-14 rounded-2xl border-slate-100 text-base font-medium focus:border-emerald-300 focus:ring-emerald-300"
+                    className="h-14 rounded-2xl border-slate-100 text-base font-medium focus:border-primary/30 focus:ring-primary/30"
                     value={referenceNumber}
                     onChange={(e) => setReferenceNumber(e.target.value)}
                   />
@@ -350,7 +350,7 @@ export function WalletTab({ savings, transactions }: WalletTabProps) {
                     Proof of Deposit (optional)
                   </label>
                   <div className="flex items-center gap-3">
-                    <label className="flex h-14 w-full cursor-pointer items-center gap-3 rounded-2xl border-2 border-dashed border-slate-200 bg-slate-50 px-4 text-sm text-slate-500 hover:border-emerald-300 hover:bg-emerald-50 transition-colors">
+                    <label className="flex h-14 w-full cursor-pointer items-center gap-3 rounded-2xl border-2 border-dashed border-slate-200 bg-slate-50 px-4 text-sm text-slate-500 hover:border-primary/30 hover:bg-primary/10 transition-colors">
                       <Upload className="h-5 w-5 text-slate-400" />
                       <span className="font-medium">
                         {proofFile ? proofFile.name : "Upload screenshot or receipt"}
@@ -377,7 +377,7 @@ export function WalletTab({ savings, transactions }: WalletTabProps) {
                 <Button
                   onClick={handleDeposit}
                   disabled={isDepositing}
-                  className="h-14 w-full rounded-2xl bg-emerald-600 text-lg font-bold text-white hover:bg-emerald-700"
+                  className="h-14 w-full rounded-2xl bg-primary text-lg font-bold text-primary-foreground hover:bg-primary/90"
                 >
                   {isDepositing ? (
                     <Loader2 className="mr-2 h-5 w-5 animate-spin" />

@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Repayment Dashboard - Agapay</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "surface-container-high": "#222a3d",
+                    "on-tertiary": "#472a00",
+                    "surface-bright": "#31394d",
+                    "secondary-fixed-dim": "#4edea3",
+                    "error-container": "#93000a",
+                    "background": "#0b1326",
+                    "surface": "#0b1326",
+                    "primary-container": "#2563eb",
+                    "secondary-fixed": "#6ffbbe",
+                    "outline-variant": "#434655",
+                    "on-error": "#690005",
+                    "inverse-surface": "#dae2fd",
+                    "on-tertiary-fixed": "#2a1700",
+                    "on-surface-variant": "#c3c6d7",
+                    "inverse-on-surface": "#283044",
+                    "tertiary-fixed-dim": "#ffb95f",
+                    "tertiary-container": "#996100",
+                    "inverse-primary": "#0053db",
+                    "surface-dim": "#0b1326",
+                    "primary": "#b4c5ff",
+                    "on-primary-container": "#eeefff",
+                    "on-error-container": "#ffdad6",
+                    "on-secondary-fixed": "#002113",
+                    "surface-container-lowest": "#060e20",
+                    "outline": "#8d90a0",
+                    "surface-container": "#171f33",
+                    "on-primary": "#002a78",
+                    "tertiary-fixed": "#ffddb8",
+                    "surface-variant": "#2d3449",
+                    "on-secondary-container": "#00311f",
+                    "on-primary-fixed": "#00174b",
+                    "on-secondary": "#003824",
+                    "primary-fixed-dim": "#b4c5ff",
+                    "on-tertiary-fixed-variant": "#653e00",
+                    "surface-container-low": "#131b2e",
+                    "on-tertiary-container": "#ffeedd",
+                    "error": "#ffb4ab",
+                    "surface-tint": "#b4c5ff",
+                    "on-surface": "#dae2fd",
+                    "secondary": "#4edea3",
+                    "primary-fixed": "#dbe1ff",
+                    "tertiary": "#ffb95f",
+                    "surface-container-highest": "#2d3449",
+                    "on-secondary-fixed-variant": "#005236",
+                    "secondary-container": "#00a572",
+                    "on-primary-fixed-variant": "#003ea8",
+                    "on-background": "#dae2fd"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.125rem",
+                    "lg": "0.25rem",
+                    "xl": "0.5rem",
+                    "full": "0.75rem"
+            },
+            "spacing": {
+                    "stack_lg": "24px",
+                    "sidebar_width": "280px",
+                    "container_max_width": "1440px",
+                    "stack_md": "16px",
+                    "margin_mobile": "16px",
+                    "stack_sm": "8px",
+                    "margin_desktop": "32px",
+                    "gutter": "24px"
+            },
+            "fontFamily": {
+                    "display-lg": ["Outfit"],
+                    "headline-sm": ["Outfit"],
+                    "body-md": ["Inter"],
+                    "headline-md": ["Outfit"],
+                    "body-sm": ["Inter"],
+                    "body-lg": ["Inter"],
+                    "label-md": ["Inter"],
+                    "mono-data": ["Inter"],
+                    "headline-lg": ["Outfit"]
+            },
+            "fontSize": {
+                    "display-lg": ["48px", {"lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                    "headline-sm": ["20px", {"lineHeight": "28px", "fontWeight": "500"}],
+                    "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                    "headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                    "body-sm": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                    "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
+                    "label-md": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "600"}],
+                    "mono-data": ["14px", {"lineHeight": "20px", "fontWeight": "500"}],
+                    "headline-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.01em", "fontWeight": "600"}]
+            }
+          }
+        }
+      }
+    </script>
+<style>
+        body { font-family: 'Inter', sans-serif; }
+        h1, h2, h3, h4, h5, h6, .font-display-lg, .font-headline-lg, .font-headline-md, .font-headline-sm { font-family: 'Outfit', sans-serif; }
+    </style>
+</head>
+<body class="bg-background text-on-surface antialiased">
+<!-- TopNavBar -->
+<nav class="bg-surface dark:bg-surface docked full-width top-0 sticky z-40 border-b border-outline-variant shadow-sm flex justify-between items-center h-16 px-margin_desktop ml-sidebar_width md:ml-[280px]">
+<div class="flex items-center gap-4">
+<!-- Search placeholder for alignment -->
+<div class="w-64 h-10 bg-surface-container rounded flex items-center px-3 border border-outline-variant">
+<span class="material-symbols-outlined text-on-surface-variant mr-2" data-icon="search">search</span>
+<span class="text-body-sm font-body-sm text-on-surface-variant">Search...</span>
+</div>
+</div>
+<div class="flex items-center gap-6">
+<div class="flex items-center gap-4 text-on-surface-variant">
+<button class="hover:text-primary transition-opacity relative">
+<span class="material-symbols-outlined" data-icon="notifications">notifications</span>
+<span class="absolute top-0 right-0 w-2 h-2 bg-error rounded-full"></span>
+</button>
+<button class="hover:text-primary transition-opacity">
+<span class="material-symbols-outlined" data-icon="help_outline">help_outline</span>
+</button>
+</div>
+<div class="flex items-center gap-3 pl-4 border-l border-outline-variant">
+<div class="flex flex-col items-end">
+<span class="text-label-md font-label-md text-on-surface">Administrator</span>
+</div>
+<div class="w-8 h-8 rounded-full bg-surface-container-high border border-outline-variant overflow-hidden">
+<img alt="User Avatar" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuD8h08yAQgwcp-9bWCYp8OIOT-KL9_DOTuO2FjatuAxEh6E75NE67qQfO6HRAutvHyKrH29gy19Tmf2pcISeHHisRDsLID4y-Et0di1euv6wC68LwvxwTqrx_RZ9Dn3EIATDvP63vsbiFy0NshaLLy0T7NOmOSfhWH1eBUXzHyeFkRy8LwOeiTmne2MaxIZ3RGi7eNf9KjCRYFtm4Ywzzer5fna1e4MHr6zM0Zc23t5Yb_bQENqDTwv8J_xu8BsI27dSyQEKNU5t9Y"/>
+</div>
+</div>
+</div>
+</nav>
+<!-- SideNavBar -->
+<aside class="bg-surface-container dark:bg-surface-container fixed left-0 top-0 h-full w-sidebar_width border-r border-outline-variant flex flex-col py-stack_lg hidden md:flex z-50">
+<div class="px-6 mb-8">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded bg-primary-container flex items-center justify-center">
+<span class="font-headline-md text-headline-md font-bold text-on-primary-container">A</span>
+</div>
+<div>
+<h1 class="font-headline-sm text-headline-sm font-bold text-on-surface">Agapay Microfinance</h1>
+<p class="font-label-md text-label-md text-on-surface-variant">Institutional Portal</p>
+</div>
+</div>
+</div>
+<div class="px-4 mb-6">
+<button class="w-full bg-primary-container text-on-primary-container font-label-md text-label-md py-3 rounded-lg flex items-center justify-center gap-2 hover:bg-inverse-primary transition-colors">
+<span class="material-symbols-outlined" data-icon="add">add</span>
+                New Disbursement
+            </button>
+</div>
+<nav class="flex-1 px-2 space-y-1">
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface border-l-4 border-primary bg-surface-container-high translate-x-1 duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="dashboard">dashboard</span>
+<span class="font-label-md text-label-md">Dashboard</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:bg-surface-container-highest hover:text-on-surface transition-colors border-l-4 border-transparent" href="#">
+<span class="material-symbols-outlined" data-icon="payments">payments</span>
+<span class="font-label-md text-label-md">Loans</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:bg-surface-container-highest hover:text-on-surface transition-colors border-l-4 border-transparent" href="#">
+<span class="material-symbols-outlined" data-icon="account_balance_wallet">account_balance_wallet</span>
+<span class="font-label-md text-label-md">Collections</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:bg-surface-container-highest hover:text-on-surface transition-colors border-l-4 border-transparent" href="#">
+<span class="material-symbols-outlined" data-icon="group">group</span>
+<span class="font-label-md text-label-md">Clients</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:bg-surface-container-highest hover:text-on-surface transition-colors border-l-4 border-transparent" href="#">
+<span class="material-symbols-outlined" data-icon="assessment">assessment</span>
+<span class="font-label-md text-label-md">Reports</span>
+</a>
+</nav>
+<div class="mt-auto px-2 space-y-1">
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:bg-surface-container-highest hover:text-on-surface transition-colors border-l-4 border-transparent" href="#">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+<span class="font-label-md text-label-md">Settings</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:bg-surface-container-highest hover:text-on-surface transition-colors border-l-4 border-transparent" href="#">
+<span class="material-symbols-outlined" data-icon="logout">logout</span>
+<span class="font-label-md text-label-md">Sign Out</span>
+</a>
+</div>
+</aside>
+<!-- Main Content -->
+<main class="md:ml-[280px] p-margin_mobile md:p-margin_desktop min-h-screen">
+<header class="mb-stack_lg">
+<h2 class="font-headline-lg text-headline-lg text-on-surface">Member Repayment</h2>
+<p class="font-body-md text-body-md text-on-surface-variant">Manage your active loans and upcoming installments.</p>
+</header>
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-gutter">
+<!-- Active Loan Overview (Bento Grid Style) -->
+<div class="lg:col-span-8 grid grid-cols-1 md:grid-cols-2 gap-stack_md">
+<!-- Main Status Card -->
+<div class="bg-surface-container-low border border-outline-variant rounded-xl p-6 relative overflow-hidden md:col-span-2 flex flex-col md:flex-row items-center justify-between">
+<div class="z-10">
+<div class="inline-flex items-center gap-2 px-3 py-1 rounded bg-secondary-container/10 text-secondary-container border border-secondary-container/20 mb-4">
+<span class="material-symbols-outlined text-[16px]" data-icon="check_circle" data-weight="fill">check_circle</span>
+<span class="font-label-md text-label-md">Active - On Track</span>
+</div>
+<h3 class="font-headline-md text-headline-md text-on-surface mb-1">Micro-Enterprise Loan</h3>
+<p class="font-mono-data text-mono-data text-on-surface-variant mb-6">ID: LN-2023-8842</p>
+<div class="flex items-baseline gap-2">
+<span class="font-display-lg text-display-lg text-on-surface">₱12,500</span>
+<span class="font-body-md text-body-md text-on-surface-variant">/ ₱25,000</span>
+</div>
+<p class="font-label-md text-label-md text-on-surface-variant mt-1">Remaining Balance</p>
+</div>
+<!-- Circular Progress Ring (Simulated with CSS) -->
+<div class="relative w-48 h-48 mt-6 md:mt-0 z-10 flex items-center justify-center">
+<svg class="w-full h-full transform -rotate-90" viewbox="0 0 100 100">
+<circle class="text-surface-container-high" cx="50" cy="50" fill="transparent" r="40" stroke="currentColor" stroke-width="8"></circle>
+<circle class="text-secondary" cx="50" cy="50" fill="transparent" r="40" stroke="currentColor" stroke-dasharray="251.2" stroke-dashoffset="125.6" stroke-width="8"></circle>
+</svg>
+<div class="absolute inset-0 flex flex-col items-center justify-center text-center">
+<span class="font-headline-lg text-headline-lg text-on-surface">50%</span>
+<span class="font-label-md text-label-md text-on-surface-variant">Paid</span>
+</div>
+</div>
+<!-- Decorative background element -->
+<div class="absolute top-0 right-0 w-64 h-64 bg-secondary/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/4"></div>
+</div>
+<!-- Schedule Card -->
+<div class="bg-surface-container-low border border-outline-variant rounded-xl p-6">
+<div class="flex items-center justify-between mb-6">
+<h4 class="font-headline-sm text-headline-sm text-on-surface">Upcoming Installments</h4>
+<span class="material-symbols-outlined text-on-surface-variant" data-icon="calendar_month">calendar_month</span>
+</div>
+<div class="space-y-4">
+<div class="flex items-center justify-between p-3 rounded-lg bg-surface-container border border-primary/30 relative overflow-hidden">
+<div class="absolute left-0 top-0 bottom-0 w-1 bg-primary"></div>
+<div>
+<p class="font-label-md text-label-md text-on-surface mb-1">Nov 15, 2023</p>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Installment 6/12</p>
+</div>
+<div class="text-right">
+<p class="font-mono-data text-mono-data text-on-surface">₱2,083.33</p>
+<span class="text-[10px] uppercase tracking-wider font-semibold text-primary">Due Soon</span>
+</div>
+</div>
+<div class="flex items-center justify-between p-3 rounded-lg border border-outline-variant">
+<div>
+<p class="font-label-md text-label-md text-on-surface mb-1">Dec 15, 2023</p>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Installment 7/12</p>
+</div>
+<div class="text-right">
+<p class="font-mono-data text-mono-data text-on-surface">₱2,083.33</p>
+</div>
+</div>
+</div>
+</div>
+<!-- AI Tip Card -->
+<div class="bg-surface-container-low border border-outline-variant rounded-xl p-6 relative overflow-hidden group">
+<div class="absolute inset-0 bg-gradient-to-br from-primary/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
+<div class="flex items-center gap-3 mb-4">
+<div class="w-8 h-8 rounded bg-primary/20 flex items-center justify-center text-primary">
+<span class="material-symbols-outlined text-[18px]" data-icon="lightbulb" data-weight="fill">lightbulb</span>
+</div>
+<h4 class="font-headline-sm text-headline-sm text-on-surface">Pintig Insight</h4>
+</div>
+<p class="font-body-md text-body-md text-on-surface-variant mb-4 relative z-10">
+                        Paying your next installment 3 days early will boost your Trust Score by +15 points, unlocking lower interest rates on future renewals.
+                    </p>
+<a class="inline-flex items-center gap-1 font-label-md text-label-md text-primary hover:text-primary-fixed transition-colors relative z-10" href="#">
+                        View Trust Score <span class="material-symbols-outlined text-[14px]" data-icon="arrow_forward">arrow_forward</span>
+</a>
+</div>
+</div>
+<!-- Make Payment Interface -->
+<div class="lg:col-span-4">
+<div class="bg-surface-container-low border border-outline-variant rounded-xl p-6 sticky top-24 shadow-[0_8px_30px_rgb(0,0,0,0.12)]">
+<h4 class="font-headline-sm text-headline-sm text-on-surface mb-6 border-b border-outline-variant pb-4">Make Payment</h4>
+<form>
+<!-- Amount -->
+<div class="mb-6">
+<label class="block font-label-md text-label-md text-on-surface-variant mb-2">Payment Amount</label>
+<div class="relative">
+<span class="absolute left-3 top-1/2 -translate-y-1/2 font-mono-data text-mono-data text-on-surface-variant">₱</span>
+<input class="w-full bg-surface border border-outline-variant rounded-lg py-2 pl-8 pr-3 font-mono-data text-mono-data text-on-surface focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all" type="number" value="2083.33"/>
+</div>
+</div>
+<!-- Method Selection -->
+<div class="mb-6">
+<label class="block font-label-md text-label-md text-on-surface-variant mb-3">Payment Method</label>
+<div class="space-y-3">
+<label class="flex items-center justify-between p-3 rounded-lg border border-primary bg-primary/5 cursor-pointer">
+<div class="flex items-center gap-3">
+<input checked="" class="text-primary bg-surface border-outline-variant focus:ring-primary" name="payment_method" type="radio"/>
+<span class="font-body-md text-body-md text-on-surface">Agapay Wallet</span>
+</div>
+<span class="font-mono-data text-mono-data text-on-surface-variant">Bal: ₱4,500.00</span>
+</label>
+<label class="flex items-center justify-between p-3 rounded-lg border border-outline-variant hover:border-outline cursor-pointer transition-colors">
+<div class="flex items-center gap-3">
+<input class="text-primary bg-surface border-outline-variant focus:ring-primary" name="payment_method" type="radio"/>
+<span class="font-body-md text-body-md text-on-surface">GCash / Maya</span>
+</div>
+<span class="material-symbols-outlined text-on-surface-variant text-[18px]" data-icon="qr_code_scanner">qr_code_scanner</span>
+</label>
+</div>
+</div>
+<!-- Receipt Upload (Conditional based on external method, showing for layout purposes) -->
+<div class="mb-8">
+<label class="block font-label-md text-label-md text-on-surface-variant mb-2">Upload Receipt (For External)</label>
+<div class="border-2 border-dashed border-outline-variant rounded-lg p-6 text-center hover:border-primary/50 transition-colors cursor-pointer bg-surface/50">
+<span class="material-symbols-outlined text-outline mb-2" data-icon="cloud_upload">cloud_upload</span>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Drag &amp; drop or click to browse</p>
+<p class="text-[10px] text-outline mt-1">JPG, PNG up to 5MB</p>
+</div>
+</div>
+<button class="w-full bg-primary-container text-on-primary-container font-label-md text-label-md py-3 rounded-lg hover:bg-inverse-primary transition-colors flex justify-center items-center gap-2 shadow-sm shadow-primary/20" type="button">
+                            Confirm Payment
+                            <span class="material-symbols-outlined text-[18px]" data-icon="arrow_forward">arrow_forward</span>
+</button>
+</form>
+</div>
+</div>
+</div>
+</main>
+</body></html>

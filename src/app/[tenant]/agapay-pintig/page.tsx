@@ -314,7 +314,7 @@ export default async function AgapayPintigPage({
                     Your potential borrowing power based on trust.
                   </p>
                 </div>
-                <div className="w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center">
+                <div className="w-12 h-12 rounded-2xl bg-primary/10 text-primary flex items-center justify-center">
                   <HeartPulse className="w-6 h-6" />
                 </div>
               </div>
@@ -326,14 +326,14 @@ export default async function AgapayPintigPage({
                   </p>
                   <Badge
                     variant="secondary"
-                    className="bg-emerald-50 text-emerald-700 border-none font-black text-[10px] uppercase tracking-widest px-3 py-1.5 h-auto"
+                    className="bg-primary/10 text-primary border-none font-black text-[10px] uppercase tracking-widest px-3 py-1.5 h-auto"
                   >
                     {memberTierLabel}
                   </Badge>
                 </div>
                 <div className="h-3 w-full bg-slate-100 rounded-full overflow-hidden">
                   <div
-                    className="h-full bg-emerald-500 rounded-full shadow-[0_0_15px_rgba(16,185,129,0.4)] transition-all duration-1000"
+                    className="h-full bg-primary rounded-full shadow-[0_0_15px_color-mix(in_srgb,var(--primary)_40%,transparent)] transition-all duration-1000"
                     style={{
                       width: `${Math.min(100, (availableCredit / getTierPolicy(member?.interest_tier).capAmount) * 100)}%`,
                     }}
@@ -348,7 +348,7 @@ export default async function AgapayPintigPage({
 
             <div className="dashboard-card-strong p-8 relative overflow-hidden group flex flex-col justify-between">
               <div className="relative z-10">
-                <div className="w-12 h-12 rounded-2xl bg-emerald-500 flex items-center justify-center mb-6 shadow-lg shadow-emerald-500/20">
+                <div className="w-12 h-12 rounded-2xl bg-primary flex items-center justify-center mb-6 shadow-lg shadow-primary/20">
                   <Wallet className="w-6 h-6" />
                 </div>
                 <h3 className="text-2xl font-display font-medium leading-tight">
@@ -363,14 +363,14 @@ export default async function AgapayPintigPage({
                 <a
                   href={`/${tenant}/api/reports/soa?userId=${userId}&tenantId=${tenantId}`}
                   target="_blank"
-                  className="inline-flex items-center gap-2 text-sm font-bold text-emerald-400 hover:text-emerald-300 transition-colors"
+                  className="inline-flex items-center gap-2 text-sm font-bold text-primary/80 hover:text-primary transition-colors"
                 >
                   <span>DOWNLOAD SOA</span>
                   <ArrowUpRight className="w-4 h-4" />
                 </a>
               </div>
 
-              <div className="absolute -bottom-10 -right-10 w-48 h-48 bg-emerald-500/10 rounded-full blur-3xl group-hover:bg-emerald-500/20 transition-all duration-500" />
+              <div className="absolute -bottom-10 -right-10 w-48 h-48 bg-primary/10 rounded-full blur-3xl group-hover:bg-primary/20 transition-all duration-500" />
             </div>
           </div>
 
@@ -502,8 +502,8 @@ export default async function AgapayPintigPage({
           totalSavings === 0 &&
           totalWalletBalance === 0 ? (
             <div className="dashboard-card flex flex-col items-center justify-center space-y-5 text-center">
-              <div className="flex h-20 w-20 items-center justify-center rounded-full bg-emerald-50">
-                <LayoutDashboard className="h-10 w-10 text-emerald-200" />
+              <div className="flex h-20 w-20 items-center justify-center rounded-full bg-primary/10">
+                <LayoutDashboard className="h-10 w-10 text-primary/30" />
               </div>
               <div className="space-y-2">
                 <h2 className="text-2xl font-display font-bold text-slate-800">

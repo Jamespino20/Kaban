@@ -301,7 +301,7 @@ function PendingLoansSection({ loans }: { loans: any[] }) {
               <Button
                 disabled={isPending && processingId === loan.loan_id}
                 onClick={() => handleApprove(loan.loan_id)}
-                className="flex-1 rounded-xl bg-emerald-600 text-white hover:bg-emerald-700"
+                className="flex-1 rounded-xl bg-primary text-primary-foreground hover:bg-primary/90"
               >
                 {isPending && processingId === loan.loan_id ? "Approving..." : "Approve"}
               </Button>
@@ -463,7 +463,7 @@ function IdentityVerificationSection({
           sideAction={
             <button
               onClick={() => toast.info("Identity verification workflow coming soon. The member's uploaded documents will be reviewed here.")}
-              className="flex h-10 w-10 items-center justify-center rounded-2xl bg-slate-50 transition-all hover:bg-slate-900 hover:text-white cursor-pointer"
+              className="flex h-10 w-10 items-center justify-center rounded-2xl bg-slate-50 transition-all hover:bg-primary hover:text-primary-foreground cursor-pointer"
             >
               <UserCheck className="h-4 w-4" />
             </button>
@@ -535,7 +535,7 @@ function ReleaseLoanCard({ loan }: { loan: any }) {
       actions={
         <Dialog open={open} onOpenChange={setOpen}>
           <DialogTrigger asChild>
-            <Button className="w-full rounded-xl bg-emerald-600 text-white hover:bg-emerald-700">
+            <Button className="w-full rounded-xl bg-primary text-primary-foreground hover:bg-primary/90">
               I-release ang Mock Funds
             </Button>
           </DialogTrigger>
@@ -593,7 +593,7 @@ function ReleaseLoanCard({ loan }: { loan: any }) {
               <Button
                 disabled={isPending || !methodId || !reference.trim()}
                 onClick={handleRelease}
-                className="w-full rounded-xl bg-emerald-600 text-white hover:bg-emerald-700"
+                className="w-full rounded-xl bg-primary text-primary-foreground hover:bg-primary/90"
               >
                 Confirm Release
               </Button>
@@ -702,7 +702,7 @@ function ReviewPaymentCard({ payment }: { payment: any }) {
           <Button
             disabled={isPending && processingId === payment.payment_id}
             onClick={handleVerify}
-            className="flex-1 rounded-xl bg-emerald-600 text-white hover:bg-emerald-700"
+            className="flex-1 rounded-xl bg-primary text-primary-foreground hover:bg-primary/90"
           >
             {isPending && processingId === payment.payment_id ? "Verifying..." : "Verify"}
           </Button>
@@ -1002,7 +1002,7 @@ function AmountSummary({
 }) {
   return (
     <div className="text-right">
-      <p className="text-sm font-bold text-emerald-600">
+      <p className="text-sm font-bold text-primary">
         PHP {amount.toLocaleString()}
       </p>
       <p className="text-[9px] font-bold uppercase tracking-widest text-slate-400">

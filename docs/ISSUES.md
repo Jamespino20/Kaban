@@ -2,11 +2,21 @@
 
 ## SYSTEMWIDE ISSUES
 
+###  Systemwide
+- Lost the Fraunces and PlusJarkartaSans fonts
+- CSS is messy and layoutting does not speak "premium SaaS"
+
 ### Platform Homepage
 
-##  Systemwide
-- Lost the Fraunces and PlusJarkartaSans fonts
-- CSS is messy and does not speak "premium SaaS color palette"
+### Color Palette
+- Right now, the colors are messy
+
+#### Agapay Platform
+npx shadcn@latest init --preset b2oqW07n6 --base base --template next --rtl --pointer
+
+#### Tenant
+- Depending on the brand color of the tenant
+- There are still elements that uses the Agapay Platform colors.
 
 ### Database
 - Add username field, then randomize the member code. Do not attach the membercode to the username, then implement this naming convention: [username][slug][role_initials]

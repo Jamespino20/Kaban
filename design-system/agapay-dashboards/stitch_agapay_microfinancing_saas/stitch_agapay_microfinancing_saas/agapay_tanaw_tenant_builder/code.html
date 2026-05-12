@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Tenant Builder - Agapay SaaS</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "tertiary-fixed-dim": "#ffb95f",
+                      "secondary": "#4edea3",
+                      "on-secondary-fixed-variant": "#005236",
+                      "secondary-fixed-dim": "#4edea3",
+                      "secondary-fixed": "#6ffbbe",
+                      "outline": "#8d90a0",
+                      "on-tertiary-container": "#ffeedd",
+                      "primary": "#b4c5ff",
+                      "secondary-container": "#00a572",
+                      "on-surface-variant": "#c3c6d7",
+                      "on-surface": "#dae2fd",
+                      "on-error": "#690005",
+                      "surface-container-high": "#222a3d",
+                      "tertiary": "#ffb95f",
+                      "surface-container-lowest": "#060e20",
+                      "surface-container": "#171f33",
+                      "outline-variant": "#434655",
+                      "on-secondary-container": "#00311f",
+                      "background": "#0b1326",
+                      "error": "#ffb4ab",
+                      "error-container": "#93000a",
+                      "surface-dim": "#0b1326",
+                      "inverse-on-surface": "#283044",
+                      "surface-tint": "#b4c5ff",
+                      "on-primary-container": "#eeefff",
+                      "on-tertiary": "#472a00",
+                      "surface-bright": "#31394d",
+                      "primary-fixed-dim": "#b4c5ff",
+                      "surface-container-highest": "#2d3449",
+                      "inverse-primary": "#0053db",
+                      "surface": "#0b1326",
+                      "on-primary-fixed": "#00174b",
+                      "primary-container": "#2563eb",
+                      "on-primary": "#002a78",
+                      "tertiary-fixed": "#ffddb8",
+                      "primary-fixed": "#dbe1ff",
+                      "on-secondary-fixed": "#002113",
+                      "on-primary-fixed-variant": "#003ea8",
+                      "tertiary-container": "#996100",
+                      "surface-variant": "#2d3449",
+                      "on-error-container": "#ffdad6",
+                      "inverse-surface": "#dae2fd",
+                      "surface-container-low": "#131b2e",
+                      "on-tertiary-fixed-variant": "#653e00",
+                      "on-tertiary-fixed": "#2a1700",
+                      "on-background": "#dae2fd",
+                      "on-secondary": "#003824"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.125rem",
+                      "lg": "0.25rem",
+                      "xl": "0.5rem",
+                      "full": "0.75rem"
+              },
+              "spacing": {
+                      "margin_desktop": "32px",
+                      "stack_sm": "8px",
+                      "stack_md": "16px",
+                      "gutter": "24px",
+                      "stack_lg": "24px",
+                      "container_max_width": "1440px",
+                      "sidebar_width": "280px",
+                      "margin_mobile": "16px"
+              },
+              "fontFamily": {
+                      "headline-lg": ["Outfit"],
+                      "headline-md": ["Outfit"],
+                      "headline-sm": ["Outfit"],
+                      "body-sm": ["Inter"],
+                      "mono-data": ["Inter"],
+                      "display-lg": ["Outfit"],
+                      "label-md": ["Inter"],
+                      "body-lg": ["Inter"],
+                      "body-md": ["Inter"]
+              },
+              "fontSize": {
+                      "headline-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                      "headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                      "headline-sm": ["20px", {"lineHeight": "28px", "fontWeight": "500"}],
+                      "body-sm": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                      "mono-data": ["14px", {"lineHeight": "20px", "fontWeight": "500"}],
+                      "display-lg": ["48px", {"lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                      "label-md": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "600"}],
+                      "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
+                      "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}]
+              }
+            }
+          }
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .icon-fill {
+            font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        /* Custom scrollbar for deep mode */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #0b1326; }
+        ::-webkit-scrollbar-thumb { background: #2d3449; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #434655; }
+    </style>
+</head>
+<body class="bg-background text-on-background font-body-md min-h-screen flex antialiased">
+<!-- SideNavBar (Shared Component) -->
+<aside class="fixed left-0 top-0 h-full w-sidebar_width bg-surface-container border-r border-outline-variant flex flex-col py-stack_lg z-50">
+<div class="px-margin_desktop mb-stack_lg flex items-center gap-3">
+<div class="w-8 h-8 rounded bg-primary flex items-center justify-center">
+<span class="material-symbols-outlined text-on-primary icon-fill text-xl" data-icon="account_balance">account_balance</span>
+</div>
+<div>
+<h1 class="font-headline-sm text-headline-sm font-bold text-on-surface">Agapay SaaS</h1>
+<p class="font-label-md text-label-md text-on-surface-variant">Institutional Portal</p>
+</div>
+</div>
+<div class="px-4 mb-stack_md">
+<button class="w-full bg-primary hover:bg-primary-fixed transition-colors text-on-primary font-label-md text-label-md py-3 rounded flex items-center justify-center gap-2">
+<span class="material-symbols-outlined text-sm" data-icon="add">add</span>
+                New Tenant
+            </button>
+</div>
+<nav class="flex-1 overflow-y-auto flex flex-col gap-1">
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface border-l-4 border-primary bg-surface-container-high transition-colors" href="#">
+<span class="material-symbols-outlined" data-icon="business">business</span>
+<span class="font-label-md text-label-md">Tenants</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:bg-surface-container-highest hover:text-on-surface transition-colors border-l-4 border-transparent" href="#">
+<span class="material-symbols-outlined" data-icon="dashboard">dashboard</span>
+<span class="font-label-md text-label-md">Dashboard</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:bg-surface-container-highest hover:text-on-surface transition-colors border-l-4 border-transparent" href="#">
+<span class="material-symbols-outlined" data-icon="receipt_long">receipt_long</span>
+<span class="font-label-md text-label-md">Billing</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:bg-surface-container-highest hover:text-on-surface transition-colors border-l-4 border-transparent" href="#">
+<span class="material-symbols-outlined" data-icon="group">group</span>
+<span class="font-label-md text-label-md">Global Clients</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:bg-surface-container-highest hover:text-on-surface transition-colors border-l-4 border-transparent" href="#">
+<span class="material-symbols-outlined" data-icon="assessment">assessment</span>
+<span class="font-label-md text-label-md">SaaS Reports</span>
+</a>
+</nav>
+<div class="mt-auto px-4 flex flex-col gap-1">
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:bg-surface-container-highest hover:text-on-surface transition-colors border-l-4 border-transparent" href="#">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+<span class="font-label-md text-label-md">Settings</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:bg-surface-container-highest hover:text-on-surface transition-colors border-l-4 border-transparent" href="#">
+<span class="material-symbols-outlined" data-icon="logout">logout</span>
+<span class="font-label-md text-label-md">Sign Out</span>
+</a>
+</div>
+</aside>
+<!-- Main Content Area -->
+<div class="flex-1 ml-sidebar_width flex flex-col min-h-screen">
+<!-- TopNavBar (Shared Component) -->
+<header class="h-16 bg-surface border-b border-outline-variant flex items-center justify-between px-margin_desktop sticky top-0 z-40 hidden md:flex shadow-sm">
+<div class="flex items-center gap-4">
+<!-- Breadcrumbs -->
+<div class="flex items-center gap-2 font-label-md text-label-md text-on-surface-variant">
+<span>Tenants</span>
+<span class="material-symbols-outlined text-sm">chevron_right</span>
+<span class="text-primary">Create New</span>
+</div>
+</div>
+<div class="flex items-center gap-gutter">
+<div class="flex items-center gap-3">
+<button class="text-on-surface-variant hover:text-primary transition-opacity opacity-80 hover:opacity-100">
+<span class="material-symbols-outlined" data-icon="notifications">notifications</span>
+</button>
+<button class="text-on-surface-variant hover:text-primary transition-opacity opacity-80 hover:opacity-100">
+<span class="material-symbols-outlined" data-icon="help_outline">help_outline</span>
+</button>
+</div>
+<div class="flex items-center gap-3 pl-gutter border-l border-outline-variant">
+<div class="text-right hidden lg:block">
+<p class="font-label-md text-label-md text-on-surface">Superadmin User</p>
+<p class="font-label-md text-label-md text-on-surface-variant text-[10px]">Administrator</p>
+</div>
+<div class="w-8 h-8 rounded-full bg-surface-variant border border-outline-variant overflow-hidden">
+<!-- Placeholder for avatar -->
+<div class="w-full h-full flex items-center justify-center text-on-surface-variant">
+<span class="material-symbols-outlined text-sm">person</span>
+</div>
+</div>
+</div>
+</div>
+</header>
+<!-- Builder Canvas -->
+<main class="flex-1 p-margin_desktop overflow-y-auto">
+<div class="mb-stack_lg">
+<h2 class="font-headline-lg text-headline-lg text-on-surface">Tenant Builder</h2>
+<p class="font-body-md text-body-md text-on-surface-variant mt-1">Configure instance details, assign resources, and deploy a new microfinance environment.</p>
+</div>
+<!-- Split Screen Layout -->
+<div class="grid grid-cols-1 xl:grid-cols-12 gap-gutter items-start">
+<!-- LEFT COLUMN: Form Controls -->
+<div class="xl:col-span-5 flex flex-col gap-stack_lg">
+<!-- Basic Information -->
+<section class="bg-surface-container rounded-xl border border-outline-variant p-stack_lg">
+<div class="flex items-center gap-2 mb-stack_md border-b border-outline-variant pb-2">
+<span class="material-symbols-outlined text-primary text-xl" data-icon="info">info</span>
+<h3 class="font-headline-sm text-headline-sm text-on-surface">Instance Details</h3>
+</div>
+<div class="space-y-stack_md">
+<div>
+<label class="block font-label-md text-label-md text-on-surface-variant mb-1">Tenant Name</label>
+<input class="w-full bg-surface border border-outline-variant rounded-lg px-3 py-2 text-on-surface font-body-md text-body-md focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary transition-colors placeholder:text-outline" placeholder="e.g., Kalinga Finance Inc." type="text"/>
+</div>
+<div class="grid grid-cols-2 gap-stack_md">
+<div>
+<label class="block font-label-md text-label-md text-on-surface-variant mb-1">Subdomain Slug</label>
+<div class="flex bg-surface border border-outline-variant rounded-lg overflow-hidden focus-within:border-primary focus-within:ring-1 focus-within:ring-primary transition-colors">
+<input class="w-full bg-transparent px-3 py-2 text-on-surface font-body-md text-body-md focus:outline-none placeholder:text-outline text-right" placeholder="kalinga" type="text"/>
+<span class="px-3 py-2 bg-surface-variant text-on-surface-variant font-mono-data text-mono-data border-l border-outline-variant">.agapay.ph</span>
+</div>
+</div>
+<div>
+<label class="block font-label-md text-label-md text-on-surface-variant mb-1">Data Region</label>
+<select class="w-full bg-surface border border-outline-variant rounded-lg px-3 py-2 text-on-surface font-body-md text-body-md focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary appearance-none cursor-pointer">
+<option value="ap-southeast-1">Asia Pacific (Manila)</option>
+<option value="ap-southeast-2">Asia Pacific (Singapore)</option>
+</select>
+</div>
+</div>
+</div>
+</section>
+<!-- Subscription Plan -->
+<section class="bg-surface-container rounded-xl border border-outline-variant p-stack_lg">
+<div class="flex items-center gap-2 mb-stack_md border-b border-outline-variant pb-2">
+<span class="material-symbols-outlined text-primary text-xl" data-icon="deployed_code">deployed_code</span>
+<h3 class="font-headline-sm text-headline-sm text-on-surface">Service Plan</h3>
+</div>
+<div class="grid grid-cols-3 gap-stack_sm">
+<!-- Core Plan -->
+<label class="cursor-pointer relative">
+<input checked="" class="peer sr-only" name="plan" type="radio"/>
+<div class="h-full rounded-lg border border-outline-variant bg-surface p-3 peer-checked:border-primary peer-checked:bg-surface-container-high hover:border-outline transition-colors text-center">
+<div class="font-label-md text-label-md text-on-surface mb-1">Core</div>
+<div class="font-label-md text-label-md text-on-surface-variant text-[10px]">Up to 1k active clients</div>
+<div class="absolute top-2 right-2 hidden peer-checked:block text-primary">
+<span class="material-symbols-outlined text-sm icon-fill">check_circle</span>
+</div>
+</div>
+</label>
+<!-- Pro Plan -->
+<label class="cursor-pointer relative">
+<input class="peer sr-only" name="plan" type="radio"/>
+<div class="h-full rounded-lg border border-outline-variant bg-surface p-3 peer-checked:border-primary peer-checked:bg-surface-container-high hover:border-outline transition-colors text-center">
+<div class="font-label-md text-label-md text-on-surface mb-1">Pro</div>
+<div class="font-label-md text-label-md text-on-surface-variant text-[10px]">Advanced Reporting</div>
+<div class="absolute top-2 right-2 hidden peer-checked:block text-primary">
+<span class="material-symbols-outlined text-sm icon-fill">check_circle</span>
+</div>
+</div>
+</label>
+<!-- Enterprise Plan -->
+<label class="cursor-pointer relative">
+<input class="peer sr-only" name="plan" type="radio"/>
+<div class="h-full rounded-lg border border-outline-variant bg-surface p-3 peer-checked:border-primary peer-checked:bg-surface-container-high hover:border-outline transition-colors text-center">
+<div class="font-label-md text-label-md text-on-surface mb-1">Enterprise</div>
+<div class="font-label-md text-label-md text-on-surface-variant text-[10px]">Custom Limits</div>
+<div class="absolute top-2 right-2 hidden peer-checked:block text-primary">
+<span class="material-symbols-outlined text-sm icon-fill">check_circle</span>
+</div>
+</div>
+</label>
+</div>
+</section>
+<!-- Branding & Identity -->
+<section class="bg-surface-container rounded-xl border border-outline-variant p-stack_lg">
+<div class="flex items-center gap-2 mb-stack_md border-b border-outline-variant pb-2">
+<span class="material-symbols-outlined text-primary text-xl" data-icon="palette">palette</span>
+<h3 class="font-headline-sm text-headline-sm text-on-surface">Branding</h3>
+</div>
+<div class="space-y-stack_md">
+<div>
+<label class="block font-label-md text-label-md text-on-surface-variant mb-2">Institution Logo</label>
+<div class="border-2 border-dashed border-outline-variant rounded-lg bg-surface p-6 flex flex-col items-center justify-center hover:bg-surface-container-high hover:border-primary transition-colors cursor-pointer group">
+<span class="material-symbols-outlined text-outline group-hover:text-primary text-3xl mb-2" data-icon="cloud_upload">cloud_upload</span>
+<p class="font-body-sm text-body-sm text-on-surface">Drag &amp; drop logo, or <span class="text-primary font-medium">browse</span></p>
+<p class="font-label-md text-label-md text-on-surface-variant mt-1 text-[10px]">PNG, SVG up to 2MB (transparent bg recommended)</p>
+</div>
+</div>
+<div class="grid grid-cols-2 gap-stack_md">
+<div>
+<label class="block font-label-md text-label-md text-on-surface-variant mb-1">Primary Color</label>
+<div class="flex items-center gap-2 bg-surface border border-outline-variant rounded-lg p-1 pr-3 focus-within:border-primary transition-colors">
+<input class="w-8 h-8 rounded cursor-pointer bg-transparent border-0 p-0" type="color" value="#00a572"/>
+<input class="w-full bg-transparent font-mono-data text-mono-data text-on-surface focus:outline-none uppercase" type="text" value="#00a572"/>
+</div>
+</div>
+<div>
+<label class="block font-label-md text-label-md text-on-surface-variant mb-1">Accent Color</label>
+<div class="flex items-center gap-2 bg-surface border border-outline-variant rounded-lg p-1 pr-3 focus-within:border-primary transition-colors">
+<input class="w-8 h-8 rounded cursor-pointer bg-transparent border-0 p-0" type="color" value="#ffb95f"/>
+<input class="w-full bg-transparent font-mono-data text-mono-data text-on-surface focus:outline-none uppercase" type="text" value="#ffb95f"/>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Functionality Toggles -->
+<section class="bg-surface-container rounded-xl border border-outline-variant p-stack_lg">
+<div class="flex items-center gap-2 mb-stack_md border-b border-outline-variant pb-2">
+<span class="material-symbols-outlined text-primary text-xl" data-icon="extension">extension</span>
+<h3 class="font-headline-sm text-headline-sm text-on-surface">Module Configuration</h3>
+</div>
+<div class="space-y-4">
+<!-- Toggle 1 -->
+<div class="flex items-center justify-between">
+<div>
+<p class="font-body-md text-body-md text-on-surface font-medium">Guarantorship Module</p>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Enable multi-party loan liability tracking.</p>
+</div>
+<label class="relative inline-flex items-center cursor-pointer">
+<input checked="" class="sr-only peer" type="checkbox" value=""/>
+<div class="w-11 h-6 bg-surface-variant peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
+</label>
+</div>
+<!-- Toggle 2 -->
+<div class="flex items-center justify-between">
+<div>
+<p class="font-body-md text-body-md text-on-surface font-medium">Mentorship &amp; Training</p>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Client education tracking and scoring.</p>
+</div>
+<label class="relative inline-flex items-center cursor-pointer">
+<input class="sr-only peer" type="checkbox" value=""/>
+<div class="w-11 h-6 bg-surface-variant peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-on-surface-variant after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
+</label>
+</div>
+<!-- Toggle 3 -->
+<div class="flex items-center justify-between">
+<div>
+<div class="flex items-center gap-2">
+<p class="font-body-md text-body-md text-on-surface font-medium">AI Risk Analytics</p>
+<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-tertiary-fixed-dim text-on-tertiary-fixed">PRO+</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Predictive default scoring for new applications.</p>
+</div>
+<label class="relative inline-flex items-center cursor-pointer opacity-50 pointer-events-none">
+<input class="sr-only peer" disabled="" type="checkbox" value=""/>
+<div class="w-11 h-6 bg-surface-variant peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-on-surface-variant after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
+</label>
+</div>
+</div>
+</section>
+<!-- Actions -->
+<div class="flex items-center justify-end gap-3 pt-4 border-t border-outline-variant">
+<button class="px-6 py-2 rounded-lg font-label-md text-label-md text-on-surface-variant hover:text-on-surface hover:bg-surface-variant transition-colors">
+                            Cancel
+                        </button>
+<button class="px-6 py-2 rounded-lg bg-primary text-on-primary font-label-md text-label-md hover:bg-primary-fixed transition-colors flex items-center gap-2 shadow-sm">
+<span class="material-symbols-outlined text-sm" data-icon="rocket_launch">rocket_launch</span>
+                            Deploy Instance
+                        </button>
+</div>
+</div>
+<!-- RIGHT COLUMN: Live Preview Canvas -->
+<div class="xl:col-span-7 sticky top-[100px]">
+<div class="bg-surface-container-high rounded-xl border border-outline-variant overflow-hidden shadow-2xl">
+<!-- Browser Header Mockup -->
+<div class="bg-surface-container-highest border-b border-outline-variant px-4 py-3 flex items-center gap-4">
+<div class="flex gap-1.5">
+<div class="w-3 h-3 rounded-full bg-outline-variant"></div>
+<div class="w-3 h-3 rounded-full bg-outline-variant"></div>
+<div class="w-3 h-3 rounded-full bg-outline-variant"></div>
+</div>
+<div class="flex-1 flex justify-center">
+<div class="bg-surface-container text-on-surface-variant font-mono-data text-[11px] px-6 py-1 rounded-full border border-outline-variant flex items-center gap-2">
+<span class="material-symbols-outlined text-[12px]" data-icon="lock">lock</span>
+                                    kalinga.agapay.ph
+                                </div>
+</div>
+<div class="w-12"></div> <!-- Spacer for balance -->
+</div>
+<!-- Preview Window Content (Simulated Dashboard) -->
+<div class="bg-background h-[600px] flex text-on-background relative overflow-hidden">
+<!-- Fake Sidebar -->
+<div class="w-48 bg-surface border-r border-outline-variant flex flex-col py-4 px-3 gap-6">
+<!-- Dynamic Logo Preview area -->
+<div class="flex items-center gap-2 px-2">
+<div class="w-6 h-6 rounded bg-[#00a572] flex items-center justify-center"> <!-- Using static custom color to simulate chosen primary -->
+<span class="text-white text-[10px] font-bold">K</span>
+</div>
+<span class="font-headline-sm text-[14px] font-bold text-on-surface truncate">Kalinga Fin...</span>
+</div>
+<div class="flex flex-col gap-1">
+<div class="flex items-center gap-3 px-2 py-2 rounded bg-surface-variant text-[#00a572] border-l-2 border-[#00a572]">
+<span class="material-symbols-outlined text-[16px]" data-icon="dashboard">dashboard</span>
+<span class="font-label-md text-[11px]">Dashboard</span>
+</div>
+<div class="flex items-center gap-3 px-2 py-2 text-on-surface-variant opacity-60">
+<span class="material-symbols-outlined text-[16px]" data-icon="payments">payments</span>
+<span class="font-label-md text-[11px]">Loans</span>
+</div>
+<div class="flex items-center gap-3 px-2 py-2 text-on-surface-variant opacity-60">
+<span class="material-symbols-outlined text-[16px]" data-icon="group">group</span>
+<span class="font-label-md text-[11px]">Clients</span>
+</div>
+</div>
+</div>
+<!-- Fake Main Content -->
+<div class="flex-1 p-6 flex flex-col gap-6">
+<div>
+<h4 class="font-headline-md text-[18px] text-on-surface">Overview</h4>
+<p class="font-body-sm text-[12px] text-on-surface-variant">Welcome to your new institutional portal.</p>
+</div>
+<!-- Metric Cards Grid -->
+<div class="grid grid-cols-2 gap-4">
+<!-- Card 1 -->
+<div class="bg-surface border border-outline-variant rounded-lg p-4 relative overflow-hidden">
+<div class="absolute top-0 right-0 w-16 h-16 bg-[#00a572] opacity-10 rounded-bl-full"></div>
+<p class="font-label-md text-[11px] text-on-surface-variant mb-1">Active Portfolio</p>
+<p class="font-display-lg text-[24px] text-on-surface">₱1.2M</p>
+<div class="mt-2 flex items-center gap-1 text-[#00a572]">
+<span class="material-symbols-outlined text-[12px]" data-icon="trending_up">trending_up</span>
+<span class="font-label-md text-[10px]">+4.2%</span>
+</div>
+</div>
+<!-- Card 2 -->
+<div class="bg-surface border border-outline-variant rounded-lg p-4 relative overflow-hidden">
+<div class="absolute top-0 right-0 w-16 h-16 bg-[#ffb95f] opacity-10 rounded-bl-full"></div>
+<p class="font-label-md text-[11px] text-on-surface-variant mb-1">Pending Disbursements</p>
+<p class="font-display-lg text-[24px] text-on-surface">14</p>
+<div class="mt-2 flex items-center gap-1 text-[#ffb95f]">
+<span class="material-symbols-outlined text-[12px]" data-icon="schedule">schedule</span>
+<span class="font-label-md text-[10px]">Action Required</span>
+</div>
+</div>
+</div>
+<!-- Fake Table Area -->
+<div class="flex-1 bg-surface border border-outline-variant rounded-lg p-4 flex flex-col gap-3">
+<div class="h-4 w-1/3 bg-surface-variant rounded"></div>
+<div class="h-8 w-full bg-surface-container rounded"></div>
+<div class="h-8 w-full bg-surface-container rounded opacity-70"></div>
+<div class="h-8 w-full bg-surface-container rounded opacity-40"></div>
+</div>
+</div>
+<!-- Overlay to indicate it's a preview -->
+<div class="absolute bottom-4 right-4 bg-surface-container-highest border border-outline-variant px-3 py-1.5 rounded-full shadow-lg flex items-center gap-2">
+<div class="w-2 h-2 rounded-full bg-secondary animate-pulse"></div>
+<span class="font-label-md text-[10px] text-on-surface uppercase tracking-wider">Live Preview</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+</div>
+</body></html>
