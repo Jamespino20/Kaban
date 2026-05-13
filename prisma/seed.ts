@@ -1,5 +1,5 @@
 import "dotenv/config";
-import { PrismaClient, Role, InterestTier } from "@prisma/client";
+import { PrismaClient, Role, InterestTier, AppModule } from "@prisma/client";
 import { PrismaNeon } from "@prisma/adapter-neon";
 import { neonConfig, Pool } from "@neondatabase/serverless";
 import bcrypt from "bcryptjs";
@@ -222,7 +222,7 @@ async function seedTenantData(client: any, tenant: any, ctx: any) {
     const isMale = Math.random() > 0.5;
     const first = pick(isMale ? NAMES_M : NAMES_F);
     const last = pick(SURNAMES);
-    const code = `AGP${year}O${String(i + 1).padStart(12, "0")}`;
+    const code = `${tenant.slug.toUpperCase()} O ${String(i + 1).padStart(6, "0")}`;
     const identity = buildMemberIdentity(first, last, code, tenant.slug);
 
     const user = await client.user.create({
@@ -256,7 +256,7 @@ async function seedTenantData(client: any, tenant: any, ctx: any) {
     const isMale = Math.random() > 0.5;
     const first = pick(isMale ? NAMES_M : NAMES_F);
     const last = pick(SURNAMES);
-    const code = `AGP${year}M${String(i + 1).padStart(12, "0")}`;
+    const code = `${tenant.slug.toUpperCase()} M ${String(i + 1).padStart(6, "0")}`;
     const identity = buildMemberIdentity(first, last, code, tenant.slug);
 
     const user = await client.user.create({
@@ -310,12 +310,7 @@ async function seedTenantData(client: any, tenant: any, ctx: any) {
   }
 
   // 4. Default Payment Methods (GCash, Bank Transfer, Cash, Maya)
-  const defaultPaymentMethods = [
-    "GCash",
-    "Bank Transfer",
-    "Cash",
-    "Maya",
-  ];
+  const defaultPaymentMethods = ["GCash", "Bank Transfer", "Cash", "Maya"];
   for (const name of defaultPaymentMethods) {
     await client.paymentMethod.create({
       data: {
@@ -338,6 +333,9 @@ async function main() {
 
   // 1. Clear Global Tables
   console.log("🧹 Clearing global tables...");
+  await prisma.receipt.deleteMany();
+  await prisma.billingInvoice.deleteMany();
+  await prisma.paymentMethod.deleteMany();
   await prisma.socialVouch.deleteMany();
   await prisma.userProfile.deleteMany();
   await prisma.tenantSubscription.deleteMany();
@@ -349,11 +347,31 @@ async function main() {
 
   // 1.5 System-Wide Ledger Accounts
   const ledgerAccounts = [
-    { code: "CASH_EQUIVALENTS", name: "Cash and Cash Equivalents", type: "ASSET" },
-    { code: "MEMBER_SAVINGS", name: "Member Savings Deposits", type: "LIABILITY" },
-    { code: "LOAN_RECEIVABLES", name: "Loan Receivables", type: "ASSET" },
-    { code: "INTEREST_INCOME", name: "Interest Income", type: "REVENUE" },
-    { code: "RECONC_DISCREPANCY", name: "Reconciliation Discrepancy", type: "EXPENSE" },
+    {
+      code: "CASH_EQUIVALENTS",
+      name: "Cash and Cash Equivalents",
+      type: "ASSET" as any,
+    },
+    {
+      code: "MEMBER_SAVINGS",
+      name: "Member Savings Deposits",
+      type: "LIABILITY" as any,
+    },
+    {
+      code: "LOAN_RECEIVABLES",
+      name: "Loan Receivables",
+      type: "ASSET" as any,
+    },
+    {
+      code: "INTEREST_INCOME",
+      name: "Interest Income",
+      type: "REVENUE" as any,
+    },
+    {
+      code: "RECONC_DISCREPANCY",
+      name: "Reconciliation Discrepancy",
+      type: "EXPENSE" as any,
+    },
   ];
   for (const acc of ledgerAccounts) {
     await prisma.ledgerAccount.create({ data: { ...acc, tenant_id: null } });
@@ -440,7 +458,7 @@ async function main() {
       password_hash: hashedAdmin,
       role: Role.superadmin,
       status: "active",
-      member_code: "SUPER-001",
+      member_code: "AGP S 000001",
       tenant_id: apexTenant.tenant_id,
       profile: {
         create: {
@@ -464,14 +482,90 @@ async function main() {
       },
     });
 
+    // Varying plans
+    const planIndex = i % 3;
+    const plan = seededPlans[planIndex];
+
+    const cycle = i % 2 === 0 ? "monthly" : "annually";
+    const startDate = new Date();
+    startDate.setMonth(startDate.getMonth() - rand(1, 10)); // Started 1-10 months ago
+    const endDate = new Date(startDate);
+    if (cycle === "monthly") {
+      endDate.setMonth(endDate.getMonth() + 1);
+    } else {
+      endDate.setFullYear(endDate.getFullYear() + 1);
+    }
+
+    let modules: AppModule[] = [];
+    if (plan.tier_name === "Agapay Core") {
+      modules = [
+        AppModule.wallet,
+        AppModule.loans,
+        AppModule.community,
+        AppModule.audit,
+      ];
+    } else if (plan.tier_name === "Agapay Pro") {
+      modules = [
+        AppModule.wallet,
+        AppModule.loans,
+        AppModule.community,
+        AppModule.audit,
+        AppModule.branding,
+        AppModule.reports,
+        AppModule.compassion,
+      ];
+    } else {
+      modules = [
+        AppModule.wallet,
+        AppModule.loans,
+        AppModule.community,
+        AppModule.audit,
+        AppModule.branding,
+        AppModule.reports,
+        AppModule.compassion,
+        AppModule.analytics,
+        AppModule.system_config,
+      ];
+    }
+
     await prisma.tenantSubscription.create({
       data: {
         tenant_id: tenant.tenant_id,
-        plan_id: seededPlans[1].id,
-        billing_cycle: "monthly",
+        plan_id: plan.id,
+        billing_cycle: cycle,
         status: "active",
+        start_date: startDate,
+        end_date: endDate,
+        activated_modules: modules,
       },
     });
+
+    // Tenant Payments (BillingInvoice)
+    for (let j = 0; j < rand(2, 5); j++) {
+      const isPaid = Math.random() > 0.2;
+      const invoiceDate = new Date(startDate);
+      invoiceDate.setMonth(invoiceDate.getMonth() + j);
+      await prisma.billingInvoice.create({
+        data: {
+          tenant_id: tenant.tenant_id,
+          invoice_number: `INV-${tenant.slug.toUpperCase()}-${year}-${String(j + 1).padStart(3, "0")}`,
+          amount: plan.price_monthly,
+          status: isPaid ? "paid" : "pending",
+          due_date: invoiceDate,
+          paid_at: isPaid ? new Date(invoiceDate.getTime() + 86400000) : null,
+          payment_method: isPaid
+            ? pick(["Credit Card", "Bank Transfer", "GCash"])
+            : null,
+          items: [
+            {
+              description: `${plan.tier_name} Subscription - ${cycle}`,
+              amount: Number(plan.price_monthly),
+              quantity: 1,
+            },
+          ],
+        },
+      });
+    }
 
     try {
       await prisma.$transaction(

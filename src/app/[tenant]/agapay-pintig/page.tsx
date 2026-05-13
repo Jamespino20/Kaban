@@ -137,6 +137,11 @@ export default async function AgapayPintigPage({
         font_pairing: true,
         logo_url: true,
         metadata: true,
+        tenantSubscription: {
+          select: {
+            activated_modules: true,
+          }
+        }
       },
     }),
     getUserFeedbackTickets(),
@@ -186,12 +191,10 @@ export default async function AgapayPintigPage({
   );
   const is2FAEnabled = tfa?.is_enabled || false;
 
-  const enabledFeatures = tenantIdentity?.metadata 
-    ? (tenantIdentity.metadata as any).enabledFeatures 
-    : ["loans", "wallet", "community"];
+  const enabledFeatures = tenantIdentity?.tenantSubscription?.activated_modules || ["loans", "wallet", "community"];
 
   const isFeatureEnabled = (feature: string) => {
-    return Array.isArray(enabledFeatures) && enabledFeatures.includes(feature);
+    return Array.isArray(enabledFeatures) && enabledFeatures.includes(feature as any);
   };
 
   const availableCredit = getAvailableCreditForTier(

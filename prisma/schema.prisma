@@ -110,12 +110,12 @@ model TenantApplication {
 
 model User {
   user_id                   Int                       @id @default(autoincrement())
+  tenant_id                 Int?
   member_code               String?                   @db.VarChar(20)
   username                  String                    @db.VarChar(50)
   email                     String                    @db.VarChar(150)
   phone                     String?                   @db.VarChar(20)
   password_hash             String                    @db.VarChar(255)
-  tenant_id                 Int?
   role                      Role                      @default(member)
   status                    UserStatus                @default(pending)
   interest_tier             InterestTier              @default(T1_5_PERCENT)
@@ -1667,6 +1667,18 @@ enum BillingCycle {
   annually
 }
 
+enum AppModule {
+  wallet
+  loans
+  community
+  branding
+  reports
+  audit
+  analytics
+  system_config
+  compassion
+}
+
 model SubscriptionPlan {
   id             Int                  @id @default(autoincrement())
   tier_name      String               @unique @db.VarChar(50) // "Core", "Pro", "Enterprise", "Sangay"
@@ -1687,15 +1699,16 @@ model SubscriptionPlan {
 }
 
 model TenantSubscription {
-  id            Int          @id @default(autoincrement())
-  tenant_id     Int          @unique
-  plan_id       Int
-  billing_cycle BillingCycle @default(monthly)
-  status        String       @default("active") // active, canceled, past_due
-  start_date    DateTime     @default(now())
-  end_date      DateTime?
-  created_at    DateTime     @default(now())
-  updated_at    DateTime     @updatedAt
+  id                Int          @id @default(autoincrement())
+  tenant_id         Int          @unique
+  plan_id           Int
+  billing_cycle     BillingCycle @default(monthly)
+  status            String       @default("active") // active, canceled, past_due
+  start_date        DateTime     @default(now())
+  end_date          DateTime?
+  created_at        DateTime     @default(now())
+  updated_at        DateTime     @updatedAt
+  activated_modules AppModule[]  @default([])
 
   tenant Tenant           @relation(fields: [tenant_id], references: [tenant_id], onDelete: Cascade)
   plan   SubscriptionPlan @relation(fields: [plan_id], references: [id], onDelete: Restrict)

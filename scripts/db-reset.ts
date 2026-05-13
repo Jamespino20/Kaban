@@ -21,10 +21,13 @@ async function main() {
   console.log("📦 Step 2: Running prisma migrate reset --force...");
 
   try {
-    execSync("npx prisma generate && npx prisma migrate reset --force", {
-      stdio: "inherit",
-      env: { ...process.env },
-    });
+    execSync(
+      "npx prisma generate && npx prisma migrate reset --force",
+      {
+        stdio: "inherit",
+        env: { ...process.env },
+      },
+    );
     console.log("   ✅ Migrations applied\n");
   } catch (err: any) {
     console.error(

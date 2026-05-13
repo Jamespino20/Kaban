@@ -160,7 +160,10 @@ export const register = async (values: z.infer<typeof RegisterSchema>) => {
         },
       });
 
-      const memberCode = `AGP-${user.user_id.toString().padStart(12, "0")}`;
+      const roleInitial = "M"; // Defaults to Member
+      const serial = user.user_id.toString().padStart(6, "0");
+      const tenant_slug = tenant.slug.toUpperCase();
+      const memberCode = `${tenant_slug} ${roleInitial} ${serial}`;
 
       await db.user.update({
         where: { user_id: user.user_id },

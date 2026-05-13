@@ -603,14 +603,18 @@ export async function createStaffAccount(values: {
         throw new Error("Username taken in this tenant.");
       }
 
-      // 1. Generate Member Code for Staff (AGP-YYYY-[ROLE]-SERIAL)
-      const year = new Date().getFullYear();
-      const count = await tx.user.count({
-        where: { role: values.role },
+      // 1. Generate Member Code for Staff ({tenant_slug} {roleinitial} {membercode})
+      const tenant = await tx.tenant.findUnique({
+        where: { tenant_id: values.tenantId },
+        select: { slug: true }
       });
-      const serial = (count + 1).toString().padStart(3, "0");
-      const roleSub = "OPT";
-      const member_code = `AGP-${year}-${roleSub}-${serial}`;
+      const tenant_slug = tenant?.slug.toUpperCase() || "UNKN";
+      const count = await tx.user.count({
+        where: { role: values.role, tenant_id: values.tenantId },
+      });
+      const serial = (count + 1).toString().padStart(6, "0");
+      const roleInitial = (values.role as string).charAt(0).toUpperCase();
+      const member_code = `${tenant_slug} ${roleInitial} ${serial}`;
 
       const user = await tx.user.create({
         data: {

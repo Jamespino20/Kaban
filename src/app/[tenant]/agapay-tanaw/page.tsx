@@ -169,18 +169,20 @@ export default async function AgapayTanawPage({
             logo_url: true,
             entitlement_status: true,
             metadata: true,
+            tenantSubscription: {
+              select: {
+                activated_modules: true,
+              }
+            }
           },
         })
       : null;
 
-  // Retrieve features directly from the tenant's metadata, falling back to basic features
-  const enabledFeatures = currentTenantIdentity?.metadata 
-    ? (currentTenantIdentity.metadata as any).enabledFeatures 
-    : ["loans", "wallet", "community"];
+  const enabledFeatures = currentTenantIdentity?.tenantSubscription?.activated_modules || ["loans", "wallet", "community"];
 
   const isFeatureEnabled = (feature: string) => {
     if (isSuperAdmin) return true; // Superadmins bypass all limits
-    return Array.isArray(enabledFeatures) && enabledFeatures.includes(feature);
+    return Array.isArray(enabledFeatures) && enabledFeatures.includes(feature as any);
   };
 
   // Define role-specific navigation based on PRD hierarchy
