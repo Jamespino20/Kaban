@@ -66,6 +66,7 @@ import { EmailTemplatesTab } from "@/components/admin/email-templates-tab";
 import { AIConfigTab } from "@/components/admin/ai-config-tab";
 import { SubscriptionsModule } from "@/components/admin/subscriptions-module";
 import { getAllSubscriptionPlans, getAllTenantSubscriptions } from "@/actions/subscription-actions";
+import { RestrictedAccess } from "@/components/layout/restricted-access";
 
 function SystemFileManagementSkeleton() {
   return (
@@ -167,22 +168,19 @@ export default async function AgapayTanawPage({
             font_pairing: true,
             logo_url: true,
             entitlement_status: true,
+            metadata: true,
           },
         })
       : null;
 
-  // Fetch current subscription for feature gating
-  const currentSubRes = tenantContextId
-    ? await getCurrentSubscription(tenantContextId)
-    : { success: false, subscription: null };
-  const currentPlanFeatures =
-    currentSubRes.success && currentSubRes.subscription?.plan?.features
-      ? (currentSubRes.subscription.plan.features as string[])
-      : ["core_approvals", "core_members"]; // Default minimal features
+  // Retrieve features directly from the tenant's metadata, falling back to basic features
+  const enabledFeatures = currentTenantIdentity?.metadata 
+    ? (currentTenantIdentity.metadata as any).enabledFeatures 
+    : ["loans", "wallet", "community"];
 
   const isFeatureEnabled = (feature: string) => {
-    if (isSuperAdmin) return true; // Superadmins override plan limits
-    return currentPlanFeatures.includes(feature);
+    if (isSuperAdmin && tenantContextId === null) return true; // Global superadmins bypass limits
+    return Array.isArray(enabledFeatures) && enabledFeatures.includes(feature);
   };
 
   // Define role-specific navigation based on PRD hierarchy
@@ -509,7 +507,7 @@ export default async function AgapayTanawPage({
         {isOperator && (
           <>
             <TabsContent value="vault" className="outline-none">
-              <OperatorVaultTab />
+              {isFeatureEnabled("wallet") ? <OperatorVaultTab /> : <RestrictedAccess moduleName="E-Wallet" />}
             </TabsContent>
             <TabsContent value="members" className="outline-none">
               <MemberDirectoryTab
@@ -522,7 +520,7 @@ export default async function AgapayTanawPage({
               />
             </TabsContent>
             <TabsContent value="products" className="outline-none">
-              <LoanProductsTab />
+              {isFeatureEnabled("loans") ? <LoanProductsTab /> : <RestrictedAccess moduleName="Loaning Node" />}
             </TabsContent>
             <TabsContent value="reconciliation" className="outline-none">
               <ReconciliationTab />
@@ -544,8 +542,14 @@ export default async function AgapayTanawPage({
               className="animate-in fade-in slide-in-from-bottom-4 duration-500"
             >
               <div className="space-y-6">
-                <ReportsTab />
-                <TenantPerformanceReportsTab />
+                {isFeatureEnabled("reports") ? (
+                  <>
+                    <ReportsTab />
+                    <TenantPerformanceReportsTab />
+                  </>
+                ) : (
+                  <RestrictedAccess moduleName="Analytics" />
+                )}
                 <div className="border-t border-slate-200 pt-6">
                   <h3 className="text-2xl font-bold font-heading text-slate-900 mb-4">
                     System Health
@@ -577,44 +581,54 @@ export default async function AgapayTanawPage({
 
         {/* Shared Management Modules */}
         <TabsContent value="community" className="outline-none">
-          {isOperator ? (
-            <div className="grid grid-cols-1 gap-5 xl:grid-cols-[1.5fr_1fr]">
-              <CommunityTab
-                initialData={operatorCommunityData}
-              />
-              <CommunityOperationsTab summary={communitySummary} />
-            </div>
+          {isFeatureEnabled("community") ? (
+            isOperator ? (
+              <div className="grid grid-cols-1 gap-5 xl:grid-cols-[1.5fr_1fr]">
+                <CommunityTab initialData={operatorCommunityData} />
+                <CommunityOperationsTab summary={communitySummary} />
+              </div>
+            ) : (
+              <SuperadminCommunityTab />
+            )
           ) : (
-            <SuperadminCommunityTab />
+            <RestrictedAccess moduleName="Community" />
           )}
         </TabsContent>
 
         <TabsContent value="audit" className="outline-none">
-          <AuditLogViewer tenantId={isSuperAdmin && tenantContextId === null ? undefined : tenantContextId ?? undefined} />
+          {isFeatureEnabled("audit") ? (
+            <AuditLogViewer tenantId={isSuperAdmin && tenantContextId === null ? undefined : tenantContextId ?? undefined} />
+          ) : (
+            <RestrictedAccess moduleName="Audit Logs" />
+          )}
         </TabsContent>
 
         <TabsContent value="content" className="outline-none">
-          <div className="space-y-8">
-            {currentTenantIdentity && (isOperator || isSuperAdmin) && (
-              <BrandingTabWrapper
-                tenantId={
-                  isSuperAdmin ? currentTenantIdentity.tenant_id : undefined
-                }
-                initialBranding={{
-                  brand_color: currentTenantIdentity.brand_color,
-                  accent_color: currentTenantIdentity.accent_color,
-                  font_pairing: currentTenantIdentity.font_pairing,
-                  logo_url: currentTenantIdentity.logo_url,
-                }}
-                displayName={currentTenantIdentity.name}
+          {isFeatureEnabled("branding") ? (
+            <div className="space-y-8">
+              {currentTenantIdentity && (isOperator || isSuperAdmin) && (
+                <BrandingTabWrapper
+                  tenantId={
+                    isSuperAdmin ? currentTenantIdentity.tenant_id : undefined
+                  }
+                  initialBranding={{
+                    brand_color: currentTenantIdentity.brand_color,
+                    accent_color: currentTenantIdentity.accent_color,
+                    font_pairing: currentTenantIdentity.font_pairing,
+                    logo_url: currentTenantIdentity.logo_url,
+                  }}
+                  displayName={currentTenantIdentity.name}
+                />
+              )}
+              <HomepageContentTab
+                role={userRole}
+                faqs={homepageContent.faqs}
+                testimonials={homepageContent.testimonials}
               />
-            )}
-            <HomepageContentTab
-              role={userRole}
-              faqs={homepageContent.faqs}
-              testimonials={homepageContent.testimonials}
-            />
-          </div>
+            </div>
+          ) : (
+            <RestrictedAccess moduleName="Content & Branding" />
+          )}
         </TabsContent>
 
         <TabsContent value="feedback" className="outline-none">

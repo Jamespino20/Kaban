@@ -23,6 +23,7 @@ import {
   renameTenant,
   updateTenantEntitlement,
   restoreTenant,
+  updateTenantFeatures,
 } from "@/actions/tenant-management";
 
 import {
@@ -48,6 +49,11 @@ export function TenantManagementTab({
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [sortByRegion, setSortByRegion] = useState(true);
+  const [editingFeatures, setEditingFeatures] = useState<{
+    tenantId: number;
+    tenantName: string;
+    features: string[];
+  } | null>(null);
 
   const filteredTenants = tenants.filter((t: any) => {
     const searchString =
@@ -195,6 +201,39 @@ export function TenantManagementTab({
     });
   };
 
+  const handleFeaturesSave = () => {
+    if (!editingFeatures) return;
+
+    startTransition(async () => {
+      setError(null);
+      const res = await updateTenantFeatures({
+        tenantId: editingFeatures.tenantId,
+        enabledFeatures: editingFeatures.features,
+      });
+
+      if (res.success && res.data) {
+        setTenants((prev) =>
+          prev.map((tenant: any) =>
+            tenant.tenant_id === editingFeatures.tenantId
+              ? {
+                  ...tenant,
+                  metadata: {
+                    ...(tenant.metadata || {}),
+                    enabledFeatures: editingFeatures.features,
+                  },
+                }
+              : tenant,
+          ),
+        );
+        setEditingFeatures(null);
+        toast.success("Features updated successfully");
+      } else {
+        setError(res.error || "Failed to update tenant features.");
+        toast.error("Failed to update features");
+      }
+    });
+  };
+
   const handleRestore = (tenantId: number, tenantName: string) => {
     if (!confirm(`Are you sure you want to RESTORE ${tenantName}?`)) return;
 
@@ -250,11 +289,15 @@ export function TenantManagementTab({
                   <Plus className="w-4 h-4 mr-2" /> Add Tenant
                 </Button>
               </DialogTrigger>
-              <DialogContent className="max-w-7xl">
-                <DialogHeader>
-                  <DialogTitle>Create New Tenant (Tenant)</DialogTitle>
-                </DialogHeader>
-                <CreateTenantForm onOpenChange={() => {}} />
+              <DialogContent className="max-w-[1400px] w-[95vw] h-[90vh] overflow-hidden flex flex-col p-0">
+                <div className="p-6 border-b border-slate-100 flex-shrink-0">
+                  <DialogHeader>
+                    <DialogTitle>Create New Tenant (Tenant)</DialogTitle>
+                  </DialogHeader>
+                </div>
+                <div className="flex-1 overflow-y-auto px-6 pb-6 p-2 custom-scrollbar">
+                  <CreateTenantForm onOpenChange={() => {}} />
+                </div>
               </DialogContent>
             </Dialog>
           </div>
@@ -447,14 +490,28 @@ export function TenantManagementTab({
                     {t.is_active ? (
                       <div className="space-y-2">
                         {role === "superadmin" && (
-                          <div className="grid grid-cols-2 gap-2">
+                          <div className="grid grid-cols-3 gap-2">
                             <Button
                               variant="outline"
-                              className="text-xs font-bold"
+                              className="text-xs font-bold px-0"
                               onClick={() => handleRename(t.tenant_id, t.name)}
                               disabled={isPending}
                             >
                               Rename
+                            </Button>
+                            <Button
+                              variant="outline"
+                              className="text-xs font-bold px-0"
+                              onClick={() =>
+                                setEditingFeatures({
+                                  tenantId: t.tenant_id,
+                                  tenantName: t.name,
+                                  features: t.metadata?.enabledFeatures || [],
+                                })
+                              }
+                              disabled={isPending}
+                            >
+                              Features
                             </Button>
                             <Button
                               className="text-xs font-bold bg-emerald-600 text-white hover:bg-emerald-700"
@@ -547,6 +604,73 @@ export function TenantManagementTab({
           </div>
         ))
       )}
+
+      {/* Edit Features Dialog */}
+      <Dialog
+        open={!!editingFeatures}
+        onOpenChange={(open) => !open && setEditingFeatures(null)}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>
+              Edit Features for {editingFeatures?.tenantName}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="grid grid-cols-2 gap-3 mt-4">
+              {[
+                { id: "loans", label: "Loaning Node", icon: "💰" },
+                { id: "wallet", label: "E-Wallet", icon: "💳" },
+                { id: "audit", label: "Audit Logs", icon: "📋" },
+                { id: "branding", label: "Content/Branding", icon: "🎨" },
+                { id: "community", label: "Community", icon: "🤝" },
+                { id: "reports", label: "Analytics", icon: "📊" },
+              ].map((feat) => (
+                <label
+                  key={feat.id}
+                  className="flex items-center gap-2 p-3 rounded-xl border border-slate-100 bg-slate-50 cursor-pointer hover:bg-slate-100 transition-colors"
+                >
+                  <input
+                    type="checkbox"
+                    checked={editingFeatures?.features.includes(feat.id) || false}
+                    onChange={(e) => {
+                      if (!editingFeatures) return;
+                      const current = editingFeatures.features;
+                      if (e.target.checked) {
+                        setEditingFeatures({
+                          ...editingFeatures,
+                          features: [...current, feat.id],
+                        });
+                      } else {
+                        setEditingFeatures({
+                          ...editingFeatures,
+                          features: current.filter((id) => id !== feat.id),
+                        });
+                      }
+                    }}
+                    className="w-4 h-4 rounded text-emerald-600 focus:ring-emerald-500"
+                  />
+                  <div className="flex flex-col">
+                    <span className="text-base">{feat.icon}</span>
+                    <span className="text-[10px] font-bold text-slate-700">
+                      {feat.label}
+                    </span>
+                  </div>
+                </label>
+              ))}
+            </div>
+            <div className="flex justify-end pt-4 border-t border-slate-100">
+              <Button
+                onClick={handleFeaturesSave}
+                disabled={isPending}
+                className="bg-emerald-600 text-white hover:bg-emerald-700 font-bold"
+              >
+                {isPending ? "Saving..." : "Save Features"}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

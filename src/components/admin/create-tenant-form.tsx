@@ -113,6 +113,23 @@ export function CreateTenantForm({
   }, [form, isLoaded, logoDataUrl, brandColor, accentColor]);
 
   const watchedName = form.watch("name");
+  const planIdWatch = form.watch("planId");
+
+  useEffect(() => {
+    if (planIdWatch && plans.length > 0) {
+      const selectedPlan = plans.find((p) => p.id.toString() === planIdWatch);
+      if (selectedPlan) {
+        const tier = (selectedPlan.tier_name || "").toLowerCase();
+        let defaultFeatures = ["loans", "wallet", "audit"];
+        if (tier.includes("pro")) {
+          defaultFeatures = [...defaultFeatures, "community", "branding"];
+        } else if (tier.includes("enterprise")) {
+          defaultFeatures = [...defaultFeatures, "community", "branding", "reports"];
+        }
+        form.setValue("enabledFeatures", defaultFeatures);
+      }
+    }
+  }, [planIdWatch, plans, form]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -375,12 +392,13 @@ export function CreateTenantForm({
               <h4 className="text-xs font-bold uppercase tracking-widest text-slate-400 pb-2 border-b border-slate-100">
                 4. Dashboard Builder (Functions)
               </h4>
-              <div className="grid grid-cols-3 gap-3">
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
                 {[
                   { id: "loans", label: "Loaning Node", icon: "💰" },
                   { id: "wallet", label: "E-Wallet", icon: "💳" },
-                  { id: "community", label: "Community", icon: "🤝" },
                   { id: "audit", label: "Audit Logs", icon: "📋" },
+                  { id: "branding", label: "Content/Branding", icon: "🎨" },
+                  { id: "community", label: "Community", icon: "🤝" },
                   { id: "reports", label: "Analytics", icon: "📊" },
                 ].map((feat) => (
                   <label

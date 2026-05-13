@@ -28,6 +28,7 @@ import { MemberOnboardingDialogs } from "@/components/member/member-onboarding-d
 import { acceptConsent } from "@/actions/compliance-actions";
 import { MemberSettingsTab } from "@/components/member/member-settings-tab";
 import { SupportTab } from "@/components/member/support-tab";
+import { RestrictedAccess } from "@/components/layout/restricted-access";
 import { getUserFeedbackTickets } from "@/actions/transactional-feedback";
 import { DashboardPollingWrapper } from "@/components/member/dashboard-polling-wrapper";
 
@@ -135,6 +136,7 @@ export default async function AgapayPintigPage({
         accent_color: true,
         font_pairing: true,
         logo_url: true,
+        metadata: true,
       },
     }),
     getUserFeedbackTickets(),
@@ -183,6 +185,14 @@ export default async function AgapayPintigPage({
     0,
   );
   const is2FAEnabled = tfa?.is_enabled || false;
+
+  const enabledFeatures = tenantIdentity?.metadata 
+    ? (tenantIdentity.metadata as any).enabledFeatures 
+    : ["loans", "wallet", "community"];
+
+  const isFeatureEnabled = (feature: string) => {
+    return Array.isArray(enabledFeatures) && enabledFeatures.includes(feature);
+  };
 
   const availableCredit = getAvailableCreditForTier(
     member?.interest_tier,
@@ -531,14 +541,14 @@ export default async function AgapayPintigPage({
           value="wallet"
           className="outline-none animate-in fade-in slide-in-from-bottom-4 duration-500"
         >
-          <WalletTab savings={savings} transactions={transactions} />
+          {isFeatureEnabled("wallet") ? <WalletTab savings={savings} transactions={transactions} /> : <RestrictedAccess moduleName="E-Wallet" />}
         </TabsContent>
 
         <TabsContent
           value="apply"
           className="outline-none animate-in fade-in slide-in-from-bottom-4 duration-500"
         >
-          <LoanApplicationTab />
+          {isFeatureEnabled("loans") ? <LoanApplicationTab /> : <RestrictedAccess moduleName="Loan Application" />}
         </TabsContent>
 
         {/* TM-03: My Loans */}
@@ -546,17 +556,21 @@ export default async function AgapayPintigPage({
           value="loans"
           className="outline-none animate-in fade-in slide-in-from-bottom-4 duration-500"
         >
-          <LoanServicingTab
-            loans={userLoans}
-            paymentMethods={resolvedPaymentMethods}
-          />
+          {isFeatureEnabled("loans") ? (
+            <LoanServicingTab
+              loans={userLoans}
+              paymentMethods={resolvedPaymentMethods}
+            />
+          ) : (
+            <RestrictedAccess moduleName="My Loans & Repayment" />
+          )}
         </TabsContent>
 
         <TabsContent
           value="community"
           className="outline-none animate-in fade-in slide-in-from-bottom-4 duration-500"
         >
-          <CommunityTab initialData={communityData} />
+          {isFeatureEnabled("community") ? <CommunityTab initialData={communityData} /> : <RestrictedAccess moduleName="Community" />}
         </TabsContent>
 
         {/* TM-08: Support & Feedback */}

@@ -674,3 +674,59 @@ export async function getAuditLogs(tenantId?: number) {
     return [];
   }
 }
+
+const UpdateTenantFeaturesSchema = z.object({
+  tenantId: z.number().int().positive(),
+  enabledFeatures: z.array(z.string()),
+});
+
+export async function updateTenantFeatures(
+  values: z.infer<typeof UpdateTenantFeaturesSchema>,
+) {
+  const session = await requireSuperadminSession();
+  const parsed = UpdateTenantFeaturesSchema.safeParse(values);
+
+  if (!parsed.success) {
+    return { success: false, error: "Invalid feature data." };
+  }
+
+  try {
+    const existing = await prisma.tenant.findUnique({
+      where: { tenant_id: parsed.data.tenantId },
+      select: { metadata: true },
+    });
+
+    if (!existing) {
+      return { success: false, error: "Tenant not found." };
+    }
+
+    const currentMetadata = (existing.metadata as any) || {};
+
+    const updatedMetadata = {
+      ...currentMetadata,
+      enabledFeatures: parsed.data.enabledFeatures,
+    };
+
+    const updated = await prisma.tenant.update({
+      where: { tenant_id: parsed.data.tenantId },
+      data: { metadata: updatedMetadata },
+    });
+
+    await prisma.auditLog.create({
+      data: {
+        tenant_id: parsed.data.tenantId,
+        user_id: session.user.user_id,
+        action: "UPDATE_TENANT_FEATURES",
+        entity_type: "Tenant",
+        entity_id: parsed.data.tenantId,
+        old_values: { enabledFeatures: currentMetadata.enabledFeatures } as any,
+        new_values: { enabledFeatures: parsed.data.enabledFeatures } as any,
+      },
+    });
+
+    return { success: true, data: updated };
+  } catch (error) {
+    console.error("Failed to update tenant features:", error);
+    return { success: false, error: "Failed to update tenant features." };
+  }
+}

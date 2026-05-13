@@ -63,6 +63,12 @@ The previous issue-derived matrix has been replaced. All entries below are sourc
    - Refined `getContrastColor` threshold (0.5) and updated semantic shades (`slate-900`) for navigation text readability.
    - Balanced active state opacities for better visual feedback across all tenant brand colors.
    - File: `src/components/layout/authenticated-shell.tsx`
+8. **Dark Mode UI Cleanup:**
+   - Removed all `dark:` utility class remnants from core UI components (`textarea`, `tabs`, `select`, `input`, `draft-banner`, `dashboard-skeletons`, `button`, `badge`, `analytics-dashboard-tab`).
+   - Standardized the platform strictly to a light-mode institutional aesthetic as per `DESIGN.md`.
+9. **Build Error Resolution:**
+   - Investigated Prisma adapter lazy bundling WebSocket issue (`TypeError: b.mask is not a function`).
+   - Successfully ran local Next.js production build (`npm run build`, version 15.5.18). Codebase is verified to be buildable and deployable to Vercel.
 
 ---
 

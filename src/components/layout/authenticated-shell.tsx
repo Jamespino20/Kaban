@@ -71,6 +71,14 @@ function rgba(hex: string, alpha: number) {
   return `rgba(${r}, ${g}, ${b}, ${alpha})`;
 }
 
+function getContrastColor(hex: string | null) {
+  if (!hex) return "white";
+  const { r, g, b } = hexToRgb(hex);
+  const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+  return luminance > 0.5 ? "black" : "white";
+}
+
+
 export type ShellNavItem = {
   value: string;
   label: string;
@@ -209,18 +217,26 @@ export function AuthenticatedShell({
       "border-primary/25 bg-primary/12 text-primary hover:border-primary/35 hover:bg-primary/18",
   };
 
-  const sidebarTextClass = "text-slate-900";
-  const sidebarMutedClass = "text-slate-500";
-  const sidebarBorderClass = "border-slate-200";
-  const sidebarHoverTextClass = "hover:bg-slate-100 hover:text-slate-900";
-  const sidebarActiveClass = "data-[state=active]:bg-primary/10 data-[state=active]:text-primary data-[state=active]:font-semibold";
-  const iconBgContrastClass = "bg-transparent text-slate-500 group-data-[state=active]:text-primary";
-  const badgeContrastClass = "bg-slate-100 text-slate-900 border border-slate-200";
+  const isBrandColorLight = normalizedTenantColor ? getContrastColor(normalizedTenantColor) === "black" : false;
+  
+  const sidebarBgStyle = {
+    backgroundColor: normalizedTenantColor || "#0f172a",
+  } as React.CSSProperties;
+
+  const sidebarTextClass = isBrandColorLight ? "text-slate-900" : "text-white";
+  const sidebarMutedClass = isBrandColorLight ? "text-slate-600" : "text-slate-300";
+  const sidebarBorderClass = isBrandColorLight ? "border-slate-300/30" : "border-white/10";
+  const sidebarHoverTextClass = isBrandColorLight ? "hover:bg-black/5 hover:text-black" : "hover:bg-white/10 hover:text-white";
+  const sidebarActiveClass = isBrandColorLight 
+    ? "data-[state=active]:bg-black/10 data-[state=active]:text-black data-[state=active]:font-bold" 
+    : "data-[state=active]:bg-white/15 data-[state=active]:text-white data-[state=active]:font-bold";
+  const iconBgContrastClass = isBrandColorLight 
+    ? "bg-black/5 text-slate-600 group-data-[state=active]:bg-white group-data-[state=active]:text-black" 
+    : "bg-white/10 text-white/70 group-data-[state=active]:bg-white group-data-[state=active]:text-slate-900";
+  const badgeContrastClass = isBrandColorLight ? "bg-black/10 text-black" : "bg-white/20 text-white";
   
   const mainPaneStyle = {
-    background: normalizedTenantColor
-      ? `radial-gradient(circle at top right, ${rgba(normalizedTenantColor, 0.04)}, transparent 60%)`
-      : "none",
+    background: "none",
     backgroundColor: "#f8fafc",
   } as React.CSSProperties;
 
@@ -240,10 +256,11 @@ export function AuthenticatedShell({
 
   const renderSidebar = () => (
     <div
-      className={cn("flex h-full flex-col bg-white border-r", sidebarTextClass, sidebarBorderClass)}
+      className={cn("flex h-full flex-col border-r", sidebarTextClass, sidebarBorderClass)}
+      style={sidebarBgStyle}
     >
       <div
-        className={`h-1 w-full bg-slate-100`}
+        className={`h-1 w-full ${isBrandColorLight ? 'bg-black/10' : 'bg-white/10'}`}
       />
       <div
         className={cn("flex flex-col border-b p-4 space-y-4", sidebarBorderClass)}
@@ -256,9 +273,9 @@ export function AuthenticatedShell({
           >
             <div className="flex items-center gap-3">
               <div
-                className={`flex h-11 w-11 flex-shrink-0 items-center justify-center overflow-hidden bg-white shadow-sm ${
+                className={`flex h-11 w-11 flex-shrink-0 items-center justify-center overflow-hidden shadow-sm ${
                   tenantName ? "rounded-2xl" : "rounded-full"
-                }`}
+                } ${isBrandColorLight ? "bg-black/5" : "bg-white/10"}`}
               >
                 {tenantLogoUrl ? (
                   <img
@@ -267,14 +284,14 @@ export function AuthenticatedShell({
                     className="h-full w-full object-cover"
                   />
                 ) : tenantName ? (
-                  <span className="text-xl font-black text-slate-900">
+                  <span className={cn("text-xl font-black", sidebarTextClass)}>
                     {tenantName.charAt(0).toUpperCase()}
                   </span>
                 ) : (
                   <img
                     src="/images/agapay_solo.png"
                     alt="Agapay Symbol"
-                    className="h-[22px] w-[22px] object-contain"
+                    className={cn("h-[22px] w-[22px] object-contain", !isBrandColorLight && "brightness-0 invert")}
                   />
                 )}
               </div>
@@ -292,7 +309,7 @@ export function AuthenticatedShell({
                   <img
                     src="/images/agapay_titled.png"
                     alt="Agapay"
-                    className={`h-4 object-contain brightness-0`}
+                    className={cn("h-4 object-contain", isBrandColorLight ? "brightness-0" : "brightness-0 invert")}
                   />
                 </div>
               </div>
@@ -377,7 +394,7 @@ export function AuthenticatedShell({
                     >
                       <div className="flex w-full items-center gap-3">
                         <div
-                          className={`flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-[10px] ${iconBgContrastClass} transition-colors group-data-[state=active]:bg-white group-data-[state=active]:text-slate-900`}
+                          className={`flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-[10px] ${iconBgContrastClass} transition-colors`}
                         >
                           <Icon className="h-4 w-4" />
                         </div>
