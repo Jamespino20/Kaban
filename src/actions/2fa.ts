@@ -14,7 +14,7 @@ export async function generate2FASecret() {
   }
 
   return await prisma.$withTenant(
-    session.user.tenantId as number,
+    session.user.tenantId ?? 1,
     async (tx) => {
       const user = await tx.user.findUnique({
         where: { user_id: session.user.user_id },

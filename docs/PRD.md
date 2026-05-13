@@ -32,18 +32,18 @@
 # AGAPAY ROLES
 
 ## Superadmin
+
 - **Purpose:** Platform governance, not business interference
 - **Scope:** Cross-tenant control, system integrity, SaaS monetization
 
-## Tenant Admin
-- **Purpose:** Operate a cooperative
-- **Scope:** Loans, members, risk, finance, content
+## Tenant Operator
 
-## Tenant Lender
-- **Purpose:** Provide capital
-- **Scope:** Investment decisions, risk evaluation
+- **Purpose:** Operate or fund a cooperative
+- **Scope:** Loans, members, risk, finance, content, capital provision
+- **Note:** "Tenant Admin" and "Tenant Lender" are the same.
 
 ## Tenant Member
+
 - **Purpose:** Borrow and participate
 - **Scope:** Loans, repayments, trust-building
 
@@ -53,33 +53,33 @@
 
 ## Agapay Platform Homepage
 
-| Section | Content |
-|---|---|
-| Navbar | Agapay logo, quicklinks (Why Agapay, Features, Pricing, FAQs, Contact), Find Cooperatives button |
-| Hero | Tagline: *"Iyong Agapay, Ating Tagumpay"*, supporting subtitle about financial empowerment, no CTA buttons |
-| Why Agapay | 3–4 value proposition cards: Transparency, Community, Accessibility, Security |
-| Features | Icon-based feature grid covering E-Wallet, Loaning, Trust Score, Multi-Tenancy, Analytics |
-| Sample Calculator | Interactive loan calculator with configurable amount, cadence, term, and tier — shows breakdown of installment, interest, fees |
-| Agapay Zoomable Live Branch | Interactive map of active tenant branches with pinned markers, tenant name, and region label |
-| Agapay SaaS Pricing | Three-tier plan cards: Core, Pro, Enterprise — each shows price, billing cycle, member limit, and feature checklist |
-| Testimonials | Rotating testimonial cards sourced from tenant testimonies moderated by Superadmin |
-| FAQs | Accordion list grouped by Superadmin-defined seasons |
-| Contact | Simple form (Name, Email, Message) + agapay.saas@gmail.com display |
-| Footer | Agapay logo, nav links, social links, copyright notice |
+| Section                     | Content                                                                                                                        |
+| --------------------------- | ------------------------------------------------------------------------------------------------------------------------------ |
+| Navbar                      | Agapay logo, quicklinks (Why Agapay, Features, Pricing, FAQs, Contact), Find Cooperatives button                               |
+| Hero                        | Tagline: _"Iyong Agapay, Ating Tagumpay"_, supporting subtitle about financial empowerment, no CTA buttons                     |
+| Why Agapay                  | 3–4 value proposition cards: Transparency, Community, Accessibility, Security                                                  |
+| Features                    | Icon-based feature grid covering E-Wallet, Loaning, Trust Score, Multi-Tenancy, Analytics                                      |
+| Sample Calculator           | Interactive loan calculator with configurable amount, cadence, term, and tier — shows breakdown of installment, interest, fees |
+| Agapay Zoomable Live Branch | Interactive map of active tenant branches with pinned markers, tenant name, and region label                                   |
+| Agapay SaaS Pricing         | Three-tier plan cards: Core, Pro, Enterprise — each shows price, billing cycle, member limit, and feature checklist            |
+| Testimonials                | Rotating testimonial cards sourced from tenant testimonies moderated by Superadmin                                             |
+| FAQs                        | Accordion list grouped by Superadmin-defined seasons                                                                           |
+| Contact                     | Simple form (Name, Email, Message) + agapay.saas@gmail.com display                                                             |
+| Footer                      | Agapay logo, nav links, social links, copyright notice                                                                         |
 
 ## Agapay Tenant Homepage
 
-| Section | Content |
-|---|---|
-| Navbar | Cooperative logo, tenant quicklinks, "Powered by Agapay" badge, Find Cooperatives button |
-| Hero | Cooperative tagline and subtitle, "Powered by @agapay_titled.png" branding, no CTA buttons |
-| Mission & Vision | Tenant-defined mission and vision statements in split layout |
-| Values | Icon + label cards representing the tenant's core values |
-| Sample Calculator | Same as platform calculator, pre-configured with tenant's default loan products and rates |
-| Testimonials | Tenant-specific testimonies (member-submitted, admin-moderated) |
-| FAQs | Tenant-defined FAQ accordion, falls back to platform FAQs if none set |
-| Contact | Tenant contact form + tenant admin email |
-| Footer | Tenant logo, nav links, Agapay attribution, copyright |
+| Section           | Content                                                                                    |
+| ----------------- | ------------------------------------------------------------------------------------------ |
+| Navbar            | Cooperative logo, tenant quicklinks, "Powered by Agapay" badge, Find Cooperatives button   |
+| Hero              | Cooperative tagline and subtitle, "Powered by @agapay_titled.png" branding, no CTA buttons |
+| Mission & Vision  | Tenant-defined mission and vision statements in split layout                               |
+| Values            | Icon + label cards representing the tenant's core values                                   |
+| Sample Calculator | Same as platform calculator, pre-configured with tenant's default loan products and rates  |
+| Testimonials      | Tenant-specific testimonies (member-submitted, admin-moderated)                            |
+| FAQs              | Tenant-defined FAQ accordion, falls back to platform FAQs if none set                      |
+| Contact           | Tenant contact form + tenant admin email                                                   |
+| Footer            | Tenant logo, nav links, Agapay attribution, copyright                                      |
 
 ## Agapay Tanaw (Dashboard — Superadmin, Tenant Admins, Tenant Lenders)
 
@@ -108,6 +108,7 @@
 **Purpose:** High-level command center for platform-wide health monitoring.
 
 **KPI Cards (Top Row):**
+
 - Total Active Tenants
 - Global Funds Under Management (FUM)
 - Total Active Loans (count + aggregate value)
@@ -116,10 +117,12 @@
 - Agapay Platform Trust Score (composite, displayed as gauge)
 
 **Recent Audit Snapshot (Mid Section):**
+
 - Last 10 system-wide audit log entries in a condensed table (Timestamp, Tenant, Actor, Action)
 - "View All Logs" button leading to the Audit Logs module
 
 **AI Snapshot Summary (Bottom Section):**
+
 - Auto-generated paragraph summary of platform health (past 7 days)
 - Flags anomalies: rising defaults, new tenant signups, top-performing branches
 - "Regenerate Summary" button with timestamp of last generation
@@ -133,17 +136,20 @@
 **Sub-sections:**
 
 #### Internal Messaging / Bulletin
+
 - Rich-text bulletin board for platform-wide announcements
 - Posts can be pinned, scheduled, or sent immediately
 - Supports file attachments and emoji reactions
 - Bulletin entries show: Author (Superadmin), Timestamp, Audience (All Tenants / Specific Region), Read receipts count
 
 #### Global Announcements
+
 - Dedicated announcement composer
 - Fields: Title, Body (rich text), Target Audience (All / Region / Specific Tenant), Delivery Channel (In-app / Email / Both), Schedule toggle
 - Announcement history table with status (Draft, Scheduled, Sent) and open rate
 
 #### Individual / Group Chats (Admins Only)
+
 - Discord-style chat interface
 - Sidebar shows all admin contacts (Tenant Admins) with online indicator
 - Message threads support: text, file uploads (images, PDFs), emoji reactions, custom reactions
@@ -161,6 +167,7 @@
 #### Document Verification — Tenant Applications
 
 Each card contains:
+
 - Applicant Name
 - Tenant Name
 - Tenant Email
@@ -182,6 +189,7 @@ Each card contains:
 **Layout:** Grid of expandable cards sorted by region. Cards expand on hover to reveal full details. Searchbar, region filter, status filter, and plan filter in toolbar.
 
 **Each Tenant Card shows:**
+
 - Tenant Name + Logo
 - Parent Region
 - Current Active Member Count
@@ -194,7 +202,8 @@ Each card contains:
 
 **Add Tenant Dialog (Two-Pane Layout):**
 
-*Left Pane — Builder:*
+_Left Pane — Builder:_
+
 - **Homepage Builder:**
   - Parent Region (dropdown)
   - Tenant Name, URL Slug (auto-generated, editable)
@@ -208,12 +217,14 @@ Each card contains:
   - Toggle panel for each role's features (enabled/disabled per plan limits)
   - Visual checklist showing which features are included in the selected plan
 
-*Right Pane — Live Preview:*
+_Right Pane — Live Preview:_
+
 - Landscape iframe rendering of the tenant homepage in real time
 - "Open Tenant Site" button to access the actual generated tenant URL
 - Preview updates as left pane inputs change
 
 **Tenant Lifecycle:**
+
 - Lease period tracked per plan; system warns tenant admin 14 days before expiry via in-app + email
 - Superadmin can suspend or restore access at any time with a documented reason
 
@@ -224,12 +235,14 @@ Each card contains:
 **Purpose:** Manage platform-level FAQ and Testimonial sections.
 
 #### FAQ Moderation
+
 - Create, edit, and reorder FAQ items
 - Group FAQs under Seasons (e.g., "General", "Loans", "Membership") — seasons can be toggled visible/hidden in bulk or individually
 - Fields per FAQ: Question, Answer (rich text), Parent Season, Visibility toggle
 - All custom FAQs override the system constants/defaults
 
 #### Testimonial Moderation
+
 - Pull testimonies submitted from any active tenant
 - Display options: toggle visibility per tenant group, or select individual testimonies
 - Testimony fields displayed: Testimonee Name, Occupation, Testimony Body, Tenant Source, Submission Date
@@ -252,11 +265,13 @@ Each card contains:
 **Purpose:** Exportable, schedulable financial and performance intelligence across all tenants.
 
 #### Cross-Tenant Financial Reports
+
 - Total disbursed vs. total repaid (per period: weekly, monthly, quarterly)
 - Default rates broken down by region
 - Portfolio at Risk (PAR) — flagged tiers: PAR-30, PAR-60, PAR-90
 
 #### Tenant Performance Reports
+
 - Portfolio growth trends (line chart per tenant)
 - Member acquisition over time
 - Retention rates (active vs. churned members per cohort)
@@ -271,12 +286,12 @@ Each card contains:
 
 **Purpose:** Real-time infrastructure and processing status monitoring.
 
-| Monitor | Details |
-|---|---|
-| API Uptime | Endpoint availability, response times, error rate (5xx/4xx) |
-| Queue Processing | Job queue status (pending, processing, failed), retry counts |
-| AI Processing Logs | Snapshot generation history, token usage, error flags |
-| DB Usage per Tenant | Schema size, row counts, index health per tenant schema |
+| Monitor             | Details                                                      |
+| ------------------- | ------------------------------------------------------------ |
+| API Uptime          | Endpoint availability, response times, error rate (5xx/4xx)  |
+| Queue Processing    | Job queue status (pending, processing, failed), retry counts |
+| AI Processing Logs  | Snapshot generation history, token usage, error flags        |
+| DB Usage per Tenant | Schema size, row counts, index health per tenant schema      |
 
 **Alerts:** Color-coded status indicators (Green / Yellow / Red). Critical alerts notify Superadmin via in-app and email.
 
@@ -308,24 +323,29 @@ Each card contains:
 ### 11. Settings
 
 #### Platform Config
+
 - Global Trust Score scoring weights (Repayment Behavior, Savings, Loan Utilization, Tenure, Peer Rating — editable percentages that must sum to 100%)
 - Risk thresholds: auto-flag delinquency (days overdue), fraud signal sensitivity
 - Default loan calculator configuration (default term, default cadence)
 
 #### Subscription & Billing
+
 - Plan creation: define member limits, operator count, enabled features per plan
 - Pricing tiers: amount, billing cycle (3-month, 6-month, 12-month)
 - Tenant billing cycles and invoice history table
 
 #### AI Configuration
+
 - Snapshot summary prompt templates (editable system prompts)
 - Risk detection sensitivity slider (Low / Medium / High)
 
 #### Notification System
+
 - Email/SMS template editor (variables: `{{tenant_name}}`, `{{due_date}}`, etc.)
 - Global announcement broadcaster (send to all tenants immediately or scheduled)
 
 #### Security
+
 - RBAC templates (define module access per role per plan tier)
 - 2FA enforcement rules (require 2FA for specific roles or all roles)
 
@@ -338,6 +358,7 @@ Each card contains:
 **Purpose:** Branch-level health dashboard combining admin and lender perspectives.
 
 **KPI Cards:**
+
 - Total Branch Funds (FUM)
 - Active Loans (count + aggregate value)
 - Portfolio Growth (% change vs. last period)
@@ -362,26 +383,31 @@ Each card contains:
 **Layout:** Tabbed grid of expandable cards with searchbar, filter bar (Status, Type, Date), inside scrolling.
 
 #### Loan Applications
+
 - **Statuses:** Pending, Under Review, Approved, Rejected
 - **Card contains:** Applicant Name, Trust Score badge, Loan Product, Requested Value, Payment Cadence, Term, Purpose, Reference Number
 - **Actions:** Approve (with optional conditions), Reject (mandatory reason), Request Clarification, View Full Profile
 
 #### Fund Releases
+
 - **Statuses:** Pending Release, Released
 - **Card contains:** Applicant Name, Loan Product, Approved Value, Release Method (E-Wallet / Bank / Cash), Scheduled Release Date, Reference Number
 - **Actions:** Mark as Released (triggers receipt generation and loanee notification), Reschedule
 
 #### Payment Verification
+
 - **Statuses:** Pending, Approved, Rejected
 - **Card contains:** Applicant Name, Installment Number, Payment Reference, Receipt Attachment (preview inline), Amount, Cadence
 - **Actions:** Approve (marks installment paid), Reject (with reason, triggers re-submission prompt to member)
 
 #### Capital Top-Up Queue
+
 - **Statuses:** Pending, Approved, Rejected
 - **Card contains:** Lender Name, Amount, Funding Method (E-Wallet / Bank), Status, Reference Number
 - **Actions:** Approve (adds funds to branch pool), Reject
 
 #### Identity Verification
+
 - **Statuses:** Pending, Verified, Rejected
 - **Card contains:** Applicant Name, Membership Code, Attached IDs (inline preview), Selfie preview, Verification Status
 - **Actions:** Verify (activates member account), Reject (with reason)
@@ -393,17 +419,20 @@ Each card contains:
 **Purpose:** Personal and branch-level funding management for the operator.
 
 #### My Investment Portfolio
+
 - Table of active investments in loans: Loan reference, Borrower, Invested Amount, Interest Rate, ROI to date, Status (Active / Defaulted / Completed)
 - Earnings history chart (line graph, filterable by period)
 - Defaulted loan exposure summary with guarantor liability breakdown
 
 #### Wallet & Top-Ups
+
 - Current wallet balance display
 - Add Funds button: choose amount (preset or custom), source method (Bank / GCash / Cash), upload proof
 - Withdraw Funds button: choose amount, destination, confirm fees
 - Transaction history table: Date, Type, Amount, Method, Status, Reference
 
 #### Risk & Diversification
+
 - AI-generated investment suggestions: "Consider diversifying into Agapay Negosyo products — your current portfolio is 78% Agapay Sari-Sari"
 - Risk alert panel: overdue accounts with exposure amount
 - Portfolio diversification chart (donut chart by loan product)
@@ -415,12 +444,14 @@ Each card contains:
 **Purpose:** Full directory and lifecycle control of branch members.
 
 #### Member Directory
+
 - Grid/cards view toggled with list view
 - Each card: Profile photo, Name, Membership Code, Trust Score badge, Tier badge, Status badge
 - Searchbar, filter by Status (Active / Suspended / Blacklisted), filter by Tier
 - Click member to open full profile
 
 #### Member Profiles
+
 - Personal info: Full name, contact details, address, date joined, membership code
 - Financial info: Income source, employer, monthly income range, assets declared
 - Loan History: All past and active loans with product, amount, status, repayment rate
@@ -428,6 +459,7 @@ Each card contains:
 - Uploaded Documents: ID, selfie, business permit, barangay cert, proof of income (downloadable)
 
 #### Status Controls
+
 - Toggle: Active / Suspended / Blacklisted
 - Each status change requires a mandatory reason and is logged in audit trail
 - Suspended members receive in-app + email notification with reason and expected review date
@@ -439,12 +471,14 @@ Each card contains:
 **Purpose:** Create and configure loan products available to branch members.
 
 #### Product Studio
+
 - Create / Edit loan products
 - Fields: Product Name, Loan Amount Range (min/max), Interest Rate Model (Flat / Diminishing Balance), Cadence Options (Weekly / Bi-weekly / Monthly), Term Limits (min/max months), Penalty Rules (editable percentages per day range), Eligible Tiers
 - Active/Inactive toggle per product
 - Product preview shows a sample amortization table
 
 #### Logic Config
+
 - Assign eligibility rules: minimum Trust Score, minimum tenure (months), minimum tier
 - Risk scoring modifiers: boost/reduce Trust Score impact per rule
 - Save & Publish pushes config live to member-facing loan application
@@ -456,12 +490,14 @@ Each card contains:
 **Purpose:** Enforce daily financial integrity at the branch level.
 
 #### EOD Reconciliation (Critical)
+
 - Daily summary: Payments received today vs. loans released today vs. expected repayments
 - Treasury balance (opening + inflows - outflows = closing balance)
 - Discrepancy flag: any mismatch between expected and actual values triggers a warning requiring operator acknowledgment and note
 - Sign-off button: Operator confirms daily reconciliation with timestamp and digital signature logged
 
 #### Compassion Actions
+
 - Loan restructuring: adjust remaining term or cadence for a specific active loan
 - Grace period grant: defer next installment with documented reason
 - Penalty waiver: waive accumulated penalties with approval trail
@@ -474,6 +510,7 @@ Each card contains:
 **Purpose:** Control the tenant's public-facing homepage appearance.
 
 #### Tenant Homepage Editor
+
 - Hero Section: Edit cooperative tagline, subtitle, hero image/background
 - Calculator Config: Set default loan product, default term, default cadence shown on the homepage calculator
 - Testimonials: Review and approve member-submitted testimonies; toggle visibility
@@ -481,6 +518,7 @@ Each card contains:
 - Announcements Banner: Toggle a sitewide banner with custom message and expiry date
 
 #### Branch Identity
+
 - Upload/replace branch logo (max 5MB)
 - Brand Color, Main Color, Accent Color pickers (with live preview thumbnail)
 - Typography selection from approved font list
@@ -493,12 +531,14 @@ Each card contains:
 **Purpose:** Branch-internal communication between operator and members.
 
 #### Intercom / Bulletin
+
 - Rich-text bulletin posts: visible to all branch members
 - Posts can be pinned, scheduled, or sent immediately
 - Supports file attachments and emoji reactions
 - Fields: Title, Body, Visibility (All Members / Specific Group), Schedule toggle
 
 #### Chat Hub
+
 - Individual direct messages with any branch member
 - Group chats (operator can create groups: e.g., "Overdue Members", "New Applicants")
 - Supports: text, image uploads, file attachments, emoji reactions, custom reactions
@@ -511,16 +551,19 @@ Each card contains:
 **Purpose:** Member satisfaction tracking, growth intelligence, and security oversight.
 
 #### Feedback Registry
+
 - Incoming feedback from members: complaints, system concerns, testimony submissions, feature requests
 - Table: Sender, Category, Subject, Date, Status (New / In Progress / Resolved)
 - Actions: Respond (in-app or email), Escalate to Superadmin, Archive
 
 #### Growth Analytics
+
 - Portfolio trend chart: total FUM over time (weekly/monthly)
 - Member behavior insights: average loan utilization, repayment consistency distribution
 - Default forecast: AI-predicted default risk for the next 30 days based on overdue patterns
 
 #### Security & Audit Logs
+
 - Full log of all operator and staff actions within the branch
 - Filters: User, Module, Action Type, Date Range
 - Export: CSV
@@ -530,15 +573,18 @@ Each card contains:
 ### 10. Settings
 
 #### Tenant Config
+
 - Loan rules: enforce stricter limits beyond platform defaults (e.g., cap loan amount for Tier 1)
 - Scoring tweaks: adjust tier upgrade thresholds for the branch
 - Email/system notification triggers: define which events generate notifications and to whom
 
 #### Operator Profile
+
 - Edit personal info: name, email, phone number, profile picture
 - Theme selection: Light / Dark mode
 
 #### Security Matrix
+
 - 2FA configuration: enable/disable TOTP requirement for this account
 - Password management: change password
 - Session controls: view active sessions, revoke individual sessions
@@ -553,6 +599,7 @@ Each card contains:
 **Purpose:** Quick summary of the member's financial standing.
 
 **Cards displayed:**
+
 - Active Loan Card: Loan product name, outstanding balance, next due date, installment amount — with "Pay Now" shortcut button
 - Remaining Balance (E-Wallet): Current wallet amount with Deposit and Withdraw buttons
 - Trust Score: Visual gauge with current score, tier badge (e.g., Tier 2: Bagong Sigla), and trend arrow (up/down from last month)
@@ -567,11 +614,13 @@ Each card contains:
 **Purpose:** Guided loan application flow.
 
 **Step 1 — Product Selection:**
+
 - Grid of available loan products filtered by the member's current tier
 - Each product card shows: Product name, Amount range, Interest rate, Available cadences, Estimated monthly installment (sample)
 - Greyed-out products display the tier required to unlock them
 
 **Step 2 — Loan Configuration:**
+
 - Desired loan amount (slider within the product's min/max range)
 - Payment cadence selector (Weekly / Bi-weekly / Monthly)
 - Loan term selector (within product limits)
@@ -579,11 +628,13 @@ Each card contains:
 - Guarantor selector: optional, choose 1–2 members from the branch directory (system shows eligible guarantors only); guarantors receive a notification and must accept
 
 **Step 3 — Calculator Preview:**
+
 - Amortization table: installment number, due date, installment amount, interest portion, principal portion, balance
 - Summary: Total loan amount, Total interest, Processing Fee (₱20), Service Fee (₱50), Total cost of loan
 - Penalty schedule: shown as a reference table (2% / 5% / 8% / 12% capped at 20%)
 
 **Step 4 — Confirmation & Submission:**
+
 - Full loan summary (product, amount, cadence, term, guarantors, fees)
 - Checkbox: "I have read and agree to the loan terms"
 - Submit Application button — triggers notification to Tenant Operator queue
@@ -595,6 +646,7 @@ Each card contains:
 **Purpose:** Full visibility into all loans — past and present.
 
 **Active Loan Panel (if any):**
+
 - Loan product name, Reference Number, Approved amount, Disbursement date
 - Repayment progress bar (e.g., "Installment 3 of 12")
 - Next due date and amount due
@@ -602,6 +654,7 @@ Each card contains:
 - Full amortization schedule toggle
 
 **Loan History Table (Completed / Rejected loans):**
+
 - Columns: Reference, Product, Amount, Date, Status, Outcome (Fully Paid / Defaulted / Rejected)
 - Click row to expand full loan details
 
@@ -614,18 +667,22 @@ Each card contains:
 **Pay Installment Flow:**
 
 Step 1 — Choose Payment Type:
+
 - Pay Current Installment (amount pre-filled)
 - Pay Full Outstanding Balance (shows early settlement discount if applicable)
 
 Step 2 — Choose Payment Method:
+
 - E-Wallet (deducted directly from wallet balance — shows available balance)
 - Manual / GCash (member uploads proof of payment: receipt photo or PDF)
 
 Step 3 — Confirmation:
+
 - Summary: Installment number, amount, method, any applicable fees
 - Submit button — triggers notification to Tenant Operator for verification
 
 **Payment Status Tracker:**
+
 - List of recent payment submissions with status: Submitted / Under Verification / Approved / Rejected
 - If rejected: rejection reason displayed with a "Resubmit" option
 
@@ -638,6 +695,7 @@ Step 3 — Confirmation:
 **Wallet Balance Display:** Large, prominent balance figure with currency symbol.
 
 #### Deposit
+
 - Preset amounts (₱500, ₱1,000, ₱2,000, ₱5,000) + custom amount input
 - Method selector: GCash, Bank Transfer, Cash (over-the-counter)
 - Upload deposit proof (required for manual methods)
@@ -645,12 +703,14 @@ Step 3 — Confirmation:
 - Submission triggers admin verification queue
 
 #### Withdraw
+
 - Preset amounts based on available balance + custom input
 - Method selector: GCash, Bank Transfer
 - Confirmation screen: withdrawal amount, method, Processing Fee (₱20), remaining balance
 - Submission creates a withdrawal record pending admin release
 
 **Transaction History:**
+
 - Table: Date, Type (Deposit / Withdrawal), Amount, Method, Status, Reference
 - Filterable by type and date range
 
@@ -661,11 +721,13 @@ Step 3 — Confirmation:
 **Purpose:** Connect with the branch community.
 
 #### Bulletin / Announcements
+
 - Read-only feed of operator-posted bulletins and announcements
 - Emoji reactions on posts
 - Pinned announcements shown at the top
 
 #### Chat Hub
+
 - Direct message with Tenant Operator or other members (if enabled by tenant config)
 - Group chats the member has been added to
 - Supports: text, image uploads, emoji reactions
@@ -678,18 +740,22 @@ Step 3 — Confirmation:
 **Purpose:** Get help and contribute to the community's quality.
 
 #### Satisfaction Survey
+
 - Monthly survey prompt (auto-triggered after the voting period)
 - Star rating + open text comment for: Loan Experience, Admin Responsiveness, Platform Usability
 
 #### Submit Concern
+
 - Form fields: Category (Loan / Payment / Wallet / Technical / Other), Subject, Message, Attachment (optional)
 - Submission tracked with a ticket reference number
 
 #### Ticket Status Tracker
+
 - List of submitted tickets: Reference, Category, Subject, Date, Status (Open / In Progress / Resolved)
 - Click to view full thread including admin replies
 
 #### Testimony Submission
+
 - Form: Testimony body (max 300 characters), star rating, consent checkbox ("I allow this to appear on the branch homepage")
 - Submitted testimonies go to operator moderation queue
 
@@ -698,19 +764,23 @@ Step 3 — Confirmation:
 ### 8. Profile & Settings
 
 #### Profile
+
 - Editable: Username, Profile picture, Home address, Contact number
 - Non-editable (requires admin action): Legal name, Birthdate, Government ID info
 - Theme toggle: Light / Dark mode
 
 #### Security
+
 - Change password (requires current password confirmation)
 - Enable/Disable 2FA (TOTP via authenticator app, shows QR code setup)
 - Active session list with revoke option
 
 #### Linked Accounts
+
 - Add/remove GCash or bank account (for withdrawals and deposits)
 
 #### Notification Preferences
+
 - Toggle: In-app notifications per event type (Loan Approved, Payment Due Reminder, Trust Score Update, Announcements)
 - Toggle: Email notifications per event type
 
@@ -719,81 +789,102 @@ Step 3 — Confirmation:
 # AGAPAY CONSTANTS
 
 ## Agapay Roles
+
 - Superadmin
 - Tenant Admin
 - Tenant Lender
 - Tenant Member
 
 ## Agapay Dashboards
+
 - **Agapay Tanaw** — Superadmin, Tenant Admins, Tenant Lenders
 - **Agapay Pintig** — Tenant Members
 
 ## Agapay Tenant Subscription Plans
 
-| Plan | Price | Billing Cycle | Member Limit | Key Features |
-|---|---|---|---|---|
-| Agapay Core | ₱3,500 | 3 months | Up to 500 | Basic Admin Dashboard, Standard Microfinance Policy Access, Audit Logs, Email Support |
-| Agapay Pro | ₱6,500 | 6 months | Up to 2,500 | Everything in Core + Custom Branding, Mentorship & Community Tools, Chat/Priority Email Support, Automated Compassion Workflow, Basic Data Export |
-| Agapay Enterprise | ₱12,000 | 12 months | Unlimited | Everything in Pro + Analytics Module, Priority Support, Advanced Export & Reporting, System Configuration Controls |
+| Plan              | Price   | Billing Cycle | Member Limit | Key Features                                                                                                                                      |
+| ----------------- | ------- | ------------- | ------------ | ------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Agapay Core       | ₱3,500  | 3 months      | Up to 500    | Basic Admin Dashboard, Standard Microfinance Policy Access, Audit Logs, Email Support                                                             |
+| Agapay Pro        | ₱6,500  | 6 months      | Up to 2,500  | Everything in Core + Custom Branding, Mentorship & Community Tools, Chat/Priority Email Support, Automated Compassion Workflow, Basic Data Export |
+| Agapay Enterprise | ₱12,000 | 12 months     | Unlimited    | Everything in Pro + Analytics Module, Priority Support, Advanced Export & Reporting, System Configuration Controls                                |
+
+## Agapay Subscription Feature Access Matrix
+
+| Module / Feature              | Agapay Core | Agapay Pro  | Agapay Enterprise       |
+| ----------------------------- | ----------- | ----------- | ----------------------- |
+| E-Wallet & Transactions       | ✅          | ✅          | ✅                      |
+| Loaning Node (All products)   | ✅          | ✅          | ✅                      |
+| Audit Logs & History          | ✅          | ✅          | ✅                      |
+| Community / Chat              | ❌          | ✅          | ✅                      |
+| Custom Tenant Branding        | ❌          | ✅          | ✅                      |
+| Automated Compassion Workflow | ❌          | ✅          | ✅                      |
+| Analytics Module & Metrics    | ❌          | ❌          | ✅                      |
+| System Configuration Controls | ❌          | ❌          | ✅                      |
+| Data Export (Historical)      | Basic (CSV) | Basic (CSV) | Advanced (CSV/JSON/PDF) |
+
+> [!NOTE]
+> **Historical Data Ownership:** As part of Agapay's commitment to cooperative data sovereignty, tenants who downgrade or lose access to specific modules retain **Read-Only Historical Access**. They can download their module-specific data as a CSV at any time via the "Restricted Access" interface.
 
 ## Agapay Interest Rate Tiers
 
-| Tier | Name | Rate |
-|---|---|---|
-| Tier 1 | Gabay | 5% — All new users start here |
-| Tier 2 | Bagong Sigla | 4.5% |
-| Tier 3 | Kasapi | 4% |
-| Tier 4 | Katuwang | 3.5% |
-| Tier 5 | Kaagapay | 3% |
+| Tier   | Name         | Rate                          |
+| ------ | ------------ | ----------------------------- |
+| Tier 1 | Gabay        | 5% — All new users start here |
+| Tier 2 | Bagong Sigla | 4.5%                          |
+| Tier 3 | Kasapi       | 4%                            |
+| Tier 4 | Katuwang     | 3.5%                          |
+| Tier 5 | Kaagapay     | 3%                            |
 
 ## Sample Loan Products
 
-| Product | Amount Range |
-|---|---|
-| Agapay Sari-Sari | ₱2,000 – ₱5,000 |
-| Agapay Negosyo | ₱6,000 – ₱29,000 |
-| Agapay Paluwagan | ₱30,000 – ₱59,000 |
-| Agapay Angat | ₱60,000 – >₱100,000 |
+| Product          | Amount Range        |
+| ---------------- | ------------------- |
+| Agapay Sari-Sari | ₱2,000 – ₱5,000     |
+| Agapay Negosyo   | ₱6,000 – ₱29,000    |
+| Agapay Paluwagan | ₱30,000 – ₱59,000   |
+| Agapay Angat     | ₱60,000 – >₱100,000 |
 
 ## Payment Cadences
+
 - Weekly
 - Bi-weekly
 - Monthly
 
 ## Fee & Penalty Schedule
 
-| Item | Value |
-|---|---|
-| Processing Fee | ₱20 |
-| Service Fee | ₱50 |
-| Penalty — 1–3 days overdue | 2% of missed installment |
-| Penalty — 4–7 days overdue | 5% of missed installment |
-| Penalty — 8–14 days overdue | 8% of missed installment |
-| Penalty — 15+ days overdue | 12% of missed installment |
-| Penalty Cap | 20% of missed installment |
-| Guarantor Liability | 25% of outstanding balance |
+| Item                        | Value                      |
+| --------------------------- | -------------------------- |
+| Processing Fee              | ₱20                        |
+| Service Fee                 | ₱50                        |
+| Penalty — 1–3 days overdue  | 2% of missed installment   |
+| Penalty — 4–7 days overdue  | 5% of missed installment   |
+| Penalty — 8–14 days overdue | 8% of missed installment   |
+| Penalty — 15+ days overdue  | 12% of missed installment  |
+| Penalty Cap                 | 20% of missed installment  |
+| Guarantor Liability         | 25% of outstanding balance |
 
 ## Trust Score Criteria — Member
 
-| Criterion | Weight | Rater |
-|---|---|---|
-| Repayment Behavior | 40% | Lender's Rating |
-| Savings & Financial Discipline | 20% | Lender's Rating |
-| Loan Utilization | 15% | Lender's Rating |
-| Membership Tenure & Activity | 15% | Admin's Rating |
-| Peer/Community Validation | 10% | Members' Ratings |
+| Criterion                      | Weight | Rater            |
+| ------------------------------ | ------ | ---------------- |
+| Repayment Behavior             | 40%    | Lender's Rating  |
+| Savings & Financial Discipline | 20%    | Lender's Rating  |
+| Loan Utilization               | 15%    | Lender's Rating  |
+| Membership Tenure & Activity   | 15%    | Admin's Rating   |
+| Peer/Community Validation      | 10%    | Members' Ratings |
 
 ## Trust Score Criteria — Tenant Branch
 
-| Criterion | Weight | Source |
-|---|---|---|
-| Portfolio Repayment Health | 35% | System-Generated |
-| Savings Growth & Stability | 20% | System-Generated |
-| Loan Portfolio Quality & Risk | 20% | System-Generated |
-| Operational Compliance & Efficiency | 15% | Admin's Rating |
-| Member Satisfaction & Engagement | 10% | Members' Ratings |
+| Criterion                           | Weight | Source           |
+| ----------------------------------- | ------ | ---------------- |
+| Portfolio Repayment Health          | 35%    | System-Generated |
+| Savings Growth & Stability          | 20%    | System-Generated |
+| Loan Portfolio Quality & Risk       | 20%    | System-Generated |
+| Operational Compliance & Efficiency | 15%    | Admin's Rating   |
+| Member Satisfaction & Engagement    | 10%    | Members' Ratings |
 
 ## Other Constants
+
 - Active loan limit: 1 per user per tenant
 - Member tenant limit: 2 tenants maximum
 - Guarantors per loan: 1–2 (tenant members only)
@@ -1261,4 +1352,27 @@ STAGE 4 — Final Write-Off
 
 ---
 
-*End of Agapay Enhanced PRD*
+## Flow 13: Two-Factor Authentication Setup (TOTP)
+
+**Actor:** Any Registered User
+
+```
+1. User navigates to Settings > Security in their dashboard
+2. User clicks "Enable Two-Factor Authentication"
+3. System generates a unique TOTP secret and displays:
+   - A QR code for scanning
+   - A manual entry key (for non-camera devices)
+   - A verification code input field
+4. User scans the QR code using an authenticator app (Google Authenticator, Authy, etc.)
+5. User enters the 6-digit code shown in the app into the Agapay verification field
+6. User clicks "Confirm & Enable"
+7. System verifies the code:
+   - If valid: system enables 2FA, logs the action, and displays 10 single-use Backup Codes
+   - If invalid: error shown, user can retry
+8. User is prompted to "Save Backup Codes" before closing the setup modal
+9. On subsequent logins, Flow 1 Step 7 is triggered
+```
+
+---
+
+_End of Agapay Enhanced PRD_

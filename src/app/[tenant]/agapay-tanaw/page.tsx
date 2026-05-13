@@ -179,7 +179,7 @@ export default async function AgapayTanawPage({
     : ["loans", "wallet", "community"];
 
   const isFeatureEnabled = (feature: string) => {
-    if (isSuperAdmin && tenantContextId === null) return true; // Global superadmins bypass limits
+    if (isSuperAdmin) return true; // Superadmins bypass all limits
     return Array.isArray(enabledFeatures) && enabledFeatures.includes(feature);
   };
 
