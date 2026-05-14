@@ -9,7 +9,7 @@ function getMysqlConfig() {
   }
 
   // Prefer explicit DATABASE_URL; fall back to constructing from parts
-  const url =
+  let url =
     process.env.DATABASE_URL ||
     process.env.MYSQL_LOCAL_URL ||
     process.env.PROD_DATABASE_URL;
@@ -17,6 +17,9 @@ function getMysqlConfig() {
   if (!url) {
     throw new Error("No MySQL DATABASE_URL configured.");
   }
+
+  // Transform TiDB-specific sslaccept to mysql2-compatible ssl parameter
+  url = url.replace('sslaccept=strict', 'ssl=true');
 
   return url;
 }
