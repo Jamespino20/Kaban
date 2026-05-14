@@ -106,6 +106,7 @@ export function TenantManagementTab({
       const res = await decommissionTenant(tenantId);
 
       if (res.success && res.data) {
+        toast.success(`${tenantName} decommissioned. Snapshot saved.`);
         // Refresh local state
         setTenants((prev) =>
           prev.map((t: any) =>
@@ -143,6 +144,7 @@ export function TenantManagementTab({
       });
 
       if (res.success && res.data) {
+        toast.success(`Tenant renamed to "${res.data.name}".`);
         setTenants((prev) =>
           prev.map((tenant: any) =>
             tenant.tenant_id === tenantId

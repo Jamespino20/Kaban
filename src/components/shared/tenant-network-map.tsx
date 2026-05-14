@@ -150,7 +150,9 @@ export function TenantNetworkMap({ tenants = [] }: { tenants?: Tenant[] }) {
             <g
               key={tenant.id}
               className="cursor-pointer group/pin"
-              onClick={() => setActiveTenant(tenant)}
+              onClick={() => {
+                window.location.href = `/${tenant.slug}`;
+              }}
               onMouseEnter={() => setActiveTenant(tenant)}
             >
               {/* Animation Layer */}

@@ -35,6 +35,7 @@ import {
 import { TrustMeter } from "@/components/analytics/trust-meter";
 import { KPIMetricCard } from "@/components/analytics/kpi-metric-card";
 import { HomepageContentTab } from "@/components/admin/homepage-content-tab";
+import { PlatformContentModerationTab } from "@/components/admin/platform-content-moderation-tab";
 import {
   getFeedbackEntries,
   getHomepageContentAdmin,
@@ -52,6 +53,7 @@ import { SuperadminCommunityTab } from "@/components/admin/superadmin-community-
 import { CommunityOperationsTab } from "@/components/admin/community-operations-tab";
 import { CommunityTab } from "@/components/member/community-tab";
 import { OperatorVaultTab } from "@/components/admin/operator-vault-tab";
+import { AISnapshotSummary } from "@/components/admin/ai-snapshot-summary";
 import { TanawPollingWrapper } from "@/components/admin/tanaw-polling-wrapper";
 import { ReconciliationTab } from "@/components/admin/reconciliation-tab";
 import { SubscriptionSettings } from "@/components/admin/subscription-settings";
@@ -449,6 +451,12 @@ export default async function AgapayTanawPage(props: {
               </div>
             )}
 
+            {!isGlobalSuperadminView && (
+              <div className="mb-6">
+                <AISnapshotSummary />
+              </div>
+            )}
+
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
               {!isGlobalSuperadminView && (
                 <div className="dashboard-card lg:col-span-2 flex flex-col md:flex-row items-center gap-8 p-6">
@@ -526,7 +534,7 @@ export default async function AgapayTanawPage(props: {
             <>
               <TabsContent value="vault" className="outline-none">
                 {isFeatureEnabled("wallet") ? (
-                  <OperatorVaultTab />
+                  <OperatorVaultTab tenantSlug={tenant} />
                 ) : (
                   <RestrictedAccess moduleName="E-Wallet" />
                 )}
@@ -638,11 +646,12 @@ export default async function AgapayTanawPage(props: {
           <TabsContent value="content" className="outline-none">
             {isFeatureEnabled("branding") ? (
               <div className="space-y-8">
-                {currentTenantIdentity && (isOperator || isSuperAdmin) && (
+                {isSuperAdmin ? (
+                  <PlatformContentModerationTab />
+                ) : null}
+                {currentTenantIdentity && isOperator && (
                   <BrandingTabWrapper
-                    tenantId={
-                      isSuperAdmin ? currentTenantIdentity.tenant_id : undefined
-                    }
+                    tenantId={undefined}
                     initialBranding={{
                       brand_color: currentTenantIdentity.brand_color,
                       accent_color: currentTenantIdentity.accent_color,
@@ -652,11 +661,13 @@ export default async function AgapayTanawPage(props: {
                     displayName={currentTenantIdentity.name}
                   />
                 )}
-                <HomepageContentTab
-                  role={userRole}
-                  faqs={homepageContent.faqs}
-                  testimonials={homepageContent.testimonials}
-                />
+                {isOperator ? (
+                  <HomepageContentTab
+                    role={userRole}
+                    faqs={homepageContent.faqs}
+                    testimonials={homepageContent.testimonials}
+                  />
+                ) : null}
               </div>
             ) : (
               <RestrictedAccess moduleName="Content & Branding" />

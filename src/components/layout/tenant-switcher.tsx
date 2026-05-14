@@ -57,7 +57,7 @@ export function TenantSwitcher() {
     setLoading(false);
   }
 
-  async function handleSwitch(tenantId: number | null) {
+  async function handleSwitch(tenantId: number | null, slug: string) {
     if (tenantId === session?.user?.tenantId) return;
     if (
       !isSuperadmin &&
@@ -75,9 +75,14 @@ export function TenantSwitcher() {
     });
 
     // Force a hard reload to ensure layout/providers catch the new tenant context.
-    // Determine the correct dashboard based on role to prevent members from hitting the admin dashboard.
+    // Include tenant slug prefix so members/admins land on the right dashboard.
     const role = session?.user?.role;
-    const targetPath = role === "member" ? "/agapay-pintig" : "/agapay-tanaw";
+    const targetPath =
+      role === "member"
+        ? `/${slug}/agapay-pintig`
+        : slug === "global"
+          ? "/agapay-tanaw"
+          : `/${slug}/agapay-tanaw`;
     window.location.href = targetPath;
   }
 
@@ -124,7 +129,7 @@ export function TenantSwitcher() {
           tenants.map((t: any) => (
             <DropdownMenuItem
               key={t.tenant_id ?? "global"}
-              onClick={() => handleSwitch(t.tenant_id)}
+              onClick={() => handleSwitch(t.tenant_id, t.slug)}
               className={`flex items-center justify-between p-3 rounded-xl cursor-pointer transition-colors ${
                 t.tenant_id === session?.user?.tenantId
                   ? "bg-primary/10 text-primary"

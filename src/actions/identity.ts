@@ -23,6 +23,9 @@ interface Tenant {
   groupName: string;
   slug: string;
   role: string;
+  brand_color?: string;
+  accent_color?: string;
+  logo_url?: string;
 }
 
 export async function getAvailableTenants(
@@ -59,6 +62,9 @@ export async function getAvailableTenants(
           t.tenant_id,
           t.name,
           t.slug,
+          t.brand_color,
+          t.accent_color,
+          t.logo_url,
           tg.name AS group_name
         FROM tenants t
         LEFT JOIN tenant_groups tg ON tg.id = t.tenant_group_id
@@ -74,6 +80,9 @@ export async function getAvailableTenants(
             name: string;
             group_name?: string;
             slug: string;
+            brand_color?: string;
+            accent_color?: string;
+            logo_url?: string;
           }[]
         ).map((tenant) => ({
           tenant_id: tenant.tenant_id,
@@ -81,6 +90,9 @@ export async function getAvailableTenants(
           groupName: tenant.group_name || "Agapay HQ",
           slug: tenant.slug,
           role: "superadmin",
+          brand_color: tenant.brand_color,
+          accent_color: tenant.accent_color,
+          logo_url: tenant.logo_url,
         })),
       };
     }
@@ -117,7 +129,7 @@ async function processUsers(users: User[], sql: any, password?: string) {
 
     if (user.tenant_id) {
       const tenants = await sql`
-        SELECT name, slug, tenant_group_id 
+        SELECT name, slug, tenant_group_id, brand_color, accent_color, logo_url
         FROM tenants 
         WHERE tenant_id = ${user.tenant_id}
       `;
@@ -137,6 +149,9 @@ async function processUsers(users: User[], sql: any, password?: string) {
       groupName: groupName,
       slug: tenant?.slug || "global",
       role: user.role,
+      brand_color: tenant?.brand_color,
+      accent_color: tenant?.accent_color,
+      logo_url: tenant?.logo_url,
     });
   }
 

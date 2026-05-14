@@ -37,16 +37,24 @@ export function Navbar({
     return () => window.removeEventListener("scroll", handleScroll);
   }, [forceSolid]);
 
-  const navItems = [
-    { label: "Why Agapay", href: "/#why-agapay" },
-    { label: "Features", href: "/#features" },
-    { label: "Calculator", href: "/#calculator" },
-    { label: "Network", href: "/#network" },
-    { label: "Pricing", href: "/pricing" },
-    { label: "Testimonials", href: "/#testimonials" },
-    { label: "FAQs", href: "/#faqs" },
-    { label: "Contact", href: "/contact" },
-  ];
+  const isTenantNav = Boolean(tenantLogo || brandColor);
+  const navItems = isTenantNav
+    ? [
+        { label: "Home", href: "#home" },
+        { label: "Services", href: "#features" },
+        { label: "About", href: "#about" },
+        { label: "Contact", href: "#contact" },
+      ]
+    : [
+        { label: "Why Agapay", href: "/#why-agapay" },
+        { label: "Features", href: "/#features" },
+        { label: "Calculator", href: "/#calculator" },
+        { label: "Network", href: "/#network" },
+        { label: "Pricing", href: "/pricing" },
+        { label: "Testimonials", href: "/#testimonials" },
+        { label: "FAQs", href: "/#faqs" },
+        { label: "Contact", href: "/contact" },
+      ];
 
   return (
     <header
@@ -58,7 +66,7 @@ export function Navbar({
     >
       <div className="max-w-[100rem] mx-auto flex items-center justify-between">
         {/* Logo */}
-        <Link href="/" className="flex items-center gap-4 group cursor-pointer">
+        <Link href={isTenantNav ? "#home" : "/"} className="flex items-center gap-4 group cursor-pointer">
           <div className="w-32 h-12 flex items-center justify-center transition-transform group-hover:scale-105">
             {tenantLogo ? (
               <img 

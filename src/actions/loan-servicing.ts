@@ -8,7 +8,13 @@ import {
   requireAdminSession,
   requireAuthenticatedSession,
 } from "@/lib/authorization";
-import { PaymentStatus, ScheduleStatus, Prisma } from "@prisma/client";
+import {
+  PaymentStatus,
+  ScheduleStatus,
+  Prisma,
+  NotificationChannel,
+} from "@prisma/client";
+import { createNotification } from "@/lib/notifications";
 import { revalidatePath } from "next/cache";
 import { serializeDecimal } from "@/lib/utils";
 import {
@@ -100,18 +106,18 @@ async function requireLoanAdminAccess(loanId: number) {
       },
     });
 
-if (!loan) {
-       throw new Error(`Loan application #${loanId} not found.`);
-     }
+    if (!loan) {
+      throw new Error(`Loan application #${loanId} not found.`);
+    }
 
-     if (
-       session.user.role !== "superadmin" &&
-       loan.tenant_id !== session.user.tenantId
-     ) {
-       throw new Error(
-         `Unauthorized: User does not have access to loan #${loanId} in tenant ${tenantId}.`,
-       );
-     }
+    if (
+      session.user.role !== "superadmin" &&
+      loan.tenant_id !== session.user.tenantId
+    ) {
+      throw new Error(
+        `Unauthorized: User does not have access to loan #${loanId} in tenant ${tenantId}.`,
+      );
+    }
 
     return { session, loan, tenantId };
   };
@@ -322,7 +328,10 @@ export async function submitMockRepayment(
         },
       });
 
-      return serializeDecimal({ success: "Repayment submitted successfully.", payment });
+      return serializeDecimal({
+        success: "Repayment submitted successfully.",
+        payment,
+      });
     });
   } catch (error) {
     console.error("submitMockRepayment failed:", error);
@@ -369,7 +378,7 @@ export async function processFullPayment(
       );
 
       // Create the full-payment record
-      await tx.payment.create({
+      const payment = await tx.payment.create({
         data: {
           tenant_id: tenantId,
           loan_id: loanId,
@@ -396,6 +405,38 @@ export async function processFullPayment(
           balance_remaining: 0,
           status: "paid",
         },
+      });
+
+      // Post ledger entries for financial integrity
+      const totalFaceValue = unpaidSchedules.reduce(
+        (sum: number, s: any) => sum + Number(s.total_due),
+        0,
+      );
+      const waivedInterest = totalFaceValue - remainingPrincipal;
+
+      await postLedgerEntry(tx, {
+        tenantId,
+        description: `Full Loan Settlement (Interest Waived): LOAN-${loanId}`,
+        createdBy: session.user.user_id,
+        loanId: loanId,
+        metadata: { source: "full_settlement", paymentId: payment.payment_id },
+        entries: [
+          {
+            accountCode: "CASH_EQUIVALENTS",
+            debit: remainingPrincipal,
+            credit: 0,
+          },
+          {
+            accountCode: "INTEREST_DISCOUNTS", // New account code for waivers
+            debit: waivedInterest,
+            credit: 0,
+          },
+          {
+            accountCode: "LOAN_RECEIVABLES",
+            debit: 0,
+            credit: totalFaceValue,
+          },
+        ],
       });
 
       return {
@@ -468,7 +509,7 @@ export async function verifySubmittedPayment(
           },
         });
         remaining -= scheduleDue;
-      } 
+      }
 
       const appliedAmount = Number(payment.amount_paid) - remaining;
 
@@ -501,7 +542,10 @@ export async function verifySubmittedPayment(
         description: `Loan Repayment Verified: ${payment.payment_reference}`,
         createdBy: session.user.user_id,
         loanId: payment.loan_id,
-        metadata: { source: "repayment_verification", paymentId: payment.payment_id },
+        metadata: {
+          source: "repayment_verification",
+          paymentId: payment.payment_id,
+        },
         entries: [
           {
             accountCode: "CASH_EQUIVALENTS",
@@ -569,17 +613,19 @@ export async function getLoanStatement(loanId: number) {
     if (!tenantId) return [];
 
     return await prisma.$withTenant(tenantId, async (tx: any) => {
-      return serializeDecimal(await tx.businessLedger.findMany({
-        where: {
-          loan_id: loanId,
-          account: {
-            code: "LOAN_RECEIVABLES",
+      return serializeDecimal(
+        await tx.businessLedger.findMany({
+          where: {
+            loan_id: loanId,
+            account: {
+              code: "LOAN_RECEIVABLES",
+            },
           },
-        },
-        orderBy: {
-          created_at: "desc",
-        },
-      }));
+          orderBy: {
+            created_at: "desc",
+          },
+        }),
+      );
     });
   } catch (error) {
     console.error("getLoanStatement failed:", error);

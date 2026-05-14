@@ -51,6 +51,8 @@ export const LoginForm = ({
   const [showPassword, setShowPassword] = useState(false);
   const [isPending, startTransition] = useTransition();
   const [availableTenants, setAvailableTenants] = useState<any[]>([]);
+  const [selectedTenantSlug, setSelectedTenantSlug] = useState<string>("");
+  const [selectedRole, setSelectedRole] = useState<string>("");
 
   const form = useForm<z.infer<typeof LoginSchema>>({
     resolver: zodResolver(LoginSchema),
@@ -77,27 +79,30 @@ export const LoginForm = ({
 
       if (res.tenants && res.tenants.length > 0) {
         const tenantsList = res.tenants;
-        // If they are on a tenant-specific login page, force them to use that tenant if it exists in their accounts
         if (preselectedTenantId) {
-          const hasAccess =
-            tenantsList.some(
+          const matchedTenant =
+            tenantsList.find(
               (t: any) => t.tenant_id?.toString() === preselectedTenantId,
-            ) || tenantsList.some((t: any) => !t.tenant_id);
-          if (!hasAccess) {
+            ) || tenantsList.find((t: any) => !t.tenant_id);
+          if (!matchedTenant) {
             toast.error(
               `You don't have access to ${tenantName || "this tenant"}`,
             );
             return;
           }
           form.setValue("tenantId", preselectedTenantId);
+          setSelectedTenantSlug(matchedTenant.slug || currentTenant || "");
+          setSelectedRole(matchedTenant.role || "");
           performLogin({ ...values, tenantId: preselectedTenantId });
           return;
         }
 
         if (tenantsList.length === 1) {
-          // Auto-select if only one tenant
-          const tId = tenantsList[0].tenant_id?.toString() || "global";
+          const t = tenantsList[0];
+          const tId = t.tenant_id?.toString() || "global";
           form.setValue("tenantId", tId);
+          setSelectedTenantSlug(t.slug || "");
+          setSelectedRole(t.role || "");
           performLogin({ ...values, tenantId: tId });
         } else {
           setAvailableTenants(tenantsList);
@@ -135,11 +140,15 @@ export const LoginForm = ({
           }
         } else {
           toast.success("Welcome! Login successful.");
-          // We navigate to a tenant-scoped route that requires authentication.
-          // This forces a server-side request where the proxy middleware will
-          // validate the session and ensure the user is in the correct tenant.
-          const targetTenant = currentTenant || "main";
-          window.location.href = `/${targetTenant}/agapay-tanaw`;
+          const role = selectedRole || "";
+          const slug = selectedTenantSlug || currentTenant || "";
+          if (role === "superadmin") {
+            window.location.href = "/agapay-tanaw";
+          } else if (role === "member") {
+            window.location.href = `/${slug}/agapay-pintig`;
+          } else {
+            window.location.href = `/${slug}/agapay-tanaw`;
+          }
         }
       } catch (error) {
         toast.error("An error occurred during login.");
@@ -248,36 +257,73 @@ export const LoginForm = ({
                 Available Tenants
               </p>
               <div className="grid grid-cols-1 gap-3">
-                {availableTenants.map((tenant: any) => (
-                  <button
-                    key={tenant.tenant_id || "global"}
-                    type="button"
-                    onClick={() => {
-                      form.setValue(
-                        "tenantId",
-                        tenant.tenant_id?.toString() || "global",
-                      );
-                      form.handleSubmit(onSubmit)();
-                    }}
-                    className={`flex items-center gap-4 p-4 rounded-2xl border-2 text-left transition-all group ${
-                      form.watch("tenantId") ===
-                      (tenant.tenant_id?.toString() || "global")
-                        ? "border-emerald-500 bg-emerald-50 ring-2 ring-emerald-500/10"
-                        : "border-slate-100 hover:border-emerald-200 hover:bg-slate-50"
-                    }`}
-                  >
-                    <div className="w-10 h-10 rounded-xl bg-white border border-slate-100 flex items-center justify-center text-emerald-600 group-hover:scale-110 transition-transform">
-                      <Building2 className="w-5 h-5" />
-                    </div>
-                    <div className="flex-1">
-                      <p className="font-bold text-slate-900">{tenant.name}</p>
-                      <p className="text-xs text-slate-500 font-medium">
-                        {tenant.groupName}
-                      </p>
-                    </div>
-                    <ChevronRight className="w-5 h-5 text-slate-300 group-hover:text-emerald-500 group-hover:translate-x-1 transition-all" />
-                  </button>
-                ))}
+                {availableTenants.map((tenant: any) => {
+                  const isSelected =
+                    form.watch("tenantId") ===
+                    (tenant.tenant_id?.toString() || "global");
+                  const brandColor = tenant.brand_color || "#10b981"; // Default emerald-500
+
+                  return (
+                    <button
+                      key={tenant.tenant_id || "global"}
+                      type="button"
+                      onClick={() => {
+                        form.setValue(
+                          "tenantId",
+                          tenant.tenant_id?.toString() || "global",
+                        );
+                        setSelectedTenantSlug(tenant.slug || "");
+                        setSelectedRole(tenant.role || "");
+                        form.handleSubmit(onSubmit)();
+                      }}
+                      className={`flex items-center gap-4 p-4 rounded-2xl border-2 text-left transition-all group ${
+                        isSelected
+                          ? "ring-2 ring-opacity-10 shadow-sm"
+                          : "border-slate-100 hover:border-slate-200 hover:bg-slate-50"
+                      }`}
+                      style={{
+                        borderColor: isSelected ? brandColor : undefined,
+                        backgroundColor: isSelected
+                          ? `${brandColor}08`
+                          : undefined,
+                        boxShadow: isSelected
+                          ? `0 0 0 4px ${brandColor}15`
+                          : undefined,
+                      }}
+                    >
+                      <div
+                        className="w-12 h-12 rounded-xl bg-white border border-slate-100 flex items-center justify-center overflow-hidden group-hover:scale-105 transition-transform"
+                        style={{
+                          color: !tenant.logo_url ? brandColor : undefined,
+                        }}
+                      >
+                        {tenant.logo_url ? (
+                          <img
+                            src={tenant.logo_url}
+                            alt={tenant.name}
+                            className="w-full h-full object-cover"
+                          />
+                        ) : (
+                          <Building2 className="w-6 h-6" />
+                        )}
+                      </div>
+                      <div className="flex-1">
+                        <p className="font-bold text-slate-900 leading-tight">
+                          {tenant.name}
+                        </p>
+                        <p className="text-[10px] text-slate-500 font-bold uppercase tracking-wider mt-0.5">
+                          {tenant.groupName}
+                        </p>
+                      </div>
+                      <ChevronRight
+                        className="w-5 h-5 text-slate-300 group-hover:translate-x-1 transition-all"
+                        style={{
+                          color: isSelected ? brandColor : undefined,
+                        }}
+                      />
+                    </button>
+                  );
+                })}
               </div>
               <Button
                 variant="ghost"

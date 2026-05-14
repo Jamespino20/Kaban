@@ -2,7 +2,7 @@ import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 import Link from "next/link";
-import { Building2, ArrowRight, BadgeCheck, CheckCircle2, Shield, Calculator, MapPin } from "lucide-react";
+import { ArrowRight, BadgeCheck, CheckCircle2, Shield, Calculator } from "lucide-react";
 import { Navbar } from "@/components/layout/navbar";
 import { Footer } from "@/components/layout/footer";
 import { getActiveTenantsForNav } from "@/actions/tenant-management";
@@ -23,6 +23,16 @@ const FEATURE_CARDS = [
     description: "This is not just a wallet app. It's cooperative lending with Guarantors, Mentorship, and more human guidance as your business grows.",
   },
 ];
+
+const PLATFORM_DOMAIN = "agapay-saas.vercel.app";
+
+function getTenantPublicHref(tenant: string, path = "") {
+  if (process.env.NODE_ENV === "production") {
+    return `https://${tenant}.${PLATFORM_DOMAIN}${path}`;
+  }
+
+  return `/${tenant}${path}`;
+}
 
 export default async function TenantIndexPage(props: {
   params: Promise<{ tenant: string }>;
@@ -64,7 +74,8 @@ export default async function TenantIndexPage(props: {
 
   const activeTenants = await getActiveTenantsForNav();
   const brandColor = tenantData.brand_color || tenantData.accent_color || "#059669";
-  const accentColor = tenantData.accent_color || brandColor;
+  const loginHref = getTenantPublicHref(tenant, "/auth/login");
+  const registerHref = getTenantPublicHref(tenant, "/auth/register");
 
   return (
     <div className="relative min-h-screen bg-slate-50 flex flex-col items-center font-sans overflow-x-hidden text-slate-950">
@@ -77,7 +88,7 @@ export default async function TenantIndexPage(props: {
 
       <main className="relative z-20 w-full flex flex-col items-center">
         {/* Hero Section */}
-        <section className="relative w-full min-h-[90vh] flex flex-col items-start justify-center px-6 max-w-7xl pt-40">
+        <section id="home" className="relative w-full min-h-[90vh] flex flex-col items-start justify-center px-6 max-w-7xl pt-40">
           <div className="max-w-5xl animate-in fade-in slide-in-from-left-12 duration-1000">
             <span
               className="inline-flex items-center gap-2 font-bold tracking-widest text-xs uppercase mb-6 px-4 py-1.5 rounded-full border backdrop-blur-sm"
@@ -101,14 +112,14 @@ export default async function TenantIndexPage(props: {
             </p>
             <div className="flex flex-wrap gap-4">
               <Link
-                href={`/${tenant}/auth/login`}
+                href={loginHref}
                 className="font-bold h-12 px-8 rounded-full shadow-lg transition-all flex items-center justify-between gap-3 text-lg text-white"
                 style={{ backgroundColor: brandColor }}
               >
                 Member Login <ArrowRight className="w-5 h-5" />
               </Link>
               <Link
-                href={`/${tenant}/auth/register`}
+                href={registerHref}
                 className="px-10 py-3 bg-slate-200/85 backdrop-blur-md text-slate-900 font-bold rounded-2xl hover:bg-slate-300 transition-all flex items-center gap-3 border border-slate-300/30"
               >
                 <Calculator className="w-5 h-5" />
@@ -120,7 +131,7 @@ export default async function TenantIndexPage(props: {
 
         <div className="w-full bg-slate-50 flex flex-col items-center">
           {/* Features Section */}
-          <section className="w-full py-24 px-6 max-w-7xl">
+          <section id="features" className="w-full py-24 px-6 max-w-7xl">
             <div className="text-center mb-16">
               <h2 className="text-4xl md:text-5xl font-black text-slate-950 mb-6 italic tracking-tight">
                 Why choose {tenantData.name}?
@@ -156,7 +167,7 @@ export default async function TenantIndexPage(props: {
           </section>
 
           {/* About Section */}
-          <section className="w-full py-20 px-6 max-w-7xl">
+          <section id="about" className="w-full py-20 px-6 max-w-7xl">
             <div className="rounded-[3rem] p-10 md:p-14 shadow-xl text-white"
               style={{ backgroundColor: brandColor }}
             >
@@ -189,7 +200,7 @@ export default async function TenantIndexPage(props: {
           </section>
 
           {/* CTA with Login/Register */}
-          <section className="w-full py-24 px-6 max-w-5xl">
+          <section id="contact" className="w-full py-24 px-6 max-w-5xl">
             <div
               className="relative w-full rounded-[4rem] p-16 md:p-28 text-center text-white overflow-hidden group shadow-2xl"
               style={{ backgroundColor: brandColor }}
@@ -204,14 +215,14 @@ export default async function TenantIndexPage(props: {
                 </p>
                 <div className="flex flex-wrap gap-6 justify-center">
                   <Link
-                    href={`/${tenant}/auth/login`}
+                    href={loginHref}
                     className="bg-white font-black h-14 px-10 rounded-full shadow-xl transition-all flex items-center justify-between gap-3 text-xl"
                     style={{ color: brandColor }}
                   >
                     Member Login
                   </Link>
                   <Link
-                    href={`/${tenant}/auth/register`}
+                    href={registerHref}
                     className="h-14 px-10 rounded-full border-2 border-white/40 font-bold text-white hover:bg-white/10 transition-all flex items-center gap-3"
                   >
                     Register Now

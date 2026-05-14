@@ -130,9 +130,11 @@ const categoryConfig: Record<LoanCategory, { label: string; icon: ReactNode; col
 export function LoanServicingTab({
   loans,
   paymentMethods,
+  tenant,
 }: {
   loans: ServicingLoan[];
   paymentMethods: PaymentMethodOption[];
+  tenant: string;
 }) {
   const [expandedId, setExpandedId] = useState<number | null>(null);
 
@@ -182,6 +184,7 @@ export function LoanServicingTab({
                         setExpandedId(expandedId === loan.loan_id ? null : loan.loan_id)
                       }
                       paymentMethods={paymentMethods}
+                      tenant={tenant}
                     />
                   ))
                 )}
@@ -199,11 +202,13 @@ function LoanSummaryCard({
   isExpanded,
   onToggle,
   paymentMethods,
+  tenant,
 }: {
   loan: ServicingLoan;
   isExpanded: boolean;
   onToggle: () => void;
   paymentMethods: PaymentMethodOption[];
+  tenant: string;
 }) {
   const category = categorizeLoan(loan);
   const cfg = categoryConfig[category];
@@ -302,8 +307,21 @@ function LoanSummaryCard({
               <div className="max-h-32 overflow-y-auto space-y-1 pr-1">
                 {loan.payments.map((p) => (
                   <div key={p.payment_id} className="flex items-center justify-between rounded-lg bg-slate-50 px-3 py-1.5 text-xs">
-                    <span className="text-slate-600 truncate">{p.payment_method?.provider_name || "Payment"}</span>
-                    <span className="font-bold text-primary">₱{Number(p.amount_paid).toLocaleString()}</span>
+                    <div className="flex flex-col">
+                      <span className="text-slate-600 truncate">{p.payment_method?.provider_name || "Payment"}</span>
+                      <span className="text-[9px] text-slate-400 font-mono">#{p.payment_reference.slice(0, 12)}</span>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <span className="font-bold text-primary">₱{Number(p.amount_paid).toLocaleString()}</span>
+                      <a 
+                        href={`/${tenant}/receipt/${p.payment_id}`} 
+                        target="_blank"
+                        className="text-slate-400 hover:text-emerald-600 transition-colors"
+                        title="View Receipt"
+                      >
+                        <ReceiptText className="w-3.5 h-3.5" />
+                      </a>
+                    </div>
                   </div>
                 ))}
               </div>

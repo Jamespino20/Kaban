@@ -9,6 +9,35 @@ export function Footer({
   brandColor?: string | null;
   tenantName?: string | null;
 }) {
+  const platformLinks = {
+    platform: [
+      { label: "Features", href: "/platform" },
+      { label: "Pricing", href: "/pricing" },
+      { label: "Loan Calculator", href: "/#calculator" },
+    ],
+    company: [
+      { label: "About Us", href: "/about" },
+      { label: "Contact", href: "/contact" },
+    ],
+    legal: [
+      { label: "Privacy Policy", href: "/privacy" },
+      { label: "Terms of Service", href: "/terms" },
+    ],
+  };
+  const tenantLinks = {
+    platform: [
+      { label: "Services", href: "#features" },
+      { label: "About", href: "#about" },
+      { label: "Member Access", href: "#contact" },
+    ],
+    company: [
+      { label: "Home", href: "#home" },
+      { label: "Contact", href: "#contact" },
+    ],
+    legal: platformLinks.legal,
+  };
+  const footerLinks = tenantName ? tenantLinks : platformLinks;
+
   return (
     <footer className="w-full py-24 bg-slate-100 border-t border-slate-200/60 px-6 mt-20">
       <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-start gap-16">
@@ -39,27 +68,17 @@ export function Footer({
           <FooterGroup
             title="Platform"
             brandColor={brandColor}
-            links={[
-              { label: "Features", href: "/platform" },
-              { label: "Pricing", href: "/pricing" },
-              { label: "Loan Calculator", href: "/#calculator" },
-            ]}
+            links={footerLinks.platform}
           />
           <FooterGroup
             title="Company"
             brandColor={brandColor}
-            links={[
-              { label: "About Us", href: "/about" },
-              { label: "Contact", href: "/contact" },
-            ]}
+            links={footerLinks.company}
           />
           <FooterGroup
             title="Legal"
             brandColor={brandColor}
-            links={[
-              { label: "Privacy Policy", href: "/privacy" },
-              { label: "Terms of Service", href: "/terms" },
-            ]}
+            links={footerLinks.legal}
           />
         </div>
       </div>

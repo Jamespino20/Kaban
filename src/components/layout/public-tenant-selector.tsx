@@ -28,6 +28,24 @@ interface PublicTenantSelectorProps {
   style?: React.CSSProperties;
 }
 
+const PLATFORM_DOMAIN = "agapay-saas.vercel.app";
+
+function getTenantPublicHref(slug: string) {
+  if (process.env.NODE_ENV === "production") {
+    return `https://${slug}.${PLATFORM_DOMAIN}`;
+  }
+
+  return `/${slug}`;
+}
+
+function getTenantAddressLabel(slug: string) {
+  if (process.env.NODE_ENV === "production") {
+    return `${slug}.${PLATFORM_DOMAIN}`;
+  }
+
+  return `/${slug}`;
+}
+
 export function PublicTenantSelector({
   tenants: initialTenants = [],
   isScrolled,
@@ -86,7 +104,7 @@ export function PublicTenantSelector({
             filteredTenants.map((tenant) => (
               <DropdownMenuItem key={tenant.id} asChild className="p-0">
                 <Link
-                  href={`/${tenant.slug}`}
+                  href={getTenantPublicHref(tenant.slug)}
                   className="w-full flex items-center gap-3 px-3 py-3 hover:bg-emerald-50 rounded-2xl transition-colors group"
                 >
                   <div
@@ -104,7 +122,7 @@ export function PublicTenantSelector({
                       {tenant.name}
                     </span>
                     <span className="text-[10px] font-bold text-slate-400 uppercase tracking-tight">
-                      /{tenant.slug}
+                      {getTenantAddressLabel(tenant.slug)}
                     </span>
                   </div>
                 </Link>

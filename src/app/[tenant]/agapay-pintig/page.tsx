@@ -8,6 +8,7 @@ import {
 } from "lucide-react";
 import { LoanApplicationTab } from "@/components/member/loan-application-tab";
 import { LoanServicingTab } from "@/components/member/loan-servicing-tab";
+import { AIFinancialTips } from "@/components/member/ai-financial-tips";
 import prisma from "@/lib/prisma";
 import { redirect } from "next/navigation";
 import { type ShellNavItem } from "@/components/layout/authenticated-shell";
@@ -507,6 +508,10 @@ export default async function AgapayPintigPage(props: {
               </div>
             )}
 
+            <div className="my-6">
+              <AIFinancialTips />
+            </div>
+
             <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
               <div className="dashboard-card bg-amber-50/70 border-amber-100 text-slate-800 p-5">
                 <p className="text-xs font-bold uppercase tracking-[0.22em] text-amber-700">
@@ -586,6 +591,7 @@ export default async function AgapayPintigPage(props: {
               <LoanServicingTab
                 loans={userLoans}
                 paymentMethods={resolvedPaymentMethods}
+                tenant={tenant}
               />
             ) : (
               <RestrictedAccess moduleName="My Loans & Repayment" />

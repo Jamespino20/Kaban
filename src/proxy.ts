@@ -16,14 +16,69 @@ const PUBLIC_ROUTES = [
   "/terms",
 ];
 
+function resolveDomainTenantSlug(hostname: string) {
+  const isProduction = process.env.NODE_ENV === "production";
+  const baseDomain = isProduction ? "agapay-saas.vercel.app" : "localhost";
+
+  if (hostname !== baseDomain && hostname.endsWith(`.${baseDomain}`)) {
+    return {
+      baseDomain,
+      slug: hostname.split(`.${baseDomain}`)[0],
+    };
+  }
+
+  return {
+    baseDomain,
+    slug: null as string | null,
+  };
+}
+
+function shouldUseTenantRewrite(pathname: string) {
+  return (
+    pathname === "/" ||
+    pathname.startsWith("/auth") ||
+    pathname.startsWith("/agapay-tanaw") ||
+    pathname.startsWith("/agapay-pintig") ||
+    pathname.startsWith("/reports") ||
+    pathname.startsWith("/tenant-access")
+  );
+}
+
+function getTenantInternalPath(tenantSlug: string, pathname: string) {
+  if (pathname === `/${tenantSlug}` || pathname.startsWith(`/${tenantSlug}/`)) {
+    return pathname;
+  }
+
+  return pathname === "/" ? `/${tenantSlug}` : `/${tenantSlug}${pathname}`;
+}
+
 export default async function middleware(req: NextRequest) {
   const { nextUrl } = req;
-  const isPublicRoute = PUBLIC_ROUTES.includes(nextUrl.pathname);
+  const host = req.headers.get("host") || "";
+  const hostname = host.split(":")[0];
+  const { baseDomain, slug: domainTenantSlug } =
+    resolveDomainTenantSlug(hostname);
+  const isDomainTenantRoute = Boolean(domainTenantSlug);
+  const domainInternalPath = domainTenantSlug
+    ? getTenantInternalPath(domainTenantSlug, nextUrl.pathname)
+    : nextUrl.pathname;
+  const isPublicRoute =
+    !isDomainTenantRoute && PUBLIC_ROUTES.includes(nextUrl.pathname);
   const isApiAuthRoute = nextUrl.pathname.startsWith("/api/auth");
   const isPublicAsset =
     nextUrl.pathname.startsWith("/images") ||
     nextUrl.pathname.startsWith("/videos") ||
     nextUrl.pathname.startsWith("/favicon.ico");
+
+  if (
+    domainTenantSlug &&
+    shouldUseTenantRewrite(nextUrl.pathname) &&
+    (nextUrl.pathname === "/" || nextUrl.pathname.startsWith("/auth"))
+  ) {
+    const rewriteUrl = nextUrl.clone();
+    rewriteUrl.pathname = domainInternalPath;
+    return NextResponse.rewrite(rewriteUrl);
+  }
 
   // Immediate exit for public/auth routes to avoid NextAuth session overhead during build/prerender
   if (isPublicRoute || isApiAuthRoute || isPublicAsset) {
@@ -37,24 +92,26 @@ export default async function middleware(req: NextRequest) {
     const userTenantId = req.auth?.user?.tenantId ?? null;
     const userTenantSlug = req.auth?.user?.tenantSlug ?? null;
 
-    const url = new URL(req.url);
-    const host = req.headers.get("host") || "";
-    const hostname = host.split(":")[0];
-
-    // Subdomain routing detection (e.g., malolos.agapay.app, malolos.localhost)
-    let domainTenantSlug = null;
-    const isProduction = process.env.NODE_ENV === "production";
-    const baseDomain = isProduction ? "agapay-saas.vercel.app" : "localhost";
-
-    if (hostname !== baseDomain && hostname.endsWith(`.${baseDomain}`)) {
-      domainTenantSlug = hostname.split(`.${baseDomain}`)[0];
-    }
-
-    const pathSegments = nextUrl.pathname.split("/").filter(Boolean);
+    const pathSegments = domainInternalPath.split("/").filter(Boolean);
     const urlTenantSlug = domainTenantSlug || pathSegments[0];
-    const isAuthRoute = nextUrl.pathname.includes("/auth");
-    const isLandingPage = nextUrl.pathname === "/";
-    const isTenantHomepage = domainTenantSlug ? nextUrl.pathname === "/" : (pathSegments.length === 1 && urlTenantSlug);
+    const isAuthRoute = domainInternalPath.includes("/auth");
+    const isLandingPage = !domainTenantSlug && nextUrl.pathname === "/";
+    const isTenantHomepage = domainTenantSlug
+      ? nextUrl.pathname === "/"
+      : pathSegments.length === 1 && urlTenantSlug;
+
+    const tenantUrl = (tenantSlug: string, path: string) => {
+      const redirectUrl = new URL(req.url);
+
+      if (domainTenantSlug) {
+        redirectUrl.hostname = `${tenantSlug}.${baseDomain}`;
+        redirectUrl.pathname = path;
+      } else {
+        redirectUrl.pathname = `/${tenantSlug}${path}`;
+      }
+
+      return redirectUrl;
+    };
 
     // Async telemetry
     logTraffic(nextUrl.pathname, userTenantId).catch(() => {});
@@ -71,9 +128,7 @@ export default async function middleware(req: NextRequest) {
         if(!domainTenantSlug && pathSegments.length > 0 && targetTenant !== pathSegments[0]) {
            return NextResponse.next();
         }
-        return NextResponse.redirect(
-          new URL(`/${targetTenant}/auth/login`, nextUrl),
-        );
+        return NextResponse.redirect(tenantUrl(targetTenant, "/auth/login"));
       }
       return NextResponse.next();
     }
@@ -102,25 +157,23 @@ export default async function middleware(req: NextRequest) {
         return NextResponse.next();
       }
 
-      return NextResponse.redirect(
-        new URL(`/${targetTenant}/${targetPath}`, nextUrl),
-      );
+      return NextResponse.redirect(tenantUrl(targetTenant, `/${targetPath}`));
     }
 
     // 2.2 Portal Correction (Member vs Staff)
-    const isTanawRoute = nextUrl.pathname.includes("/agapay-tanaw");
-    const isPintigRoute = nextUrl.pathname.includes("/agapay-pintig");
+    const isTanawRoute = domainInternalPath.includes("/agapay-tanaw");
+    const isPintigRoute = domainInternalPath.includes("/agapay-pintig");
     // Accept both new 'operator' role and legacy 'admin'/'lender' roles for tanaw access
     const isStaffRole = role === "operator";
 
     if (role === "member" && isTanawRoute) {
       return NextResponse.redirect(
-        new URL(`/${urlTenantSlug}/agapay-pintig`, nextUrl),
+        tenantUrl(urlTenantSlug || "malolos", "/agapay-pintig"),
       );
     }
     if (!isStaffRole && isPintigRoute && !isSuperadmin) {
       return NextResponse.redirect(
-        new URL(`/${urlTenantSlug}/agapay-tanaw`, nextUrl),
+        tenantUrl(urlTenantSlug || "malolos", "/agapay-tanaw"),
       );
     }
 
@@ -128,6 +181,12 @@ export default async function middleware(req: NextRequest) {
     if (!isSuperadmin && userTenantId) {
       // In middleware, we only do a quick check if possible or rely on the page guards
       // to avoid excessive DB calls. The page guards in requireTanawSession handle this robustly.
+    }
+
+    if (domainTenantSlug && shouldUseTenantRewrite(nextUrl.pathname)) {
+      const rewriteUrl = nextUrl.clone();
+      rewriteUrl.pathname = domainInternalPath;
+      return NextResponse.rewrite(rewriteUrl);
     }
 
     // All guards passed, proceed

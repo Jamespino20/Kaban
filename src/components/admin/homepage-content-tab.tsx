@@ -82,11 +82,15 @@ export function HomepageContentTab({
 
         <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
           <ContentSectionCard
-            title={role === "superadmin" ? "FAQ Moderation" : "FAQ Proposals"}
+            title={
+              role === "superadmin"
+                ? "Platform FAQ Moderation"
+                : "Tenant Storefront FAQs"
+            }
             description={
               role === "superadmin"
-                ? "Review and publish FAQs submitted by operators."
-                : "Magpasa ng seasonal at relevant na FAQs para sa homepage."
+                ? "Review and publish platform homepage and platform subpage FAQs."
+                : "Create tenant-specific FAQs for this cooperative storefront."
             }
           >
             <FaqEditor role={role} />
@@ -102,13 +106,13 @@ export function HomepageContentTab({
           <ContentSectionCard
             title={
               role === "superadmin"
-                ? "Testimonial Moderation"
-                : "Testimonial Proposals"
+                ? "Platform Testimonial Moderation"
+                : "Tenant Storefront Testimonials"
             }
             description={
               role === "superadmin"
-                ? "I-finalize at i-publish ang piniling testimonials."
-                : "I-curate ang testimonials mula sa feedback at tenant stories."
+                ? "Review testimonials for the platform homepage, including stories selected from tenants."
+                : "Curate testimonials from this tenant's members and feedback."
             }
           >
             <TestimonialEditor role={role} />
@@ -138,8 +142,7 @@ export function HomepageContentTab({
           </div>
           <div className="p-4 rounded-2xl bg-slate-100 border border-slate-200">
             <p className="text-xs text-slate-500 font-medium leading-relaxed">
-              Ang anumang pagbabago sa FAQs at Testimonials ay makikita rito
-              matapos i-publish ng Superadmin.
+              Tenant storefront changes appear after they are published.
             </p>
           </div>
         </div>
@@ -383,7 +386,7 @@ function ContentRecordCard({
           <textarea
             value={reviewNotes}
             onChange={(event) => setReviewNotes(event.target.value)}
-            placeholder="Review notes para sa admin"
+            placeholder="Review notes for the operator"
             className="min-h-20 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm"
           />
           <div className="flex flex-wrap gap-3">
@@ -438,7 +441,7 @@ function SuperadminRequestsSection({
             Superadmin Requests
           </h3>
           <p className="text-sm text-slate-500">
-            Status ng iyong mga isinumiteng testimonial proposal
+            Status of testimonial proposals submitted for platform review.
           </p>
         </div>
       </div>
@@ -446,7 +449,7 @@ function SuperadminRequestsSection({
       {!hasRequests ? (
         <div className="rounded-2xl border border-dashed border-amber-200 bg-white p-5 text-sm text-slate-500 flex items-center gap-3">
           <MessageSquareWarning className="w-5 h-5 text-slate-300" />
-          Wala pang mga proposal. Magpasa ng testimonial proposal sa itaas.
+          No proposals yet. Submit a testimonial proposal above.
         </div>
       ) : (
         <div className="space-y-3">
@@ -517,7 +520,7 @@ function SuperadminRequestsSection({
                     {item.review_notes && (
                       <div className="rounded-lg bg-rose-50 p-3 text-xs text-slate-600 border border-rose-100">
                         <strong className="text-rose-800">
-                          Feedback mula sa Superadmin:
+                          Superadmin feedback:
                         </strong>{" "}
                         {item.review_notes}
                       </div>
@@ -562,25 +565,25 @@ function FaqEditor({ role }: { role: string }) {
     <div className="dashboard-card p-4 space-y-3">
       <p className="text-sm font-bold text-slate-700">
         {role === "superadmin"
-          ? "Magdagdag ng direktang published FAQ"
-          : "Magpasa ng bagong FAQ proposal"}
+          ? "Add a directly published platform FAQ"
+          : "Add a tenant storefront FAQ proposal"}
       </p>
       <Input
         value={question}
         onChange={(e) => setQuestion(e.target.value)}
-        placeholder="Tanong para sa homepage FAQ"
+        placeholder="Question for the storefront FAQ"
         className="rounded-xl bg-white"
       />
       <Input
         value={seasonTag}
         onChange={(e) => setSeasonTag(e.target.value)}
-        placeholder="Season tag o topic (optional)"
+        placeholder="Season tag or topic (optional)"
         className="rounded-xl bg-white"
       />
       <textarea
         value={answer}
         onChange={(e) => setAnswer(e.target.value)}
-        placeholder="Maikling malinaw na sagot"
+        placeholder="Short, clear answer"
         className="min-h-24 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm"
       />
       <Button
@@ -629,20 +632,20 @@ function TestimonialEditor({ role }: { role: string }) {
     <div className="dashboard-card p-4 space-y-3">
       <p className="text-sm font-bold text-slate-700">
         {role === "superadmin"
-          ? "Magdagdag ng direktang published testimonial"
-          : "Magpasa ng curated testimonial proposal"}
+          ? "Add a directly published platform testimonial"
+          : "Add a curated tenant storefront testimonial"}
       </p>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
         <Input
           value={name}
           onChange={(e) => setName(e.target.value)}
-          placeholder="Pangalan"
+          placeholder="Name"
           className="rounded-xl bg-white"
         />
         <Input
           value={roleLabel}
           onChange={(e) => setRoleLabel(e.target.value)}
-          placeholder="Role o negosyo"
+          placeholder="Role or business"
           className="rounded-xl bg-white"
         />
       </div>
@@ -655,13 +658,13 @@ function TestimonialEditor({ role }: { role: string }) {
       <Input
         value={seasonTag}
         onChange={(e) => setSeasonTag(e.target.value)}
-        placeholder="Season tag o campaign (optional)"
+        placeholder="Season tag or campaign (optional)"
         className="rounded-xl bg-white"
       />
       <textarea
         value={content}
         onChange={(e) => setContent(e.target.value)}
-        placeholder="Mensahe ng miyembro o lender"
+        placeholder="Member or operator story"
         className="min-h-24 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm"
       />
       <Button
