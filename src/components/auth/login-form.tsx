@@ -37,6 +37,10 @@ const LoginSchema = z.object({
 });
 
 type LoginStep = "credentials" | "tenant" | "2fa";
+type LoginTenantContext = {
+  role?: string;
+  slug?: string;
+};
 
 export const LoginForm = ({
   preselectedTenantId,
@@ -93,7 +97,13 @@ export const LoginForm = ({
           form.setValue("tenantId", preselectedTenantId);
           setSelectedTenantSlug(matchedTenant.slug || currentTenant || "");
           setSelectedRole(matchedTenant.role || "");
-          performLogin({ ...values, tenantId: preselectedTenantId });
+          performLogin(
+            { ...values, tenantId: preselectedTenantId },
+            {
+              role: matchedTenant.role || "",
+              slug: matchedTenant.slug || currentTenant || "",
+            },
+          );
           return;
         }
 
@@ -103,7 +113,10 @@ export const LoginForm = ({
           form.setValue("tenantId", tId);
           setSelectedTenantSlug(t.slug || "");
           setSelectedRole(t.role || "");
-          performLogin({ ...values, tenantId: tId });
+          performLogin(
+            { ...values, tenantId: tId },
+            { role: t.role || "", slug: t.slug || "" },
+          );
         } else {
           setAvailableTenants(tenantsList);
           setStep("tenant");
@@ -112,7 +125,10 @@ export const LoginForm = ({
     });
   };
 
-  const performLogin = (values: z.infer<typeof LoginSchema>) => {
+  const performLogin = (
+    values: z.infer<typeof LoginSchema>,
+    tenantContext?: LoginTenantContext,
+  ) => {
     startTransition(async () => {
       try {
         const result = await signIn("credentials", {
@@ -140,13 +156,23 @@ export const LoginForm = ({
           }
         } else {
           toast.success("Welcome! Login successful.");
-          const role = selectedRole || "";
-          const slug = selectedTenantSlug || currentTenant || "";
+          const role = tenantContext?.role || selectedRole || "";
+          const slug = tenantContext?.slug || selectedTenantSlug || currentTenant || "";
           if (role === "superadmin") {
             window.location.href = "/agapay-tanaw";
           } else if (role === "member") {
+            if (!slug) {
+              toast.error("Tenant route is missing. Please select your tenant again.");
+              setStep("tenant");
+              return;
+            }
             window.location.href = `/${slug}/agapay-pintig`;
           } else {
+            if (!slug) {
+              toast.error("Tenant route is missing. Please select your tenant again.");
+              setStep("tenant");
+              return;
+            }
             window.location.href = `/${slug}/agapay-tanaw`;
           }
         }
@@ -274,7 +300,10 @@ export const LoginForm = ({
                         );
                         setSelectedTenantSlug(tenant.slug || "");
                         setSelectedRole(tenant.role || "");
-                        form.handleSubmit(onSubmit)();
+                        performLogin(form.getValues(), {
+                          role: tenant.role || "",
+                          slug: tenant.slug || "",
+                        });
                       }}
                       className={`flex items-center gap-4 p-4 rounded-2xl border-2 text-left transition-all group ${
                         isSelected
