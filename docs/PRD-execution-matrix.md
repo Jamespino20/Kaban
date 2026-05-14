@@ -51,6 +51,18 @@ The previous issue-derived matrix has been replaced. All entries below are sourc
    - Verified subdomain-based tenant resolution in `public/index.php` router.
    - Integrated `Branding::getStyles()` for dynamic tenant customization across all PHP dashboards.
 
+### Completed Fixes in Session 2026-05-14 (Stabilization Sprint):
+1. **Capital Oversight & Vault:**
+   - Implemented `getCapitalOversight` and `recordCapitalTransaction` with ledger integration.
+   - Built `OperatorVaultTab` and `VaultTransactionDialog` for capital management.
+   - Resolved Prisma runtime import and Zod type mismatch build errors.
+2. **Receipt Generation:**
+   - Implemented `generateReceiptHTML` and `generateReceiptPDF` actions.
+   - Added printable receipt view at `/[tenant]/receipt/[paymentId]`.
+3. **AI-Assisted Insights:**
+   - Implemented `getAISnapshot` (Operator) and `getMemberFinancialTips` (Member) heuristic engines.
+   - Integrated `AISnapshotSummary` and `AIFinancialTips` UI components.
+
 ---
 
 ## Section A: Core Features
@@ -69,7 +81,7 @@ The previous issue-derived matrix has been replaced. All entries below are sourc
 | F-10 | Investigation and resolution         | NEW          | Investigation workflow not yet implemented.                                                                                                                                                                         |
 | F-11 | Guarantorship                        | DONE\*       | LoanGuarantee model exists, 25% liability in policy. Workflow complete.                                                                                                                                             |
 | F-12 | Mentorship                           | REBUILD      | MentorshipConnection model exists. Tenant toggle pending.                                                                                                                                                           |
-| F-13 | Receipt generation                   | NEW          | Receipt model exists, generation service pending.                                                                                                                                                                   |
+| F-13 | Receipt generation                   | DONE         | Receipt model exists, generation service (PDF/HTML) implemented with printable views.                                                                                                                               |
 | F-14 | Multi-tenancy by regions and tenants | DONE         | TenantGroup (regions), Tenant slug routing, tenant-specific homepages implemented.                                                                                                                                  |
 | F-15 | Tenant schema creation               | DONE         | Multi-schema isolation via prisma.$withTenant() implemented.                                                                                                                                                        |
 | F-16 | Two-factor authentication (TOTP)     | DONE         | Fully implemented: TOTP secret generation, QR display, verify/enable/disable, login enforcement with TOTP validation, email fallback. Recovery codes field exists but unused.                                       |
@@ -84,7 +96,7 @@ The previous issue-derived matrix has been replaced. All entries below are sourc
 | F-25 | Homepage customization               | DONE\*       | Tenant branding (logo, colors) implemented. Full content builder pending.                                                                                                                                           |
 | F-26 | Dashboard customization              | NEW          | Plan-based feature toggles not yet implemented.                                                                                                                                                                     |
 | F-27 | Backup and recovery                  | VERIFY       | DecommissionedBackup model exists. Backup creation (CSV with member data) and download work. Restore is a stub (only re-activates tenant, does not restore data).                                                   |
-| F-28 | AI-assisted analytics                | NEW          | AiConfig model exists. Snapshot/service integration pending.                                                                                                                                                        |
+| F-28 | AI-assisted analytics                | DONE         | AiConfig model exists. Snapshot service and Socio-Economic insight engine implemented.                                                                                                                              |
 | F-29 | Mobile integration                   | OUT_OF_SCOPE | Explicitly excluded from scope.                                                                                                                                                                                     |
 
 ---

@@ -35,7 +35,7 @@ import { ArrowDownCircle, ArrowUpCircle, Loader2 } from "lucide-react";
 import { recordCapitalTransaction } from "@/actions/vault-actions";
 
 const VaultSchema = z.object({
-  amount: z.string().min(1, "Amount is required").transform(v => parseFloat(v)),
+  amount: z.number().min(0.01, "Amount is required and must be positive"),
   type: z.enum(["share_capital", "regular_savings"]),
   description: z.string().min(5, "Please provide a detailed description"),
 });
@@ -53,7 +53,7 @@ export function VaultTransactionDialog({
   const form = useForm<z.infer<typeof VaultSchema>>({
     resolver: zodResolver(VaultSchema),
     defaultValues: {
-      amount: 0 as any,
+      amount: 0,
       type: "share_capital",
       description: "",
     },
@@ -160,6 +160,7 @@ export function VaultTransactionDialog({
                         placeholder="0.00"
                         className="rounded-xl h-12 pl-8 bg-slate-50 border-slate-200"
                         disabled={isPending}
+                        onChange={(e) => field.onChange(Number(e.target.value))}
                       />
                     </div>
                   </FormControl>
