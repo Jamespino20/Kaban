@@ -1,6 +1,4 @@
 import { PrismaClient, Prisma } from "@prisma/client";
-import { PrismaMariaDb } from "@prisma/adapter-mariadb";
-import * as mariadb from "mariadb";
 import { shouldUseApiClient } from "@/lib/api-config";
 
 let prismaInstance: PrismaClient | undefined;
@@ -9,57 +7,70 @@ declare global {
   var prisma: PrismaClient | undefined;
 }
 
-// When in API-client mode, return a mock Prisma client that logs and returns empty data.
-// The actual data operations happen through the PHP API via the action files.
+import { PrismaMariaDb } from "@prisma/adapter-mariadb";
+
+function createMariaDbAdapter(dbUrl: string) {
+  const isTiDB = dbUrl.includes('tidbcloud');
+  
+  if (isTiDB) {
+    // TiDB Serverless: use PoolConfig with SSL + longer timeout for cold starts
+    const url = new URL(dbUrl);
+    const config = {
+      host: url.hostname,
+      port: parseInt(url.port || '4000'),
+      user: decodeURIComponent(url.username),
+      password: decodeURIComponent(url.password),
+      database: url.pathname.replace('/', ''),
+      ssl: { rejectUnauthorized: true },
+      connectTimeout: 30000,    // 30s for TiDB cold start
+      socketTimeout: 60000,
+      connectionLimit: 5,
+      acquireTimeout: 30000,
+    } as any;
+    return new PrismaMariaDb(config);
+  }
+  
+  // Local XAMPP: connection string is fine
+  return new PrismaMariaDb(dbUrl);
+}
+
+export const getPrisma = () => {
+  if (shouldUseApiClient()) return createMockPrisma();
+  // During static page generation, use mock to avoid DB connections
+  if (process.env.NEXT_PHASE === 'phase-production-build') return createMockPrisma();
+  if (prismaInstance) return prismaInstance;
+
+  console.log("AGAPAY_PRISMA: Initializing...");
+  const dbUrl = process.env.DATABASE_URL || "mysql://root:@localhost:3307/agapay_db";
+  const adapter = createMariaDbAdapter(dbUrl);
+  
+  prismaInstance = new PrismaClient({
+    adapter,
+    log: ["error", "warn"],
+  });
+  return prismaInstance;
+};
+
 function createMockPrisma(): any {
   return new Proxy({} as any, {
     get(_, model: string) {
-      if (model === '$extends') return (opts: any) => createMockPrisma();
-      if (model === '$transaction') return async (fn: any) => fn(createMockPrisma());
-      if (model === '$withTenant') return async (_: any, fn: any) => fn(createMockPrisma());
-      if (model === 'then' || model === 'catch') return undefined; // not a promise
-
+      if (model === '$extends' || model === '$transaction') {
+        return (opts?: any) => model === '$transaction' && typeof opts === 'function' ? opts(createMockPrisma()) : createMockPrisma();
+      }
+      if (model === 'then' || model === 'catch') return undefined;
       return new Proxy({} as any, {
         get(__, method: string) {
           if (method === 'then' || method === 'catch') return undefined;
-          return async (...args: any[]) => {
-            if (process.env.NODE_ENV !== 'production') {
-              console.warn(`[Prisma Mock] ${String(model)}.${String(method)} called — data comes from PHP API`);
-            }
-            return model === 'findUnique' || model === 'findFirst' ? null : [];
-          };
+          return async () => (method === 'findUnique' || method === 'findFirst' ? null : []);
         },
       });
     },
   });
 }
 
-export const getPrisma = () => {
-  if (shouldUseApiClient()) {
-    return createMockPrisma();
-  }
-
-  if (prismaInstance) return prismaInstance;
-
-  console.log("AGAPAY_PRISMA: Initializing MariaDB Client via Driver Adapter...");
-
-  const connectionString = "mysql://root:@localhost:3307/agapay_db";
-  const adapter = new PrismaMariaDb(connectionString);
-
-  prismaInstance = new PrismaClient({
-    adapter,
-    log: ["error", "warn"],
-  });
-
-  return prismaInstance;
-};
-
 const prisma = new Proxy({} as PrismaClient, {
   get(target, prop, receiver) {
     const instance = getPrisma();
-    if (!instance) {
-      throw new Error("Agapay Prisma: Instance not initialized.");
-    }
     return Reflect.get(instance, prop, receiver);
   },
 });
@@ -68,20 +79,13 @@ const prismaExtended = shouldUseApiClient()
   ? createMockPrisma()
   : (prisma as any).$extends({
       client: {
-        async $withTenant<T>(
-          tenantId: number | string,
-          callback: (tx: Prisma.TransactionClient) => Promise<T>,
-        ) {
-          return await (prisma as any).$transaction(async (tx: Prisma.TransactionClient) => {
-            return await callback(tx);
-          });
+        async $withTenant<T>(tenantId: number | string, callback: (tx: Prisma.TransactionClient) => Promise<T>) {
+          return await (prisma as any).$transaction(async (tx: Prisma.TransactionClient) => callback(tx));
         },
       },
     });
 
-if (!globalThis.prisma) {
-  (globalThis as any).prisma = prisma;
-}
+if (!globalThis.prisma) (globalThis as any).prisma = prisma;
 
 export { prismaExtended as prisma };
 export default prismaExtended;

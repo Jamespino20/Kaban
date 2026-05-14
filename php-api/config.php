@@ -27,14 +27,14 @@ if ($envHost && $envUser && $envName) {
     // Auto-detect by HTTP_HOST
     $httpHost = $_SERVER['HTTP_HOST'] ?? '';
 
-    // AwardSpace: host contains atwebpages.com
-    if (str_contains($httpHost, 'atwebpages.com')) {
-        // Fill in these after AwardSpace provisions the DB
-        define('DB_HOST', 'localhost');
-        define('DB_USER', '');
-        define('DB_PASS', '');
-        define('DB_NAME', '');
+    // AwardSpace: PHP runs on AwardSpace, DB lives on InfinityFree
+    if (str_contains($httpHost, 'atwebpages') || str_contains($httpHost, 'awardspace')) {
+        define('DB_HOST', 'sql112.infinityfree.com');
+        define('DB_USER', 'if0_41904755');
+        define('DB_PASS', 'Bryant09200');
+        define('DB_NAME', 'if0_41904755_agapay_db');
         define('DB_PORT', '3306');
+    // InfinityFree custom domain: host contains gt.tc or free
     } elseif (str_contains($httpHost, 'gt.tc') || str_contains($httpHost, 'free')) {
         define('DB_HOST', 'sql112.infinityfree.com');
         define('DB_USER', 'if0_41904755');
