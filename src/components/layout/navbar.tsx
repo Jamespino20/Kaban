@@ -5,19 +5,23 @@ import { Menu, X, LayoutDashboard } from "lucide-react";
 import Link from "next/link";
 import { useSession } from "next-auth/react";
 import { PublicTenantSelector } from "@/components/layout/public-tenant-selector";
+import { AuthModal } from "@/components/auth/auth-modal";
+import { Button } from "@/components/ui/button";
 
 interface NavbarProps {
   forceSolid?: boolean;
   tenants?: any[];
   brandColor?: string | null;
   tenantLogo?: string | null;
+  tenantId?: number | null;
 }
 
-export function Navbar({ 
-  forceSolid = false, 
-  tenants = [], 
+export function Navbar({
+  forceSolid = false,
+  tenants = [],
   brandColor,
-  tenantLogo
+  tenantLogo,
+  tenantId,
 }: NavbarProps) {
   const { data: session, status } = useSession();
   const [isMounted, setIsMounted] = useState(false);
@@ -66,12 +70,15 @@ export function Navbar({
     >
       <div className="max-w-[100rem] mx-auto flex items-center justify-between">
         {/* Logo */}
-        <Link href={isTenantNav ? "#home" : "/"} className="flex items-center gap-4 group cursor-pointer">
+        <Link
+          href={isTenantNav ? "#home" : "/"}
+          className="flex items-center gap-4 group cursor-pointer"
+        >
           <div className="w-32 h-12 flex items-center justify-center transition-transform group-hover:scale-105">
             {tenantLogo ? (
-              <img 
-                src={tenantLogo} 
-                alt="Logo" 
+              <img
+                src={tenantLogo}
+                alt="Logo"
                 className="w-full h-full object-contain"
               />
             ) : (
@@ -95,9 +102,9 @@ export function Navbar({
               className={`text-sm font-bold transition-colors flex flex-col items-center group ${
                 isScrolled
                   ? `${isScrolled ? "text-slate-700" : "text-white/90"}`
-                : isScrolled
-                  ? "text-slate-700 hover:text-emerald-600"
-                  : "text-white/90 hover:text-white"
+                  : isScrolled
+                    ? "text-slate-700 hover:text-emerald-600"
+                    : "text-white/90 hover:text-white"
               }`}
               style={brandColor && isScrolled ? { color: brandColor } : {}}
             >
@@ -111,7 +118,7 @@ export function Navbar({
         {/* Auth & Mobile Toggle */}
         <div className="flex items-center gap-4">
           <div className="hidden md:flex items-center gap-6">
-            {!session && (
+            {!session && !isTenantNav && (
               <PublicTenantSelector
                 tenants={tenants}
                 isScrolled={isScrolled}
@@ -120,7 +127,11 @@ export function Navbar({
                     ? "bg-emerald-600 text-white hover:bg-emerald-700 shadow-emerald-900/10"
                     : "bg-white text-emerald-900 hover:bg-emerald-50 shadow-white/10"
                 }`}
-                style={brandColor && isScrolled ? { backgroundColor: brandColor } : {}}
+                style={
+                  brandColor && isScrolled
+                    ? { backgroundColor: brandColor }
+                    : {}
+                }
               />
             )}
             <AuthOrDashboard
@@ -128,6 +139,8 @@ export function Navbar({
               session={session}
               status={status}
               brandColor={brandColor}
+              isTenantNav={isTenantNav}
+              tenantId={tenantId}
             />
           </div>
           <button
@@ -149,11 +162,13 @@ export function Navbar({
       {isMenuOpen && (
         <div className="md:hidden absolute top-full left-0 right-0 bg-white border-t border-slate-100 shadow-xl p-6 animate-in slide-in-from-top duration-300">
           <nav className="flex flex-col gap-6">
-            <PublicTenantSelector
-              tenants={tenants}
-              isScrolled={isScrolled}
-              isMobile
-            />
+            {!isTenantNav && (
+              <PublicTenantSelector
+                tenants={tenants}
+                isScrolled={isScrolled}
+                isMobile
+              />
+            )}
             {navItems.map((item) => (
               <Link
                 key={item.label}
@@ -174,6 +189,8 @@ export function Navbar({
                 session={session}
                 status={status}
                 brandColor={brandColor}
+                isTenantNav={isTenantNav}
+                tenantId={tenantId}
               />
             </div>
           </nav>
@@ -190,6 +207,8 @@ function AuthOrDashboard({
   session,
   status,
   brandColor,
+  isTenantNav,
+  tenantId,
 }: {
   isMobile?: boolean;
   closeMenu?: () => void;
@@ -197,6 +216,8 @@ function AuthOrDashboard({
   session: any;
   status: string;
   brandColor?: string | null;
+  isTenantNav?: boolean;
+  tenantId?: number | null;
 }) {
   if (!isMounted) return null;
   if (status === "loading") return null;
@@ -221,17 +242,60 @@ function AuthOrDashboard({
     );
   }
 
+  if (isTenantNav) {
+    return (
+      <div
+        className={`flex items-center gap-3 ${isMobile ? "flex-col w-full" : ""}`}
+      >
+        <AuthModal
+          initialTab="login"
+          tenantId={tenantId?.toString()}
+          Trigger={
+            <Button
+              className={
+                isMobile
+                  ? "w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold h-12 px-8 rounded-2xl flex items-center justify-center gap-2"
+                  : "bg-emerald-600 hover:bg-emerald-700 text-white font-bold h-12 px-8 rounded-full shadow-lg shadow-slate-900/10 transition-all flex items-center gap-2"
+              }
+            >
+              Sign In
+            </Button>
+          }
+        />
+        <AuthModal
+          initialTab="register"
+          tenantId={tenantId?.toString()}
+          Trigger={
+            <Button
+              variant="outline"
+              className={
+                isMobile
+                  ? "w-full border-2 border-slate-200 text-slate-900 font-bold h-12 px-8 rounded-2xl flex items-center justify-center gap-2"
+                  : "bg-white border-2 border-slate-200 text-slate-900 font-bold h-12 px-8 rounded-full hover:bg-slate-50 transition-all flex items-center gap-2"
+              }
+              style={
+                brandColor ? { borderColor: brandColor, color: brandColor } : {}
+              }
+            >
+              Register
+            </Button>
+          }
+        />
+      </div>
+    );
+  }
+
   return (
     <div className="flex items-center gap-3">
       <Link
         href="/onboarding"
         className={
           isMobile
-            ? "w-full bg-slate-900 hover:bg-slate-800 text-white font-bold h-12 px-8 rounded-2xl flex items-center justify-center gap-2"
-            : "bg-slate-900 hover:bg-slate-800 text-white font-bold h-12 px-8 rounded-full shadow-lg shadow-slate-900/10 transition-all flex items-center gap-2"
+            ? "w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold h-12 px-8 rounded-2xl flex items-center justify-center gap-2"
+            : "bg-emerald-600 hover:bg-emerald-700 text-white font-bold h-12 px-8 rounded-full shadow-lg shadow-slate-900/10 transition-all flex items-center gap-2"
         }
       >
-        Get Started
+        Apply for Agapay
       </Link>
     </div>
   );

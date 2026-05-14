@@ -31,18 +31,12 @@ interface PublicTenantSelectorProps {
 const PLATFORM_DOMAIN = "agapay-saas.vercel.app";
 
 function getTenantPublicHref(slug: string) {
-  if (process.env.NODE_ENV === "production") {
-    return `https://${slug}.${PLATFORM_DOMAIN}`;
-  }
-
+  // Standardized to path-based routing for reliability on .vercel.app
   return `/${slug}`;
 }
 
 function getTenantAddressLabel(slug: string) {
-  if (process.env.NODE_ENV === "production") {
-    return `${slug}.${PLATFORM_DOMAIN}`;
-  }
-
+  // Shows the relative path as the identifier
   return `/${slug}`;
 }
 

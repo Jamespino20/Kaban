@@ -4,7 +4,6 @@ import prisma from "@/lib/prisma";
 import { auth } from "@/lib/auth";
 import { sql } from "@/lib/db";
 import { Prisma } from "@prisma/client";
-const { Decimal } = Prisma;
 
 export async function getCapitalOversight() {
   const session = await auth();
@@ -54,70 +53,14 @@ export async function recordCapitalTransaction(data: {
   const userId = session?.user?.id;
   if (!tenantId || !userId) throw new Error("Unauthorized");
 
-  const amount = new Decimal(data.amount);
+  const amount = new Prisma.Decimal(data.amount);
   const multiplier = data.direction === "invest" ? 1 : -1;
 
   // 1. Transactionally update the owner's account and record in ledger
   // In a cooperative Microfinance SaaS, 'Operator Vault' usually manages the COOP's own capital
   // or the operator's personal stake in the pool.
 
-  return await prisma.$transaction(
-    async (tx: {
-      savingsAccount: {
-        findFirst: (arg0: {
-          where: {
-            tenant_id: any;
-            user_id: number;
-            account_type: "share_capital" | "regular_savings";
-          };
-        }) => any;
-        create: (arg0: {
-          data: {
-            tenant_id: any;
-            user_id: number;
-            account_type: "share_capital" | "regular_savings";
-            balance: number;
-          };
-        }) => any;
-        update: (arg0: {
-          where: { account_id: any };
-          data: { balance: Prisma.Decimal };
-        }) => any;
-      };
-      savingsTransaction: {
-        create: (arg0: {
-          data: {
-            account_id: any;
-            tenant_id: any;
-            amount: Prisma.Decimal;
-            type: string;
-            description: string;
-            status: string;
-            reference: string;
-          };
-        }) => any;
-      };
-      ledgerAccount: {
-        findFirst: (arg0: { where: { tenant_id: any; code: string } }) => any;
-        create: (arg0: {
-          data: { tenant_id: any; name: string; code: string; type: string };
-        }) => any;
-      };
-      businessLedger: {
-        create: (arg0: {
-          data: {
-            tenant_id: any;
-            account_id: any;
-            debit: number | Prisma.Decimal;
-            credit: number | Prisma.Decimal;
-            description: string;
-            source_module: string;
-            source_reference: any;
-            created_by: number;
-          };
-        }) => any;
-      };
-    }) => {
+  return await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
       // Find or create the operator's own savings account for this type
       let account = await tx.savingsAccount.findFirst({
         where: {
@@ -139,7 +82,7 @@ export async function recordCapitalTransaction(data: {
       }
 
       // Update balance
-      const newBalance = new Decimal(account.balance).add(
+      const newBalance = new Prisma.Decimal(account.balance).add(
         amount.mul(multiplier),
       );
       if (newBalance.lt(0)) {
@@ -157,9 +100,8 @@ export async function recordCapitalTransaction(data: {
           account_id: account.account_id,
           tenant_id: tenantId,
           amount: amount.mul(multiplier),
-          type: data.direction === "invest" ? "deposit" : "withdrawal",
-          description: data.description,
-          status: "completed",
+          transaction_type: data.direction === "invest" ? "deposit" : "withdrawal",
+          status: "verified",
           reference: `VAULT-${Date.now()}`,
         },
       });
@@ -200,7 +142,6 @@ export async function recordCapitalTransaction(data: {
         },
       });
 
-      return { success: true };
-    },
-  );
+    return { success: true };
+  });
 }

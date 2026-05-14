@@ -13,15 +13,19 @@ import { LoginForm } from "@/components/auth/login-form";
 import { EnhancedRegisterForm } from "@/components/auth/enhanced-register-form";
 import { Button } from "@/components/ui/button";
 
-export function AuthModal() {
+interface AuthModalProps {
+  initialTab?: "login" | "register";
+  Trigger: React.ReactNode;
+  tenantId?: string;
+}
+
+export function AuthModal({ initialTab = "login", Trigger, tenantId }: AuthModalProps) {
   const [open, setOpen] = useState(false);
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold h-12 px-8 rounded-full shadow-lg shadow-emerald-900/20 transition-all">
-          Get Started
-        </Button>
+        {Trigger}
       </DialogTrigger>
       <DialogContent className="sm:max-w-[750px] bg-white border-slate-200 p-0 rounded-3xl overflow-hidden overflow-y-auto max-h-[95vh] border-none shadow-none">
         <DialogTitle className="sr-only">Authentication</DialogTitle>
@@ -29,7 +33,7 @@ export function AuthModal() {
           Login or register to access the treasury
         </DialogDescription>
 
-        <Tabs defaultValue="login" className="w-full">
+        <Tabs defaultValue={initialTab} className="w-full">
           <div className="px-8 pt-8">
             <TabsList className="grid w-full grid-cols-2 mb-8 bg-slate-100 p-1 rounded-xl">
               <TabsTrigger
@@ -57,7 +61,7 @@ export function AuthModal() {
             value="register"
             className="focus-visible:outline-none focus-visible:ring-0 outline-none"
           >
-            <EnhancedRegisterForm />
+            <EnhancedRegisterForm preselectedTenantId={tenantId} />
           </TabsContent>
         </Tabs>
       </DialogContent>

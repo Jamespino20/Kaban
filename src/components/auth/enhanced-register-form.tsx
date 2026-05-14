@@ -165,15 +165,21 @@ export function EnhancedRegisterForm({
   });
 
   const watchedValues = form.watch();
-  const formDataAsRecord = useMemo(() => watchedValues as unknown as Record<string, unknown>, [watchedValues]);
-  const { draftFound, clearPersistence, dismissDraftNotice } = useFormPersistence(
-    "member-registration",
-    formDataAsRecord,
-    (restored) => {
-      form.reset(restored as unknown as z.infer<typeof EnhancedRegisterSchema>);
-    },
-    !successData,
+  const formDataAsRecord = useMemo(
+    () => watchedValues as unknown as Record<string, unknown>,
+    [watchedValues],
   );
+  const { draftFound, clearPersistence, dismissDraftNotice } =
+    useFormPersistence(
+      "member-registration",
+      formDataAsRecord,
+      (restored) => {
+        form.reset(
+          restored as unknown as z.infer<typeof EnhancedRegisterSchema>,
+        );
+      },
+      !successData,
+    );
 
   // Pre-select logic
   useEffect(() => {
@@ -431,7 +437,7 @@ export function EnhancedRegisterForm({
                     window.location.reload();
                   }
                 }}
-                className="w-full h-14 rounded-2xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-lg transition-all"
+                className="w-full h-14 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-lg transition-all"
               >
                 Go to My Dashboard
               </Button>
@@ -439,128 +445,46 @@ export function EnhancedRegisterForm({
           </div>
         ) : (
           <>
-          {draftFound && (
-            <div className="mb-6 flex items-center gap-3 rounded-2xl border border-amber-200 bg-amber-50 px-5 py-3 text-sm text-amber-800">
-              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-amber-100 text-amber-600 text-xs font-bold">!</div>
-              <p className="flex-1 font-medium">We found a saved draft from your last session. Continue where you left off.</p>
-              <button
-                type="button"
-                onClick={() => { clearPersistence(); dismissDraftNotice(); }}
-                className="text-xs font-bold text-amber-600 hover:text-amber-800 underline"
+            {draftFound && (
+              <div className="mb-6 flex items-center gap-3 rounded-2xl border border-amber-200 bg-amber-50 px-5 py-3 text-sm text-amber-800">
+                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-amber-100 text-amber-600 text-xs font-bold">
+                  !
+                </div>
+                <p className="flex-1 font-medium">
+                  We found a saved draft from your last session. Continue where
+                  you left off.
+                </p>
+                <button
+                  type="button"
+                  onClick={() => {
+                    clearPersistence();
+                    dismissDraftNotice();
+                  }}
+                  className="text-xs font-bold text-amber-600 hover:text-amber-800 underline"
+                >
+                  Dismiss
+                </button>
+              </div>
+            )}
+            <Form {...form}>
+              <form
+                onSubmit={form.handleSubmit(onSubmit)}
+                className="space-y-6"
               >
-                Dismiss
-              </button>
-            </div>
-          )}
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-              {step === 1 && (
-                <div className="space-y-4 animate-in fade-in slide-in-from-right-4 duration-300">
-                  <FormField
-                    control={form.control}
-                    name="username"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Username</FormLabel>
-                        <FormControl>
-                          <div className="relative">
-                            <User className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-                            <Input
-                              {...field}
-                              placeholder="juan_treasures"
-                              className="pl-11 rounded-xl h-12"
-                            />
-                          </div>
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="email"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Gmail Account</FormLabel>
-                        <FormControl>
-                          <div className="relative">
-                            <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-                            <Input
-                              {...field}
-                              type="email"
-                              placeholder="example@gmail.com"
-                              className="pl-11 rounded-xl h-12"
-                            />
-                          </div>
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="phone"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Phone Number</FormLabel>
-                        <FormControl>
-                          <div className="relative">
-                            <Phone className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-                            <Input
-                              {...field}
-                              placeholder="09123456789"
-                              className="pl-11 rounded-xl h-12"
-                            />
-                          </div>
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {step === 1 && (
+                  <div className="space-y-4 animate-in fade-in slide-in-from-right-4 duration-300">
                     <FormField
                       control={form.control}
-                      name="password"
+                      name="username"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Password</FormLabel>
+                          <FormLabel>Username</FormLabel>
                           <FormControl>
                             <div className="relative">
-                              <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                              <User className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
                               <Input
                                 {...field}
-                                type={showPassword ? "text" : "password"}
-                                className="pl-11 pr-10 rounded-xl h-12"
-                              />
-                              <button
-                                type="button"
-                                onClick={() => setShowPassword(!showPassword)}
-                                className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400"
-                              >
-                                {showPassword ? (
-                                  <EyeOff className="w-4 h-4" />
-                                ) : (
-                                  <Eye className="w-4 h-4" />
-                                )}
-                              </button>
-                            </div>
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={form.control}
-                      name="confirmPassword"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Confirm Password</FormLabel>
-                          <FormControl>
-                            <div className="relative">
-                              <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-                              <Input
-                                {...field}
-                                type="password"
+                                placeholder="juan_treasures"
                                 className="pl-11 rounded-xl h-12"
                               />
                             </div>
@@ -569,162 +493,20 @@ export function EnhancedRegisterForm({
                         </FormItem>
                       )}
                     />
-                  </div>
-                </div>
-              )}
-
-              {step === 2 && (
-                <div className="space-y-4 animate-in fade-in slide-in-from-right-4 duration-300">
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <FormField
                       control={form.control}
-                      name="firstName"
+                      name="email"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>First Name</FormLabel>
-                          <FormControl>
-                            <Input {...field} className="rounded-xl h-12" />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={form.control}
-                      name="middleName"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Middle Name</FormLabel>
-                          <FormControl>
-                            <Input {...field} className="rounded-xl h-12" />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={form.control}
-                      name="lastName"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Last Name</FormLabel>
-                          <FormControl>
-                            <Input {...field} className="rounded-xl h-12" />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <FormField
-                      control={form.control}
-                      name="birthdate"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Birthdate</FormLabel>
-                          <FormControl>
-                            <Input
-                              {...field}
-                              type="date"
-                              className="rounded-xl h-12"
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={form.control}
-                      name="gender"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Gender</FormLabel>
-                          <FormControl>
-                            <select
-                              {...field}
-                              className="w-full rounded-xl h-12 border border-slate-200 px-4 bg-white outline-none font-bold text-slate-700"
-                            >
-                              <option value="male">Male</option>
-                              <option value="female">Female</option>
-                              <option value="other">Other</option>
-                            </select>
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <FormField
-                      control={form.control}
-                      name="maritalStatus"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Marital Status</FormLabel>
-                          <FormControl>
-                            <select
-                              {...field}
-                              className="w-full rounded-xl h-12 border border-slate-200 px-4 bg-white outline-none font-bold text-slate-700"
-                            >
-                              <option value="single">Single</option>
-                              <option value="married">Married</option>
-                              <option value="widowed">Widowed</option>
-                              <option value="separated">Separated</option>
-                              <option value="annulled">Annulled</option>
-                            </select>
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={form.control}
-                      name="placeOfBirth"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Place of Birth</FormLabel>
-                          <FormControl>
-                            <Input
-                              {...field}
-                              placeholder="City or Province"
-                              className="rounded-xl h-12"
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={form.control}
-                      name="tin"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>TIN (Optional)</FormLabel>
-                          <FormControl>
-                            <Input
-                              {...field}
-                              placeholder="000-000-000-000"
-                              className="rounded-xl h-12"
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={form.control}
-                      name="businessName"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Business Name (Optional)</FormLabel>
+                          <FormLabel>Gmail Account</FormLabel>
                           <FormControl>
                             <div className="relative">
-                              <Building2 className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                              <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
                               <Input
                                 {...field}
-                                placeholder="Your Business Name"
-                                className="pl-11 rounded-xl h-12 font-bold"
+                                type="email"
+                                placeholder="example@gmail.com"
+                                className="pl-11 rounded-xl h-12"
                               />
                             </div>
                           </FormControl>
@@ -732,39 +514,415 @@ export function EnhancedRegisterForm({
                         </FormItem>
                       )}
                     />
+                    <FormField
+                      control={form.control}
+                      name="phone"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Phone Number</FormLabel>
+                          <FormControl>
+                            <div className="relative">
+                              <Phone className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                              <Input
+                                {...field}
+                                placeholder="09123456789"
+                                className="pl-11 rounded-xl h-12"
+                              />
+                            </div>
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <FormField
+                        control={form.control}
+                        name="password"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Password</FormLabel>
+                            <FormControl>
+                              <div className="relative">
+                                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                                <Input
+                                  {...field}
+                                  type={showPassword ? "text" : "password"}
+                                  className="pl-11 pr-10 rounded-xl h-12"
+                                />
+                                <button
+                                  type="button"
+                                  onClick={() => setShowPassword(!showPassword)}
+                                  className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400"
+                                >
+                                  {showPassword ? (
+                                    <EyeOff className="w-4 h-4" />
+                                  ) : (
+                                    <Eye className="w-4 h-4" />
+                                  )}
+                                </button>
+                              </div>
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={form.control}
+                        name="confirmPassword"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Confirm Password</FormLabel>
+                            <FormControl>
+                              <div className="relative">
+                                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                                <Input
+                                  {...field}
+                                  type="password"
+                                  className="pl-11 rounded-xl h-12"
+                                />
+                              </div>
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
                   </div>
-                </div>
-              )}
+                )}
 
-              {step === 3 && (
-                <div className="space-y-4 animate-in fade-in slide-in-from-right-4 duration-300">
-                  {!preselectedTenantId && (
-                    <>
+                {step === 2 && (
+                  <div className="space-y-4 animate-in fade-in slide-in-from-right-4 duration-300">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <FormField
+                        control={form.control}
+                        name="firstName"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>First Name</FormLabel>
+                            <FormControl>
+                              <Input {...field} className="rounded-xl h-12" />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={form.control}
+                        name="middleName"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Middle Name</FormLabel>
+                            <FormControl>
+                              <Input {...field} className="rounded-xl h-12" />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={form.control}
+                        name="lastName"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Last Name</FormLabel>
+                            <FormControl>
+                              <Input {...field} className="rounded-xl h-12" />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <FormField
+                        control={form.control}
+                        name="birthdate"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Birthdate</FormLabel>
+                            <FormControl>
+                              <Input
+                                {...field}
+                                type="date"
+                                className="rounded-xl h-12"
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={form.control}
+                        name="gender"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Gender</FormLabel>
+                            <FormControl>
+                              <select
+                                {...field}
+                                className="w-full rounded-xl h-12 border border-slate-200 px-4 bg-white outline-none font-bold text-slate-700"
+                              >
+                                <option value="male">Male</option>
+                                <option value="female">Female</option>
+                                <option value="other">Other</option>
+                              </select>
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <FormField
+                        control={form.control}
+                        name="maritalStatus"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Marital Status</FormLabel>
+                            <FormControl>
+                              <select
+                                {...field}
+                                className="w-full rounded-xl h-12 border border-slate-200 px-4 bg-white outline-none font-bold text-slate-700"
+                              >
+                                <option value="single">Single</option>
+                                <option value="married">Married</option>
+                                <option value="widowed">Widowed</option>
+                                <option value="separated">Separated</option>
+                                <option value="annulled">Annulled</option>
+                              </select>
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={form.control}
+                        name="placeOfBirth"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Place of Birth</FormLabel>
+                            <FormControl>
+                              <Input
+                                {...field}
+                                placeholder="City or Province"
+                                className="rounded-xl h-12"
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={form.control}
+                        name="tin"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>TIN (Optional)</FormLabel>
+                            <FormControl>
+                              <Input
+                                {...field}
+                                placeholder="000-000-000-000"
+                                className="rounded-xl h-12"
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={form.control}
+                        name="businessName"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Business Name (Optional)</FormLabel>
+                            <FormControl>
+                              <div className="relative">
+                                <Building2 className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                                <Input
+                                  {...field}
+                                  placeholder="Your Business Name"
+                                  className="pl-11 rounded-xl h-12 font-bold"
+                                />
+                              </div>
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+                  </div>
+                )}
+
+                {step === 3 && (
+                  <div className="space-y-4 animate-in fade-in slide-in-from-right-4 duration-300">
+                    {!preselectedTenantId && (
+                      <>
+                        <h4 className="text-sm font-semibold text-slate-500 uppercase tracking-wider">
+                          Agapay Cooperative
+                        </h4>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <FormField
+                            control={form.control}
+                            name="regionId"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Agapay Area</FormLabel>
+                                <FormControl>
+                                  <select
+                                    {...field}
+                                    onChange={(e) =>
+                                      onRegionChange(e.target.value)
+                                    }
+                                    className="w-full rounded-xl h-12 border border-slate-200 px-4 bg-white outline-none"
+                                  >
+                                    <option value="">Select Agapay Area</option>
+                                    {regions.map((r: any) => (
+                                      <option
+                                        key={r.id}
+                                        value={r.id.toString()}
+                                      >
+                                        {r.name}
+                                      </option>
+                                    ))}
+                                  </select>
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          <FormField
+                            control={form.control}
+                            name="tenantId"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Tenant</FormLabel>
+                                <FormControl>
+                                  <select
+                                    {...field}
+                                    disabled={
+                                      (!form.getValues("regionId") &&
+                                        !preselectedRegionId) ||
+                                      !!preselectedTenantId
+                                    }
+                                    className="w-full rounded-xl h-12 border border-slate-200 px-4 bg-white outline-none font-bold text-emerald-700 disabled:opacity-50"
+                                  >
+                                    <option value="">Select Tenant</option>
+                                    {tenants.map((t: any) => (
+                                      <option
+                                        key={t.tenant_id}
+                                        value={t.tenant_id.toString()}
+                                      >
+                                        {t.name}
+                                      </option>
+                                    ))}
+                                    {preselectedTenantId &&
+                                      tenants.length === 0 && (
+                                        <option value={preselectedTenantId}>
+                                          Preselected Tenant
+                                        </option>
+                                      )}
+                                  </select>
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                        </div>
+                      </>
+                    )}
+
+                    <div className="space-y-4 pt-4 border-t border-slate-100">
                       <h4 className="text-sm font-semibold text-slate-500 uppercase tracking-wider">
-                        Agapay Cooperative
+                        Your Address (PSGC)
                       </h4>
+
+                      <FormField
+                        control={form.control}
+                        name="streetAddress"
+                        render={({ field }) => (
+                          <FormItem className="flex flex-col">
+                            <FormLabel>Street & House No.</FormLabel>
+                            <FormControl>
+                              <Input
+                                {...field}
+                                placeholder="Ex: 123 Rizal St., Phase 1"
+                                className="rounded-xl h-10 border-slate-200 focus:border-emerald-500 focus:ring-emerald-500/20"
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
+                      <FormField
+                        control={form.control}
+                        name="psgcRegion"
+                        render={({ field }) => (
+                          <FormItem className="flex flex-col">
+                            <FormLabel>Region</FormLabel>
+                            <FormControl>
+                              <LocationComboBox
+                                items={psgcRegions}
+                                value={field.value}
+                                onChange={(val) => {
+                                  field.onChange(val);
+                                  onPsgcRegionChange(val);
+                                }}
+                                placeholder="Select Region"
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
+                      <FormField
+                        control={form.control}
+                        name="province"
+                        render={({ field }) => (
+                          <FormItem className="flex flex-col">
+                            <FormLabel>Province</FormLabel>
+                            <FormControl>
+                              <LocationComboBox
+                                items={geoProvinces}
+                                value={field.value}
+                                onChange={(val) => {
+                                  field.onChange(val);
+                                  onProvinceChange(val);
+                                }}
+                                placeholder="Select Province"
+                                disabled={
+                                  !form.getValues("psgcRegion") ||
+                                  geoProvinces.length === 0
+                                }
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <FormField
                           control={form.control}
-                          name="regionId"
+                          name="city"
                           render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Agapay Area</FormLabel>
+                            <FormItem className="flex flex-col">
+                              <FormLabel>City / Municipality</FormLabel>
                               <FormControl>
-                                <select
-                                  {...field}
-                                  onChange={(e) =>
-                                    onRegionChange(e.target.value)
+                                <LocationComboBox
+                                  items={geoCities}
+                                  value={field.value}
+                                  onChange={(val) => {
+                                    field.onChange(val);
+                                    onCityChange(val);
+                                  }}
+                                  placeholder="Select City"
+                                  disabled={
+                                    !form.getValues("province") ||
+                                    geoCities.length === 0
                                   }
-                                  className="w-full rounded-xl h-12 border border-slate-200 px-4 bg-white outline-none"
-                                >
-                                  <option value="">Select Agapay Area</option>
-                                  {regions.map((r: any) => (
-                                    <option key={r.id} value={r.id.toString()}>
-                                      {r.name}
-                                    </option>
-                                  ))}
-                                </select>
+                                />
                               </FormControl>
                               <FormMessage />
                             </FormItem>
@@ -772,372 +930,234 @@ export function EnhancedRegisterForm({
                         />
                         <FormField
                           control={form.control}
-                          name="tenantId"
+                          name="barangay"
                           render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Tenant</FormLabel>
+                            <FormItem className="flex flex-col">
+                              <FormLabel>Barangay</FormLabel>
                               <FormControl>
-                                <select
-                                  {...field}
+                                <LocationComboBox
+                                  items={geoBarangays}
+                                  value={field.value}
+                                  onChange={(val) => {
+                                    field.onChange(val);
+                                  }}
+                                  placeholder="Select Barangay"
                                   disabled={
-                                    (!form.getValues("regionId") &&
-                                      !preselectedRegionId) ||
-                                    !!preselectedTenantId
+                                    !form.getValues("city") ||
+                                    geoBarangays.length === 0
                                   }
-                                  className="w-full rounded-xl h-12 border border-slate-200 px-4 bg-white outline-none font-bold text-emerald-700 disabled:opacity-50"
-                                >
-                                  <option value="">Select Tenant</option>
-                                  {tenants.map((t: any) => (
-                                    <option
-                                      key={t.tenant_id}
-                                      value={t.tenant_id.toString()}
-                                    >
-                                      {t.name}
-                                    </option>
-                                  ))}
-                                  {preselectedTenantId &&
-                                    tenants.length === 0 && (
-                                      <option value={preselectedTenantId}>
-                                        Preselected Tenant
-                                      </option>
-                                    )}
-                                </select>
+                                />
                               </FormControl>
                               <FormMessage />
                             </FormItem>
                           )}
                         />
                       </div>
-                    </>
-                  )}
+                    </div>
+                  </div>
+                )}
 
-                  <div className="space-y-4 pt-4 border-t border-slate-100">
-                    <h4 className="text-sm font-semibold text-slate-500 uppercase tracking-wider">
-                      Your Address (PSGC)
-                    </h4>
-
-                    <FormField
-                      control={form.control}
-                      name="streetAddress"
-                      render={({ field }) => (
-                        <FormItem className="flex flex-col">
-                          <FormLabel>Street & House No.</FormLabel>
-                          <FormControl>
-                            <Input
-                              {...field}
-                              placeholder="Ex: 123 Rizal St., Phase 1"
-                              className="rounded-xl h-10 border-slate-200 focus:border-emerald-500 focus:ring-emerald-500/20"
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-
-                    <FormField
-                      control={form.control}
-                      name="psgcRegion"
-                      render={({ field }) => (
-                        <FormItem className="flex flex-col">
-                          <FormLabel>Region</FormLabel>
-                          <FormControl>
-                            <LocationComboBox
-                              items={psgcRegions}
-                              value={field.value}
-                              onChange={(val) => {
-                                field.onChange(val);
-                                onPsgcRegionChange(val);
-                              }}
-                              placeholder="Select Region"
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-
-                    <FormField
-                      control={form.control}
-                      name="province"
-                      render={({ field }) => (
-                        <FormItem className="flex flex-col">
-                          <FormLabel>Province</FormLabel>
-                          <FormControl>
-                            <LocationComboBox
-                              items={geoProvinces}
-                              value={field.value}
-                              onChange={(val) => {
-                                field.onChange(val);
-                                onProvinceChange(val);
-                              }}
-                              placeholder="Select Province"
-                              disabled={
-                                !form.getValues("psgcRegion") ||
-                                geoProvinces.length === 0
-                              }
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-
+                {step === 4 && (
+                  <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-300">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="space-y-4">
+                        <FormLabel>ID Picture</FormLabel>
+                        <Card
+                          className="border-dashed border-2 border-slate-200 p-6 flex flex-col items-center justify-center text-center space-y-4 cursor-pointer hover:bg-slate-50 transition-colors"
+                          onClick={() =>
+                            document.getElementById("id-upload")?.click()
+                          }
+                        >
+                          <input
+                            id="id-upload"
+                            type="file"
+                            accept="image/*"
+                            className="hidden"
+                            onChange={(e) => handleFileUpload(e, "id")}
+                          />
+                          {idUrl ? (
+                            <div className="space-y-2">
+                              <img
+                                src={idUrl}
+                                alt="ID Preview"
+                                className="w-16 h-16 object-cover rounded-xl mx-auto shadow-md"
+                              />
+                              <p className="text-emerald-600 text-[10px] font-bold">
+                                Change
+                              </p>
+                            </div>
+                          ) : (
+                            <>
+                              <IdCard className="w-8 h-8 text-slate-300" />
+                              <p className="text-[10px] text-slate-500">
+                                Click to upload ID
+                              </p>
+                            </>
+                          )}
+                        </Card>
+                      </div>
+
+                      <div className="space-y-4">
+                        <FormLabel>Barangay Certificate</FormLabel>
+                        <Card
+                          className="border-dashed border-2 border-slate-200 p-6 flex flex-col items-center justify-center text-center space-y-4 cursor-pointer hover:bg-slate-50 transition-colors"
+                          onClick={() =>
+                            document.getElementById("brgy-upload")?.click()
+                          }
+                        >
+                          <input
+                            id="brgy-upload"
+                            type="file"
+                            accept="image/*"
+                            className="hidden"
+                            onChange={(e) => handleFileUpload(e, "brgy")}
+                          />
+                          {brgyCertUrl ? (
+                            <div className="space-y-2">
+                              <img
+                                src={brgyCertUrl}
+                                alt="Brgy Preview"
+                                className="w-16 h-16 object-cover rounded-xl mx-auto shadow-md"
+                              />
+                              <p className="text-emerald-600 text-[10px] font-bold">
+                                Change
+                              </p>
+                            </div>
+                          ) : (
+                            <>
+                              <FileText className="w-8 h-8 text-slate-300" />
+                              <p className="text-[10px] text-slate-500">
+                                Click to upload Brgy Cert
+                              </p>
+                            </>
+                          )}
+                        </Card>
+                      </div>
+                    </div>
+
+                    {form.getValues("businessName") && (
+                      <div className="space-y-4">
+                        <FormLabel>Business Permit</FormLabel>
+                        <Card
+                          className="border-dashed border-2 border-slate-200 p-6 flex flex-col items-center justify-center text-center space-y-4 cursor-pointer hover:bg-slate-50 transition-colors"
+                          onClick={() =>
+                            document.getElementById("business-upload")?.click()
+                          }
+                        >
+                          <input
+                            id="business-upload"
+                            type="file"
+                            accept="image/*"
+                            className="hidden"
+                            onChange={(e) => handleFileUpload(e, "business")}
+                          />
+                          {businessPermitUrl ? (
+                            <div className="space-y-2">
+                              <img
+                                src={businessPermitUrl}
+                                alt="Business Preview"
+                                className="w-16 h-16 object-cover rounded-xl mx-auto shadow-md"
+                              />
+                              <p className="text-emerald-600 text-[10px] font-bold">
+                                Change
+                              </p>
+                            </div>
+                          ) : (
+                            <>
+                              <Building2 className="w-8 h-8 text-slate-300" />
+                              <p className="text-[10px] text-slate-500">
+                                Click to upload Business Permit
+                              </p>
+                            </>
+                          )}
+                        </Card>
+                      </div>
+                    )}
+
+                    <div className="space-y-4">
                       <FormField
                         control={form.control}
-                        name="city"
+                        name="termsAccepted"
                         render={({ field }) => (
-                          <FormItem className="flex flex-col">
-                            <FormLabel>City / Municipality</FormLabel>
-                            <FormControl>
-                              <LocationComboBox
-                                items={geoCities}
-                                value={field.value}
-                                onChange={(val) => {
-                                  field.onChange(val);
-                                  onCityChange(val);
-                                }}
-                                placeholder="Select City"
-                                disabled={
-                                  !form.getValues("province") ||
-                                  geoCities.length === 0
-                                }
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
+                          <div className="flex items-center space-x-3">
+                            <input
+                              type="checkbox"
+                              checked={field.value}
+                              onChange={field.onChange}
+                              className="w-5 h-5 rounded border-slate-300 text-emerald-600 outline-none"
+                            />
+                            <span className="text-sm text-slate-600">
+                              I accept the{" "}
+                              <Link
+                                href="/terms"
+                                className="text-emerald-600 underline"
+                              >
+                                Terms of Service
+                              </Link>
+                            </span>
+                          </div>
                         )}
                       />
                       <FormField
                         control={form.control}
-                        name="barangay"
+                        name="privacyAccepted"
                         render={({ field }) => (
-                          <FormItem className="flex flex-col">
-                            <FormLabel>Barangay</FormLabel>
-                            <FormControl>
-                              <LocationComboBox
-                                items={geoBarangays}
-                                value={field.value}
-                                onChange={(val) => {
-                                  field.onChange(val);
-                                }}
-                                placeholder="Select Barangay"
-                                disabled={
-                                  !form.getValues("city") ||
-                                  geoBarangays.length === 0
-                                }
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
+                          <div className="flex items-center space-x-3">
+                            <input
+                              type="checkbox"
+                              checked={field.value}
+                              onChange={field.onChange}
+                              className="w-5 h-5 rounded border-slate-300 text-emerald-600 outline-none"
+                            />
+                            <span className="text-sm text-slate-600">
+                              I agree to the{" "}
+                              <Link
+                                href="/privacy"
+                                className="text-emerald-600 underline"
+                              >
+                                Privacy Policy
+                              </Link>
+                            </span>
+                          </div>
                         )}
                       />
                     </div>
                   </div>
-                </div>
-              )}
+                )}
 
-              {step === 4 && (
-                <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-300">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="space-y-4">
-                      <FormLabel>ID Picture</FormLabel>
-                      <Card
-                        className="border-dashed border-2 border-slate-200 p-6 flex flex-col items-center justify-center text-center space-y-4 cursor-pointer hover:bg-slate-50 transition-colors"
-                        onClick={() =>
-                          document.getElementById("id-upload")?.click()
-                        }
-                      >
-                        <input
-                          id="id-upload"
-                          type="file"
-                          accept="image/*"
-                          className="hidden"
-                          onChange={(e) => handleFileUpload(e, "id")}
-                        />
-                        {idUrl ? (
-                          <div className="space-y-2">
-                            <img
-                              src={idUrl}
-                              alt="ID Preview"
-                              className="w-16 h-16 object-cover rounded-xl mx-auto shadow-md"
-                            />
-                            <p className="text-emerald-600 text-[10px] font-bold">
-                              Change
-                            </p>
-                          </div>
-                        ) : (
-                          <>
-                            <IdCard className="w-8 h-8 text-slate-300" />
-                            <p className="text-[10px] text-slate-500">
-                              Click to upload ID
-                            </p>
-                          </>
-                        )}
-                      </Card>
-                    </div>
-
-                    <div className="space-y-4">
-                      <FormLabel>Barangay Certificate</FormLabel>
-                      <Card
-                        className="border-dashed border-2 border-slate-200 p-6 flex flex-col items-center justify-center text-center space-y-4 cursor-pointer hover:bg-slate-50 transition-colors"
-                        onClick={() =>
-                          document.getElementById("brgy-upload")?.click()
-                        }
-                      >
-                        <input
-                          id="brgy-upload"
-                          type="file"
-                          accept="image/*"
-                          className="hidden"
-                          onChange={(e) => handleFileUpload(e, "brgy")}
-                        />
-                        {brgyCertUrl ? (
-                          <div className="space-y-2">
-                            <img
-                              src={brgyCertUrl}
-                              alt="Brgy Preview"
-                              className="w-16 h-16 object-cover rounded-xl mx-auto shadow-md"
-                            />
-                            <p className="text-emerald-600 text-[10px] font-bold">
-                              Change
-                            </p>
-                          </div>
-                        ) : (
-                          <>
-                            <FileText className="w-8 h-8 text-slate-300" />
-                            <p className="text-[10px] text-slate-500">
-                              Click to upload Brgy Cert
-                            </p>
-                          </>
-                        )}
-                      </Card>
-                    </div>
-                  </div>
-
-                  {form.getValues("businessName") && (
-                    <div className="space-y-4">
-                      <FormLabel>Business Permit</FormLabel>
-                      <Card
-                        className="border-dashed border-2 border-slate-200 p-6 flex flex-col items-center justify-center text-center space-y-4 cursor-pointer hover:bg-slate-50 transition-colors"
-                        onClick={() =>
-                          document.getElementById("business-upload")?.click()
-                        }
-                      >
-                        <input
-                          id="business-upload"
-                          type="file"
-                          accept="image/*"
-                          className="hidden"
-                          onChange={(e) => handleFileUpload(e, "business")}
-                        />
-                        {businessPermitUrl ? (
-                          <div className="space-y-2">
-                            <img
-                              src={businessPermitUrl}
-                              alt="Business Preview"
-                              className="w-16 h-16 object-cover rounded-xl mx-auto shadow-md"
-                            />
-                            <p className="text-emerald-600 text-[10px] font-bold">
-                              Change
-                            </p>
-                          </div>
-                        ) : (
-                          <>
-                            <Building2 className="w-8 h-8 text-slate-300" />
-                            <p className="text-[10px] text-slate-500">
-                              Click to upload Business Permit
-                            </p>
-                          </>
-                        )}
-                      </Card>
-                    </div>
+                <div className="flex items-center justify-between pt-6 border-t border-slate-100">
+                  {step > 1 && (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={prevStep}
+                      className="rounded-xl h-12 px-8 flex items-center gap-2"
+                    >
+                      <ChevronLeft className="w-4 h-4" />
+                      Back
+                    </Button>
                   )}
-
-                  <div className="space-y-4">
-                    <FormField
-                      control={form.control}
-                      name="termsAccepted"
-                      render={({ field }) => (
-                        <div className="flex items-center space-x-3">
-                          <input
-                            type="checkbox"
-                            checked={field.value}
-                            onChange={field.onChange}
-                            className="w-5 h-5 rounded border-slate-300 text-emerald-600 outline-none"
-                          />
-                          <span className="text-sm text-slate-600">
-                            I accept the{" "}
-                            <Link
-                              href="/terms"
-                              className="text-emerald-600 underline"
-                            >
-                              Terms of Service
-                            </Link>
-                          </span>
-                        </div>
-                      )}
-                    />
-                    <FormField
-                      control={form.control}
-                      name="privacyAccepted"
-                      render={({ field }) => (
-                        <div className="flex items-center space-x-3">
-                          <input
-                            type="checkbox"
-                            checked={field.value}
-                            onChange={field.onChange}
-                            className="w-5 h-5 rounded border-slate-300 text-emerald-600 outline-none"
-                          />
-                          <span className="text-sm text-slate-600">
-                            I agree to the{" "}
-                            <Link
-                              href="/privacy"
-                              className="text-emerald-600 underline"
-                            >
-                              Privacy Policy
-                            </Link>
-                          </span>
-                        </div>
-                      )}
-                    />
-                  </div>
+                  {step < 4 ? (
+                    <Button
+                      type="button"
+                      onClick={nextStep}
+                      className="ml-auto rounded-xl h-12 px-8 bg-emerald-600 hover:bg-emerald-700 text-white flex items-center gap-2"
+                    >
+                      Next
+                      <ChevronRight className="w-4 h-4" />
+                    </Button>
+                  ) : (
+                    <Button
+                      disabled={isPending}
+                      type="submit"
+                      className="ml-auto rounded-xl h-12 px-12 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-lg shadow-xl shadow-emerald-600/20"
+                    >
+                      {isPending ? "Registering..." : "Start Now!"}
+                    </Button>
+                  )}
                 </div>
-              )}
-
-              <div className="flex items-center justify-between pt-6 border-t border-slate-100">
-                {step > 1 && (
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={prevStep}
-                    className="rounded-xl h-12 px-8 flex items-center gap-2"
-                  >
-                    <ChevronLeft className="w-4 h-4" />
-                    Back
-                  </Button>
-                )}
-                {step < 4 ? (
-                  <Button
-                    type="button"
-                    onClick={nextStep}
-                    className="ml-auto rounded-xl h-12 px-8 bg-slate-900 hover:bg-slate-800 text-white flex items-center gap-2"
-                  >
-                    Next
-                    <ChevronRight className="w-4 h-4" />
-                  </Button>
-                ) : (
-                  <Button
-                    disabled={isPending}
-                    type="submit"
-                    className="ml-auto rounded-xl h-12 px-12 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-lg shadow-xl shadow-emerald-600/20"
-                  >
-                    {isPending ? "Registering..." : "Start Now!"}
-                  </Button>
-                )}
-              </div>
-            </form>
-          </Form>
+              </form>
+            </Form>
           </>
         )}
       </div>

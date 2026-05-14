@@ -378,7 +378,7 @@ export async function processFullPayment(
       );
 
       // Create the full-payment record
-      const payment = await tx.payment.create({
+      const fullPayment = await tx.payment.create({
         data: {
           tenant_id: tenantId,
           loan_id: loanId,
@@ -419,7 +419,10 @@ export async function processFullPayment(
         description: `Full Loan Settlement (Interest Waived): LOAN-${loanId}`,
         createdBy: session.user.user_id,
         loanId: loanId,
-        metadata: { source: "full_settlement", paymentId: payment.payment_id },
+        metadata: {
+          source: "full_settlement",
+          paymentId: fullPayment.payment_id,
+        },
         entries: [
           {
             accountCode: "CASH_EQUIVALENTS",

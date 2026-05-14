@@ -20,13 +20,8 @@ function resolveDomainTenantSlug(hostname: string) {
   const isProduction = process.env.NODE_ENV === "production";
   const baseDomain = isProduction ? "agapay-saas.vercel.app" : "localhost";
 
-  if (hostname !== baseDomain && hostname.endsWith(`.${baseDomain}`)) {
-    return {
-      baseDomain,
-      slug: hostname.split(`.${baseDomain}`)[0],
-    };
-  }
-
+  // Reverting to Path-based Routing: Subdomains on .vercel.app are restricted.
+  // We force slug to null so the middleware relies on path segments (/[tenant]).
   return {
     baseDomain,
     slug: null as string | null,

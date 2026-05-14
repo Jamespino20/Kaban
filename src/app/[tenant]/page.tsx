@@ -5,6 +5,8 @@ import Link from "next/link";
 import { ArrowRight, BadgeCheck, CheckCircle2, Shield, Calculator } from "lucide-react";
 import { Navbar } from "@/components/layout/navbar";
 import { Footer } from "@/components/layout/footer";
+import { AuthModal } from "@/components/auth/auth-modal";
+import { Button } from "@/components/ui/button";
 import { getActiveTenantsForNav } from "@/actions/tenant-management";
 
 export const dynamic = "force-dynamic";
@@ -24,13 +26,10 @@ const FEATURE_CARDS = [
   },
 ];
 
-const PLATFORM_DOMAIN = "agapay-saas.vercel.app";
+// Standardized to path-based routing for reliability on .vercel.app
 
 function getTenantPublicHref(tenant: string, path = "") {
-  if (process.env.NODE_ENV === "production") {
-    return `https://${tenant}.${PLATFORM_DOMAIN}${path}`;
-  }
-
+  // Standardized to path-based routing for reliability on .vercel.app
   return `/${tenant}${path}`;
 }
 
@@ -74,6 +73,7 @@ export default async function TenantIndexPage(props: {
 
   const activeTenants = await getActiveTenantsForNav();
   const brandColor = tenantData.brand_color || tenantData.accent_color || "#059669";
+  // These are kept for reference but UI now uses AuthModal
   const loginHref = getTenantPublicHref(tenant, "/auth/login");
   const registerHref = getTenantPublicHref(tenant, "/auth/register");
 
@@ -84,6 +84,7 @@ export default async function TenantIndexPage(props: {
         forceSolid 
         brandColor={brandColor} 
         tenantLogo={tenantData.logo_url}
+        tenantId={tenantData.tenant_id}
       />
 
       <main className="relative z-20 w-full flex flex-col items-center">
@@ -111,20 +112,30 @@ export default async function TenantIndexPage(props: {
               Welcome to your cooperative&apos;s official portal. Manage applications, releases, repayments, and more — all in one transparent system.
             </p>
             <div className="flex flex-wrap gap-4">
-              <Link
-                href={loginHref}
-                className="font-bold h-12 px-8 rounded-full shadow-lg transition-all flex items-center justify-between gap-3 text-lg text-white"
-                style={{ backgroundColor: brandColor }}
-              >
-                Member Login <ArrowRight className="w-5 h-5" />
-              </Link>
-              <Link
-                href={registerHref}
-                className="px-10 py-3 bg-slate-200/85 backdrop-blur-md text-slate-900 font-bold rounded-2xl hover:bg-slate-300 transition-all flex items-center gap-3 border border-slate-300/30"
-              >
-                <Calculator className="w-5 h-5" />
-                Apply for Membership
-              </Link>
+              <AuthModal
+                initialTab="login"
+                tenantId={tenantData.tenant_id.toString()}
+                Trigger={
+                  <Button
+                    className="font-bold h-12 px-8 rounded-full shadow-lg transition-all flex items-center justify-between gap-3 text-lg text-white"
+                    style={{ backgroundColor: brandColor }}
+                  >
+                    Member Login <ArrowRight className="w-5 h-5" />
+                  </Button>
+                }
+              />
+              <AuthModal
+                initialTab="register"
+                tenantId={tenantData.tenant_id.toString()}
+                Trigger={
+                  <Button
+                    className="px-10 h-12 bg-slate-200/85 backdrop-blur-md text-slate-900 font-bold rounded-2xl hover:bg-slate-300 transition-all flex items-center gap-3 border border-slate-300/30"
+                  >
+                    <Calculator className="w-5 h-5" />
+                    Apply for Membership
+                  </Button>
+                }
+              />
             </div>
           </div>
         </section>
@@ -214,19 +225,29 @@ export default async function TenantIndexPage(props: {
                   Sign in to your account or apply for membership to start your cooperative journey.
                 </p>
                 <div className="flex flex-wrap gap-6 justify-center">
-                  <Link
-                    href={loginHref}
-                    className="bg-white font-black h-14 px-10 rounded-full shadow-xl transition-all flex items-center justify-between gap-3 text-xl"
-                    style={{ color: brandColor }}
-                  >
-                    Member Login
-                  </Link>
-                  <Link
-                    href={registerHref}
-                    className="h-14 px-10 rounded-full border-2 border-white/40 font-bold text-white hover:bg-white/10 transition-all flex items-center gap-3"
-                  >
-                    Register Now
-                  </Link>
+                  <AuthModal
+                    initialTab="login"
+                    tenantId={tenantData.tenant_id.toString()}
+                    Trigger={
+                      <Button
+                        className="bg-white font-black h-14 px-10 rounded-full shadow-xl transition-all flex items-center justify-between gap-3 text-xl"
+                        style={{ color: brandColor }}
+                      >
+                        Member Login
+                      </Button>
+                    }
+                  />
+                  <AuthModal
+                    initialTab="register"
+                    tenantId={tenantData.tenant_id.toString()}
+                    Trigger={
+                      <Button
+                        className="h-14 px-10 rounded-full border-2 border-white/40 font-bold text-white hover:bg-white/10 transition-all flex items-center gap-3"
+                      >
+                        Register Now
+                      </Button>
+                    }
+                  />
                 </div>
               </div>
             </div>

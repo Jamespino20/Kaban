@@ -370,7 +370,7 @@ export function LandingClient({ tenants }: { tenants: Tenant[] }) {
             </p>
             <div className="flex flex-wrap gap-4">
               <Link
-                href="/contact"
+                href="/onboarding"
                 className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold h-12 px-8 rounded-full shadow-lg shadow-emerald-900/20 transition-all flex items-center justify-between gap-3 text-lg"
               >
                 Apply for Agapay
@@ -473,7 +473,8 @@ export function LandingClient({ tenants }: { tenants: Tenant[] }) {
                 transparent logic used in the prototype flow.
               </p>
               <p className="text-slate-400 text-sm mt-2 italic">
-                * This is an example set of business operation. Actual terms may depend on the specific cooperative policies.
+                * This is an example set of business operation. Actual terms may
+                depend on the specific cooperative policies.
               </p>
             </div>
             <HomeLoanCalculator />
@@ -522,7 +523,12 @@ export function LandingClient({ tenants }: { tenants: Tenant[] }) {
                   price: "₱3,500",
                   period: "/3 months",
                   limit: "Up to 500 members",
-                  features: ["Basic Dashboard", "Standard Policy Access", "Audit Logs", "Email Support"],
+                  features: [
+                    "Basic Dashboard",
+                    "Standard Policy Access",
+                    "Audit Logs",
+                    "Email Support",
+                  ],
                 },
                 {
                   name: "Agapay Pro",
@@ -530,14 +536,24 @@ export function LandingClient({ tenants }: { tenants: Tenant[] }) {
                   period: "/6 months",
                   limit: "Up to 2,500 members",
                   highlight: true,
-                  features: ["Custom Branding", "Chat Support", "Mentorship Tools", "Priority Support"],
+                  features: [
+                    "Custom Branding",
+                    "Chat Support",
+                    "Mentorship Tools",
+                    "Priority Support",
+                  ],
                 },
                 {
                   name: "Agapay Enterprise",
                   price: "₱12,000",
                   period: "/12 months",
                   limit: "Unlimited members",
-                  features: ["Analytics Module", "Advanced Reporting", "Full Configuration", "Priority SLA"],
+                  features: [
+                    "Analytics Module",
+                    "Advanced Reporting",
+                    "Full Configuration",
+                    "Priority SLA",
+                  ],
                 },
               ].map((plan) => (
                 <div
@@ -548,7 +564,9 @@ export function LandingClient({ tenants }: { tenants: Tenant[] }) {
                     {plan.name}
                   </h3>
                   <div className="text-3xl font-black mb-1">{plan.price}</div>
-                  <p className={`text-xs font-medium mb-6 ${plan.highlight ? "text-slate-300" : "text-slate-500"}`}>
+                  <p
+                    className={`text-xs font-medium mb-6 ${plan.highlight ? "text-slate-300" : "text-slate-500"}`}
+                  >
                     {plan.period}
                   </p>
                   <p
@@ -556,7 +574,9 @@ export function LandingClient({ tenants }: { tenants: Tenant[] }) {
                   >
                     {plan.limit}
                   </p>
-                  <ul className={`text-left text-sm space-y-2 mb-8 ${plan.highlight ? "text-slate-300" : "text-slate-500"}`}>
+                  <ul
+                    className={`text-left text-sm space-y-2 mb-8 ${plan.highlight ? "text-slate-300" : "text-slate-500"}`}
+                  >
                     {plan.features.map((feature) => (
                       <li key={feature} className="flex items-center gap-2">
                         <span className="text-emerald-500">✓</span> {feature}
