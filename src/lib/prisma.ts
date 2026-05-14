@@ -1,6 +1,7 @@
 import { PrismaClient, Prisma } from "@prisma/client";
 import { PrismaMariaDb } from "@prisma/adapter-mariadb";
 import * as mariadb from "mariadb";
+import { shouldUseApiClient } from "@/lib/api-config";
 
 let prismaInstance: PrismaClient | undefined;
 
@@ -8,12 +9,39 @@ declare global {
   var prisma: PrismaClient | undefined;
 }
 
+// When in API-client mode, return a mock Prisma client that logs and returns empty data.
+// The actual data operations happen through the PHP API via the action files.
+function createMockPrisma(): any {
+  return new Proxy({} as any, {
+    get(_, model: string) {
+      if (model === '$extends') return (opts: any) => createMockPrisma();
+      if (model === '$transaction') return async (fn: any) => fn(createMockPrisma());
+      if (model === '$withTenant') return async (_: any, fn: any) => fn(createMockPrisma());
+      if (model === 'then' || model === 'catch') return undefined; // not a promise
+
+      return new Proxy({} as any, {
+        get(__, method: string) {
+          if (method === 'then' || method === 'catch') return undefined;
+          return async (...args: any[]) => {
+            if (process.env.NODE_ENV !== 'production') {
+              console.warn(`[Prisma Mock] ${String(model)}.${String(method)} called — data comes from PHP API`);
+            }
+            return model === 'findUnique' || model === 'findFirst' ? null : [];
+          };
+        },
+      });
+    },
+  });
+}
+
 export const getPrisma = () => {
+  if (shouldUseApiClient()) {
+    return createMockPrisma();
+  }
+
   if (prismaInstance) return prismaInstance;
 
-  console.log(
-    "AGAPAY_PRISMA: Initializing MariaDB Client via Driver Adapter...",
-  );
+  console.log("AGAPAY_PRISMA: Initializing MariaDB Client via Driver Adapter...");
 
   const connectionString = "mysql://root:@localhost:3307/agapay_db";
   const adapter = new PrismaMariaDb(connectionString);
@@ -26,7 +54,6 @@ export const getPrisma = () => {
   return prismaInstance;
 };
 
-// Agapay Global Prisma Client
 const prisma = new Proxy({} as PrismaClient, {
   get(target, prop, receiver) {
     const instance = getPrisma();
@@ -37,27 +64,21 @@ const prisma = new Proxy({} as PrismaClient, {
   },
 });
 
-/**
- * Ergonomic RLS wrapper using Prisma Extensions
- * Note: RLS in MySQL/MariaDB is handled via application-level logic (where tenant_id is checked in every query).
- * We maintain the structure for compatibility but remove the PostgreSQL-specific session logic.
- */
-const prismaExtended = (prisma as any).$extends({
-  client: {
-    async $withTenant<T>(
-      tenantId: number | string,
-      callback: (tx: Prisma.TransactionClient) => Promise<T>,
-    ) {
-      // In MariaDB, we don't have RLS session settings like PostgreSQL.
-      // Multi-tenancy is enforced by the application logic using the tenant_id in queries.
-      return await (prisma as any).$transaction(async (tx: Prisma.TransactionClient) => {
-        return await callback(tx);
-      });
-    },
-  },
-});
+const prismaExtended = shouldUseApiClient()
+  ? createMockPrisma()
+  : (prisma as any).$extends({
+      client: {
+        async $withTenant<T>(
+          tenantId: number | string,
+          callback: (tx: Prisma.TransactionClient) => Promise<T>,
+        ) {
+          return await (prisma as any).$transaction(async (tx: Prisma.TransactionClient) => {
+            return await callback(tx);
+          });
+        },
+      },
+    });
 
-// Cache on globalThis in ALL environments
 if (!globalThis.prisma) {
   (globalThis as any).prisma = prisma;
 }
