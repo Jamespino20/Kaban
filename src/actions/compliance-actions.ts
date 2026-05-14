@@ -21,7 +21,7 @@ export const acceptConsent = async (version: string) => {
       });
     };
 
-    await prisma.$withTenant(session.user.tenantId, async (tx) => {
+    await prisma.$withTenant(session.user.tenantId, async (tx: any) => {
       await queryFn(tx);
     });
 
@@ -92,13 +92,22 @@ export const submitCoopApplication = async (values: {
     });
 
     // Also Log as feedback for immediate visibility to Superadmins
-    await prisma.feedbackEntry.create({
+    const ticketNumber = `APP-${Date.now().toString(36).toUpperCase()}`;
+    await prisma.supportTicket.create({
       data: {
-        name: values.name,
-        email: values.email,
-        category: "COOP_APPLICATION",
+        ticket_number: ticketNumber,
+        ticket_type: "FEEDBACK",
+        tenant_id: null,
+        requester_id: 0, // Using 0 for Guest/Public submissions
+        category: "general_support",
         subject: `New Cooperative Application: ${values.name}`,
-        message: `Region: ${values.region}\nMembers: ${values.membersCount}\nPhone: ${values.phone}\nPlan: ${planLabel}\n\nMessage: ${values.message}${billingNotes}`,
+        description: `Region: ${values.region}\nMembers: ${values.membersCount}\nPhone: ${values.phone}\nPlan: ${planLabel}\n\nMessage: ${values.message}${billingNotes}`,
+        status: "open",
+        metadata: {
+          applicant_name: values.name,
+          applicant_email: values.email,
+          category_original: "COOP_APPLICATION",
+        },
       },
     });
 

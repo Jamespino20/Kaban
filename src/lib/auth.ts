@@ -3,9 +3,8 @@ import NextAuth from "next-auth";
 import Credentials from "next-auth/providers/credentials";
 import { CredentialsSignin } from "next-auth";
 import bcrypt from "bcryptjs";
-import { neon } from "@neondatabase/serverless";
+import { sql } from "@/lib/db";
 import { z } from "zod";
-import { getDbUrl } from "@/lib/db-url";
 import { validateTenantMembershipLimit } from "@/lib/microfinance-policy";
 
 class TwoFactorRequiredError extends CredentialsSignin {
@@ -35,34 +34,55 @@ const getNextAuth = () => {
             const { username, password, code, tenantId } =
               parsedCredentials.data;
 
-            const connectionString = getDbUrl();
-            if (!connectionString) return null;
-
-            // Safe parsing of tenantId - essential for multi-tenant isolation
-            let parsedTenantId = null;
+            // Parse tenantId from credentials
+            let parsedTenantId: number | null = null;
             if (tenantId && tenantId !== "global" && tenantId !== "undefined") {
               const integerId = parseInt(tenantId);
               if (!isNaN(integerId)) parsedTenantId = integerId;
             }
 
-            const sql = neon(connectionString);
-
-            // Resolve Target Schema - No longer using physical schemas
+            // Resolve Target Schema
             const validatedTenantId = parsedTenantId;
 
-            // Fetch user with strictly public schema scoping
+            if (process.env.NEXT_PUBLIC_API_URL) {
+              const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+              const res = await fetch(`${apiUrl}/auth/login`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ email: username, password }),
+              });
+              const data = await res.json();
+
+              if (!data.status || data.status !== "success") {
+                if (data.user?.requires_2fa) {
+                  throw new TwoFactorRequiredError();
+                }
+                return null;
+              }
+
+              return {
+                id: String(data.user.user_id),
+                user_id: data.user.user_id,
+                username: data.user.username,
+                name: data.user.username,
+                email: data.user.email,
+                role: data.user.role,
+                tenantId: data.user.tenant_id,
+                tenantSlug: null,
+                accessibleTenantIds: [],
+                apiToken: data.token,
+              };
+            }
+
+            // LOCAL DEV: Fall through to existing sql() logic
+            // Fetch user
             let users: any[] = [];
 
             try {
-              users = await sql`
-                SELECT u.user_id, u.tenant_id, u.username, u.email, u.password_hash, 
-                       u.role, u.status, u.member_code, t.slug as tenant_slug
-                FROM public.users u
-                LEFT JOIN public.tenants t ON u.tenant_id = t.tenant_id
-                WHERE (u.tenant_id = ${validatedTenantId} OR (u.tenant_id IS NULL AND ${validatedTenantId === null}))
-                AND (u.email = ${username} OR u.username = ${username})
-                LIMIT 1
-              `;
+              users = await sql(
+                "SELECT u.user_id, u.tenant_id, u.username, u.email, u.password_hash, u.role, u.status, u.member_code, t.slug as tenant_slug FROM users u LEFT JOIN tenants t ON u.tenant_id = t.tenant_id WHERE (u.tenant_id = ? OR (u.tenant_id IS NULL AND ?)) AND (u.email = ? OR u.username = ?) LIMIT 1",
+                [validatedTenantId, validatedTenantId === null, username, username],
+              );
             } catch (err) {
               console.error(`Auth lookup failed:`, err);
             }
@@ -78,21 +98,21 @@ const getNextAuth = () => {
             if (passwordsMatch) {
               if (user.status === "suspended") return null;
 
-              const switchableAccounts = await sql`
-                SELECT tenant_id, password_hash
-                FROM users
-                WHERE email = ${user.email}
-              `;
+              const switchableAccounts = await sql(
+                "SELECT tenant_id, password_hash FROM users WHERE email = ?",
+                [user.email],
+              );
 
               const accessibleTenantIds: number[] = [];
               for (const account of switchableAccounts) {
-                if (!account.tenant_id) continue;
+                const a = account as any;
+                if (!a.tenant_id) continue;
                 const sameSecret = await bcrypt.compare(
                   password,
-                  account.password_hash,
+                  a.password_hash as string,
                 );
                 if (sameSecret) {
-                  accessibleTenantIds.push(account.tenant_id);
+                  accessibleTenantIds.push(a.tenant_id as number);
                 }
               }
 
@@ -107,12 +127,11 @@ const getNextAuth = () => {
               }
 
               // Check 2FA
-              const twoFaRows = await sql`
-                SELECT is_enabled, totp_secret 
-                FROM two_factor_auth 
-                WHERE user_id = ${user.user_id}
-              `;
-              const twoFa = twoFaRows[0];
+              const twoFaRows = await sql(
+                "SELECT is_enabled, totp_secret FROM two_factor_auth WHERE user_id = ?",
+                [user.user_id],
+              );
+              const twoFa = twoFaRows[0] as any;
 
               if (twoFa?.is_enabled) {
                 if (!code) {
@@ -146,11 +165,11 @@ const getNextAuth = () => {
                     new Date(twoFactorToken.expires) < new Date();
                   if (hasExpired) return null;
 
-                  // Delete used token via neon
-                  await sql`
-                    DELETE FROM two_factor_tokens 
-                    WHERE id = ${twoFactorToken.id}
-                  `;
+                  // Delete used token
+                  await sql(
+                    "DELETE FROM two_factor_tokens WHERE id = ?",
+                    [twoFactorToken.id],
+                  );
                 }
               }
 

@@ -3,14 +3,14 @@
 import prisma from "@/lib/prisma";
 import { requireTanawSession } from "@/lib/authorization";
 import { revalidatePath } from "next/cache";
+import { serializeDecimal } from "@/lib/utils";
 
 export async function getAvailablePlans() {
   try {
     const plans = await prisma.subscriptionPlan.findMany({
-      where: { is_active: true },
       orderBy: { price_monthly: "asc" },
     });
-    return { success: true, plans };
+    return serializeDecimal({ success: true, plans });
   } catch (error) {
     console.error("Failed to fetch plans:", error);
     return {
@@ -26,7 +26,7 @@ export async function getCurrentSubscription(tenantId: number) {
       where: { tenant_id: tenantId },
       include: { plan: true },
     });
-    return { success: true, subscription: sub };
+    return serializeDecimal({ success: true, subscription: sub });
   } catch (error) {
     console.error("Failed to fetch subscription:", error);
     return { success: false, error: "Failed to fetch subscription status." };
@@ -35,7 +35,7 @@ export async function getCurrentSubscription(tenantId: number) {
 
 export async function requestSubscriptionUpgrade(
   planId: number,
-  billingCycle: "monthly" | "annually",
+  billingCycle: "monthly" | "quarterly" | "semi_annually" | "annually",
   tenantSlug: string,
 ) {
   try {
@@ -132,7 +132,7 @@ export async function getAllSubscriptionPlans() {
     const plans = await prisma.subscriptionPlan.findMany({
       orderBy: { price_monthly: "asc" },
     });
-    return { success: true, plans };
+    return serializeDecimal({ success: true, plans });
   } catch (error) {
     console.error("Failed to fetch all plans:", error);
     return { success: false, error: "Failed to fetch subscription plans." };
@@ -144,6 +144,8 @@ export async function updateSubscriptionPlan(
   data: {
     tier_name?: string;
     price_monthly?: number;
+    price_quarterly?: number;
+    price_semi_annually?: number;
     price_annually?: number;
     max_members?: number;
     max_storage_mb?: number;
@@ -160,8 +162,16 @@ export async function updateSubscriptionPlan(
       where: { id: planId },
       data: {
         ...data,
-        price_monthly: data.price_monthly !== undefined ? data.price_monthly : undefined,
-        price_annually: data.price_annually !== undefined ? data.price_annually : undefined,
+        price_monthly:
+          data.price_monthly !== undefined ? data.price_monthly : undefined,
+        price_quarterly:
+          data.price_quarterly !== undefined ? data.price_quarterly : undefined,
+        price_semi_annually:
+          data.price_semi_annually !== undefined
+            ? data.price_semi_annually
+            : undefined,
+        price_annually:
+          data.price_annually !== undefined ? data.price_annually : undefined,
       },
     });
     revalidatePath("/agapay-tanaw");
@@ -186,7 +196,7 @@ export async function getAllTenantSubscriptions() {
         },
       },
     });
-    return { success: true, tenants };
+    return serializeDecimal({ success: true, tenants });
   } catch (error) {
     console.error("Failed to fetch tenant subscriptions:", error);
     return { success: false, error: "Failed to fetch tenant subscriptions." };
@@ -200,7 +210,7 @@ export async function approveSubscriptionUpgrade(tenantId: number) {
       return { success: false, error: "Unauthorized. Superadmin only." };
     }
 
-    const result = await prisma.$transaction(async (tx) => {
+    const result = await prisma.$transaction(async (tx: any) => {
       // 1. Update subscription status
       const sub = await tx.tenantSubscription.update({
         where: { tenant_id: tenantId },

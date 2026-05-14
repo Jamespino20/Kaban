@@ -2,11 +2,11 @@
 
 import { FeedbackTab } from "@/components/admin/feedback-tab";
 
-type FeedbackEntry = Parameters<typeof FeedbackTab>[0]["entries"][0];
+type SupportTicketItem = Parameters<typeof FeedbackTab>[0]["entries"][0];
 
 interface SupportAnalyticsModuleProps {
   role: string;
-  feedbackEntries: FeedbackEntry[];
+  feedbackEntries: SupportTicketItem[];
 }
 
 export function SupportAnalyticsModule({

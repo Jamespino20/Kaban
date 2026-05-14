@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Agapay Pintig: Loan Application</title>
+<!-- Google Fonts: Inter & Outfit -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=Outfit:wght@500;600;700&amp;display=swap" rel="stylesheet"/>
+<!-- Material Symbols -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<!-- Tailwind Configuration -->
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "tertiary-fixed-dim": "#ffb95f",
+                        "surface-container-high": "#222a3d",
+                        "primary-container": "#2563eb",
+                        "error": "#ffb4ab",
+                        "secondary-container": "#00a572",
+                        "on-tertiary-fixed-variant": "#653e00",
+                        "on-secondary": "#003824",
+                        "inverse-primary": "#0053db",
+                        "on-primary-fixed": "#00174b",
+                        "on-background": "#dae2fd",
+                        "surface": "#0b1326",
+                        "surface-tint": "#b4c5ff",
+                        "surface-container-highest": "#2d3449",
+                        "primary": "#b4c5ff",
+                        "on-error": "#690005",
+                        "on-error-container": "#ffdad6",
+                        "on-secondary-fixed-variant": "#005236",
+                        "inverse-surface": "#dae2fd",
+                        "primary-fixed": "#dbe1ff",
+                        "surface-container-lowest": "#060e20",
+                        "surface-container-low": "#131b2e",
+                        "surface-container": "#171f33",
+                        "outline": "#8d90a0",
+                        "on-primary-fixed-variant": "#003ea8",
+                        "surface-bright": "#31394d",
+                        "tertiary-fixed": "#ffddb8",
+                        "on-tertiary": "#472a00",
+                        "surface-variant": "#2d3449",
+                        "surface-dim": "#0b1326",
+                        "secondary": "#4edea3",
+                        "on-primary-container": "#eeefff",
+                        "on-tertiary-fixed": "#2a1700",
+                        "on-tertiary-container": "#ffeedd",
+                        "inverse-on-surface": "#283044",
+                        "on-surface-variant": "#c3c6d7",
+                        "tertiary": "#ffb95f",
+                        "outline-variant": "#434655",
+                        "secondary-fixed-dim": "#4edea3",
+                        "on-secondary-fixed": "#002113",
+                        "secondary-fixed": "#6ffbbe",
+                        "on-primary": "#002a78",
+                        "error-container": "#93000a",
+                        "background": "#0b1326",
+                        "tertiary-container": "#996100",
+                        "on-secondary-container": "#00311f",
+                        "primary-fixed-dim": "#b4c5ff",
+                        "on-surface": "#dae2fd"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    "spacing": {
+                        "container_max_width": "1440px",
+                        "stack_md": "16px",
+                        "gutter": "24px",
+                        "stack_lg": "24px",
+                        "sidebar_width": "280px",
+                        "margin_desktop": "32px",
+                        "margin_mobile": "16px",
+                        "stack_sm": "8px"
+                    },
+                    "fontFamily": {
+                        "body-sm": ["Inter"],
+                        "mono-data": ["Inter"],
+                        "headline-sm": ["Outfit"],
+                        "display-lg": ["Outfit"],
+                        "headline-lg": ["Outfit"],
+                        "body-md": ["Inter"],
+                        "label-md": ["Inter"],
+                        "headline-md": ["Outfit"],
+                        "body-lg": ["Inter"]
+                    },
+                    "fontSize": {
+                        "body-sm": ["14px", { "lineHeight": "20px", "fontWeight": "400" }],
+                        "mono-data": ["14px", { "lineHeight": "20px", "fontWeight": "500" }],
+                        "headline-sm": ["20px", { "lineHeight": "28px", "fontWeight": "500" }],
+                        "display-lg": ["48px", { "lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+                        "headline-lg": ["32px", { "lineHeight": "40px", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+                        "body-md": ["16px", { "lineHeight": "24px", "fontWeight": "400" }],
+                        "label-md": ["12px", { "lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "600" }],
+                        "headline-md": ["24px", { "lineHeight": "32px", "fontWeight": "600" }],
+                        "body-lg": ["18px", { "lineHeight": "28px", "fontWeight": "400" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        /* Hide scrollbar for clean UI but keep functionality */
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        
+        /* Material symbols setup */
+        .material-symbols-outlined {
+            font-family: 'Material Symbols Outlined';
+            font-weight: normal;
+            font-style: normal;
+            font-size: 24px;
+            display: inline-block;
+            line-height: 1;
+            text-transform: none;
+            letter-spacing: normal;
+            word-wrap: normal;
+            white-space: nowrap;
+            direction: ltr;
+        }
+        
+        /* Custom range slider styling for dark mode */
+        input[type=range] {
+            -webkit-appearance: none;
+            width: 100%;
+            background: transparent;
+        }
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            height: 20px;
+            width: 20px;
+            border-radius: 50%;
+            background: #b4c5ff; /* primary */
+            cursor: pointer;
+            margin-top: -8px;
+            box-shadow: 0 0 10px rgba(180, 197, 255, 0.5);
+        }
+        input[type=range]::-webkit-slider-runnable-track {
+            width: 100%;
+            height: 4px;
+            cursor: pointer;
+            background: #434655; /* outline-variant */
+            border-radius: 2px;
+        }
+    </style>
+</head>
+<body class="bg-background text-on-surface font-body-md antialiased flex h-screen overflow-hidden">
+<!-- SideNavBar (Desktop) -->
+<aside class="hidden md:flex bg-surface-container w-sidebar_width h-screen sticky left-0 top-0 border-r border-outline-variant flex-col py-stack_lg z-20">
+<!-- Brand Header -->
+<div class="px-gutter mb-8 flex items-center gap-3">
+<div class="w-10 h-10 rounded bg-primary-container flex items-center justify-center text-on-primary-container font-headline-md font-bold">
+                A
+            </div>
+<div>
+<h1 class="font-headline-md text-headline-md text-on-surface font-bold tracking-tight">Agapay</h1>
+<p class="font-label-md text-label-md text-on-surface-variant uppercase tracking-widest opacity-80">Microfinance OS</p>
+</div>
+</div>
+<!-- Primary Action -->
+<div class="px-4 mb-6">
+<button class="w-full bg-primary-container hover:bg-inverse-primary text-on-primary-container font-label-md text-label-md py-3 rounded-lg transition-colors flex items-center justify-center gap-2">
+<span class="material-symbols-outlined text-[18px]">add</span>
+                New Disbursement
+            </button>
+</div>
+<!-- Navigation Tabs -->
+<nav class="flex-1 flex flex-col gap-1 px-2">
+<a class="text-on-surface-variant flex items-center px-4 py-3 rounded-lg hover:bg-surface-container-high hover:text-on-surface transition-all duration-200 ease-in-out group" href="#">
+<span class="material-symbols-outlined mr-3 text-outline group-hover:text-on-surface transition-colors" data-icon="dashboard">dashboard</span>
+<span class="font-label-md text-label-md uppercase">Dashboard</span>
+</a>
+<!-- Active State: Loans -->
+<a class="text-on-surface border-l-4 border-secondary bg-surface-container-highest flex items-center px-4 py-3 rounded-r-lg transition-all duration-200 ease-in-out" href="#">
+<span class="material-symbols-outlined mr-3 text-secondary" data-icon="payments" style="font-variation-settings: 'FILL' 1;">payments</span>
+<span class="font-label-md text-label-md uppercase">Loans</span>
+</a>
+<a class="text-on-surface-variant flex items-center px-4 py-3 rounded-lg hover:bg-surface-container-high hover:text-on-surface transition-all duration-200 ease-in-out group" href="#">
+<span class="material-symbols-outlined mr-3 text-outline group-hover:text-on-surface transition-colors" data-icon="account_balance">account_balance</span>
+<span class="font-label-md text-label-md uppercase">The Vault</span>
+</a>
+<a class="text-on-surface-variant flex items-center px-4 py-3 rounded-lg hover:bg-surface-container-high hover:text-on-surface transition-all duration-200 ease-in-out group" href="#">
+<span class="material-symbols-outlined mr-3 text-outline group-hover:text-on-surface transition-colors" data-icon="groups">groups</span>
+<span class="font-label-md text-label-md uppercase">Members</span>
+</a>
+<a class="text-on-surface-variant flex items-center px-4 py-3 rounded-lg hover:bg-surface-container-high hover:text-on-surface transition-all duration-200 ease-in-out group" href="#">
+<span class="material-symbols-outlined mr-3 text-outline group-hover:text-on-surface transition-colors" data-icon="forum">forum</span>
+<span class="font-label-md text-label-md uppercase">Community</span>
+</a>
+</nav>
+<!-- Footer Navigation -->
+<div class="mt-auto px-2 flex flex-col gap-1">
+<a class="text-on-surface-variant flex items-center px-4 py-3 rounded-lg hover:bg-surface-container-high hover:text-on-surface transition-all duration-200 ease-in-out group" href="#">
+<span class="material-symbols-outlined mr-3 text-outline group-hover:text-on-surface transition-colors" data-icon="help">help</span>
+<span class="font-label-md text-label-md uppercase">Support</span>
+</a>
+<a class="text-on-surface-variant flex items-center px-4 py-3 rounded-lg hover:bg-surface-container-high hover:text-on-surface transition-all duration-200 ease-in-out group" href="#">
+<span class="material-symbols-outlined mr-3 text-outline group-hover:text-on-surface transition-colors" data-icon="logout">logout</span>
+<span class="font-label-md text-label-md uppercase">Logout</span>
+</a>
+</div>
+</aside>
+<!-- Main Content Canvas -->
+<main class="flex-1 flex flex-col h-full overflow-hidden bg-background">
+<!-- TopNavBar (Shared Component) -->
+<header class="bg-surface flex justify-between items-center w-full px-gutter h-16 max-w-container_max_width mx-auto border-b border-outline-variant shrink-0 z-10">
+<!-- Mobile Brand/Menu Trigger (Visible only on mobile) -->
+<div class="md:hidden flex items-center gap-4">
+<button class="text-on-surface-variant hover:text-primary transition-colors">
+<span class="material-symbols-outlined" data-icon="menu">menu</span>
+</button>
+<span class="text-headline-md font-headline-md font-bold text-primary">Agapay</span>
+</div>
+<!-- Page Context (Desktop) -->
+<div class="hidden md:flex items-center gap-2 text-on-surface-variant">
+<span class="font-label-md text-label-md uppercase tracking-wider">Loans</span>
+<span class="material-symbols-outlined text-[16px]">chevron_right</span>
+<span class="font-body-sm text-body-sm text-primary">New Application</span>
+</div>
+<!-- Actions -->
+<div class="flex items-center gap-4">
+<button class="text-on-surface-variant hover:bg-surface-container-high transition-colors p-2 rounded-full active:opacity-80">
+<span class="material-symbols-outlined" data-icon="notifications">notifications</span>
+</button>
+<button class="text-on-surface-variant hover:bg-surface-container-high transition-colors p-2 rounded-full active:opacity-80">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+</button>
+<div class="w-8 h-8 rounded-full bg-surface-container-highest border border-outline-variant overflow-hidden ml-2 cursor-pointer relative" title="User profile">
+<!-- Profile image placeholder using initials -->
+<div class="w-full h-full flex items-center justify-center bg-primary-container text-on-primary-container font-label-md">
+                        JD
+                    </div>
+</div>
+</div>
+</header>
+<!-- Scrollable Content Area -->
+<div class="flex-1 overflow-y-auto no-scrollbar p-margin_mobile md:p-margin_desktop">
+<div class="max-w-container_max_width mx-auto">
+<!-- Application Header & Stepper -->
+<div class="mb-8">
+<h2 class="font-headline-lg text-headline-lg text-on-surface mb-6">Initiate Loan Application</h2>
+<!-- Progress Stepper -->
+<div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 relative">
+<!-- Connecting Line -->
+<div class="hidden sm:block absolute top-1/2 left-0 w-full h-[2px] bg-surface-container-highest -z-10 -translate-y-1/2 rounded-full"></div>
+<!-- Step 1: Active -->
+<div class="flex items-center gap-3 bg-background pr-4">
+<div class="w-8 h-8 rounded-full bg-primary text-on-primary flex items-center justify-center font-label-md font-bold border-2 border-background ring-2 ring-primary">
+                                1
+                            </div>
+<div>
+<p class="font-label-md text-label-md text-primary uppercase">Product</p>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Select Loan Type</p>
+</div>
+</div>
+<!-- Step 2: Inactive/Next -->
+<div class="flex items-center gap-3 bg-background px-4">
+<div class="w-8 h-8 rounded-full bg-surface-container-highest text-on-surface-variant flex items-center justify-center font-label-md border-2 border-outline-variant">
+                                2
+                            </div>
+<div class="hidden md:block">
+<p class="font-label-md text-label-md text-on-surface-variant uppercase">Calculator</p>
+</div>
+</div>
+<!-- Step 3: Inactive -->
+<div class="flex items-center gap-3 bg-background px-4">
+<div class="w-8 h-8 rounded-full bg-surface-container-highest text-on-surface-variant flex items-center justify-center font-label-md border-2 border-outline-variant">
+                                3
+                            </div>
+<div class="hidden md:block">
+<p class="font-label-md text-label-md text-on-surface-variant uppercase">Guarantors</p>
+</div>
+</div>
+<!-- Step 4: Inactive -->
+<div class="flex items-center gap-3 bg-background pl-4">
+<div class="w-8 h-8 rounded-full bg-surface-container-highest text-on-surface-variant flex items-center justify-center font-label-md border-2 border-outline-variant">
+                                4
+                            </div>
+<div class="hidden md:block">
+<p class="font-label-md text-label-md text-on-surface-variant uppercase">Documents</p>
+</div>
+</div>
+</div>
+</div>
+<!-- Main Layout: Bento Grid / Split View -->
+<div class="grid grid-cols-1 xl:grid-cols-12 gap-gutter items-start">
+<!-- Left Column: Product Selection Grid -->
+<div class="xl:col-span-8 flex flex-col gap-6">
+<div class="flex items-center justify-between">
+<h3 class="font-headline-md text-headline-md text-on-surface">Available Products</h3>
+<span class="font-body-sm text-body-sm text-on-surface-variant px-3 py-1 bg-surface-container rounded-full border border-outline-variant">3 Eligible</span>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+<!-- Product Card 1: Selected -->
+<div class="bg-surface-container-low border-2 border-primary rounded-xl p-6 relative cursor-pointer hover:bg-surface-container transition-colors group overflow-hidden">
+<div class="absolute top-0 right-0 w-24 h-24 bg-primary/10 rounded-bl-full -mr-8 -mt-8 z-0"></div>
+<div class="absolute top-4 right-4 z-10 text-primary">
+<span class="material-symbols-outlined" data-icon="check_circle" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+</div>
+<div class="relative z-10 flex flex-col h-full">
+<div class="w-12 h-12 rounded bg-surface border border-outline-variant flex items-center justify-center text-primary mb-4">
+<span class="material-symbols-outlined" data-icon="storefront">storefront</span>
+</div>
+<h4 class="font-headline-sm text-headline-sm text-on-surface mb-1">Agapay Sari-Sari</h4>
+<p class="font-body-sm text-body-sm text-on-surface-variant mb-6 line-clamp-2">Working capital tailored for neighborhood convenience store inventory replenishment.</p>
+<div class="mt-auto grid grid-cols-2 gap-4 border-t border-outline-variant pt-4">
+<div>
+<p class="font-label-md text-label-md text-on-surface-variant uppercase mb-1">Up To</p>
+<p class="font-mono-data text-mono-data text-on-surface">₱50,000</p>
+</div>
+<div>
+<p class="font-label-md text-label-md text-on-surface-variant uppercase mb-1">Interest</p>
+<p class="font-mono-data text-mono-data text-secondary">2.5% /mo</p>
+</div>
+</div>
+</div>
+</div>
+<!-- Product Card 2: Unselected -->
+<div class="bg-surface-container-low border border-outline-variant rounded-xl p-6 relative cursor-pointer hover:border-outline hover:bg-surface-container transition-all group overflow-hidden">
+<div class="relative z-10 flex flex-col h-full">
+<div class="w-12 h-12 rounded bg-surface-container-highest border border-outline-variant flex items-center justify-center text-on-surface-variant mb-4 group-hover:text-primary transition-colors">
+<span class="material-symbols-outlined" data-icon="local_shipping">local_shipping</span>
+</div>
+<h4 class="font-headline-sm text-headline-sm text-on-surface mb-1">Agapay Negosyo</h4>
+<p class="font-body-sm text-body-sm text-on-surface-variant mb-6 line-clamp-2">Expansion capital for registered small to medium enterprises with 1yr+ operations.</p>
+<div class="mt-auto grid grid-cols-2 gap-4 border-t border-outline-variant pt-4 opacity-70 group-hover:opacity-100 transition-opacity">
+<div>
+<p class="font-label-md text-label-md text-on-surface-variant uppercase mb-1">Up To</p>
+<p class="font-mono-data text-mono-data text-on-surface">₱250,000</p>
+</div>
+<div>
+<p class="font-label-md text-label-md text-on-surface-variant uppercase mb-1">Interest</p>
+<p class="font-mono-data text-mono-data text-secondary">1.8% /mo</p>
+</div>
+</div>
+</div>
+</div>
+<!-- Product Card 3: Unselected -->
+<div class="bg-surface-container-low border border-outline-variant rounded-xl p-6 relative cursor-pointer hover:border-outline hover:bg-surface-container transition-all group overflow-hidden md:col-span-2">
+<div class="relative z-10 flex flex-col sm:flex-row h-full items-start sm:items-center gap-6">
+<div class="w-12 h-12 shrink-0 rounded bg-surface-container-highest border border-outline-variant flex items-center justify-center text-on-surface-variant group-hover:text-tertiary transition-colors">
+<span class="material-symbols-outlined" data-icon="agriculture">agriculture</span>
+</div>
+<div class="flex-1">
+<h4 class="font-headline-sm text-headline-sm text-on-surface mb-1">Agapay Agri-Grow</h4>
+<p class="font-body-sm text-body-sm text-on-surface-variant max-w-lg">Seasonal financing aligned with harvest cycles for agricultural members.</p>
+</div>
+<div class="shrink-0 flex gap-6 sm:border-l sm:border-outline-variant sm:pl-6 opacity-70 group-hover:opacity-100 transition-opacity">
+<div>
+<p class="font-label-md text-label-md text-on-surface-variant uppercase mb-1">Up To</p>
+<p class="font-mono-data text-mono-data text-on-surface">₱100,000</p>
+</div>
+<div>
+<p class="font-label-md text-label-md text-on-surface-variant uppercase mb-1">Interest</p>
+<p class="font-mono-data text-mono-data text-secondary">2.0% /mo</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Right Column: Interactive Calculator Panel (Step 2 Preview) -->
+<div class="xl:col-span-4 sticky top-6">
+<div class="bg-surface border border-outline-variant rounded-xl shadow-lg shadow-black/20 overflow-hidden flex flex-col">
+<!-- Calculator Header -->
+<div class="p-6 border-b border-outline-variant bg-surface-container-lowest">
+<div class="flex items-center gap-2 mb-2">
+<span class="material-symbols-outlined text-primary text-[20px]" data-icon="calculate">calculate</span>
+<h3 class="font-headline-sm text-headline-sm text-on-surface">Term Calculator</h3>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Configuring: Agapay Sari-Sari</p>
+</div>
+<!-- Calculator Body -->
+<div class="p-6 flex flex-col gap-8 bg-surface-container-low flex-1">
+<!-- Amount Slider -->
+<div>
+<div class="flex justify-between items-end mb-4">
+<label class="font-label-md text-label-md text-on-surface-variant uppercase">Principal Amount</label>
+<div class="font-mono-data text-[20px] text-on-surface border-b border-outline-variant pb-1 px-2">
+                                            ₱ 25,000
+                                        </div>
+</div>
+<input max="50000" min="5000" step="1000" type="range" value="25000"/>
+<div class="flex justify-between mt-2 font-mono-data text-[12px] text-outline">
+<span>₱5K</span>
+<span>₱50K</span>
+</div>
+</div>
+<!-- Term Slider -->
+<div>
+<div class="flex justify-between items-end mb-4">
+<label class="font-label-md text-label-md text-on-surface-variant uppercase">Repayment Term</label>
+<div class="font-mono-data text-[20px] text-on-surface border-b border-outline-variant pb-1 px-2">
+                                            6 Months
+                                        </div>
+</div>
+<input max="12" min="3" step="1" type="range" value="6"/>
+<div class="flex justify-between mt-2 font-mono-data text-[12px] text-outline">
+<span>3M</span>
+<span>12M</span>
+</div>
+</div>
+<!-- Breakdown Box -->
+<div class="bg-surface rounded-lg border border-outline-variant p-4 mt-2">
+<div class="flex justify-between items-center mb-3">
+<span class="font-body-sm text-body-sm text-on-surface-variant">Base Principal</span>
+<span class="font-mono-data text-mono-data text-on-surface">₱25,000.00</span>
+</div>
+<div class="flex justify-between items-center mb-3">
+<span class="font-body-sm text-body-sm text-on-surface-variant">Total Interest (2.5%)</span>
+<span class="font-mono-data text-mono-data text-error">₱3,750.00</span>
+</div>
+<div class="flex justify-between items-center mb-3 border-b border-outline-variant pb-3">
+<span class="font-body-sm text-body-sm text-on-surface-variant">Processing Fee (1.5%)</span>
+<span class="font-mono-data text-mono-data text-outline">₱375.00</span>
+</div>
+<div class="pt-2 flex justify-between items-end">
+<div>
+<p class="font-label-md text-label-md text-on-surface-variant uppercase mb-1">Est. Monthly Installment</p>
+</div>
+<div class="text-right">
+<p class="font-display-lg text-display-lg text-secondary">₱4,791</p>
+<p class="font-mono-data text-[12px] text-outline">.66 / month</p>
+</div>
+</div>
+</div>
+</div>
+<!-- Calculator Footer / Next Action -->
+<div class="p-6 border-t border-outline-variant bg-surface-container-lowest">
+<button class="w-full bg-primary-container hover:bg-inverse-primary text-on-primary-container font-label-md text-label-md py-4 rounded-lg transition-colors flex items-center justify-center gap-2 uppercase tracking-widest">
+                                    Confirm &amp; Select Guarantors
+                                    <span class="material-symbols-outlined text-[18px]">arrow_forward</span>
+</button>
+<p class="text-center font-body-sm text-[12px] text-on-surface-variant mt-3 flex items-center justify-center gap-1">
+<span class="material-symbols-outlined text-[14px]">lock</span>
+                                    Proceeding to Step 3
+                                </p>
+</div>
+</div>
+</div>
+</div> <!-- End Main Layout -->
+<div class="h-24"></div> <!-- Bottom padding -->
+</div>
+</div>
+</main>
+</body></html>

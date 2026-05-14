@@ -91,7 +91,7 @@ export const createLoanProduct = async (
       });
     };
 
-    await prisma.$withTenant(session.user.tenantId, async (tx) => {
+    await prisma.$withTenant(session.user.tenantId, async (tx: Prisma.TransactionClient) => {
       await queryFn(tx);
     });
 
@@ -126,7 +126,7 @@ export const getLoanProducts = async () => {
 
     const products = await prisma.$withTenant(
       session.user.tenantId,
-      async (tx) => {
+      async (tx: Prisma.TransactionClient) => {
         return await queryFn(tx);
       },
     );

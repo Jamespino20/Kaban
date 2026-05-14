@@ -1,6 +1,6 @@
 "use client";
 
-import { updateFeedbackEntryStatus } from "@/actions/site-content";
+import { updateSupportTicketStatus } from "@/actions/site-content";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -17,16 +17,14 @@ import { toast } from "sonner";
 
 type FeedbackItem = {
   id: number;
-  name: string;
-  email: string | null;
   category: string;
-  page_path: string | null;
   subject: string | null;
-  message: string;
+  description: string;
   status: string;
   created_at: Date;
   tenant: { name: string } | null;
-  user: { username: string | null; email: string | null } | null;
+  requester: { username: string | null; email: string | null } | null;
+  metadata?: any;
 };
 
 const STATUS_OPTIONS = [
@@ -61,11 +59,16 @@ export function FeedbackTab({
         statusFilter === "all" || entry.status === statusFilter;
       const matchesCategory =
         categoryFilter === "all" || entry.category === categoryFilter;
+      
+      const name = entry.requester?.username || entry.metadata?.name || "";
+      const description = entry.description || "";
+      const subject = entry.subject || "";
+
       const matchesQuery =
         query.trim().length === 0 ||
-        entry.name.toLowerCase().includes(query.toLowerCase()) ||
-        entry.message.toLowerCase().includes(query.toLowerCase()) ||
-        (entry.subject || "").toLowerCase().includes(query.toLowerCase());
+        name.toLowerCase().includes(query.toLowerCase()) ||
+        description.toLowerCase().includes(query.toLowerCase()) ||
+        subject.toLowerCase().includes(query.toLowerCase());
 
       return matchesStatus && matchesCategory && matchesQuery;
     });
@@ -266,7 +269,7 @@ function FeedbackRow({ entry }: { entry: FeedbackItem }) {
 
   const handleUpdate = (status: "open" | "in_review" | "resolved") => {
     startTransition(async () => {
-      const res = await updateFeedbackEntryStatus({ id: entry.id, status });
+      const res = await updateSupportTicketStatus({ id: entry.id, status });
       if (res.error) {
         toast.error(res.error);
       } else {
@@ -297,9 +300,13 @@ function FeedbackRow({ entry }: { entry: FeedbackItem }) {
           <div className="grid gap-2 rounded-2xl border border-slate-100 bg-slate-50/80 p-3 text-xs text-slate-600 md:grid-cols-3">
             <MetaCell
               label="From"
-              value={`${entry.name}${entry.email ? ` (${entry.email})` : ""}`}
+              value={`${entry.requester?.username || entry.metadata?.name || "Anonymous"}${
+                entry.requester?.email || entry.metadata?.email
+                  ? ` (${entry.requester?.email || entry.metadata?.email})`
+                  : ""
+              }`}
             />
-            <MetaCell label="Page" value={entry.page_path || "Not specified"} />
+            <MetaCell label="Page" value={entry.metadata?.page_path || "Not specified"} />
             <MetaCell
               label="Created"
               value={new Date(entry.created_at).toLocaleString()}
@@ -326,7 +333,7 @@ function FeedbackRow({ entry }: { entry: FeedbackItem }) {
       </div>
 
       <div className="dashboard-card p-4 text-sm text-slate-700 whitespace-pre-line">
-        {entry.message}
+        {entry.description}
       </div>
     </div>
   );

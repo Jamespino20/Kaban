@@ -1,6 +1,8 @@
 "use server";
 
 import * as z from "zod";
+import { shouldUseApiClient } from "@/lib/api-config";
+import { api } from "@/lib/api-client";
 import prisma from "@/lib/prisma";
 import { requireAuthenticatedSession } from "@/lib/authorization";
 import { Role, UserStatus, RepaymentFrequency } from "@prisma/client";
@@ -69,6 +71,19 @@ export const applyForLoan = async (
       .map(([field, msgs]) => `${field}: ${msgs?.join(", ")}`)
       .join("; ");
     return { error: `Validation failed: ${firstError || "Please check your inputs."}` };
+  }
+
+  if (shouldUseApiClient()) {
+    const result = await api.loans.apply({
+      userId: session.user.user_id,
+      tenantId: session.user.tenantId,
+      ...validatedFields.data,
+    });
+    if (result.success) {
+      revalidatePath("/agapay-tanaw");
+      revalidatePath("/agapay-pintig");
+    }
+    return result;
   }
 
   try {

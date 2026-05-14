@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>AI-Assisted Risk &amp; Fraud Monitoring - Agapay Microfinance</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@500;600;700&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "tertiary-fixed-dim": "#ffb95f",
+                        "secondary": "#4edea3",
+                        "on-secondary-fixed-variant": "#005236",
+                        "secondary-fixed-dim": "#4edea3",
+                        "secondary-fixed": "#6ffbbe",
+                        "outline": "#8d90a0",
+                        "on-tertiary-container": "#ffeedd",
+                        "primary": "#b4c5ff",
+                        "secondary-container": "#00a572",
+                        "on-surface-variant": "#c3c6d7",
+                        "on-surface": "#dae2fd",
+                        "on-error": "#690005",
+                        "surface-container-high": "#222a3d",
+                        "tertiary": "#ffb95f",
+                        "surface-container-lowest": "#060e20",
+                        "surface-container": "#171f33",
+                        "outline-variant": "#434655",
+                        "on-secondary-container": "#00311f",
+                        "background": "#0b1326",
+                        "error": "#ffb4ab",
+                        "error-container": "#93000a",
+                        "surface-dim": "#0b1326",
+                        "inverse-on-surface": "#283044",
+                        "surface-tint": "#b4c5ff",
+                        "on-primary-container": "#eeefff",
+                        "on-tertiary": "#472a00",
+                        "surface-bright": "#31394d",
+                        "primary-fixed-dim": "#b4c5ff",
+                        "surface-container-highest": "#2d3449",
+                        "inverse-primary": "#0053db",
+                        "surface": "#0b1326",
+                        "on-primary-fixed": "#00174b",
+                        "primary-container": "#2563eb",
+                        "on-primary": "#002a78",
+                        "tertiary-fixed": "#ffddb8",
+                        "primary-fixed": "#dbe1ff",
+                        "on-secondary-fixed": "#002113",
+                        "on-primary-fixed-variant": "#003ea8",
+                        "tertiary-container": "#996100",
+                        "surface-variant": "#2d3449",
+                        "on-error-container": "#ffdad6",
+                        "inverse-surface": "#dae2fd",
+                        "surface-container-low": "#131b2e",
+                        "on-tertiary-fixed-variant": "#653e00",
+                        "on-tertiary-fixed": "#2a1700",
+                        "on-background": "#dae2fd",
+                        "on-secondary": "#003824"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    "spacing": {
+                        "margin_desktop": "32px",
+                        "stack_sm": "8px",
+                        "stack_md": "16px",
+                        "gutter": "24px",
+                        "stack_lg": "24px",
+                        "container_max_width": "1440px",
+                        "sidebar_width": "280px",
+                        "margin_mobile": "16px"
+                    },
+                    "fontFamily": {
+                        "headline-lg": ["Outfit"],
+                        "headline-md": ["Outfit"],
+                        "headline-sm": ["Outfit"],
+                        "body-sm": ["Inter"],
+                        "mono-data": ["Inter"],
+                        "display-lg": ["Outfit"],
+                        "label-md": ["Inter"],
+                        "body-lg": ["Inter"],
+                        "body-md": ["Inter"]
+                    },
+                    "fontSize": {
+                        "headline-lg": ["32px", { "lineHeight": "40px", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+                        "headline-md": ["24px", { "lineHeight": "32px", "fontWeight": "600" }],
+                        "headline-sm": ["20px", { "lineHeight": "28px", "fontWeight": "500" }],
+                        "body-sm": ["14px", { "lineHeight": "20px", "fontWeight": "400" }],
+                        "mono-data": ["14px", { "lineHeight": "20px", "fontWeight": "500" }],
+                        "display-lg": ["48px", { "lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+                        "label-md": ["12px", { "lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "600" }],
+                        "body-lg": ["18px", { "lineHeight": "28px", "fontWeight": "400" }],
+                        "body-md": ["16px", { "lineHeight": "24px", "fontWeight": "400" }]
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-background text-on-background min-h-screen font-body-md overflow-x-hidden">
+<!-- SideNavBar -->
+<nav class="fixed left-0 top-0 h-full w-sidebar_width bg-surface-container dark:bg-surface-container border-r border-outline-variant flex flex-col h-full py-stack_lg z-50 md:flex hidden">
+<div class="px-margin_desktop mb-8">
+<h1 class="font-headline-md text-headline-md font-bold text-on-surface">Agapay Microfinance</h1>
+<p class="font-label-md text-label-md text-on-surface-variant mt-1 uppercase tracking-wider">Institutional Portal</p>
+</div>
+<button class="mx-4 mb-8 bg-primary text-on-primary py-3 px-4 rounded-xl font-label-md text-label-md flex justify-center items-center gap-2 hover:bg-primary-fixed transition-colors">
+<span class="material-symbols-outlined">add</span>
+            New Disbursement
+        </button>
+<ul class="flex-1 space-y-2">
+<li>
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:bg-surface-container-highest hover:text-on-surface transition-colors font-label-md text-label-md" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+                    Dashboard
+                </a>
+</li>
+<li>
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:bg-surface-container-highest hover:text-on-surface transition-colors font-label-md text-label-md" href="#">
+<span class="material-symbols-outlined">payments</span>
+                    Loans
+                </a>
+</li>
+<li>
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:bg-surface-container-highest hover:text-on-surface transition-colors font-label-md text-label-md" href="#">
+<span class="material-symbols-outlined">account_balance_wallet</span>
+                    Collections
+                </a>
+</li>
+<li>
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:bg-surface-container-highest hover:text-on-surface transition-colors font-label-md text-label-md" href="#">
+<span class="material-symbols-outlined">group</span>
+                    Clients
+                </a>
+</li>
+<li>
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface border-l-4 border-primary bg-surface-container-high translate-x-1 duration-200 font-label-md text-label-md" href="#">
+<span class="material-symbols-outlined">assessment</span>
+                    Reports
+                </a>
+</li>
+</ul>
+<div class="mt-auto px-4 space-y-2">
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:bg-surface-container-highest hover:text-on-surface transition-colors font-label-md text-label-md" href="#">
+<span class="material-symbols-outlined">settings</span>
+                Settings
+            </a>
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:bg-surface-container-highest hover:text-on-surface transition-colors font-label-md text-label-md" href="#">
+<span class="material-symbols-outlined">logout</span>
+                Sign Out
+            </a>
+</div>
+</nav>
+<!-- Main Content Area -->
+<div class="md:ml-sidebar_width min-h-screen flex flex-col">
+<!-- TopNavBar -->
+<header class="bg-surface dark:bg-surface docked full-width top-0 sticky z-40 border-b border-outline-variant shadow-sm flex justify-between items-center h-16 px-margin_desktop">
+<div class="flex items-center gap-4">
+<div class="md:hidden">
+<button class="text-on-surface-variant hover:text-primary transition-opacity">
+<span class="material-symbols-outlined">menu</span>
+</button>
+</div>
+<h2 class="font-headline-sm text-headline-sm text-primary font-bold hidden md:block">Agapay SaaS</h2>
+</div>
+<div class="flex items-center bg-surface-container rounded-full px-4 py-2 border border-outline-variant w-1/3">
+<span class="material-symbols-outlined text-on-surface-variant mr-2">search</span>
+<input class="bg-transparent border-none text-on-surface focus:outline-none focus:ring-0 w-full font-body-sm text-body-sm placeholder-on-surface-variant" placeholder="Search institutional data..." type="text"/>
+</div>
+<div class="flex items-center gap-6">
+<div class="flex gap-4">
+<button class="text-on-surface-variant hover:text-primary transition-opacity relative">
+<span class="material-symbols-outlined">notifications</span>
+<span class="absolute top-0 right-0 w-2 h-2 bg-error rounded-full"></span>
+</button>
+<button class="text-on-surface-variant hover:text-primary transition-opacity">
+<span class="material-symbols-outlined">help_outline</span>
+</button>
+</div>
+<div class="flex items-center gap-3 border-l border-outline-variant pl-6">
+<div class="text-right hidden sm:block">
+<p class="font-label-md text-label-md text-on-surface">Administrator</p>
+<p class="font-body-sm text-body-sm text-on-surface-variant text-xs">Superadmin</p>
+</div>
+<img alt="User Avatar" class="w-8 h-8 rounded-full border border-outline-variant" data-alt="A professional portrait of an administrator in a high-tech corporate environment. Dark background with subtle glowing blue and white lights reflecting off the subject's face, conveying a serious, analytical mood appropriate for a financial fraud monitoring dashboard. The styling is modern corporate, emphasizing precision and trust." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCA0RsOwPd412C_k7ch7FcXhRkY3m70GQ_l4oiJayRFRqTL0DG-y83qwM6wWbXkTv_6EEd7jSKc1JPv3GfhH1mnEDrZJMN7cNwzdyyTS_4xeEqONd_Y84aqj3frADwfBcHetzBQa4uQC_h3ilZ7_uG4CbZz2bAwpY9IV94JXmUpOgSp237VUQqMEkpzHgaMqZ4SXLuzDRG3LgHgGahnMQ5XJQJA7SlFrsD-KZhfbVedz_co10APxXXE_CZ6SotzKOpnKE_8kNlgJ2I"/>
+</div>
+</div>
+</header>
+<!-- Dashboard Content -->
+<main class="flex-1 p-margin_mobile md:p-margin_desktop pb-24 md:pb-margin_desktop">
+<div class="flex justify-between items-end mb-8">
+<div>
+<h2 class="font-headline-lg text-headline-lg text-on-surface mb-2">AI-Assisted Risk &amp; Fraud Monitoring</h2>
+<p class="font-body-md text-body-md text-on-surface-variant">Real-time threat detection and portfolio risk analysis across all branches.</p>
+</div>
+<div class="flex gap-3">
+<button class="px-4 py-2 border border-outline-variant text-on-surface rounded-xl font-label-md text-label-md hover:bg-surface-container transition-colors flex items-center gap-2">
+<span class="material-symbols-outlined">download</span>
+                        Export Report
+                    </button>
+<button class="px-4 py-2 bg-error text-on-error rounded-xl font-label-md text-label-md hover:bg-error-container transition-colors flex items-center gap-2">
+<span class="material-symbols-outlined">shield_person</span>
+                        Lockdown Mode
+                    </button>
+</div>
+</div>
+<!-- Bento Grid Layout -->
+<div class="grid grid-cols-12 gap-gutter">
+<!-- Fraud Signals Feed (Left Col, Span 4) -->
+<div class="col-span-12 lg:col-span-4 flex flex-col gap-gutter">
+<h3 class="font-headline-sm text-headline-sm text-on-surface flex items-center gap-2">
+<span class="material-symbols-outlined text-error">warning</span>
+                        Active Fraud Signals
+                    </h3>
+<!-- Signal Card 1 -->
+<div class="bg-surface-container border border-error/30 rounded-xl p-5 relative overflow-hidden group hover:border-error transition-colors cursor-pointer">
+<div class="absolute top-0 right-0 w-16 h-16 bg-error/10 rounded-bl-full -z-10 group-hover:bg-error/20 transition-colors"></div>
+<div class="flex justify-between items-start mb-4">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-full bg-error/20 flex items-center justify-center text-error">
+<span class="material-symbols-outlined">person_search</span>
+</div>
+<div>
+<h4 class="font-label-md text-label-md text-on-surface uppercase tracking-wider">Duplicate Identity</h4>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Detected 12 mins ago</p>
+</div>
+</div>
+<div class="flex flex-col items-end">
+<span class="font-headline-md text-headline-md text-error">98</span>
+<span class="font-label-md text-label-md text-on-surface-variant text-[10px]">RISK SCORE</span>
+</div>
+</div>
+<div class="space-y-2 mb-4">
+<div class="flex justify-between text-body-sm">
+<span class="text-on-surface-variant">Affected Tenant:</span>
+<span class="text-on-surface font-mono-data">Branch_North_04</span>
+</div>
+<div class="flex justify-between text-body-sm">
+<span class="text-on-surface-variant">Confidence:</span>
+<span class="text-error font-mono-data">High (94%)</span>
+</div>
+</div>
+<button class="w-full py-2 bg-transparent border border-error text-error rounded-lg font-label-md text-label-md hover:bg-error/10 transition-colors">
+                            Investigate
+                        </button>
+</div>
+<!-- Signal Card 2 -->
+<div class="bg-surface-container border border-tertiary/30 rounded-xl p-5 relative overflow-hidden group hover:border-tertiary transition-colors cursor-pointer">
+<div class="absolute top-0 right-0 w-16 h-16 bg-tertiary/10 rounded-bl-full -z-10 group-hover:bg-tertiary/20 transition-colors"></div>
+<div class="flex justify-between items-start mb-4">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-full bg-tertiary/20 flex items-center justify-center text-tertiary">
+<span class="material-symbols-outlined">payments</span>
+</div>
+<div>
+<h4 class="font-label-md text-label-md text-on-surface uppercase tracking-wider">Suspicious Pattern</h4>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Detected 45 mins ago</p>
+</div>
+</div>
+<div class="flex flex-col items-end">
+<span class="font-headline-md text-headline-md text-tertiary">82</span>
+<span class="font-label-md text-label-md text-on-surface-variant text-[10px]">RISK SCORE</span>
+</div>
+</div>
+<div class="space-y-2 mb-4">
+<div class="flex justify-between text-body-sm">
+<span class="text-on-surface-variant">Affected Tenant:</span>
+<span class="text-on-surface font-mono-data">Metro_Central_01</span>
+</div>
+<div class="flex justify-between text-body-sm">
+<span class="text-on-surface-variant">Volume Anomaly:</span>
+<span class="text-tertiary font-mono-data">+340% vs Avg</span>
+</div>
+</div>
+<button class="w-full py-2 bg-transparent border border-tertiary text-tertiary rounded-lg font-label-md text-label-md hover:bg-tertiary/10 transition-colors">
+                            Investigate
+                        </button>
+</div>
+<!-- Signal Card 3 -->
+<div class="bg-surface-container border border-outline-variant rounded-xl p-5 relative overflow-hidden group hover:border-tertiary transition-colors cursor-pointer">
+<div class="absolute top-0 right-0 w-16 h-16 bg-surface-container-high rounded-bl-full -z-10 group-hover:bg-surface-container-highest transition-colors"></div>
+<div class="flex justify-between items-start mb-4">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-full bg-surface-container-highest flex items-center justify-center text-on-surface">
+<span class="material-symbols-outlined">group_off</span>
+</div>
+<div>
+<h4 class="font-label-md text-label-md text-on-surface uppercase tracking-wider">High Delinquency Cluster</h4>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Detected 2 hrs ago</p>
+</div>
+</div>
+<div class="flex flex-col items-end">
+<span class="font-headline-md text-headline-md text-tertiary-fixed-dim">75</span>
+<span class="font-label-md text-label-md text-on-surface-variant text-[10px]">RISK SCORE</span>
+</div>
+</div>
+<div class="space-y-2 mb-4">
+<div class="flex justify-between text-body-sm">
+<span class="text-on-surface-variant">Affected Tenant:</span>
+<span class="text-on-surface font-mono-data">South_Rural_02</span>
+</div>
+<div class="flex justify-between text-body-sm">
+<span class="text-on-surface-variant">Cluster Size:</span>
+<span class="text-on-surface font-mono-data">42 Borrowers</span>
+</div>
+</div>
+<button class="w-full py-2 bg-transparent border border-outline text-on-surface-variant rounded-lg font-label-md text-label-md hover:bg-surface-container-highest transition-colors">
+                            Review Details
+                        </button>
+</div>
+</div>
+<!-- Center/Right Col (Span 8) -->
+<div class="col-span-12 lg:col-span-8 flex flex-col gap-gutter">
+<!-- Top Row: Heatmap & Metrics -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-gutter h-64">
+<!-- Global Risk Heatmap (Mocked with gradient/map image) -->
+<div class="bg-surface-container border border-outline-variant rounded-xl p-5 relative overflow-hidden flex flex-col">
+<h3 class="font-headline-sm text-headline-sm text-on-surface mb-2 relative z-10">Regional Risk Heatmap</h3>
+<div class="absolute inset-0 top-12 bg-cover bg-center opacity-40 mix-blend-luminosity" data-alt="A stylized, dark-themed geographical map showing various regions glowing with heat map indicators. Areas glow in deep reds, ambers, and subtle greens, representing varying levels of financial risk. The map lines are sharp and digital, fitting a high-tech corporate dashboard aesthetic. The lighting is low to emphasize the glowing data points." style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuDZ_em33fZKwwoMOlfuV_CquaJksUr-g0EyUNXLEemCbkMyAjIhGUtf9zQwRzRSVEWmoKb5ciHl1Bk-2k66nDTNBCdmWrkGU4kx_lEmA19pCEpAquZwx4sro7iiS8E29CzNyMk7Px15mIhWJAsHYwdn3xzHtHVjG0HYOYSBg5hK_xBqDRBJZoGhl5r7iRweYNL34o2_qBQGUTyX_39B45XxkcRNDqxaI4WM2gitW8ArKJByylZXzQ9atzDI85xumi2Moh_eCw_w46U');"></div>
+<!-- Overlay markers -->
+<div class="absolute top-1/3 left-1/4 w-4 h-4 bg-error rounded-full shadow-[0_0_15px_rgba(255,180,171,0.8)] animate-pulse"></div>
+<div class="absolute top-1/2 right-1/3 w-3 h-3 bg-tertiary rounded-full shadow-[0_0_10px_rgba(255,185,95,0.6)]"></div>
+<div class="absolute bottom-1/4 left-1/2 w-2 h-2 bg-secondary rounded-full shadow-[0_0_8px_rgba(78,222,163,0.5)]"></div>
+<div class="mt-auto relative z-10 flex gap-4">
+<div class="flex items-center gap-2">
+<div class="w-3 h-3 bg-error rounded-sm"></div>
+<span class="font-label-md text-label-md text-on-surface-variant">Critical</span>
+</div>
+<div class="flex items-center gap-2">
+<div class="w-3 h-3 bg-tertiary rounded-sm"></div>
+<span class="font-label-md text-label-md text-on-surface-variant">Elevated</span>
+</div>
+<div class="flex items-center gap-2">
+<div class="w-3 h-3 bg-secondary rounded-sm"></div>
+<span class="font-label-md text-label-md text-on-surface-variant">Stable</span>
+</div>
+</div>
+</div>
+<!-- Summary Metrics -->
+<div class="grid grid-rows-2 gap-gutter">
+<div class="bg-surface-container border border-outline-variant rounded-xl p-5 flex flex-col justify-center">
+<div class="flex justify-between items-center mb-1">
+<span class="font-label-md text-label-md text-on-surface-variant uppercase">Global Risk Index</span>
+<span class="material-symbols-outlined text-tertiary">trending_up</span>
+</div>
+<div class="flex items-end gap-3">
+<span class="font-display-lg text-display-lg text-tertiary">64</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant mb-2">/100 (Moderate-High)</span>
+</div>
+</div>
+<div class="bg-surface-container border border-outline-variant rounded-xl p-5 flex flex-col justify-center">
+<div class="flex justify-between items-center mb-1">
+<span class="font-label-md text-label-md text-on-surface-variant uppercase">Automated Blocks Today</span>
+<span class="material-symbols-outlined text-secondary">shield</span>
+</div>
+<div class="flex items-end gap-3">
+<span class="font-display-lg text-display-lg text-on-surface">1,432</span>
+<span class="font-body-sm text-body-sm text-secondary mb-2">+12% vs yesterday</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Bottom Row: PAR Trends Chart -->
+<div class="flex-1 bg-surface-container border border-outline-variant rounded-xl p-5 flex flex-col min-h-[300px]">
+<div class="flex justify-between items-center mb-6">
+<div>
+<h3 class="font-headline-sm text-headline-sm text-on-surface">Portfolio at Risk (PAR) Trends</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant">30-day trailing comparison across high-risk regions</p>
+</div>
+<div class="flex gap-2">
+<button class="px-3 py-1 bg-surface-container-highest text-on-surface rounded font-label-md text-label-md">PAR 30</button>
+<button class="px-3 py-1 bg-transparent text-on-surface-variant hover:bg-surface-container-highest rounded font-label-md text-label-md transition-colors">PAR 60</button>
+<button class="px-3 py-1 bg-transparent text-on-surface-variant hover:bg-surface-container-highest rounded font-label-md text-label-md transition-colors">PAR 90</button>
+</div>
+</div>
+<!-- Mock Chart Area using CSS Gradients/Borders -->
+<div class="flex-1 relative border-l border-b border-outline-variant mt-4 ml-8 mb-6">
+<!-- Y-Axis Labels -->
+<div class="absolute -left-10 top-0 text-[10px] text-on-surface-variant font-mono-data">15%</div>
+<div class="absolute -left-10 top-1/4 text-[10px] text-on-surface-variant font-mono-data">10%</div>
+<div class="absolute -left-10 top-2/4 text-[10px] text-on-surface-variant font-mono-data">5%</div>
+<div class="absolute -left-10 bottom-0 text-[10px] text-on-surface-variant font-mono-data">0%</div>
+<!-- Grid Lines -->
+<div class="absolute top-1/4 w-full border-t border-outline-variant/30 border-dashed"></div>
+<div class="absolute top-2/4 w-full border-t border-outline-variant/30 border-dashed"></div>
+<div class="absolute top-3/4 w-full border-t border-outline-variant/30 border-dashed"></div>
+<!-- Line 1 (North Region - High Risk) -->
+<svg class="absolute inset-0 w-full h-full" preserveaspectratio="none">
+<path d="M0,80 Q20%,75 40%,60 T80%,20 T100%,10" fill="none" stroke="#ffb4ab" stroke-width="2"></path>
+</svg>
+<!-- Line 2 (Central Region - Stable) -->
+<svg class="absolute inset-0 w-full h-full" preserveaspectratio="none">
+<path d="M0,60 Q20%,65 40%,55 T80%,50 T100%,45" fill="none" opacity="0.6" stroke="#b4c5ff" stroke-width="2"></path>
+</svg>
+<!-- Tooltip Point Mock -->
+<div class="absolute left-[80%] top-[20%] w-3 h-3 bg-error rounded-full border-2 border-surface transform -translate-x-1/2 -translate-y-1/2 shadow-lg z-10 cursor-pointer group">
+<div class="hidden group-hover:block absolute bottom-full left-1/2 -translate-x-1/2 mb-2 bg-surface-bright text-on-surface px-3 py-2 rounded shadow-xl whitespace-nowrap z-20 border border-outline-variant">
+<p class="font-label-md text-label-md">North Region</p>
+<p class="font-mono-data text-body-sm text-error">PAR30: 12.4%</p>
+</div>
+</div>
+<!-- X-Axis Labels -->
+<div class="absolute -bottom-6 left-0 text-[10px] text-on-surface-variant font-mono-data transform -translate-x-1/2">Oct 01</div>
+<div class="absolute -bottom-6 left-1/4 text-[10px] text-on-surface-variant font-mono-data transform -translate-x-1/2">Oct 08</div>
+<div class="absolute -bottom-6 left-2/4 text-[10px] text-on-surface-variant font-mono-data transform -translate-x-1/2">Oct 15</div>
+<div class="absolute -bottom-6 left-3/4 text-[10px] text-on-surface-variant font-mono-data transform -translate-x-1/2">Oct 22</div>
+<div class="absolute -bottom-6 right-0 text-[10px] text-on-surface-variant font-mono-data transform translate-x-1/2">Today</div>
+</div>
+<div class="flex justify-center gap-6 mt-2">
+<div class="flex items-center gap-2">
+<div class="w-3 h-px bg-error"></div>
+<span class="font-label-md text-label-md text-on-surface-variant">North Region (Alert)</span>
+</div>
+<div class="flex items-center gap-2">
+<div class="w-3 h-px bg-primary opacity-60"></div>
+<span class="font-label-md text-label-md text-on-surface-variant">Central Region (Baseline)</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+</div>
+</body></html>

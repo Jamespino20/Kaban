@@ -11,6 +11,9 @@ type Plan = {
   id: number;
   tier_name: string;
   price_monthly: any;
+  price_quarterly: any;
+  price_semi_annually: any;
+  price_annually: any;
   max_members: number;
   max_storage_mb: number;
   features: string[];
@@ -42,9 +45,16 @@ export function SubscriptionSettingsClient({
   const handleRequestUpgrade = async (planId: number) => {
     setIsLoading(planId);
     try {
+      let cycle: "monthly" | "quarterly" | "semi_annually" | "annually" = "monthly";
+      const plan = availablePlans.find(p => p.id === planId);
+      
+      if (plan?.tier_name.toLowerCase().includes("core")) cycle = "quarterly";
+      else if (plan?.tier_name.toLowerCase().includes("pro")) cycle = "semi_annually";
+      else if (plan?.tier_name.toLowerCase().includes("enterprise")) cycle = "annually";
+
       const res = await requestSubscriptionUpgrade(
         planId,
-        "monthly",
+        cycle,
         tenantSlug,
       );
       if (res.success) {
@@ -146,9 +156,19 @@ export function SubscriptionSettingsClient({
                 </h4>
                 <div className="my-4">
                   <span className="text-3xl font-black text-emerald-600">
-                    ₱{Number(plan.price_monthly).toLocaleString()}
+                    ₱{plan.tier_name.toLowerCase().includes("core") 
+                      ? Number(plan.price_quarterly).toLocaleString() 
+                      : plan.tier_name.toLowerCase().includes("pro")
+                      ? Number(plan.price_semi_annually).toLocaleString()
+                      : Number(plan.price_annually).toLocaleString()}
                   </span>
-                  <span className="text-sm text-slate-500">/mo</span>
+                  <span className="text-sm text-slate-500">
+                    {plan.tier_name.toLowerCase().includes("core") 
+                      ? " / 3 mos" 
+                      : plan.tier_name.toLowerCase().includes("pro")
+                      ? " / 6 mos"
+                      : " / year"}
+                  </span>
                 </div>
                 <ul className="mb-6 space-y-3">
                   <li className="text-sm text-slate-600 flex items-start gap-2">

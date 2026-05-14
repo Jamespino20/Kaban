@@ -6,8 +6,8 @@ const normalizeEmail = (email: string) => email.trim().toLowerCase();
 
 export const getTwoFactorTokenByToken = async (token: string) => {
   try {
-    const twoFactorToken = await prisma.twoFactorToken.findUnique({
-      where: { token }
+    const twoFactorToken = await prisma.authToken.findUnique({
+      where: { token, type: "TWO_FACTOR" }
     });
     return twoFactorToken;
   } catch {
@@ -20,8 +20,8 @@ export const getTwoFactorTokenByEmail = async (
   tenantId: number | null,
 ) => {
   try {
-    const twoFactorToken = await prisma.twoFactorToken.findFirst({
-      where: { email: normalizeEmail(email), tenant_id: tenantId },
+    const twoFactorToken = await prisma.authToken.findFirst({
+      where: { email: normalizeEmail(email), tenant_id: tenantId, type: "TWO_FACTOR" },
     });
     return twoFactorToken;
   } catch {

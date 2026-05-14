@@ -109,9 +109,9 @@ export function PlatformContentModerationTab() {
       ]);
       if (platResult.success) {
         const validFaqs =
-          platResult.faqs?.filter((faq) => faq && faq.submitted_by_user) || [];
+          platResult.faqs?.filter((faq: any) => faq && faq.submitted_by_user) || [];
         const validTestimonials =
-          platResult.testimonials?.filter((t) => t && t.submitted_by_user) ||
+          platResult.testimonials?.filter((t: any) => t && t.submitted_by_user) ||
           [];
         setFaqs(validFaqs);
         setTestimonials(validTestimonials);

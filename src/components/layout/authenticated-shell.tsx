@@ -172,7 +172,13 @@ export function AuthenticatedShell({
   const [navReady, setNavReady] = useState(false);
   const navScrollRef = useRef<HTMLDivElement>(null);
 
-  const normalizedTenantColor = normalizeHexColor(tenantBrandColor);
+  // Force system green theme for superadmin
+  const isSuperadmin = accountRole === "superadmin";
+
+  const normalizedTenantColor = isSuperadmin 
+    ? "#009966"
+    : normalizeHexColor(tenantBrandColor);
+    
   const normalizedAccentColor = normalizeHexColor(tenantAccentColor);
 
   const getFontFamily = (pairing: string | null) => {

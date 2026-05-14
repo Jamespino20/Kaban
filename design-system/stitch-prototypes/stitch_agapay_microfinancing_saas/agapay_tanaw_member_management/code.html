@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Agapay - Members</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=Outfit:wght@500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "tertiary-fixed-dim": "#ffb95f",
+                    "surface-container-high": "#222a3d",
+                    "primary-container": "#2563eb",
+                    "error": "#ffb4ab",
+                    "secondary-container": "#00a572",
+                    "on-tertiary-fixed-variant": "#653e00",
+                    "on-secondary": "#003824",
+                    "inverse-primary": "#0053db",
+                    "on-primary-fixed": "#00174b",
+                    "on-background": "#dae2fd",
+                    "surface": "#0b1326",
+                    "surface-tint": "#b4c5ff",
+                    "surface-container-highest": "#2d3449",
+                    "primary": "#b4c5ff",
+                    "on-error": "#690005",
+                    "on-error-container": "#ffdad6",
+                    "on-secondary-fixed-variant": "#005236",
+                    "inverse-surface": "#dae2fd",
+                    "primary-fixed": "#dbe1ff",
+                    "surface-container-lowest": "#060e20",
+                    "surface-container-low": "#131b2e",
+                    "surface-container": "#171f33",
+                    "outline": "#8d90a0",
+                    "on-primary-fixed-variant": "#003ea8",
+                    "surface-bright": "#31394d",
+                    "tertiary-fixed": "#ffddb8",
+                    "on-tertiary": "#472a00",
+                    "surface-variant": "#2d3449",
+                    "surface-dim": "#0b1326",
+                    "secondary": "#4edea3",
+                    "on-primary-container": "#eeefff",
+                    "on-tertiary-fixed": "#2a1700",
+                    "on-tertiary-container": "#ffeedd",
+                    "inverse-on-surface": "#283044",
+                    "on-surface-variant": "#c3c6d7",
+                    "tertiary": "#ffb95f",
+                    "outline-variant": "#434655",
+                    "secondary-fixed-dim": "#4edea3",
+                    "on-secondary-fixed": "#002113",
+                    "secondary-fixed": "#6ffbbe",
+                    "on-primary": "#002a78",
+                    "error-container": "#93000a",
+                    "background": "#0b1326",
+                    "tertiary-container": "#996100",
+                    "on-secondary-container": "#00311f",
+                    "primary-fixed-dim": "#b4c5ff",
+                    "on-surface": "#dae2fd"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.125rem",
+                    "lg": "0.25rem",
+                    "xl": "0.5rem",
+                    "full": "0.75rem"
+            },
+            "spacing": {
+                    "container_max_width": "1440px",
+                    "stack_md": "16px",
+                    "gutter": "24px",
+                    "stack_lg": "24px",
+                    "sidebar_width": "280px",
+                    "margin_desktop": "32px",
+                    "margin_mobile": "16px",
+                    "stack_sm": "8px"
+            },
+            "fontFamily": {
+                    "body-sm": [
+                            "Inter"
+                    ],
+                    "mono-data": [
+                            "Inter"
+                    ],
+                    "headline-sm": [
+                            "Outfit"
+                    ],
+                    "display-lg": [
+                            "Outfit"
+                    ],
+                    "headline-lg": [
+                            "Outfit"
+                    ],
+                    "body-md": [
+                            "Inter"
+                    ],
+                    "label-md": [
+                            "Inter"
+                    ],
+                    "headline-md": [
+                            "Outfit"
+                    ],
+                    "body-lg": [
+                            "Inter"
+                    ]
+            },
+            "fontSize": {
+                    "body-sm": [
+                            "14px",
+                            {
+                                    "lineHeight": "20px",
+                                    "fontWeight": "400"
+                            }
+                    ],
+                    "mono-data": [
+                            "14px",
+                            {
+                                    "lineHeight": "20px",
+                                    "fontWeight": "500"
+                            }
+                    ],
+                    "headline-sm": [
+                            "20px",
+                            {
+                                    "lineHeight": "28px",
+                                    "fontWeight": "500"
+                            }
+                    ],
+                    "display-lg": [
+                            "48px",
+                            {
+                                    "lineHeight": "56px",
+                                    "letterSpacing": "-0.02em",
+                                    "fontWeight": "700"
+                            }
+                    ],
+                    "headline-lg": [
+                            "32px",
+                            {
+                                    "lineHeight": "40px",
+                                    "letterSpacing": "-0.01em",
+                                    "fontWeight": "600"
+                            }
+                    ],
+                    "body-md": [
+                            "16px",
+                            {
+                                    "lineHeight": "24px",
+                                    "fontWeight": "400"
+                            }
+                    ],
+                    "label-md": [
+                            "12px",
+                            {
+                                    "lineHeight": "16px",
+                                    "letterSpacing": "0.05em",
+                                    "fontWeight": "600"
+                            }
+                    ],
+                    "headline-md": [
+                            "24px",
+                            {
+                                    "lineHeight": "32px",
+                                    "fontWeight": "600"
+                            }
+                    ],
+                    "body-lg": [
+                            "18px",
+                            {
+                                    "lineHeight": "28px",
+                                    "fontWeight": "400"
+                            }
+                    ]
+            }
+          }
+        }
+      }
+    </script>
+</head>
+<body class="bg-background text-on-surface font-body-md antialiased min-h-screen flex">
+<!-- SideNavBar Component -->
+<aside class="bg-surface-container dark:bg-surface-container w-sidebar_width h-screen sticky left-0 top-0 border-r border-outline-variant dark:border-outline-variant hidden xl:flex flex-col py-stack_lg flex-shrink-0 z-40">
+<div class="px-gutter mb-8 flex items-center space-x-3">
+<div class="w-8 h-8 rounded-DEFAULT bg-primary flex items-center justify-center">
+<span class="material-symbols-outlined text-on-primary font-bold text-headline-sm" style="font-variation-settings: 'FILL' 1;">widgets</span>
+</div>
+<div>
+<h1 class="font-headline-md text-headline-md text-on-surface font-bold leading-none">Agapay</h1>
+<p class="font-label-md text-label-md text-on-surface-variant leading-none mt-1">Microfinance OS</p>
+</div>
+</div>
+<nav class="flex-1 flex flex-col space-y-1">
+<a class="text-on-surface-variant dark:text-on-surface-variant flex items-center px-4 py-3 hover:bg-surface-container-high dark:hover:bg-surface-container-high hover:text-on-surface transition-all duration-200 ease-in-out font-label-md text-label-md" href="#">
+<span class="material-symbols-outlined mr-3">dashboard</span>
+                Dashboard
+            </a>
+<a class="text-on-surface-variant dark:text-on-surface-variant flex items-center px-4 py-3 hover:bg-surface-container-high dark:hover:bg-surface-container-high hover:text-on-surface transition-all duration-200 ease-in-out font-label-md text-label-md" href="#">
+<span class="material-symbols-outlined mr-3">payments</span>
+                Loans
+            </a>
+<a class="text-on-surface-variant dark:text-on-surface-variant flex items-center px-4 py-3 hover:bg-surface-container-high dark:hover:bg-surface-container-high hover:text-on-surface transition-all duration-200 ease-in-out font-label-md text-label-md" href="#">
+<span class="material-symbols-outlined mr-3">account_balance</span>
+                The Vault
+            </a>
+<a class="text-on-surface dark:text-on-surface border-l-4 border-secondary bg-surface-container-highest flex items-center px-4 py-3 transition-all duration-200 ease-in-out font-label-md text-label-md" href="#">
+<span class="material-symbols-outlined mr-3" style="font-variation-settings: 'FILL' 1;">groups</span>
+                Members
+            </a>
+<a class="text-on-surface-variant dark:text-on-surface-variant flex items-center px-4 py-3 hover:bg-surface-container-high dark:hover:bg-surface-container-high hover:text-on-surface transition-all duration-200 ease-in-out font-label-md text-label-md" href="#">
+<span class="material-symbols-outlined mr-3">forum</span>
+                Community
+            </a>
+</nav>
+<div class="px-4 mt-auto mb-4">
+<button class="w-full bg-primary-container text-on-primary-container hover:bg-inverse-primary hover:text-on-primary-container font-label-md text-label-md py-3 rounded-lg flex items-center justify-center transition-colors">
+<span class="material-symbols-outlined mr-2 text-[18px]">add</span>
+                New Disbursement
+            </button>
+</div>
+<div class="flex flex-col space-y-1 border-t border-outline-variant dark:border-outline-variant pt-4">
+<a class="text-on-surface-variant dark:text-on-surface-variant flex items-center px-4 py-3 hover:bg-surface-container-high dark:hover:bg-surface-container-high hover:text-on-surface transition-all duration-200 ease-in-out font-label-md text-label-md" href="#">
+<span class="material-symbols-outlined mr-3">help</span>
+                Support
+            </a>
+<a class="text-on-surface-variant dark:text-on-surface-variant flex items-center px-4 py-3 hover:bg-surface-container-high dark:hover:bg-surface-container-high hover:text-on-surface transition-all duration-200 ease-in-out font-label-md text-label-md" href="#">
+<span class="material-symbols-outlined mr-3">logout</span>
+                Logout
+            </a>
+</div>
+</aside>
+<!-- Main Content Area -->
+<main class="flex-1 flex flex-col min-w-0">
+<!-- TopNavBar Component (Mobile/Tablet) -->
+<header class="bg-surface dark:bg-surface border-b border-outline-variant dark:border-outline-variant xl:hidden flex justify-between items-center w-full px-gutter h-16 max-w-container_max_width mx-auto sticky top-0 z-30">
+<div class="flex items-center">
+<button class="mr-4 text-on-surface-variant hover:text-primary transition-colors cursor-pointer active:opacity-80 transition-all">
+<span class="material-symbols-outlined">menu</span>
+</button>
+<span class="text-headline-md font-headline-md font-bold text-primary dark:text-primary leading-none">Agapay</span>
+</div>
+<div class="flex items-center space-x-4 text-primary dark:text-primary">
+<button class="hover:bg-surface-container-high transition-colors p-2 rounded-full cursor-pointer active:opacity-80 transition-all">
+<span class="material-symbols-outlined">notifications</span>
+</button>
+<button class="hover:bg-surface-container-high transition-colors p-2 rounded-full cursor-pointer active:opacity-80 transition-all">
+<span class="material-symbols-outlined">settings</span>
+</button>
+</div>
+</header>
+<div class="p-margin_mobile md:p-margin_desktop flex-1 overflow-y-auto max-w-container_max_width mx-auto w-full">
+<!-- Page Header -->
+<div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
+<div>
+<h2 class="font-headline-lg text-headline-lg text-on-surface">Member Directory</h2>
+<p class="font-body-sm text-body-sm text-on-surface-variant mt-1">Manage and monitor community members, trust scores, and active loans.</p>
+</div>
+<div class="flex items-center space-x-3 w-full md:w-auto">
+<div class="relative flex-1 md:w-64">
+<span class="material-symbols-outlined absolute left-3 top-1/2 transform -translate-y-1/2 text-outline">search</span>
+<input class="w-full bg-surface-container dark:bg-surface-container border border-outline-variant rounded-lg pl-10 pr-4 py-2 font-body-sm text-body-sm text-on-surface focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all placeholder:text-outline" placeholder="Search members..." type="text"/>
+</div>
+<button class="bg-primary-container text-on-primary-container hover:bg-inverse-primary hover:text-on-primary-container font-label-md text-label-md px-4 py-2 rounded-lg flex items-center transition-colors h-[40px]">
+<span class="material-symbols-outlined mr-2 text-[18px]">add</span>
+                        Add Member
+                    </button>
+</div>
+</div>
+<div class="flex flex-col lg:flex-row gap-gutter">
+<!-- Filters Sidebar -->
+<aside class="w-full lg:w-64 flex-shrink-0 space-y-6">
+<div class="bg-surface-container-low rounded-xl border border-outline-variant p-5">
+<div class="flex items-center justify-between mb-4">
+<h3 class="font-headline-sm text-headline-sm text-on-surface">Filters</h3>
+<button class="text-primary font-label-md text-label-md hover:text-primary-fixed transition-colors">Clear All</button>
+</div>
+<div class="space-y-5">
+<!-- Region Filter -->
+<div>
+<label class="block font-label-md text-label-md text-on-surface-variant mb-2">Region</label>
+<select class="w-full bg-surface border border-outline-variant rounded-lg px-3 py-2 font-body-sm text-body-sm text-on-surface focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all appearance-none">
+<option value="">All Regions</option>
+<option value="ncr">Metro Manila</option>
+<option value="luzon">Luzon</option>
+<option value="visayas">Visayas</option>
+<option value="mindanao">Mindanao</option>
+</select>
+</div>
+<!-- Trust Tier Filter -->
+<div>
+<label class="block font-label-md text-label-md text-on-surface-variant mb-2">Trust Tier</label>
+<div class="space-y-2">
+<label class="flex items-center space-x-3 cursor-pointer group">
+<input class="form-checkbox h-4 w-4 text-primary rounded border-outline-variant bg-surface focus:ring-primary focus:ring-offset-background" type="checkbox"/>
+<span class="font-body-sm text-body-sm text-on-surface group-hover:text-primary transition-colors">Kaagapay (Tier 1)</span>
+</label>
+<label class="flex items-center space-x-3 cursor-pointer group">
+<input class="form-checkbox h-4 w-4 text-primary rounded border-outline-variant bg-surface focus:ring-primary focus:ring-offset-background" type="checkbox"/>
+<span class="font-body-sm text-body-sm text-on-surface group-hover:text-primary transition-colors">Katuwang (Tier 2)</span>
+</label>
+<label class="flex items-center space-x-3 cursor-pointer group">
+<input class="form-checkbox h-4 w-4 text-primary rounded border-outline-variant bg-surface focus:ring-primary focus:ring-offset-background" type="checkbox"/>
+<span class="font-body-sm text-body-sm text-on-surface group-hover:text-primary transition-colors">Kasama (Tier 3)</span>
+</label>
+</div>
+</div>
+<!-- Account Status Filter -->
+<div>
+<label class="block font-label-md text-label-md text-on-surface-variant mb-2">Account Status</label>
+<div class="flex flex-col space-y-2">
+<button class="bg-surface-container border border-outline-variant hover:border-primary rounded-lg px-3 py-2 font-body-sm text-body-sm text-left transition-colors flex items-center justify-between">
+<span>Active</span>
+<span class="bg-secondary/10 text-secondary px-2 py-0.5 rounded text-xs">1,245</span>
+</button>
+<button class="bg-surface-container border border-outline-variant hover:border-primary rounded-lg px-3 py-2 font-body-sm text-body-sm text-left transition-colors flex items-center justify-between">
+<span>Suspended</span>
+<span class="bg-error/10 text-error px-2 py-0.5 rounded text-xs">23</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+</aside>
+<!-- Members Grid -->
+<div class="flex-1 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5 content-start">
+<!-- Member Card 1 -->
+<div class="bg-surface-container-low rounded-xl border border-outline-variant hover:border-primary-container/50 hover:shadow-[0_4px_20px_rgba(37,99,235,0.05)] transition-all duration-300 relative group overflow-hidden flex flex-col">
+<div class="p-5 flex-1 flex flex-col">
+<div class="flex justify-between items-start mb-4">
+<div class="flex items-center space-x-3">
+<div class="w-12 h-12 rounded-full bg-surface border border-outline-variant overflow-hidden flex-shrink-0">
+<img alt="Member Avatar" class="w-full h-full object-cover" data-alt="A professional headshot of a middle-aged Filipino woman with a warm smile. She is wearing a neat, light blue collared shirt. The background is a soft, blurred office environment with cool, modern lighting. The image feels trustworthy and approachable, fitting for a financial services profile picture." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDhrPyJ2p6dwHCPeNuQi5oKU6rpdL9cRT2dNSnk5HiCEoBgVi9mA-T-YaTPn-a0uemTROeG4qCcYmT-dPRQpe13_8Xsb47-F5JIJDiVYYTa4YmIDbCpT25lG5_WXD1rYUiAfVsS9ScrALHR7FL0rOEbtTuld0N5r4WrCE_m9Y4ceuuUq4jfY2lq6fPCT1RbnDWctFtZsnJiZ7T4YcOPk8I6P0gGMbUDtdt_wcVQmj8y6fyBLTlFfe4U8Sp9nPGSr7jbd-SLyWk1hR0"/>
+</div>
+<div>
+<h4 class="font-headline-sm text-headline-sm text-on-surface leading-tight">Maria Santos</h4>
+<p class="font-mono-data text-mono-data text-on-surface-variant mt-0.5">MEM-24-001</p>
+</div>
+</div>
+<div class="relative">
+<button class="text-outline hover:text-on-surface transition-colors p-1 rounded-DEFAULT hover:bg-surface-container">
+<span class="material-symbols-outlined text-[20px]">more_vert</span>
+</button>
+<!-- Action Menu (Hidden by default, shown on hover for demo) -->
+<div class="absolute right-0 top-8 bg-surface-container-highest border border-outline-variant rounded-lg shadow-lg py-1 w-36 hidden group-hover:block z-10">
+<button class="w-full text-left px-3 py-2 font-body-sm text-body-sm hover:bg-surface-container-high transition-colors flex items-center">
+<span class="material-symbols-outlined mr-2 text-[16px]">visibility</span> View Profile
+                                        </button>
+<button class="w-full text-left px-3 py-2 font-body-sm text-body-sm hover:bg-surface-container-high transition-colors flex items-center">
+<span class="material-symbols-outlined mr-2 text-[16px]">chat</span> Message
+                                        </button>
+<button class="w-full text-left px-3 py-2 font-body-sm text-body-sm text-error hover:bg-surface-container-high transition-colors flex items-center">
+<span class="material-symbols-outlined mr-2 text-[16px]">block</span> Suspend
+                                        </button>
+</div>
+</div>
+</div>
+<div class="grid grid-cols-2 gap-4 mb-5">
+<div>
+<span class="block font-label-md text-label-md text-on-surface-variant mb-1">Trust Score</span>
+<div class="flex items-center space-x-2">
+<span class="font-headline-sm text-headline-sm text-on-surface">94</span>
+<span class="bg-secondary/10 text-secondary px-2 py-0.5 rounded text-xs font-medium">Kaagapay</span>
+</div>
+</div>
+<div>
+<span class="block font-label-md text-label-md text-on-surface-variant mb-1">Region</span>
+<div class="flex items-center space-x-1">
+<span class="material-symbols-outlined text-outline text-[16px]">location_on</span>
+<span class="font-body-sm text-body-sm text-on-surface">Metro Manila</span>
+</div>
+</div>
+</div>
+</div>
+<div class="bg-surface-container border-t border-outline-variant p-3 px-5 flex justify-between items-center">
+<div class="flex flex-col">
+<span class="font-label-md text-label-md text-on-surface-variant">Active Loan</span>
+<span class="font-mono-data text-mono-data text-on-surface">₱ 25,000</span>
+</div>
+<span class="bg-secondary/10 text-secondary px-2.5 py-1 rounded-DEFAULT font-label-md text-[10px] uppercase tracking-wider flex items-center">
+<span class="w-1.5 h-1.5 rounded-full bg-secondary mr-1.5"></span> Good Standing
+                            </span>
+</div>
+</div>
+<!-- Member Card 2 -->
+<div class="bg-surface-container-low rounded-xl border border-outline-variant hover:border-primary-container/50 hover:shadow-[0_4px_20px_rgba(37,99,235,0.05)] transition-all duration-300 relative group overflow-hidden flex flex-col">
+<div class="p-5 flex-1 flex flex-col">
+<div class="flex justify-between items-start mb-4">
+<div class="flex items-center space-x-3">
+<div class="w-12 h-12 rounded-full bg-surface border border-outline-variant overflow-hidden flex-shrink-0">
+<img alt="Member Avatar" class="w-full h-full object-cover" data-alt="A portrait of a young Filipino man in his late 20s. He is wearing a dark polo shirt and standing outdoors with a slightly blurred bustling market in the background. The lighting is natural daylight, highlighting his serious but attentive expression. The style is documentary yet professional." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBOn_Yvcu1Lxzf96RQk1pMZczbsKKcoZgJv1oT5zv4s1bGGKRRjzH7rWjS7m_vYw60ha3yOsHNJv-W0jA4qvHoaSwOEEmy-1j7u8_QvxAMgDFtIGgPyoUqmOI2FVj2OSO14vesGpNxHY0UhPWqXNRSL5gbRFh76v8iRo2O6K_mco-IYYAabA-PDfeFp1Lpgzu5GC0m-p9qHCs4Z-8gKz13Bxhpc0ealoQy6pu1loS4vaQH-HxuaDhy4RDllNeUh2ux7w4NbgTc54fc"/>
+</div>
+<div>
+<h4 class="font-headline-sm text-headline-sm text-on-surface leading-tight">Juan Dela Cruz</h4>
+<p class="font-mono-data text-mono-data text-on-surface-variant mt-0.5">MEM-24-042</p>
+</div>
+</div>
+<button class="text-outline hover:text-on-surface transition-colors p-1 rounded-DEFAULT hover:bg-surface-container">
+<span class="material-symbols-outlined text-[20px]">more_vert</span>
+</button>
+</div>
+<div class="grid grid-cols-2 gap-4 mb-5">
+<div>
+<span class="block font-label-md text-label-md text-on-surface-variant mb-1">Trust Score</span>
+<div class="flex items-center space-x-2">
+<span class="font-headline-sm text-headline-sm text-on-surface">78</span>
+<span class="bg-tertiary-fixed-dim/10 text-tertiary-fixed-dim px-2 py-0.5 rounded text-xs font-medium">Katuwang</span>
+</div>
+</div>
+<div>
+<span class="block font-label-md text-label-md text-on-surface-variant mb-1">Region</span>
+<div class="flex items-center space-x-1">
+<span class="material-symbols-outlined text-outline text-[16px]">location_on</span>
+<span class="font-body-sm text-body-sm text-on-surface">Luzon</span>
+</div>
+</div>
+</div>
+</div>
+<div class="bg-surface-container border-t border-outline-variant p-3 px-5 flex justify-between items-center">
+<div class="flex flex-col">
+<span class="font-label-md text-label-md text-on-surface-variant">Active Loan</span>
+<span class="font-mono-data text-mono-data text-on-surface">₱ 10,000</span>
+</div>
+<span class="bg-tertiary-fixed-dim/10 text-tertiary-fixed-dim px-2.5 py-1 rounded-DEFAULT font-label-md text-[10px] uppercase tracking-wider flex items-center">
+<span class="w-1.5 h-1.5 rounded-full bg-tertiary-fixed-dim mr-1.5"></span> Grace Period
+                            </span>
+</div>
+</div>
+<!-- Member Card 3 -->
+<div class="bg-surface-container-low rounded-xl border border-outline-variant hover:border-primary-container/50 hover:shadow-[0_4px_20px_rgba(37,99,235,0.05)] transition-all duration-300 relative group overflow-hidden flex flex-col opacity-70">
+<div class="p-5 flex-1 flex flex-col">
+<div class="flex justify-between items-start mb-4">
+<div class="flex items-center space-x-3">
+<div class="w-12 h-12 rounded-full bg-surface border border-outline-variant overflow-hidden flex-shrink-0 grayscale">
+<img alt="Member Avatar" class="w-full h-full object-cover" data-alt="A portrait of an older Filipino woman with grey hair tied back. She is wearing a traditional patterned blouse. The background is a dimly lit, out-of-focus small business interior. The image has a slightly desaturated, serious tone, reflecting a more somber professional mood." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDsrT78g2JbZOImiIMCX4DTwD4kVekBJ1p4F3w9QT1_xa0CL1CimXL25C6o1XI7sGnLx6yeQmde47TJmw4kPiP3_Sltuu946u2_EPwPrwbeZ0EqLxZzu3IPJBsuXotQPyRF3o_zLzVF95b8aQc_nXRRFYwAlTgUtRC4eGBWQ6D6DQTbxyyWUCRaOqBVrLC-GDMTO5SwI6hzsd96tWbJ3aMWTLkIBgbq-j60ODyroMVYCCN7n81ZrZs7B-ZP118TCzWScOZSsc8eC60"/>
+</div>
+<div>
+<h4 class="font-headline-sm text-headline-sm text-on-surface leading-tight">Elena Reyes</h4>
+<p class="font-mono-data text-mono-data text-on-surface-variant mt-0.5">MEM-23-112</p>
+</div>
+</div>
+<button class="text-outline hover:text-on-surface transition-colors p-1 rounded-DEFAULT hover:bg-surface-container">
+<span class="material-symbols-outlined text-[20px]">more_vert</span>
+</button>
+</div>
+<div class="grid grid-cols-2 gap-4 mb-5">
+<div>
+<span class="block font-label-md text-label-md text-on-surface-variant mb-1">Trust Score</span>
+<div class="flex items-center space-x-2">
+<span class="font-headline-sm text-headline-sm text-on-surface text-error">45</span>
+<span class="bg-error/10 text-error px-2 py-0.5 rounded text-xs font-medium">Kasama</span>
+</div>
+</div>
+<div>
+<span class="block font-label-md text-label-md text-on-surface-variant mb-1">Region</span>
+<div class="flex items-center space-x-1">
+<span class="material-symbols-outlined text-outline text-[16px]">location_on</span>
+<span class="font-body-sm text-body-sm text-on-surface">Visayas</span>
+</div>
+</div>
+</div>
+</div>
+<div class="bg-surface-container border-t border-error/30 p-3 px-5 flex justify-between items-center">
+<div class="flex flex-col">
+<span class="font-label-md text-label-md text-on-surface-variant">Active Loan</span>
+<span class="font-mono-data text-mono-data text-on-surface">₱ 50,000</span>
+</div>
+<span class="bg-error/10 text-error px-2.5 py-1 rounded-DEFAULT font-label-md text-[10px] uppercase tracking-wider flex items-center">
+<span class="material-symbols-outlined text-[14px] mr-1">block</span> Suspended
+                            </span>
+</div>
+</div>
+<!-- Member Card 4 -->
+<div class="bg-surface-container-low rounded-xl border border-outline-variant hover:border-primary-container/50 hover:shadow-[0_4px_20px_rgba(37,99,235,0.05)] transition-all duration-300 relative group overflow-hidden flex flex-col">
+<div class="p-5 flex-1 flex flex-col">
+<div class="flex justify-between items-start mb-4">
+<div class="flex items-center space-x-3">
+<div class="w-12 h-12 rounded-full bg-surface border border-outline-variant overflow-hidden flex-shrink-0 flex items-center justify-center">
+<span class="font-headline-md text-headline-md text-primary">RC</span>
+</div>
+<div>
+<h4 class="font-headline-sm text-headline-sm text-on-surface leading-tight">Roberto Castro</h4>
+<p class="font-mono-data text-mono-data text-on-surface-variant mt-0.5">MEM-24-089</p>
+</div>
+</div>
+<button class="text-outline hover:text-on-surface transition-colors p-1 rounded-DEFAULT hover:bg-surface-container">
+<span class="material-symbols-outlined text-[20px]">more_vert</span>
+</button>
+</div>
+<div class="grid grid-cols-2 gap-4 mb-5">
+<div>
+<span class="block font-label-md text-label-md text-on-surface-variant mb-1">Trust Score</span>
+<div class="flex items-center space-x-2">
+<span class="font-headline-sm text-headline-sm text-on-surface">88</span>
+<span class="bg-secondary/10 text-secondary px-2 py-0.5 rounded text-xs font-medium">Kaagapay</span>
+</div>
+</div>
+<div>
+<span class="block font-label-md text-label-md text-on-surface-variant mb-1">Region</span>
+<div class="flex items-center space-x-1">
+<span class="material-symbols-outlined text-outline text-[16px]">location_on</span>
+<span class="font-body-sm text-body-sm text-on-surface">Mindanao</span>
+</div>
+</div>
+</div>
+</div>
+<div class="bg-surface-container border-t border-outline-variant p-3 px-5 flex justify-between items-center">
+<div class="flex flex-col">
+<span class="font-label-md text-label-md text-on-surface-variant">Active Loan</span>
+<span class="font-body-sm text-body-sm text-outline italic">No active loan</span>
+</div>
+<button class="text-primary hover:text-primary-fixed font-label-md text-label-md transition-colors">
+                                View History
+                            </button>
+</div>
+</div>
+</div>
+</div>
+<!-- Pagination (Placeholder) -->
+<div class="mt-8 flex items-center justify-between border-t border-outline-variant pt-4 pb-8">
+<p class="font-body-sm text-body-sm text-on-surface-variant">Showing <span class="text-on-surface font-medium">1</span> to <span class="text-on-surface font-medium">4</span> of <span class="text-on-surface font-medium">1,268</span> members</p>
+<div class="flex space-x-2">
+<button class="p-2 rounded-lg border border-outline-variant text-on-surface-variant hover:bg-surface-container hover:text-on-surface disabled:opacity-50 transition-colors" disabled="">
+<span class="material-symbols-outlined text-[20px]">chevron_left</span>
+</button>
+<button class="p-2 rounded-lg border border-outline-variant text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors">
+<span class="material-symbols-outlined text-[20px]">chevron_right</span>
+</button>
+</div>
+</div>
+</div>
+</main>
+</body></html>

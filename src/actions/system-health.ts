@@ -63,7 +63,7 @@ export async function getTenantHealthBreakdown() {
     });
     
     const tenantHealth = await Promise.all(
-      tenants.map(async (tenant) => {
+      tenants.map(async (tenant: any) => {
         const activeLoans = await prisma.loan.count({
           where: { tenant_id: tenant.tenant_id, status: "active" }
         });

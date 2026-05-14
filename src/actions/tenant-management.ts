@@ -1,26 +1,20 @@
 "use server";
 
 import prisma from "@/lib/prisma";
+import { Prisma } from "@prisma/client";
 import * as z from "zod";
 import fs from "fs";
 import path from "path";
 
-import { neon } from "@neondatabase/serverless";
-import {
-  requireAdminSession,
-  requireSuperadminSession,
-} from "@/lib/authorization";
-import { getDbUrl } from "@/lib/db-url";
+import { sql } from "@/lib/db";
+import { requireAdminSession, requireSuperadminSession } from "@/lib/authorization";
 import { unstable_cache } from "next/cache";
+import { serializeDecimal } from "@/lib/utils";
 
 // 0. Get List of Regions (Public for Registration)
 export async function getRegions() {
   try {
-    const connectionString = getDbUrl();
-
-    if (!connectionString) return [];
-
-    const sql = neon(connectionString);
+    // const sql = neon(connectionString); // Removed neon dependency
     const regions = await sql`
       SELECT id, name, reg_code 
       FROM tenant_groups 
@@ -38,11 +32,7 @@ export async function getRegions() {
 // 0.5 Get Tenants by Region (Public for Registration)
 export async function getTenantsByRegion(regionId: number) {
   try {
-    const connectionString = getDbUrl();
-
-    if (!connectionString) return [];
-
-    const sql = neon(connectionString);
+    // const sql = neon(connectionString); // Removed neon dependency
     const tenants = await sql`
       SELECT tenant_id, name, slug 
       FROM tenants 
@@ -66,25 +56,30 @@ export async function getTenants() {
       include: {
         tenant_group: true,
         _count: {
-          select: { users: true, loans: true, savings: true, system_files: true },
+          select: {
+            users: true,
+            loans: true,
+            savings: true,
+            system_files: true,
+          },
         },
       },
       orderBy: {
         name: "asc",
       },
     });
-    return tenants;
+    return serializeDecimal(tenants);
   } catch (error) {
     console.error("Failed to fetch tenants:", error);
     // Fallback if adapter doesn't support includes
     const tenants = await prisma.tenant.findMany({
       orderBy: { name: "asc" },
     });
-    return tenants.map((t) => ({
+    return serializeDecimal(tenants.map((t: any) => ({
       ...t,
       tenant_group: null,
       _count: { users: 0, loans: 0, savings: 0 },
-    })) as any[];
+    })));
   }
 }
 
@@ -116,11 +111,15 @@ export async function getActiveTenants() {
     });
 
     // Fetch member counts and loan repaid totals per tenant
-    const tenantIds = tenants.map((t) => t.tenant_id);
+    const tenantIds = tenants.map((t: any) => t.tenant_id);
     const [memberCounts, loanRepaidTotals] = await Promise.all([
       prisma.user.groupBy({
         by: ["tenant_id"],
-        where: { tenant_id: { in: tenantIds }, role: "member", status: "active" },
+        where: {
+          tenant_id: { in: tenantIds },
+          role: "member",
+          status: "active",
+        },
         _count: { user_id: true },
       }),
       prisma.loan.groupBy({
@@ -130,8 +129,15 @@ export async function getActiveTenants() {
       }),
     ]);
 
-    const memberCountMap = new Map(memberCounts.map((m) => [m.tenant_id, m._count.user_id]));
-    const loanRepaidMap = new Map(loanRepaidTotals.map((l) => [l.tenant_id, Number(l._sum.total_payable) || 0]));
+    const memberCountMap = new Map(
+      memberCounts.map((m: any) => [m.tenant_id, m._count.user_id]),
+    );
+    const loanRepaidMap = new Map(
+      loanRepaidTotals.map((l: any) => [
+        l.tenant_id,
+        Number(l._sum.total_payable) || 0,
+      ]),
+    );
 
     // Map to coordinates for the map
     const coordinates: Record<
@@ -178,7 +184,7 @@ export async function getActiveTenants() {
       },
     };
 
-    return tenants.map((b) => {
+    return tenants.map((b: any) => {
       const tid = b.tenant_id;
       return {
         id: tid.toString(),
@@ -208,8 +214,8 @@ export const getActiveTenantsForNav = unstable_cache(
       const tenants = await getActiveTenants();
       // Exclude Apex/System tenant from "Find Cooperatives" selector
       return tenants
-        .filter((b) => b.slug !== "apex")
-        .map((b) => ({ ...b }));
+        .filter((b: any) => b.slug !== "apex")
+        .map((b: any) => ({ ...b }));
     } catch (e) {
       return [];
     }
@@ -227,73 +233,75 @@ export async function decommissionTenant(tenantId: number) {
 
   try {
     // Transaction to ensure data consistency
-    const result = await prisma.$transaction(async (tx) => {
-      // 1. Mark tenant as inactive
+    const result = await prisma.$transaction(
+      async (tx: Prisma.TransactionClient) => {
+        // 1. Mark tenant as inactive
 
-      const tenant = await tx.tenant.update({
-        where: { tenant_id: tenantId },
-        data: { is_active: false },
-      });
+        const tenant = await tx.tenant.update({
+          where: { tenant_id: tenantId },
+          data: { is_active: false },
+        });
 
-      // 2. Extract Full Transaction History for Backup
-      const users = await tx.user.findMany({
-        where: { tenant_id: tenantId },
-        include: {
-          profile: true,
-          loans: {
-            include: {
-              payments: true,
-              schedules: true,
+        // 2. Extract Full Transaction History for Backup
+        const users = await tx.user.findMany({
+          where: { tenant_id: tenantId },
+          include: {
+            profile: true,
+            loans: {
+              include: {
+                payments: true,
+                schedules: true,
+              },
+            },
+            savings_accounts: {
+              include: {
+                transactions: true,
+              },
             },
           },
-          savings_accounts: {
-            include: {
-              transactions: true,
-            },
+        });
+
+        // 3. Generate CSV Content
+        let csvContent =
+          "Member Code,Name,Role,Status,Total Loans,Total Savings Balance\n";
+        users.forEach((u) => {
+          const name = u.profile
+            ? `${u.profile.first_name} ${u.profile.last_name}`
+            : "Unknown";
+          const totalSavings = u.savings_accounts.reduce(
+            (sum: number, acc) => sum + Number(acc.balance),
+            0,
+          );
+          csvContent += `${u.member_code || "N/A"},"${name}",${u.role},${u.status},${u.loans.length},${totalSavings}\n`;
+          // In a real banking CSV, we would iterate through `payments` and `transactions` deeply.
+          // For this automated snapshot, we aggregate the high-level metrics.
+        });
+
+        const fileName = `backup_${tenant.slug}_${Date.now()}.csv`;
+
+        // 5. Create Metadata Record
+        const backupRecord = await tx.decommissionedBackup.create({
+          data: {
+            tenant_id: tenantId,
+            file_url: fileName,
+            snapshot_content: csvContent,
           },
-        },
-      });
+        });
 
-      // 3. Generate CSV Content
-      let csvContent =
-        "Member Code,Name,Role,Status,Total Loans,Total Savings Balance\n";
-      users.forEach((u) => {
-        const name = u.profile
-          ? `${u.profile.first_name} ${u.profile.last_name}`
-          : "Unknown";
-        const totalSavings = u.savings_accounts.reduce(
-          (sum: number, acc) => sum + Number(acc.balance),
-          0,
-        );
-        csvContent += `${u.member_code || "N/A"},"${name}",${u.role},${u.status},${u.loans.length},${totalSavings}\n`;
-        // In a real banking CSV, we would iterate through `payments` and `transactions` deeply.
-        // For this automated snapshot, we aggregate the high-level metrics.
-      });
+        // 6. Log Audit
+        await tx.auditLog.create({
+          data: {
+            action: "DECOMMISSION_TENANT",
+            entity_type: "Tenant",
+            entity_id: tenantId,
+            user_id: parseInt(session.user.id),
+            new_values: { is_active: false, backup_id: backupRecord.id } as any,
+          },
+        });
 
-      const fileName = `backup_${tenant.slug}_${Date.now()}.csv`;
-
-      // 5. Create Metadata Record
-      const backupRecord = await tx.decommissionedBackup.create({
-        data: {
-          tenant_id: tenantId,
-          file_url: fileName,
-          snapshot_content: csvContent,
-        },
-      });
-
-      // 6. Log Audit
-      await tx.auditLog.create({
-        data: {
-          action: "DECOMMISSION_TENANT",
-          entity_type: "Tenant",
-          entity_id: tenantId,
-          user_id: parseInt(session.user.id),
-          new_values: { is_active: false, backup_id: backupRecord.id } as any,
-        },
-      });
-
-      return { tenant, backup: backupRecord };
-    });
+        return { tenant, backup: backupRecord };
+      },
+    );
 
     return { success: true, data: result };
   } catch (error) {
@@ -396,11 +404,22 @@ export async function createTenant(
 
     // Create subscription if plan was selected
     if (branding?.planId) {
+      const plan = await prisma.subscriptionPlan.findUnique({
+        where: { id: branding.planId },
+      });
+
+      let cycle: any = "monthly";
+      if (plan?.tier_name.toLowerCase().includes("core")) cycle = "quarterly";
+      else if (plan?.tier_name.toLowerCase().includes("pro"))
+        cycle = "semi_annually";
+      else if (plan?.tier_name.toLowerCase().includes("enterprise"))
+        cycle = "annually";
+
       await prisma.tenantSubscription.create({
         data: {
           tenant_id: tenant.tenant_id,
           plan_id: branding.planId,
-          billing_cycle: "monthly",
+          billing_cycle: cycle,
           status: "active",
         },
       });
@@ -519,37 +538,39 @@ export async function renameTenant(values: z.infer<typeof RenameTenantSchema>) {
   }
 
   try {
-    const result = await prisma.$transaction(async (tx) => {
-      const existing = await tx.tenant.findUnique({
-        where: { tenant_id: targetTenantId },
-        select: { tenant_id: true, name: true },
-      });
+    const result = await prisma.$transaction(
+      async (tx: Prisma.TransactionClient) => {
+        const existing = await tx.tenant.findUnique({
+          where: { tenant_id: targetTenantId },
+          select: { tenant_id: true, name: true },
+        });
 
-if (!existing) {
-         throw new Error(
-           `Tenant with ID ${targetTenantId} not found. Cannot update name.`,
-         );
-       }
+        if (!existing) {
+          throw new Error(
+            `Tenant with ID ${targetTenantId} not found. Cannot update name.`,
+          );
+        }
 
-       const updated = await tx.tenant.update({
-         where: { tenant_id: targetTenantId },
-         data: { name: parsed.data.name },
-      });
+        const updated = await tx.tenant.update({
+          where: { tenant_id: targetTenantId },
+          data: { name: parsed.data.name },
+        });
 
-      await tx.auditLog.create({
-        data: {
-          tenant_id: targetTenantId,
-          user_id: session.user.user_id,
-          action: "RENAME_TENANT",
-          entity_type: "Tenant",
-          entity_id: targetTenantId,
-          old_values: { name: existing.name } as any,
-          new_values: { name: parsed.data.name } as any,
-        },
-      });
+        await tx.auditLog.create({
+          data: {
+            tenant_id: targetTenantId,
+            user_id: session.user.user_id,
+            action: "RENAME_TENANT",
+            entity_type: "Tenant",
+            entity_id: targetTenantId,
+            old_values: { name: existing.name } as any,
+            new_values: { name: parsed.data.name } as any,
+          },
+        });
 
-      return updated;
-    });
+        return updated;
+      },
+    );
 
     return { success: true, data: result };
   } catch (error) {
@@ -576,67 +597,69 @@ export async function updateTenantEntitlement(
   }
 
   try {
-    const result = await prisma.$transaction(async (tx) => {
-      const existing = await tx.tenant.findUnique({
-        where: { tenant_id: parsed.data.tenantId },
-        select: {
-          tenant_id: true,
-          entitlement_status: true,
-          lifetime_availed_at: true,
-          entitlement_reference: true,
-          entitlement_notes: true,
-        },
-      });
+    const result = await prisma.$transaction(
+      async (tx: Prisma.TransactionClient) => {
+        const existing = await tx.tenant.findUnique({
+          where: { tenant_id: parsed.data.tenantId },
+          select: {
+            tenant_id: true,
+            entitlement_status: true,
+            lifetime_availed_at: true,
+            entitlement_reference: true,
+            entitlement_notes: true,
+          },
+        });
 
-if (!existing) {
-         throw new Error(
-           `Tenant with ID ${parsed.data.tenantId} not found. Cannot update entitlement.`,
-         );
-       }
+        if (!existing) {
+          throw new Error(
+            `Tenant with ID ${parsed.data.tenantId} not found. Cannot update entitlement.`,
+          );
+        }
 
-       const activatingForFirstTime =
-        parsed.data.entitlementStatus === "active" &&
-        existing.lifetime_availed_at === null;
+        const activatingForFirstTime =
+          parsed.data.entitlementStatus === "active" &&
+          existing.lifetime_availed_at === null;
 
-      const updated = await tx.tenant.update({
-        where: { tenant_id: parsed.data.tenantId },
-        data: {
-          entitlement_status: parsed.data.entitlementStatus,
-          entitlement_reference:
-            parsed.data.entitlementReference?.trim() || null,
-          entitlement_notes: parsed.data.entitlementNotes?.trim() || null,
-          entitled_by_user_id: session.user.user_id,
-          lifetime_availed_at: activatingForFirstTime
-            ? new Date()
-            : existing.lifetime_availed_at,
-        },
-      });
+        const updated = await tx.tenant.update({
+          where: { tenant_id: parsed.data.tenantId },
+          data: {
+            entitlement_status: parsed.data.entitlementStatus,
+            entitlement_reference:
+              parsed.data.entitlementReference?.trim() || null,
+            entitlement_notes: parsed.data.entitlementNotes?.trim() || null,
+            entitled_by_user_id: session.user.user_id,
+            lifetime_availed_at: activatingForFirstTime
+              ? new Date()
+              : existing.lifetime_availed_at,
+          },
+        });
 
-      await tx.auditLog.create({
-        data: {
-          tenant_id: parsed.data.tenantId,
-          user_id: session.user.user_id,
-          action: "UPDATE_TENANT_ENTITLEMENT",
-          entity_type: "Tenant",
-          entity_id: parsed.data.tenantId,
-          old_values: {
-            entitlement_status: existing.entitlement_status,
-            lifetime_availed_at: existing.lifetime_availed_at,
-            entitlement_reference: existing.entitlement_reference,
-            entitlement_notes: existing.entitlement_notes,
-          } as any,
-          new_values: {
-            entitlement_status: updated.entitlement_status,
-            lifetime_availed_at: updated.lifetime_availed_at,
-            entitlement_reference: updated.entitlement_reference,
-            entitlement_notes: updated.entitlement_notes,
-            entitled_by_user_id: updated.entitled_by_user_id,
-          } as any,
-        },
-      });
+        await tx.auditLog.create({
+          data: {
+            tenant_id: parsed.data.tenantId,
+            user_id: session.user.user_id,
+            action: "UPDATE_TENANT_ENTITLEMENT",
+            entity_type: "Tenant",
+            entity_id: parsed.data.tenantId,
+            old_values: {
+              entitlement_status: existing.entitlement_status,
+              lifetime_availed_at: existing.lifetime_availed_at,
+              entitlement_reference: existing.entitlement_reference,
+              entitlement_notes: existing.entitlement_notes,
+            } as any,
+            new_values: {
+              entitlement_status: updated.entitlement_status,
+              lifetime_availed_at: updated.lifetime_availed_at,
+              entitlement_reference: updated.entitlement_reference,
+              entitlement_notes: updated.entitlement_notes,
+              entitled_by_user_id: updated.entitled_by_user_id,
+            } as any,
+          },
+        });
 
-      return updated;
-    });
+        return updated;
+      },
+    );
 
     return { success: true, data: result };
   } catch (error) {
@@ -665,7 +688,7 @@ export async function getAuditLogs(tenantId?: number) {
       orderBy: { created_at: "desc" },
       take: 50,
     });
-    return logs.map((log) => ({
+    return logs.map((log: any) => ({
       ...log,
       username: log.user?.username || "System",
     }));

@@ -1,5 +1,6 @@
 "use server";
 
+import { Prisma } from "@prisma/client";
 import { syncUserTier, calculateTrustScore } from "@/lib/trust-engine";
 import prisma from "@/lib/prisma";
 import { requireAuthenticatedSession } from "@/lib/authorization";
@@ -49,7 +50,7 @@ if (session.user.role === "member") {
        );
      }
 
-    const breakdown = await prisma.$withTenant(targetTenantId, async (tx) => {
+    const breakdown = await prisma.$withTenant(targetTenantId, async (tx: Prisma.TransactionClient) => {
       await syncUserTier(userId, targetTenantId, targetSlug, tx);
       return await calculateTrustScore(userId, targetTenantId, targetSlug, tx);
     });

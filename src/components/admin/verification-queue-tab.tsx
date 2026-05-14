@@ -210,7 +210,7 @@ function PendingLoansSection({ loans }: { loans: any[] }) {
     setProcessingId(loanId);
     startTransition(async () => {
       try {
-        const res = await approveLoanApplication({ loanId });
+        const res = await approveLoanApplication({ loanId }) as any;
         if (res.error) {
           toast.error(res.error);
         } else {
@@ -234,7 +234,7 @@ function PendingLoansSection({ loans }: { loans: any[] }) {
         const res = await rejectLoanApplication({
           loanId,
           notes: rejectReason.trim(),
-        });
+        }) as any;
 
         if (res.error) {
           toast.error(res.error);
@@ -489,7 +489,7 @@ function ReleaseLoanCard({ loan }: { loan: any }) {
         methodId: Number(methodId),
         releaseReference: reference,
         notes,
-      });
+      }) as any;
 
       if (res.error) {
         toast.error(res.error);
@@ -617,7 +617,7 @@ function ReviewPaymentCard({ payment }: { payment: any }) {
         const res = await verifySubmittedPayment({
           paymentId: payment.payment_id,
           notes: "Verified by admin in mock flow.",
-        });
+        }) as any;
         if (res.error) {
           toast.error(res.error);
         } else {
@@ -637,7 +637,7 @@ function ReviewPaymentCard({ payment }: { payment: any }) {
         const res = await rejectSubmittedPayment({
           paymentId: payment.payment_id,
           notes: "Reference mismatch. Please resubmit proof.",
-        });
+        }) as any;
         if (res.error) {
           toast.error(res.error);
         } else {
@@ -738,7 +738,7 @@ function OverdueLoansSection({ loans }: { loans: any[] }) {
     setProcessingId(loanId);
     startTransition(async () => {
       try {
-        const res = await manuallyDeclareDefault(loanId);
+        const res = await manuallyDeclareDefault(loanId) as any;
         if (res.error) {
           toast.error(res.error);
         } else {

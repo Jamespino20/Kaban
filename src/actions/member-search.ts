@@ -59,7 +59,7 @@ export async function searchEligibleGuarantors(query: string) {
 
     const users = await prisma.$withTenant(
       session.user.tenantId,
-      async (tx) => {
+      async (tx: any) => {
         return await queryFn(tx);
       },
     );

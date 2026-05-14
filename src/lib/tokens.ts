@@ -12,22 +12,23 @@ export const generateVerificationToken = async (
   const expires = new Date(new Date().getTime() + 3600 * 1000); // 1 hour
   const normalizedEmail = normalizeEmail(email);
 
-  const existingToken = await prisma.verificationToken.findFirst({
-    where: { email: normalizedEmail, tenant_id: tenantId },
+  const existingToken = await prisma.authToken.findFirst({
+    where: { email: normalizedEmail, tenant_id: tenantId, type: "VERIFICATION" },
   });
 
   if (existingToken) {
-    await prisma.verificationToken.delete({
+    await prisma.authToken.delete({
       where: { id: existingToken.id },
     });
   }
 
-  const verificationToken = await prisma.verificationToken.create({
+  const verificationToken = await prisma.authToken.create({
     data: {
       tenant_id: tenantId,
       email: normalizedEmail,
       token,
       expires,
+      type: "VERIFICATION",
     },
   });
 
@@ -45,22 +46,23 @@ export const generateTwoFactorToken = async (
   const expires = new Date(new Date().getTime() + 3600 * 1000); // 1 hour
   const normalizedEmail = normalizeEmail(email);
 
-  const existingToken = await prisma.twoFactorToken.findFirst({
-    where: { email: normalizedEmail, tenant_id: tenantId },
+  const existingToken = await prisma.authToken.findFirst({
+    where: { email: normalizedEmail, tenant_id: tenantId, type: "TWO_FACTOR" },
   });
 
   if (existingToken) {
-    await prisma.twoFactorToken.delete({
+    await prisma.authToken.delete({
       where: { id: existingToken.id },
     });
   }
 
-  const twoFactorToken = await prisma.twoFactorToken.create({
+  const twoFactorToken = await prisma.authToken.create({
     data: {
       tenant_id: tenantId,
       email: normalizedEmail,
       token,
       expires,
+      type: "TWO_FACTOR",
     },
   });
 
@@ -78,22 +80,23 @@ export const generatePasswordResetToken = async (
   const expires = new Date(new Date().getTime() + 3600 * 1000); // 1 hour
   const normalizedEmail = normalizeEmail(email);
 
-  const existingToken = await prisma.passwordResetToken.findFirst({
-    where: { email: normalizedEmail, tenant_id: tenantId },
+  const existingToken = await prisma.authToken.findFirst({
+    where: { email: normalizedEmail, tenant_id: tenantId, type: "PASSWORD_RESET" },
   });
 
   if (existingToken) {
-    await prisma.passwordResetToken.delete({
+    await prisma.authToken.delete({
       where: { id: existingToken.id },
     });
   }
 
-  const passwordResetToken = await prisma.passwordResetToken.create({
+  const passwordResetToken = await prisma.authToken.create({
     data: {
       tenant_id: tenantId,
       email: normalizedEmail,
       token,
       expires,
+      type: "PASSWORD_RESET",
     },
   });
 

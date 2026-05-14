@@ -1,14 +1,17 @@
 "use server";
 
+import { shouldUseApiClient } from "@/lib/api-config";
+import { api } from "@/lib/api-client";
 import prisma from "@/lib/prisma";
 import { requireTanawSession } from "@/lib/authorization";
-import { Role, UserStatus } from "@prisma/client";
+import { Role, UserStatus, Prisma } from "@prisma/client";
 import {
   runAutomatedDefaultEnforcement,
   enforceLoanDefault,
 } from "@/lib/default-enforcement";
 import { revalidatePath } from "next/cache";
 import { determineInterestTierFromScore } from "@/lib/microfinance-policy";
+import { serializeDecimal } from "@/lib/utils";
 
 export async function updateProfileInfo(values: {
   firstName: string;
@@ -58,7 +61,7 @@ export async function updateProfileInfo(values: {
     });
 
     if (tenantId) {
-      await prisma.$withTenant(tenantId, async (tx) => {
+      await prisma.$withTenant(tenantId, async (tx: Prisma.TransactionClient) => {
         await tx.user.update({
           where: { user_id: userId },
           data: userData,
@@ -106,7 +109,7 @@ export async function updateMemberProfile(
     if (values.maritalStatus) profileData.marital_status = values.maritalStatus;
 
     if (tenantId) {
-      await prisma.$withTenant(tenantId, async (tx) => {
+      await prisma.$withTenant(tenantId, async (tx: Prisma.TransactionClient) => {
         if (Object.keys(userData).length > 0) {
           await tx.user.update({
             where: { user_id: userId },
@@ -146,6 +149,10 @@ export async function updateMemberProfile(
 export async function getTenantMembers() {
   const session = await requireTanawSession();
   const tenantId = session.user.tenantId;
+
+  if (shouldUseApiClient()) {
+    return api.admin.getTenantMembers();
+  }
 
   const query = (db: any) =>
     db.user.findMany({
@@ -201,7 +208,7 @@ export async function getTenantMembers() {
     return await query(prisma);
   }
 
-  return await prisma.$withTenant(tenantId, async (tx) => {
+  return await prisma.$withTenant(tenantId, async (tx: Prisma.TransactionClient) => {
     return await query(tx);
   });
 }
@@ -209,6 +216,10 @@ export async function getTenantMembers() {
 export async function getPendingApprovals() {
   const session = await requireTanawSession();
   const tenantId = session.user.tenantId;
+
+  if (shouldUseApiClient()) {
+    return api.admin.getPendingApprovals();
+  }
 
   const query = async (db: any) => {
     // Fetch pending loans
@@ -354,7 +365,7 @@ export async function getPendingApprovals() {
     return await query(prisma);
   }
 
-  return await prisma.$withTenant(tenantId, async (tx) => {
+  return await prisma.$withTenant(tenantId, async (tx: Prisma.TransactionClient) => {
     return await query(tx);
   });
 }
@@ -362,6 +373,10 @@ export async function getPendingApprovals() {
 export async function getDashboardMetrics() {
   const session = await requireTanawSession();
   const tenantId = session.user.tenantId;
+
+  if (shouldUseApiClient()) {
+    return api.admin.getDashboardMetrics();
+  }
 
   if (!tenantId) {
     // Global Superadmin View
@@ -375,7 +390,7 @@ export async function getDashboardMetrics() {
       totalTenants,
     ] = await Promise.all([
       prisma.savingsTransaction.count(),
-      prisma.feedbackEntry.count({ where: { status: "pending" } }),
+      prisma.supportTicket.count({ where: { status: "open", ticket_type: "FEEDBACK" } }),
       prisma.tenant.count({
         where: {
           created_at: { gte: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000) },
@@ -387,7 +402,9 @@ export async function getDashboardMetrics() {
           status: "overdue",
         },
       }),
-      prisma.$queryRaw<{ total: number }[]>`SELECT COALESCE(SUM(amount_paid), 0) as total FROM payments WHERE status = 'verified'`,
+      prisma.$queryRaw<
+        { total: number }[]
+      >`SELECT COALESCE(SUM(amount_paid), 0) as total FROM payments WHERE status = 'verified'`,
       prisma.tenant.count(),
     ]);
 
@@ -409,7 +426,7 @@ export async function getDashboardMetrics() {
     };
   }
 
-  return await prisma.$withTenant(tenantId, async (tx) => {
+  return await prisma.$withTenant(tenantId, async (tx: Prisma.TransactionClient) => {
     await runAutomatedDefaultEnforcement({
       tenantId: tenantId ?? undefined,
       actorUserId: session.user.user_id,
@@ -558,7 +575,7 @@ export async function getTenantTrustMetrics() {
     return await query(prisma);
   }
 
-  return await prisma.$withTenant(tenantId, async (tx) => {
+  return await prisma.$withTenant(tenantId, async (tx: Prisma.TransactionClient) => {
     return await query(tx);
   });
 }
@@ -588,7 +605,7 @@ export async function createStaffAccount(values: {
       10,
     );
 
-    const result = await prisma.$withTenant(values.tenantId, async (tx) => {
+    const result = await prisma.$withTenant(values.tenantId, async (tx: Prisma.TransactionClient) => {
       const existingUser = await tx.user.findFirst({
         where: { email: values.email.toLowerCase() },
       });
@@ -606,7 +623,7 @@ export async function createStaffAccount(values: {
       // 1. Generate Member Code for Staff ({tenant_slug} {roleinitial} {membercode})
       const tenant = await tx.tenant.findUnique({
         where: { tenant_id: values.tenantId },
-        select: { slug: true }
+        select: { slug: true },
       });
       const tenant_slug = tenant?.slug.toUpperCase() || "UNKN";
       const count = await tx.user.count({
@@ -685,7 +702,7 @@ export async function manuallyDeclareDefault(loanId: number) {
   }
 
   try {
-    await prisma.$withTenant(tenantId, async (tx) => {
+    await prisma.$withTenant(tenantId, async (tx: Prisma.TransactionClient) => {
       return await enforceLoanDefault(tx, loanId, session.user.user_id);
     });
 
@@ -716,7 +733,7 @@ export async function updateMemberStatus(
       });
 
     if (tenantId) {
-      await prisma.$withTenant(tenantId, async (tx) => {
+      await prisma.$withTenant(tenantId, async (tx: Prisma.TransactionClient) => {
         await tx.user.update({
           where: { user_id: userId },
           data: { status },
@@ -746,12 +763,13 @@ export async function resetMemberPassword(userId: number) {
     if (!user) return { error: "User not found." };
 
     const token = crypto.randomUUID();
-    await prisma.passwordResetToken.create({
+    await prisma.authToken.create({
       data: {
         email: user.email,
         token,
         expires: new Date(Date.now() + 3600_000),
         tenant_id: user.tenant_id,
+        type: "PASSWORD_RESET",
       },
     });
 

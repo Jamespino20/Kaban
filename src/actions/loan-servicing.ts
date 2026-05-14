@@ -1,6 +1,8 @@
 "use server";
 
 import * as z from "zod";
+import { shouldUseApiClient } from "@/lib/api-config";
+import { api } from "@/lib/api-client";
 import prisma from "@/lib/prisma";
 import {
   requireAdminSession,
@@ -8,6 +10,7 @@ import {
 } from "@/lib/authorization";
 import { PaymentStatus, ScheduleStatus, Prisma } from "@prisma/client";
 import { revalidatePath } from "next/cache";
+import { serializeDecimal } from "@/lib/utils";
 import {
   buildRepaymentSchedule,
   computeLoanQuote,
@@ -113,7 +116,7 @@ if (!loan) {
     return { session, loan, tenantId };
   };
 
-  return await prisma.$withTenant(targetTenantId, async (tx) => {
+  return await prisma.$withTenant(targetTenantId, async (tx: any) => {
     return await query(tx);
   });
 }
@@ -129,9 +132,15 @@ export async function approveLoanApplication(
       return { error: "Loan application is no longer pending." };
     }
 
+    if (shouldUseApiClient()) {
+      const result = await api.loans.approve({ loanId });
+      revalidatePath("/agapay-tanaw");
+      return result;
+    }
+
     const targetTenantId = tenantId || loan.tenant_id;
 
-    await prisma.$withTenant(targetTenantId, async (tx) => {
+    await prisma.$withTenant(targetTenantId, async (tx: any) => {
       await tx.loan.update({
         where: { loan_id: loanId },
         data: {
@@ -179,9 +188,15 @@ export async function rejectLoanApplication(
       };
     }
 
+    if (shouldUseApiClient()) {
+      const result = await api.loans.reject({ loanId, notes });
+      revalidatePath("/agapay-tanaw");
+      return result;
+    }
+
     const targetTenantId = tenantId || loan.tenant_id;
 
-    await prisma.$withTenant(targetTenantId, async (tx) => {
+    await prisma.$withTenant(targetTenantId, async (tx: any) => {
       await tx.loan.update({
         where: { loan_id: loanId },
         data: {
@@ -233,9 +248,15 @@ export async function releaseLoanFunds(
       };
     }
 
+    if (shouldUseApiClient()) {
+      const result = await api.loans.release({ loanId });
+      revalidatePath("/agapay-tanaw");
+      return result;
+    }
+
     const targetTenantId = tenantId || loan.tenant_id;
 
-    await prisma.$withTenant(targetTenantId, async (tx) => {
+    await prisma.$withTenant(targetTenantId, async (tx: any) => {
       await tx.loan.update({
         where: { loan_id: loanId },
         data: {
@@ -276,7 +297,7 @@ export async function submitMockRepayment(
 
     if (!tenantId) return { error: "Tenant context required." };
 
-    return await prisma.$withTenant(tenantId, async (tx) => {
+    return await prisma.$withTenant(tenantId, async (tx: any) => {
       const loan = await tx.loan.findUnique({
         where: { loan_id: loanId },
       });
@@ -301,7 +322,7 @@ export async function submitMockRepayment(
         },
       });
 
-      return { success: "Repayment submitted successfully.", payment };
+      return serializeDecimal({ success: "Repayment submitted successfully.", payment });
     });
   } catch (error) {
     console.error("submitMockRepayment failed:", error);
@@ -319,7 +340,7 @@ export async function processFullPayment(
 
     if (!tenantId) return { error: "Tenant context required." };
 
-    return await prisma.$withTenant(tenantId, async (tx) => {
+    return await prisma.$withTenant(tenantId, async (tx: any) => {
       const loan = await tx.loan.findUnique({
         where: { loan_id: loanId },
         include: { schedules: { orderBy: { installment_number: "asc" } } },
@@ -397,7 +418,7 @@ export async function verifySubmittedPayment(
 
     if (!tenantId) return { error: "Tenant context required." };
 
-    return await prisma.$withTenant(tenantId, async (tx) => {
+    return await prisma.$withTenant(tenantId, async (tx: any) => {
       const payment = await tx.payment.findUnique({
         where: { payment_id: paymentId },
       });
@@ -513,7 +534,7 @@ export async function rejectSubmittedPayment(
 
     if (!tenantId) return { error: "Tenant context required." };
 
-    return await prisma.$withTenant(tenantId, async (tx) => {
+    return await prisma.$withTenant(tenantId, async (tx: any) => {
       const payment = await tx.payment.findUnique({
         where: { payment_id: paymentId },
       });
@@ -547,8 +568,8 @@ export async function getLoanStatement(loanId: number) {
 
     if (!tenantId) return [];
 
-    return await prisma.$withTenant(tenantId, async (tx) => {
-      return await tx.businessLedger.findMany({
+    return await prisma.$withTenant(tenantId, async (tx: any) => {
+      return serializeDecimal(await tx.businessLedger.findMany({
         where: {
           loan_id: loanId,
           account: {
@@ -558,7 +579,7 @@ export async function getLoanStatement(loanId: number) {
         orderBy: {
           created_at: "desc",
         },
-      });
+      }));
     });
   } catch (error) {
     console.error("getLoanStatement failed:", error);
@@ -576,7 +597,7 @@ export async function recalculateLoanBalanceFromLedger(loanId: number) {
 
   if (!tenantId) return 0;
 
-  return await prisma.$withTenant(tenantId, async (tx) => {
+  return await prisma.$withTenant(tenantId, async (tx: any) => {
     const entries = await tx.businessLedger.findMany({
       where: {
         loan_id: loanId,

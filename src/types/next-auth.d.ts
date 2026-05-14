@@ -11,6 +11,7 @@ declare module "next-auth" {
       tenantSlug: string | null;
       username: string;
       accessibleTenantIds: number[];
+      apiToken?: string;
     } & DefaultSession["user"];
   }
 
@@ -21,6 +22,7 @@ declare module "next-auth" {
     tenantSlug: string | null;
     username: string;
     accessibleTenantIds?: number[];
+    apiToken?: string;
   }
 }
 
@@ -33,5 +35,6 @@ declare module "next-auth/jwt" {
     tenantSlug: string | null;
     username: string;
     accessibleTenantIds?: number[];
+    apiToken?: string;
   }
 }

@@ -90,8 +90,8 @@ export const resetPassword = async (
 
   const { password } = validatedFields.data;
 
-  const existingToken = await prisma.passwordResetToken.findUnique({
-    where: { token },
+  const existingToken = await prisma.authToken.findUnique({
+    where: { token, type: "PASSWORD_RESET" },
   });
 
   if (!existingToken) {
@@ -130,14 +130,14 @@ export const resetPassword = async (
     if (tenant?.slug) tenantSlug = tenant.slug;
   }
 
-  await prisma.$withTenant(existingToken.tenant_id ?? 0, async (tx) => {
+  await prisma.$withTenant(existingToken.tenant_id ?? 0, async (tx: any) => {
     await tx.user.update({
       where: { user_id: existingUser.user_id },
       data: { password_hash: hashedPassword },
     });
   });
 
-  await prisma.passwordResetToken.delete({
+  await prisma.authToken.delete({
     where: { id: existingToken.id },
   });
 

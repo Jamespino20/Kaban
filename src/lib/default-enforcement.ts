@@ -329,7 +329,7 @@ export async function runAutomatedDefaultEnforcement(params: {
 
   const affectedUsers = new Set<number>();
   for (const loan of loans) {
-    const userIds = await prisma.$transaction((tx) =>
+    const userIds = await prisma.$transaction((tx: any) =>
       enforceLoanDefault(
         tx as unknown as Prisma.TransactionClient,
         loan.loan_id,

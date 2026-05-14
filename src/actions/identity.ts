@@ -1,9 +1,8 @@
 "use server";
 
 import bcrypt from "bcryptjs";
-import { neon } from "@neondatabase/serverless";
+import { sql } from "@/lib/db";
 import { requireAuthenticatedSession } from "@/lib/authorization";
-import { getDbUrl } from "@/lib/db-url";
 import { validateTenantMembershipLimit } from "@/lib/microfinance-policy";
 
 interface User {
@@ -47,12 +46,7 @@ export async function getAvailableTenants(
       }
     }
 
-    const connectionString = getDbUrl();
-    if (!connectionString) {
-      return { error: "System configuration error: Database URL not found" };
-    }
 
-    const sql = neon(connectionString);
 
     if (!password && authenticatedSession?.user.role === "superadmin") {
       const tenants = await sql`
@@ -89,7 +83,7 @@ export async function getAvailableTenants(
     // Atomic SQL query — no fragmented schema searching needed in single-schema architecture
     const combinedUsers = (await sql`
       SELECT user_id as id, tenant_id, role, password_hash, status, email, username
-      FROM public.users
+      FROM users
       WHERE (username = ${username} OR email = ${username})
       AND status != 'suspended'
     `) as User[];

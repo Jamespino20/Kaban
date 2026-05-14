@@ -4,7 +4,6 @@ import { useState, useEffect } from "react";
 import { Menu, X, LayoutDashboard } from "lucide-react";
 import Link from "next/link";
 import { useSession } from "next-auth/react";
-import { AuthModal } from "@/components/auth/auth-modal";
 import { PublicTenantSelector } from "@/components/layout/public-tenant-selector";
 
 interface NavbarProps {
@@ -216,7 +215,16 @@ function AuthOrDashboard({
 
   return (
     <div className="flex items-center gap-3">
-      <AuthModal />
+      <Link
+        href="/onboarding"
+        className={
+          isMobile
+            ? "w-full bg-slate-900 hover:bg-slate-800 text-white font-bold h-12 px-8 rounded-2xl flex items-center justify-center gap-2"
+            : "bg-slate-900 hover:bg-slate-800 text-white font-bold h-12 px-8 rounded-full shadow-lg shadow-slate-900/10 transition-all flex items-center gap-2"
+        }
+      >
+        Get Started
+      </Link>
     </div>
   );
 }

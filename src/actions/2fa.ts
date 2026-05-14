@@ -4,6 +4,7 @@ import { generateSecret, generateURI, verify } from "otplib";
 import QRCode from "qrcode";
 import prisma from "@/lib/prisma";
 import { requireAuthenticatedSession } from "@/lib/authorization";
+import { Prisma } from "@prisma/client";
 
 export async function generate2FASecret() {
   let session;
@@ -15,7 +16,7 @@ export async function generate2FASecret() {
 
   return await prisma.$withTenant(
     session.user.tenantId ?? 1,
-    async (tx) => {
+    async (tx: Prisma.TransactionClient) => {
       const user = await tx.user.findUnique({
         where: { user_id: session.user.user_id },
         include: { two_factor_auth: true },
@@ -56,7 +57,7 @@ export async function verifyAndEnable2FA(token: string) {
   }
 
   const tenantId = session.user.tenantId ?? 1;
-  return await prisma.$withTenant(tenantId, async (tx) => {
+  return await prisma.$withTenant(tenantId, async (tx: Prisma.TransactionClient) => {
     const user = await tx.user.findUnique({
       where: { user_id: session.user.user_id },
       include: { two_factor_auth: true },
@@ -91,7 +92,7 @@ export async function disable2FA() {
   }
 
   const tenantId = session.user.tenantId ?? 1;
-  return await prisma.$withTenant(tenantId, async (tx) => {
+  return await prisma.$withTenant(tenantId, async (tx: Prisma.TransactionClient) => {
     await tx.twoFactorAuth.update({
       where: { user_id: session.user.user_id },
       data: { is_enabled: false },

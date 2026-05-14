@@ -1,13 +1,14 @@
 "use server";
 
+import { Prisma } from "@prisma/client";
 import prisma from "@/lib/prisma";
 
 const normalizeEmail = (email: string) => email.trim().toLowerCase();
 
 export const getVerificationTokenByToken = async (token: string) => {
   try {
-    const verificationToken = await prisma.verificationToken.findUnique({
-      where: { token },
+    const verificationToken = await prisma.authToken.findUnique({
+      where: { token, type: "VERIFICATION" },
     });
     return verificationToken;
   } catch {
@@ -20,8 +21,8 @@ export const getVerificationTokenByEmail = async (
   tenantId: number | null,
 ) => {
   try {
-    const verificationToken = await prisma.verificationToken.findFirst({
-      where: { email: normalizeEmail(email), tenant_id: tenantId },
+    const verificationToken = await prisma.authToken.findFirst({
+      where: { email: normalizeEmail(email), tenant_id: tenantId, type: "VERIFICATION" },
     });
     return verificationToken;
   } catch {
@@ -75,7 +76,7 @@ export const newVerification = async (token: string) => {
     if (tenant?.slug) tenantSlug = tenant.slug;
   }
 
-  await prisma.$withTenant(existingToken.tenant_id ?? 0, async (tx) => {
+  await prisma.$withTenant(existingToken.tenant_id ?? 0, async (tx: Prisma.TransactionClient) => {
     await tx.user.update({
       where: { user_id: existingUser.user_id },
       data: {
@@ -85,7 +86,7 @@ export const newVerification = async (token: string) => {
     });
   });
 
-  await prisma.verificationToken.delete({
+  await prisma.authToken.delete({
     where: { id: existingToken.id },
   });
 

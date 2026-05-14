@@ -2,6 +2,8 @@
 
 import * as z from "zod";
 import bcrypt from "bcryptjs";
+import { shouldUseApiClient } from "@/lib/api-config";
+import { api } from "@/lib/api-client";
 import prisma from "@/lib/prisma";
 import { Prisma } from "@prisma/client";
 import { generateVerificationToken } from "@/lib/tokens";
@@ -76,6 +78,11 @@ export const register = async (values: z.infer<typeof RegisterSchema>) => {
     placeOfBirth,
     tin,
   } = validatedFields.data;
+
+  if (shouldUseApiClient()) {
+    const result = await api.auth.register(validatedFields.data);
+    return result;
+  }
 
   const hashedPassword = await bcrypt.hash(password, 10);
 
@@ -190,7 +197,7 @@ export const register = async (values: z.infer<typeof RegisterSchema>) => {
       };
     };
 
-    return await prisma.$withTenant(tenantId, async (tx) => {
+    return await prisma.$withTenant(tenantId, async (tx: any) => {
       return await queryFn(tx);
     });
   } catch (error) {

@@ -3,8 +3,6 @@ import { logTraffic } from "@/lib/analytics-logger";
 import { authConfig } from "@/lib/auth.config";
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
-import { neon } from "@neondatabase/serverless";
-import { getDbUrl } from "@/lib/db-url";
 
 const { auth } = NextAuth(authConfig);
 
@@ -39,24 +37,40 @@ export default async function middleware(req: NextRequest) {
     const userTenantId = req.auth?.user?.tenantId ?? null;
     const userTenantSlug = req.auth?.user?.tenantSlug ?? null;
 
+    const url = new URL(req.url);
+    const host = req.headers.get("host") || "";
+    const hostname = host.split(":")[0];
+
+    // Subdomain routing detection (e.g., malolos.agapay.app, malolos.localhost)
+    let domainTenantSlug = null;
+    const isProduction = process.env.NODE_ENV === "production";
+    const baseDomain = isProduction ? "agapay-saas.vercel.app" : "localhost";
+
+    if (hostname !== baseDomain && hostname.endsWith(`.${baseDomain}`)) {
+      domainTenantSlug = hostname.split(`.${baseDomain}`)[0];
+    }
+
     const pathSegments = nextUrl.pathname.split("/").filter(Boolean);
-    const urlTenantSlug = pathSegments[0];
+    const urlTenantSlug = domainTenantSlug || pathSegments[0];
     const isAuthRoute = nextUrl.pathname.includes("/auth");
     const isLandingPage = nextUrl.pathname === "/";
+    const isTenantHomepage = domainTenantSlug ? nextUrl.pathname === "/" : (pathSegments.length === 1 && urlTenantSlug);
 
     // Async telemetry
     logTraffic(nextUrl.pathname, userTenantId).catch(() => {});
 
     console.log(
-      `[PROXY] ${req.method} ${nextUrl.pathname} | Tenant: ${urlTenantSlug} | Role: ${role} | TenantSlug: ${userTenantSlug}`,
+      `[PROXY] ${req.method} ${host}${nextUrl.pathname} | DomainTenant: ${domainTenantSlug} | PathTenant: ${pathSegments[0]} | Role: ${role} | UserTenant: ${userTenantSlug}`,
     );
 
     // 1. Unauthenticated workflow
     if (!isLoggedIn) {
-      const isTenantHomepage = pathSegments.length === 1 && urlTenantSlug;
-      if (!isAuthRoute && !isLandingPage && !isTenantHomepage) {
+      if (!isAuthRoute && !isLandingPage && !isTenantHomepage && !nextUrl.pathname.startsWith('/onboarding')) {
         // Force tenant-sensitive login
-        const targetTenant = urlTenantSlug || "main";
+        const targetTenant = urlTenantSlug || "malolos"; // Route all unknown logins to primary branch
+        if(!domainTenantSlug && pathSegments.length > 0 && targetTenant !== pathSegments[0]) {
+           return NextResponse.next();
+        }
         return NextResponse.redirect(
           new URL(`/${targetTenant}/auth/login`, nextUrl),
         );
@@ -79,8 +93,8 @@ export default async function middleware(req: NextRequest) {
 
     if (hasTenantMismatch || isMissingTenant) {
       const targetTenant = isSuperadmin
-        ? urlTenantSlug || "main"
-        : userTenantSlug || "main";
+        ? urlTenantSlug || "malolos"
+        : userTenantSlug || "malolos";
       const targetPath = role === "member" ? "agapay-pintig" : "agapay-tanaw";
 
       // If we are already at the target path, don't redirect (prevent loop)

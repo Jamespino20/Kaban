@@ -24,32 +24,47 @@ export async function submitContextualFeedback(
 
     const tenantId = session.user.tenantId;
 
+    const ticketNumber = `FDB-${Date.now().toString(36).toUpperCase()}`;
+
     if (tenantId) {
-      await prisma.$withTenant(tenantId, async (tx) => {
-        await tx.feedbackEntry.create({
+      await prisma.$withTenant(tenantId, async (tx: any) => {
+        await tx.supportTicket.create({
           data: {
+            ticket_number: ticketNumber,
+            ticket_type: "FEEDBACK",
             tenant_id: tenantId,
-            user_id: Number(session.user.id),
-            name: session.user.name || "Anonymous Member",
-            email: session.user.email,
-            category: parsed.category,
-            message: parsed.message,
-            subject: parsed.subject,
-            page_path: parsed.pagePath,
+            requester_id: Number(session.user.id),
+            category:
+              parsed.category === "survey"
+                ? "general_support"
+                : (parsed.category as any) || "general_support",
+            subject: parsed.subject || "General Feedback",
+            description: parsed.message,
+            module_context: parsed.category as any,
+            metadata: {
+              page_path: parsed.pagePath,
+              user_name: session.user.name,
+              user_email: session.user.email,
+            },
             status: "open",
           },
         });
       });
     } else {
-      await prisma.feedbackEntry.create({
+      await prisma.supportTicket.create({
         data: {
-          user_id: Number(session.user.id),
-          name: session.user.name || "Anonymous Admin",
-          email: session.user.email,
-          category: parsed.category,
-          message: parsed.message,
-          subject: parsed.subject,
-          page_path: parsed.pagePath,
+          ticket_number: ticketNumber,
+          ticket_type: "FEEDBACK",
+          requester_id: Number(session.user.id),
+          category: (parsed.category as any) || "general_support",
+          subject: parsed.subject || "General Feedback",
+          description: parsed.message,
+          module_context: parsed.category as any,
+          metadata: {
+            page_path: parsed.pagePath,
+            user_name: session.user.name,
+            user_email: session.user.email,
+          },
           status: "open",
         },
       });
@@ -70,7 +85,9 @@ const SurveySchema = z.object({
   tenantSlug: z.string().optional(),
 });
 
-export async function submitTrustLinkedSurvey(input: z.infer<typeof SurveySchema>) {
+export async function submitTrustLinkedSurvey(
+  input: z.infer<typeof SurveySchema>,
+) {
   try {
     const session = await auth();
     if (!session?.user) {
@@ -97,25 +114,50 @@ export async function submitTrustLinkedSurvey(input: z.infer<typeof SurveySchema
         survey_type: "trust_score_feedback",
         ratings: parsed.ratings,
         average_rating:
-          Object.values(parsed.ratings).reduce((a: number, b: number) => a + b, 0) /
-          Math.max(Object.keys(parsed.ratings).length, 1),
+          Object.values(parsed.ratings).reduce(
+            (a: number, b: number) => a + b,
+            0,
+          ) / Math.max(Object.keys(parsed.ratings).length, 1),
       },
     };
 
+    const ticketNumber = `SRV-${Date.now().toString(36).toUpperCase()}`;
+
     if (tenantId) {
-      await prisma.$withTenant(tenantId, async (tx) => {
-        await tx.feedbackEntry.create({
+      await prisma.$withTenant(tenantId, async (tx: any) => {
+        await tx.supportTicket.create({
           data: {
-            ...data,
+            ticket_number: ticketNumber,
+            ticket_type: "FEEDBACK",
             tenant_id: tenantId,
+            requester_id: userId,
+            category: "general_support",
+            subject: data.subject,
+            description: data.message,
+            status: "closed",
+            metadata: data.metadata,
           },
         });
       });
     } else {
-      await prisma.feedbackEntry.create({ data });
+      await prisma.supportTicket.create({
+        data: {
+          ticket_number: ticketNumber,
+          ticket_type: "FEEDBACK",
+          requester_id: userId,
+          category: "general_support",
+          subject: data.subject,
+          description: data.message,
+          status: "closed",
+          metadata: data.metadata,
+        },
+      });
     }
 
-    return { success: "Survey submitted! Responses are linked to your profile and will contribute to trust score calculations." };
+    return {
+      success:
+        "Survey submitted! Responses are linked to your profile and will contribute to trust score calculations.",
+    };
   } catch (error: any) {
     console.error("Survey submission error:", error);
     return { error: "Unable to submit survey. Please try again." };
@@ -133,16 +175,16 @@ export async function getUserFeedbackTickets() {
     const tenantId = session.user.tenantId;
 
     if (tenantId) {
-      return await prisma.$withTenant(tenantId, async (tx) => {
-        return await tx.feedbackEntry.findMany({
-          where: { user_id: userId },
+      return await prisma.$withTenant(tenantId, async (tx: any) => {
+        return await tx.supportTicket.findMany({
+          where: { requester_id: userId, ticket_type: "FEEDBACK" },
           orderBy: { created_at: "desc" },
           take: 20,
           select: {
             id: true,
             category: true,
             subject: true,
-            message: true,
+            description: true,
             status: true,
             created_at: true,
             resolved_at: true,

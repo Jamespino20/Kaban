@@ -1,0 +1,5424 @@
+{
+  "summary": {
+    "files": 492,
+    "lines": 1136950,
+    "non_empty_lines": 1123766,
+    "min_tokens": 9095600,
+    "avg_tokens": 13643400,
+    "max_tokens": 17054250
+  },
+  "files": [
+    {
+      "file": "agapay-web\\.next\\dev\\static\\chunks\\node_modules_b09317eb._.js",
+      "extension": "js",
+      "lines": 26163,
+      "non_empty_lines": 26024,
+      "estimated_tokens": {
+        "min": 209304,
+        "avg": 313956,
+        "max": 392445
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\dev\\static\\chunks\\node_modules_5eaa9cfe._.js",
+      "extension": "js",
+      "lines": 26100,
+      "non_empty_lines": 25965,
+      "estimated_tokens": {
+        "min": 208800,
+        "avg": 313200,
+        "max": 391500
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\dev\\server\\chunks\\ssr\\node_modules_39b2b1ec._.js",
+      "extension": "js",
+      "lines": 25925,
+      "non_empty_lines": 25789,
+      "estimated_tokens": {
+        "min": 207400,
+        "avg": 311100,
+        "max": 388875
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\dev\\server\\chunks\\ssr\\node_modules_91333dfc._.js",
+      "extension": "js",
+      "lines": 21446,
+      "non_empty_lines": 21245,
+      "estimated_tokens": {
+        "min": 171568,
+        "avg": 257352,
+        "max": 321690
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\dev\\server\\chunks\\ssr\\node_modules_e2d1c5df._.js",
+      "extension": "js",
+      "lines": 21426,
+      "non_empty_lines": 21228,
+      "estimated_tokens": {
+        "min": 171408,
+        "avg": 257112,
+        "max": 321390
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\dev\\server\\chunks\\node_modules_nodemailer_f0e2e4c8._.js",
+      "extension": "js",
+      "lines": 18392,
+      "non_empty_lines": 18348,
+      "estimated_tokens": {
+        "min": 147136,
+        "avg": 220704,
+        "max": 275880
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\dev\\server\\chunks\\ssr\\node_modules_nodemailer_ba4ecd24._.js",
+      "extension": "js",
+      "lines": 18392,
+      "non_empty_lines": 18348,
+      "estimated_tokens": {
+        "min": 147136,
+        "avg": 220704,
+        "max": 275880
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\dev\\server\\chunks\\node_modules_zod_v4_da12b5b3._.js",
+      "extension": "js",
+      "lines": 17764,
+      "non_empty_lines": 17655,
+      "estimated_tokens": {
+        "min": 142112,
+        "avg": 213168,
+        "max": 266460
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\dev\\server\\chunks\\ssr\\node_modules_zod_v4_34378348._.js",
+      "extension": "js",
+      "lines": 17764,
+      "non_empty_lines": 17655,
+      "estimated_tokens": {
+        "min": 142112,
+        "avg": 213168,
+        "max": 266460
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\dev\\server\\edge\\chunks\\node_modules_zod_v4_c0d8f83d._.js",
+      "extension": "js",
+      "lines": 17764,
+      "non_empty_lines": 17655,
+      "estimated_tokens": {
+        "min": 142112,
+        "avg": 213168,
+        "max": 266460
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\dev\\server\\chunks\\ssr\\node_modules_zod_v4_8425cda0._.js",
+      "extension": "js",
+      "lines": 17755,
+      "non_empty_lines": 17647,
+      "estimated_tokens": {
+        "min": 142040,
+        "avg": 213060,
+        "max": 266325
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\dev\\static\\chunks\\node_modules_zod_v4_1f60daf6._.js",
+      "extension": "js",
+      "lines": 17755,
+      "non_empty_lines": 17647,
+      "estimated_tokens": {
+        "min": 142040,
+        "avg": 213060,
+        "max": 266325
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\dev\\server\\chunks\\node_modules_next_c0d7f167._.js",
+      "extension": "js",
+      "lines": 17299,
+      "non_empty_lines": 17155,
+      "estimated_tokens": {
+        "min": 138392,
+        "avg": 207588,
+        "max": 259485
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\dev\\server\\chunks\\ssr\\node_modules_next_dist_773f3edf._.js",
+      "extension": "js",
+      "lines": 17010,
+      "non_empty_lines": 16850,
+      "estimated_tokens": {
+        "min": 136080,
+        "avg": 204120,
+        "max": 255150
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\dev\\server\\chunks\\ssr\\node_modules_next_dist_7381059c._.js",
+      "extension": "js",
+      "lines": 16990,
+      "non_empty_lines": 16833,
+      "estimated_tokens": {
+        "min": 135920,
+        "avg": 203880,
+        "max": 254850
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\dev\\server\\edge\\chunks\\node_modules_mariadb_00a91976._.js",
+      "extension": "js",
+      "lines": 16645,
+      "non_empty_lines": 16573,
+      "estimated_tokens": {
+        "min": 133160,
+        "avg": 199740,
+        "max": 249675
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\dev\\server\\edge\\chunks\\node_modules_mariadb_61e39d3d._.js",
+      "extension": "js",
+      "lines": 16623,
+      "non_empty_lines": 16552,
+      "estimated_tokens": {
+        "min": 132984,
+        "avg": 199476,
+        "max": 249345
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\dev\\server\\chunks\\ssr\\node_modules_mariadb_e65901ae._.js",
+      "extension": "js",
+      "lines": 16602,
+      "non_empty_lines": 16531,
+      "estimated_tokens": {
+        "min": 132816,
+        "avg": 199224,
+        "max": 249030
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\dev\\static\\chunks\\node_modules_next_dist_compiled_react-dom_1e674e59._.js",
+      "extension": "js",
+      "lines": 16537,
+      "non_empty_lines": 16532,
+      "estimated_tokens": {
+        "min": 132296,
+        "avg": 198444,
+        "max": 248055
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\dev\\server\\chunks\\ssr\\node_modules_zod_v4_484de518._.js",
+      "extension": "js",
+      "lines": 15756,
+      "non_empty_lines": 15657,
+      "estimated_tokens": {
+        "min": 126048,
+        "avg": 189072,
+        "max": 236340
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\dev\\server\\chunks\\ssr\\node_modules_zod_v4_d4e746ee._.js",
+      "extension": "js",
+      "lines": 15756,
+      "non_empty_lines": 15657,
+      "estimated_tokens": {
+        "min": 126048,
+        "avg": 189072,
+        "max": 236340
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\dev\\static\\chunks\\node_modules_zod_v4_e085462b._.js",
+      "extension": "js",
+      "lines": 15756,
+      "non_empty_lines": 15657,
+      "estimated_tokens": {
+        "min": 126048,
+        "avg": 189072,
+        "max": 236340
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\dev\\server\\edge\\chunks\\7ab6a_mariadb_80ab7a21._.js",
+      "extension": "js",
+      "lines": 15689,
+      "non_empty_lines": 15618,
+      "estimated_tokens": {
+        "min": 125512,
+        "avg": 188268,
+        "max": 235335
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\dev\\server\\chunks\\7ab6a_mariadb_440adf54._.js",
+      "extension": "js",
+      "lines": 15653,
+      "non_empty_lines": 15582,
+      "estimated_tokens": {
+        "min": 125224,
+        "avg": 187836,
+        "max": 234795
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\dev\\server\\chunks\\ssr\\7ab6a_mariadb_244192f6._.js",
+      "extension": "js",
+      "lines": 15653,
+      "non_empty_lines": 15582,
+      "estimated_tokens": {
+        "min": 125224,
+        "avg": 187836,
+        "max": 234795
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\dev\\static\\chunks\\node_modules_react-dom_4411d9bd._.js",
+      "extension": "js",
+      "lines": 15381,
+      "non_empty_lines": 15376,
+      "estimated_tokens": {
+        "min": 123048,
+        "avg": 184572,
+        "max": 230715
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\dev\\server\\edge\\chunks\\node_modules_616cf9ac._.js",
+      "extension": "js",
+      "lines": 13878,
+      "non_empty_lines": 13847,
+      "estimated_tokens": {
+        "min": 111024,
+        "avg": 166536,
+        "max": 208170
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\dev\\server\\edge\\chunks\\node_modules_next_dist_5d0ce1e3._.js",
+      "extension": "js",
+      "lines": 13178,
+      "non_empty_lines": 13060,
+      "estimated_tokens": {
+        "min": 105424,
+        "avg": 158136,
+        "max": 197670
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\dev\\server\\chunks\\ssr\\node_modules_d14ad024._.js",
+      "extension": "js",
+      "lines": 13094,
+      "non_empty_lines": 12972,
+      "estimated_tokens": {
+        "min": 104752,
+        "avg": 157128,
+        "max": 196410
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\dev\\static\\chunks\\node_modules_next_dist_client_17643121._.js",
+      "extension": "js",
+      "lines": 12725,
+      "non_empty_lines": 12630,
+      "estimated_tokens": {
+        "min": 101800,
+        "avg": 152700,
+        "max": 190875
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\dev\\server\\edge\\chunks\\node_modules_782ee270._.js",
+      "extension": "js",
+      "lines": 12489,
+      "non_empty_lines": 12459,
+      "estimated_tokens": {
+        "min": 99912,
+        "avg": 149868,
+        "max": 187335
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\dev\\server\\chunks\\ssr\\node_modules_next_b8cdbea7._.js",
+      "extension": "js",
+      "lines": 12317,
+      "non_empty_lines": 12220,
+      "estimated_tokens": {
+        "min": 98536,
+        "avg": 147804,
+        "max": 184755
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\dev\\server\\chunks\\ssr\\node_modules_81e3a865._.js",
+      "extension": "js",
+      "lines": 12127,
+      "non_empty_lines": 12008,
+      "estimated_tokens": {
+        "min": 97016,
+        "avg": 145524,
+        "max": 181905
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\dev\\server\\chunks\\ssr\\node_modules_next_dist_afb60855._.js",
+      "extension": "js",
+      "lines": 11327,
+      "non_empty_lines": 11226,
+      "estimated_tokens": {
+        "min": 90616,
+        "avg": 135924,
+        "max": 169905
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\dev\\static\\chunks\\node_modules_274f2e50._.js",
+      "extension": "js",
+      "lines": 11255,
+      "non_empty_lines": 11152,
+      "estimated_tokens": {
+        "min": 90040,
+        "avg": 135060,
+        "max": 168825
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\dev\\static\\chunks\\node_modules_28c3cbaf._.js",
+      "extension": "js",
+      "lines": 11221,
+      "non_empty_lines": 11119,
+      "estimated_tokens": {
+        "min": 89768,
+        "avg": 134652,
+        "max": 168315
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\dev\\server\\chunks\\ssr\\node_modules_next_dist_3e1f69b5._.js",
+      "extension": "js",
+      "lines": 11212,
+      "non_empty_lines": 11113,
+      "estimated_tokens": {
+        "min": 89696,
+        "avg": 134544,
+        "max": 168180
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\dev\\static\\chunks\\node_modules_c63f70dc._.js",
+      "extension": "js",
+      "lines": 11203,
+      "non_empty_lines": 11102,
+      "estimated_tokens": {
+        "min": 89624,
+        "avg": 134436,
+        "max": 168045
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\dev\\server\\chunks\\ssr\\node_modules_94255de7._.js",
+      "extension": "js",
+      "lines": 11136,
+      "non_empty_lines": 11023,
+      "estimated_tokens": {
+        "min": 89088,
+        "avg": 133632,
+        "max": 167040
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\dev\\server\\chunks\\ssr\\node_modules_cf4151ff._.js",
+      "extension": "js",
+      "lines": 11084,
+      "non_empty_lines": 10973,
+      "estimated_tokens": {
+        "min": 88672,
+        "avg": 133008,
+        "max": 166260
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\dev\\server\\chunks\\ssr\\node_modules_7e22a127._.js",
+      "extension": "js",
+      "lines": 10704,
+      "non_empty_lines": 10601,
+      "estimated_tokens": {
+        "min": 85632,
+        "avg": 128448,
+        "max": 160560
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\dev\\static\\chunks\\node_modules_6c560c2e._.js",
+      "extension": "js",
+      "lines": 10411,
+      "non_empty_lines": 10321,
+      "estimated_tokens": {
+        "min": 83288,
+        "avg": 124932,
+        "max": 156165
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\dev\\static\\chunks\\node_modules_494c3fda._.js",
+      "extension": "js",
+      "lines": 10382,
+      "non_empty_lines": 10295,
+      "estimated_tokens": {
+        "min": 83056,
+        "avg": 124584,
+        "max": 155730
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\dev\\static\\chunks\\node_modules_3f092065._.js",
+      "extension": "js",
+      "lines": 10348,
+      "non_empty_lines": 10262,
+      "estimated_tokens": {
+        "min": 82784,
+        "avg": 124176,
+        "max": 155220
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\dev\\server\\chunks\\ssr\\node_modules_9d465c82._.js",
+      "extension": "js",
+      "lines": 10327,
+      "non_empty_lines": 10230,
+      "estimated_tokens": {
+        "min": 82616,
+        "avg": 123924,
+        "max": 154905
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\dev\\server\\chunks\\ssr\\node_modules_18b5a1ba._.js",
+      "extension": "js",
+      "lines": 9895,
+      "non_empty_lines": 9808,
+      "estimated_tokens": {
+        "min": 79160,
+        "avg": 118740,
+        "max": 148425
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\dev\\static\\chunks\\node_modules_293ed593._.js",
+      "extension": "js",
+      "lines": 9854,
+      "non_empty_lines": 9762,
+      "estimated_tokens": {
+        "min": 78832,
+        "avg": 118248,
+        "max": 147810
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\dev\\server\\chunks\\ssr\\node_modules_57ff453b._.js",
+      "extension": "js",
+      "lines": 9836,
+      "non_empty_lines": 9734,
+      "estimated_tokens": {
+        "min": 78688,
+        "avg": 118032,
+        "max": 147540
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\dev\\server\\edge\\chunks\\node_modules_4eea0481._.js",
+      "extension": "js",
+      "lines": 9570,
+      "non_empty_lines": 9546,
+      "estimated_tokens": {
+        "min": 76560,
+        "avg": 114840,
+        "max": 143550
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\dev\\server\\edge\\chunks\\node_modules_@prisma_client_386a77d1._.js",
+      "extension": "js",
+      "lines": 9496,
+      "non_empty_lines": 9479,
+      "estimated_tokens": {
+        "min": 75968,
+        "avg": 113952,
+        "max": 142440
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\dev\\server\\chunks\\ssr\\[root-of-the-server]__16b32713._.js",
+      "extension": "js",
+      "lines": 9187,
+      "non_empty_lines": 9163,
+      "estimated_tokens": {
+        "min": 73496,
+        "avg": 110244,
+        "max": 137805
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\dev\\server\\chunks\\[root-of-the-server]__12fcfaaf._.js",
+      "extension": "js",
+      "lines": 9187,
+      "non_empty_lines": 9163,
+      "estimated_tokens": {
+        "min": 73496,
+        "avg": 110244,
+        "max": 137805
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\dev\\server\\chunks\\[root-of-the-server]__ebf282f1._.js",
+      "extension": "js",
+      "lines": 9187,
+      "non_empty_lines": 9163,
+      "estimated_tokens": {
+        "min": 73496,
+        "avg": 110244,
+        "max": 137805
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\dev\\server\\chunks\\ssr\\node_modules_next_f4f479fe._.js",
+      "extension": "js",
+      "lines": 7735,
+      "non_empty_lines": 7670,
+      "estimated_tokens": {
+        "min": 61880,
+        "avg": 92820,
+        "max": 116025
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\dev\\server\\chunks\\ssr\\node_modules_1623557d._.js",
+      "extension": "js",
+      "lines": 7504,
+      "non_empty_lines": 7435,
+      "estimated_tokens": {
+        "min": 60032,
+        "avg": 90048,
+        "max": 112560
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\dev\\static\\chunks\\node_modules_ea524d02._.js",
+      "extension": "js",
+      "lines": 7092,
+      "non_empty_lines": 7072,
+      "estimated_tokens": {
+        "min": 56736,
+        "avg": 85104,
+        "max": 106380
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\dev\\server\\chunks\\ssr\\node_modules_ba1d4900._.js",
+      "extension": "js",
+      "lines": 6984,
+      "non_empty_lines": 6963,
+      "estimated_tokens": {
+        "min": 55872,
+        "avg": 83808,
+        "max": 104760
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\dev\\build\\chunks\\node_modules_fe693df6._.js",
+      "extension": "js",
+      "lines": 6790,
+      "non_empty_lines": 6747,
+      "estimated_tokens": {
+        "min": 54320,
+        "avg": 81480,
+        "max": 101850
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\build\\chunks\\node_modules_fe693df6._.js",
+      "extension": "js",
+      "lines": 6765,
+      "non_empty_lines": 6722,
+      "estimated_tokens": {
+        "min": 54120,
+        "avg": 81180,
+        "max": 101475
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\dev\\server\\chunks\\ssr\\node_modules_bb185932._.js",
+      "extension": "js",
+      "lines": 6403,
+      "non_empty_lines": 6325,
+      "estimated_tokens": {
+        "min": 51224,
+        "avg": 76836,
+        "max": 96045
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\dev\\server\\chunks\\ssr\\[root-of-the-server]__9c0075b7._.js",
+      "extension": "js",
+      "lines": 6380,
+      "non_empty_lines": 6358,
+      "estimated_tokens": {
+        "min": 51040,
+        "avg": 76560,
+        "max": 95700
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\dev\\server\\chunks\\ssr\\node_modules_e3c9fcc1._.js",
+      "extension": "js",
+      "lines": 6307,
+      "non_empty_lines": 6244,
+      "estimated_tokens": {
+        "min": 50456,
+        "avg": 75684,
+        "max": 94605
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\dev\\server\\chunks\\[root-of-the-server]__c1d7de70._.js",
+      "extension": "js",
+      "lines": 6269,
+      "non_empty_lines": 6251,
+      "estimated_tokens": {
+        "min": 50152,
+        "avg": 75228,
+        "max": 94035
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\dev\\static\\chunks\\node_modules_next_dist_shared_lib_9a2a7093._.js",
+      "extension": "js",
+      "lines": 6079,
+      "non_empty_lines": 6004,
+      "estimated_tokens": {
+        "min": 48632,
+        "avg": 72948,
+        "max": 91185
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\dev\\static\\chunks\\node_modules_next_dist_shared_lib_8bac8163._.js",
+      "extension": "js",
+      "lines": 5838,
+      "non_empty_lines": 5765,
+      "estimated_tokens": {
+        "min": 46704,
+        "avg": 70056,
+        "max": 87570
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\dev\\server\\edge\\chunks\\node_modules_@auth_core_544da84f._.js",
+      "extension": "js",
+      "lines": 5490,
+      "non_empty_lines": 5404,
+      "estimated_tokens": {
+        "min": 43920,
+        "avg": 65880,
+        "max": 82350
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\dev\\server\\chunks\\node_modules_@auth_core_36df0127._.js",
+      "extension": "js",
+      "lines": 5489,
+      "non_empty_lines": 5403,
+      "estimated_tokens": {
+        "min": 43912,
+        "avg": 65868,
+        "max": 82335
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\dev\\server\\chunks\\node_modules_@auth_core_a1537cb0._.js",
+      "extension": "js",
+      "lines": 5489,
+      "non_empty_lines": 5403,
+      "estimated_tokens": {
+        "min": 43912,
+        "avg": 65868,
+        "max": 82335
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\dev\\server\\chunks\\ssr\\node_modules_@auth_core_f1430d11._.js",
+      "extension": "js",
+      "lines": 5489,
+      "non_empty_lines": 5403,
+      "estimated_tokens": {
+        "min": 43912,
+        "avg": 65868,
+        "max": 82335
+      }
+    },
+    {
+      "file": "OLD CODEBASE\\lib\\PHPMailer\\PHPMailer.php",
+      "extension": "php",
+      "lines": 5476,
+      "non_empty_lines": 5067,
+      "estimated_tokens": {
+        "min": 43808,
+        "avg": 65712,
+        "max": 82140
+      }
+    },
+    {
+      "file": "OLD CODEBASE\\PHPMailer\\src\\PHPMailer.php",
+      "extension": "php",
+      "lines": 5476,
+      "non_empty_lines": 5067,
+      "estimated_tokens": {
+        "min": 43808,
+        "avg": 65712,
+        "max": 82140
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\dev\\server\\chunks\\ssr\\node_modules_85399bf3._.js",
+      "extension": "js",
+      "lines": 5149,
+      "non_empty_lines": 5105,
+      "estimated_tokens": {
+        "min": 41192,
+        "avg": 61788,
+        "max": 77235
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\dev\\server\\edge\\chunks\\node_modules_f20ae43a._.js",
+      "extension": "js",
+      "lines": 5149,
+      "non_empty_lines": 5105,
+      "estimated_tokens": {
+        "min": 41192,
+        "avg": 61788,
+        "max": 77235
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\dev\\server\\chunks\\ssr\\[root-of-the-server]__a5962c9b._.js",
+      "extension": "js",
+      "lines": 4991,
+      "non_empty_lines": 4970,
+      "estimated_tokens": {
+        "min": 39928,
+        "avg": 59892,
+        "max": 74865
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\dev\\static\\chunks\\node_modules_next_dist_f3530cac._.js",
+      "extension": "js",
+      "lines": 4976,
+      "non_empty_lines": 4906,
+      "estimated_tokens": {
+        "min": 39808,
+        "avg": 59712,
+        "max": 74640
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\dev\\server\\chunks\\ssr\\node_modules_tailwind-merge_dist_bundle-mjs_mjs_0b83d5d5._.js",
+      "extension": "js",
+      "lines": 4905,
+      "non_empty_lines": 4903,
+      "estimated_tokens": {
+        "min": 39240,
+        "avg": 58860,
+        "max": 73575
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\dev\\static\\chunks\\node_modules_tailwind-merge_dist_bundle-mjs_mjs_56b6fd65._.js",
+      "extension": "js",
+      "lines": 4905,
+      "non_empty_lines": 4903,
+      "estimated_tokens": {
+        "min": 39240,
+        "avg": 58860,
+        "max": 73575
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\dev\\static\\chunks\\node_modules_0559d300._.js",
+      "extension": "js",
+      "lines": 4684,
+      "non_empty_lines": 4639,
+      "estimated_tokens": {
+        "min": 37472,
+        "avg": 56208,
+        "max": 70260
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\dev\\server\\chunks\\ssr\\node_modules_186c80ea._.js",
+      "extension": "js",
+      "lines": 4359,
+      "non_empty_lines": 4324,
+      "estimated_tokens": {
+        "min": 34872,
+        "avg": 52308,
+        "max": 65385
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\dev\\server\\edge\\chunks\\node_modules_ec391a4f._.js",
+      "extension": "js",
+      "lines": 4357,
+      "non_empty_lines": 4345,
+      "estimated_tokens": {
+        "min": 34856,
+        "avg": 52284,
+        "max": 65355
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\dev\\server\\chunks\\ssr\\node_modules_0471562e._.js",
+      "extension": "js",
+      "lines": 4119,
+      "non_empty_lines": 4058,
+      "estimated_tokens": {
+        "min": 32952,
+        "avg": 49428,
+        "max": 61785
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\dev\\server\\chunks\\ssr\\node_modules_8365a628._.js",
+      "extension": "js",
+      "lines": 4110,
+      "non_empty_lines": 4047,
+      "estimated_tokens": {
+        "min": 32880,
+        "avg": 49320,
+        "max": 61650
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\dev\\server\\chunks\\ssr\\node_modules_04f9d639._.js",
+      "extension": "js",
+      "lines": 4063,
+      "non_empty_lines": 4000,
+      "estimated_tokens": {
+        "min": 32504,
+        "avg": 48756,
+        "max": 60945
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\dev\\server\\chunks\\ssr\\node_modules_77f2ddc9._.js",
+      "extension": "js",
+      "lines": 4054,
+      "non_empty_lines": 3991,
+      "estimated_tokens": {
+        "min": 32432,
+        "avg": 48648,
+        "max": 60810
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\dev\\static\\chunks\\[root-of-the-server]__e81583fa._.css",
+      "extension": "css",
+      "lines": 4034,
+      "non_empty_lines": 3266,
+      "estimated_tokens": {
+        "min": 32272,
+        "avg": 48408,
+        "max": 60510
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\dev\\static\\chunks\\node_modules_next_dist_client_5a8a528e._.js",
+      "extension": "js",
+      "lines": 4017,
+      "non_empty_lines": 3975,
+      "estimated_tokens": {
+        "min": 32136,
+        "avg": 48204,
+        "max": 60255
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\dev\\server\\chunks\\ssr\\node_modules_7bad696b._.js",
+      "extension": "js",
+      "lines": 4016,
+      "non_empty_lines": 3955,
+      "estimated_tokens": {
+        "min": 32128,
+        "avg": 48192,
+        "max": 60240
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\dev\\static\\chunks\\src_app_globals_css_bad6b30c._.single.css",
+      "extension": "css",
+      "lines": 3933,
+      "non_empty_lines": 3178,
+      "estimated_tokens": {
+        "min": 31464,
+        "avg": 47196,
+        "max": 58995
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\dev\\static\\chunks\\node_modules_next_dist_compiled_8ca6b690._.js",
+      "extension": "js",
+      "lines": 3878,
+      "non_empty_lines": 3666,
+      "estimated_tokens": {
+        "min": 31024,
+        "avg": 46536,
+        "max": 58170
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\dev\\server\\chunks\\ssr\\node_modules_next_dist_88d6ead0._.js",
+      "extension": "js",
+      "lines": 3797,
+      "non_empty_lines": 3749,
+      "estimated_tokens": {
+        "min": 30376,
+        "avg": 45564,
+        "max": 56955
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\dev\\server\\chunks\\node_modules_02de3ca5._.js",
+      "extension": "js",
+      "lines": 3786,
+      "non_empty_lines": 3768,
+      "estimated_tokens": {
+        "min": 30288,
+        "avg": 45432,
+        "max": 56790
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\dev\\server\\chunks\\ssr\\node_modules_400f4a4a._.js",
+      "extension": "js",
+      "lines": 3786,
+      "non_empty_lines": 3768,
+      "estimated_tokens": {
+        "min": 30288,
+        "avg": 45432,
+        "max": 56790
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\dev\\server\\chunks\\ssr\\node_modules_next_dist_8bfe958b._.js",
+      "extension": "js",
+      "lines": 3783,
+      "non_empty_lines": 3736,
+      "estimated_tokens": {
+        "min": 30264,
+        "avg": 45396,
+        "max": 56745
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\dev\\server\\chunks\\ssr\\node_modules_next_dist_ad76b1c3._.js",
+      "extension": "js",
+      "lines": 3775,
+      "non_empty_lines": 3728,
+      "estimated_tokens": {
+        "min": 30200,
+        "avg": 45300,
+        "max": 56625
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\dev\\server\\chunks\\ssr\\node_modules_next_dist_9dfd6bbc._.js",
+      "extension": "js",
+      "lines": 3694,
+      "non_empty_lines": 3646,
+      "estimated_tokens": {
+        "min": 29552,
+        "avg": 44328,
+        "max": 55410
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\dev\\server\\chunks\\ssr\\node_modules_next_dist_5400ad09._.js",
+      "extension": "js",
+      "lines": 3680,
+      "non_empty_lines": 3633,
+      "estimated_tokens": {
+        "min": 29440,
+        "avg": 44160,
+        "max": 55200
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\dev\\server\\chunks\\ssr\\node_modules_next_dist_1def8ba1._.js",
+      "extension": "js",
+      "lines": 3672,
+      "non_empty_lines": 3625,
+      "estimated_tokens": {
+        "min": 29376,
+        "avg": 44064,
+        "max": 55080
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\dev\\server\\chunks\\ssr\\node_modules_next_dist_ff045a38._.js",
+      "extension": "js",
+      "lines": 3672,
+      "non_empty_lines": 3625,
+      "estimated_tokens": {
+        "min": 29376,
+        "avg": 44064,
+        "max": 55080
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\dev\\server\\chunks\\ssr\\node_modules_next_dist_f358593f._.js",
+      "extension": "js",
+      "lines": 3664,
+      "non_empty_lines": 3617,
+      "estimated_tokens": {
+        "min": 29312,
+        "avg": 43968,
+        "max": 54960
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\dev\\static\\chunks\\[root-of-the-server]__59725fa9._.css",
+      "extension": "css",
+      "lines": 3542,
+      "non_empty_lines": 2870,
+      "estimated_tokens": {
+        "min": 28336,
+        "avg": 42504,
+        "max": 53130
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\dev\\server\\chunks\\node_modules_jose_dist_webapi_ab03e039._.js",
+      "extension": "js",
+      "lines": 3516,
+      "non_empty_lines": 3478,
+      "estimated_tokens": {
+        "min": 28128,
+        "avg": 42192,
+        "max": 52740
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\dev\\server\\chunks\\ssr\\node_modules_jose_dist_webapi_72d98b84._.js",
+      "extension": "js",
+      "lines": 3516,
+      "non_empty_lines": 3478,
+      "estimated_tokens": {
+        "min": 28128,
+        "avg": 42192,
+        "max": 52740
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\dev\\server\\edge\\chunks\\node_modules_jose_dist_webapi_1151dcae._.js",
+      "extension": "js",
+      "lines": 3516,
+      "non_empty_lines": 3478,
+      "estimated_tokens": {
+        "min": 28128,
+        "avg": 42192,
+        "max": 52740
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\dev\\server\\chunks\\ssr\\node_modules_0f1a950b._.js",
+      "extension": "js",
+      "lines": 3268,
+      "non_empty_lines": 3244,
+      "estimated_tokens": {
+        "min": 26144,
+        "avg": 39216,
+        "max": 49020
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\dev\\static\\chunks\\node_modules_next_dist_2c670af9._.js",
+      "extension": "js",
+      "lines": 3212,
+      "non_empty_lines": 3197,
+      "estimated_tokens": {
+        "min": 25696,
+        "avg": 38544,
+        "max": 48180
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\dev\\server\\chunks\\ssr\\[root-of-the-server]__52c873b7._.js",
+      "extension": "js",
+      "lines": 2928,
+      "non_empty_lines": 2919,
+      "estimated_tokens": {
+        "min": 23424,
+        "avg": 35136,
+        "max": 43920
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\dev\\static\\chunks\\node_modules_next_dist_compiled_a0e4c7b4._.js",
+      "extension": "js",
+      "lines": 2916,
+      "non_empty_lines": 2902,
+      "estimated_tokens": {
+        "min": 23328,
+        "avg": 34992,
+        "max": 43740
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\dev\\static\\chunks\\node_modules_next_dist_compiled_react-server-dom-turbopack_9212ccad._.js",
+      "extension": "js",
+      "lines": 2842,
+      "non_empty_lines": 2838,
+      "estimated_tokens": {
+        "min": 22736,
+        "avg": 34104,
+        "max": 42630
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\dev\\static\\chunks\\node_modules_next_dist_be32b49c._.js",
+      "extension": "js",
+      "lines": 2503,
+      "non_empty_lines": 2480,
+      "estimated_tokens": {
+        "min": 20024,
+        "avg": 30036,
+        "max": 37545
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\dev\\static\\chunks\\src_5050f351._.js",
+      "extension": "js",
+      "lines": 2493,
+      "non_empty_lines": 2480,
+      "estimated_tokens": {
+        "min": 19944,
+        "avg": 29916,
+        "max": 37395
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\dev\\static\\chunks\\src_bb89fe0b._.js",
+      "extension": "js",
+      "lines": 2493,
+      "non_empty_lines": 2480,
+      "estimated_tokens": {
+        "min": 19944,
+        "avg": 29916,
+        "max": 37395
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\dev\\static\\chunks\\src_138d47b7._.js",
+      "extension": "js",
+      "lines": 2480,
+      "non_empty_lines": 2468,
+      "estimated_tokens": {
+        "min": 19840,
+        "avg": 29760,
+        "max": 37200
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\dev\\server\\chunks\\7ab6a_iconv-lite_41bbb9cb._.js",
+      "extension": "js",
+      "lines": 2445,
+      "non_empty_lines": 2423,
+      "estimated_tokens": {
+        "min": 19560,
+        "avg": 29340,
+        "max": 36675
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\dev\\server\\chunks\\ssr\\7ab6a_iconv-lite_65aa2d65._.js",
+      "extension": "js",
+      "lines": 2445,
+      "non_empty_lines": 2423,
+      "estimated_tokens": {
+        "min": 19560,
+        "avg": 29340,
+        "max": 36675
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\dev\\server\\edge\\chunks\\7ab6a_iconv-lite_fa331cee._.js",
+      "extension": "js",
+      "lines": 2445,
+      "non_empty_lines": 2423,
+      "estimated_tokens": {
+        "min": 19560,
+        "avg": 29340,
+        "max": 36675
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\dev\\server\\chunks\\ssr\\src_35663d60._.js",
+      "extension": "js",
+      "lines": 2319,
+      "non_empty_lines": 2306,
+      "estimated_tokens": {
+        "min": 18552,
+        "avg": 27828,
+        "max": 34785
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\dev\\server\\chunks\\ssr\\src_3a438e64._.js",
+      "extension": "js",
+      "lines": 2319,
+      "non_empty_lines": 2306,
+      "estimated_tokens": {
+        "min": 18552,
+        "avg": 27828,
+        "max": 34785
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\dev\\server\\chunks\\ssr\\src_40b56e88._.js",
+      "extension": "js",
+      "lines": 2309,
+      "non_empty_lines": 2297,
+      "estimated_tokens": {
+        "min": 18472,
+        "avg": 27708,
+        "max": 34635
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\dev\\static\\chunks\\node_modules_next_dist_a183fb77._.js",
+      "extension": "js",
+      "lines": 2309,
+      "non_empty_lines": 2286,
+      "estimated_tokens": {
+        "min": 18472,
+        "avg": 27708,
+        "max": 34635
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\dev\\static\\chunks\\_346a6361._.js",
+      "extension": "js",
+      "lines": 2275,
+      "non_empty_lines": 2251,
+      "estimated_tokens": {
+        "min": 18200,
+        "avg": 27300,
+        "max": 34125
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\dev\\static\\chunks\\node_modules_next_dist_b3fb3b5f._.js",
+      "extension": "js",
+      "lines": 2140,
+      "non_empty_lines": 2119,
+      "estimated_tokens": {
+        "min": 17120,
+        "avg": 25680,
+        "max": 32100
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\dev\\server\\chunks\\ssr\\[root-of-the-server]__52c8a0ba._.js",
+      "extension": "js",
+      "lines": 2073,
+      "non_empty_lines": 2058,
+      "estimated_tokens": {
+        "min": 16584,
+        "avg": 24876,
+        "max": 31095
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\dev\\server\\chunks\\ssr\\[root-of-the-server]__4e6f9f07._.js",
+      "extension": "js",
+      "lines": 1883,
+      "non_empty_lines": 1855,
+      "estimated_tokens": {
+        "min": 15064,
+        "avg": 22596,
+        "max": 28245
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\dev\\static\\chunks\\turbopack-pages__app_0fce199e._.js",
+      "extension": "js",
+      "lines": 1860,
+      "non_empty_lines": 1857,
+      "estimated_tokens": {
+        "min": 14880,
+        "avg": 22320,
+        "max": 27900
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\dev\\static\\chunks\\turbopack-pages__error_af01c4e3._.js",
+      "extension": "js",
+      "lines": 1860,
+      "non_empty_lines": 1857,
+      "estimated_tokens": {
+        "min": 14880,
+        "avg": 22320,
+        "max": 27900
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\dev\\static\\chunks\\turbopack-_23a915ee._.js",
+      "extension": "js",
+      "lines": 1860,
+      "non_empty_lines": 1857,
+      "estimated_tokens": {
+        "min": 14880,
+        "avg": 22320,
+        "max": 27900
+      }
+    },
+    {
+      "file": "OLD CODEBASE\\lib\\fpdf.php",
+      "extension": "php",
+      "lines": 1814,
+      "non_empty_lines": 1717,
+      "estimated_tokens": {
+        "min": 14512,
+        "avg": 21768,
+        "max": 27210
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\dev\\server\\edge\\chunks\\turbopack-node_modules_next_dist_esm_build_templates_edge-wrapper_1b047a8b.js",
+      "extension": "js",
+      "lines": 1772,
+      "non_empty_lines": 1769,
+      "estimated_tokens": {
+        "min": 14176,
+        "avg": 21264,
+        "max": 26580
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\dev\\server\\edge\\chunks\\turbopack-node_modules_next_dist_esm_build_templates_edge-wrapper_77dea5d0.js",
+      "extension": "js",
+      "lines": 1772,
+      "non_empty_lines": 1769,
+      "estimated_tokens": {
+        "min": 14176,
+        "avg": 21264,
+        "max": 26580
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\dev\\server\\edge\\chunks\\turbopack-node_modules_next_dist_esm_build_templates_edge-wrapper_90bfd92d.js",
+      "extension": "js",
+      "lines": 1772,
+      "non_empty_lines": 1769,
+      "estimated_tokens": {
+        "min": 14176,
+        "avg": 21264,
+        "max": 26580
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\dev\\server\\edge\\chunks\\turbopack-node_modules_next_dist_esm_build_templates_edge-wrapper_b9ffc5f2.js",
+      "extension": "js",
+      "lines": 1772,
+      "non_empty_lines": 1769,
+      "estimated_tokens": {
+        "min": 14176,
+        "avg": 21264,
+        "max": 26580
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\dev\\server\\edge\\chunks\\turbopack-node_modules_next_dist_esm_build_templates_edge-wrapper_cba36232.js",
+      "extension": "js",
+      "lines": 1772,
+      "non_empty_lines": 1769,
+      "estimated_tokens": {
+        "min": 14176,
+        "avg": 21264,
+        "max": 26580
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\dev\\server\\edge\\chunks\\turbopack-node_modules_next_dist_esm_build_templates_edge-wrapper_f7d89d01.js",
+      "extension": "js",
+      "lines": 1772,
+      "non_empty_lines": 1769,
+      "estimated_tokens": {
+        "min": 14176,
+        "avg": 21264,
+        "max": 26580
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\dev\\static\\chunks\\node_modules_next_dist_compiled_next-devtools_index_1dd7fb59.js",
+      "extension": "js",
+      "lines": 1661,
+      "non_empty_lines": 1460,
+      "estimated_tokens": {
+        "min": 13288,
+        "avg": 19932,
+        "max": 24915
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\dev\\static\\chunks\\src_53aa8610._.js",
+      "extension": "js",
+      "lines": 1630,
+      "non_empty_lines": 1618,
+      "estimated_tokens": {
+        "min": 13040,
+        "avg": 19560,
+        "max": 24450
+      }
+    },
+    {
+      "file": "OLD CODEBASE\\PHPMailer\\src\\SMTP.php",
+      "extension": "php",
+      "lines": 1617,
+      "non_empty_lines": 1469,
+      "estimated_tokens": {
+        "min": 12936,
+        "avg": 19404,
+        "max": 24255
+      }
+    },
+    {
+      "file": "OLD CODEBASE\\lib\\PHPMailer\\SMTP.php",
+      "extension": "php",
+      "lines": 1597,
+      "non_empty_lines": 1452,
+      "estimated_tokens": {
+        "min": 12776,
+        "avg": 19164,
+        "max": 23955
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\dev\\static\\chunks\\src_d81586cb._.js",
+      "extension": "js",
+      "lines": 1509,
+      "non_empty_lines": 1497,
+      "estimated_tokens": {
+        "min": 12072,
+        "avg": 18108,
+        "max": 22635
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\dev\\static\\chunks\\src_e8c9deb2._.js",
+      "extension": "js",
+      "lines": 1509,
+      "non_empty_lines": 1497,
+      "estimated_tokens": {
+        "min": 12072,
+        "avg": 18108,
+        "max": 22635
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\dev\\server\\chunks\\ssr\\[root-of-the-server]__430aa8ce._.js",
+      "extension": "js",
+      "lines": 1486,
+      "non_empty_lines": 1468,
+      "estimated_tokens": {
+        "min": 11888,
+        "avg": 17832,
+        "max": 22290
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\dev\\static\\chunks\\src_5467ca32._.js",
+      "extension": "js",
+      "lines": 1462,
+      "non_empty_lines": 1450,
+      "estimated_tokens": {
+        "min": 11696,
+        "avg": 17544,
+        "max": 21930
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\dev\\static\\chunks\\src_edf62010._.js",
+      "extension": "js",
+      "lines": 1437,
+      "non_empty_lines": 1426,
+      "estimated_tokens": {
+        "min": 11496,
+        "avg": 17244,
+        "max": 21555
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\dev\\server\\chunks\\ssr\\src_567703f0._.js",
+      "extension": "js",
+      "lines": 1367,
+      "non_empty_lines": 1355,
+      "estimated_tokens": {
+        "min": 10936,
+        "avg": 16404,
+        "max": 20505
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\dev\\server\\chunks\\ssr\\src_bebc751a._.js",
+      "extension": "js",
+      "lines": 1367,
+      "non_empty_lines": 1355,
+      "estimated_tokens": {
+        "min": 10936,
+        "avg": 16404,
+        "max": 20505
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\dev\\static\\chunks\\node_modules_7f09fef0._.js",
+      "extension": "js",
+      "lines": 1343,
+      "non_empty_lines": 1334,
+      "estimated_tokens": {
+        "min": 10744,
+        "avg": 16116,
+        "max": 20145
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\dev\\static\\chunks\\src_8862d4ea._.js",
+      "extension": "js",
+      "lines": 1326,
+      "non_empty_lines": 1315,
+      "estimated_tokens": {
+        "min": 10608,
+        "avg": 15912,
+        "max": 19890
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\dev\\server\\chunks\\ssr\\src_532478c8._.js",
+      "extension": "js",
+      "lines": 1315,
+      "non_empty_lines": 1303,
+      "estimated_tokens": {
+        "min": 10520,
+        "avg": 15780,
+        "max": 19725
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\dev\\server\\chunks\\ssr\\src_2d817592._.js",
+      "extension": "js",
+      "lines": 1293,
+      "non_empty_lines": 1282,
+      "estimated_tokens": {
+        "min": 10344,
+        "avg": 15516,
+        "max": 19395
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\dev\\server\\chunks\\ssr\\[root-of-the-server]__af415fa5._.js",
+      "extension": "js",
+      "lines": 1196,
+      "non_empty_lines": 1179,
+      "estimated_tokens": {
+        "min": 9568,
+        "avg": 14352,
+        "max": 17940
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\dev\\static\\chunks\\src_69fc6442._.js",
+      "extension": "js",
+      "lines": 845,
+      "non_empty_lines": 837,
+      "estimated_tokens": {
+        "min": 6760,
+        "avg": 10140,
+        "max": 12675
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\build\\chunks\\[turbopack]_runtime.js",
+      "extension": "js",
+      "lines": 795,
+      "non_empty_lines": 793,
+      "estimated_tokens": {
+        "min": 6360,
+        "avg": 9540,
+        "max": 11925
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\dev\\build\\chunks\\[turbopack]_runtime.js",
+      "extension": "js",
+      "lines": 795,
+      "non_empty_lines": 793,
+      "estimated_tokens": {
+        "min": 6360,
+        "avg": 9540,
+        "max": 11925
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\dev\\server\\chunks\\ssr\\[turbopack]_runtime.js",
+      "extension": "js",
+      "lines": 795,
+      "non_empty_lines": 793,
+      "estimated_tokens": {
+        "min": 6360,
+        "avg": 9540,
+        "max": 11925
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\dev\\server\\chunks\\[turbopack]_runtime.js",
+      "extension": "js",
+      "lines": 795,
+      "non_empty_lines": 793,
+      "estimated_tokens": {
+        "min": 6360,
+        "avg": 9540,
+        "max": 11925
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\server\\chunks\\ssr\\[turbopack]_runtime.js",
+      "extension": "js",
+      "lines": 795,
+      "non_empty_lines": 793,
+      "estimated_tokens": {
+        "min": 6360,
+        "avg": 9540,
+        "max": 11925
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\server\\chunks\\[turbopack]_runtime.js",
+      "extension": "js",
+      "lines": 795,
+      "non_empty_lines": 793,
+      "estimated_tokens": {
+        "min": 6360,
+        "avg": 9540,
+        "max": 11925
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\dev\\server\\chunks\\ssr\\[root-of-the-server]__c6f417f9._.js",
+      "extension": "js",
+      "lines": 760,
+      "non_empty_lines": 746,
+      "estimated_tokens": {
+        "min": 6080,
+        "avg": 9120,
+        "max": 11400
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\dev\\static\\chunks\\src_50240dd0._.js",
+      "extension": "js",
+      "lines": 652,
+      "non_empty_lines": 645,
+      "estimated_tokens": {
+        "min": 5216,
+        "avg": 7824,
+        "max": 9780
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\dev\\server\\chunks\\ssr\\src_7a9728f8._.js",
+      "extension": "js",
+      "lines": 567,
+      "non_empty_lines": 560,
+      "estimated_tokens": {
+        "min": 4536,
+        "avg": 6804,
+        "max": 8505
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\dev\\server\\chunks\\ssr\\[root-of-the-server]__ded01507._.js",
+      "extension": "js",
+      "lines": 521,
+      "non_empty_lines": 508,
+      "estimated_tokens": {
+        "min": 4168,
+        "avg": 6252,
+        "max": 7815
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\dev\\build\\chunks\\[root-of-the-server]__974941ed._.js",
+      "extension": "js",
+      "lines": 508,
+      "non_empty_lines": 497,
+      "estimated_tokens": {
+        "min": 4064,
+        "avg": 6096,
+        "max": 7620
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\build\\chunks\\[root-of-the-server]__974941ed._.js",
+      "extension": "js",
+      "lines": 500,
+      "non_empty_lines": 489,
+      "estimated_tokens": {
+        "min": 4000,
+        "avg": 6000,
+        "max": 7500
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\dev\\server\\chunks\\ssr\\[root-of-the-server]__01ca3631._.js",
+      "extension": "js",
+      "lines": 493,
+      "non_empty_lines": 483,
+      "estimated_tokens": {
+        "min": 3944,
+        "avg": 5916,
+        "max": 7395
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\dev\\server\\chunks\\ssr\\[root-of-the-server]__4319d32d._.js",
+      "extension": "js",
+      "lines": 489,
+      "non_empty_lines": 479,
+      "estimated_tokens": {
+        "min": 3912,
+        "avg": 5868,
+        "max": 7335
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\dev\\server\\chunks\\ssr\\[root-of-the-server]__cdba583b._.js",
+      "extension": "js",
+      "lines": 488,
+      "non_empty_lines": 477,
+      "estimated_tokens": {
+        "min": 3904,
+        "avg": 5856,
+        "max": 7320
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\dev\\static\\chunks\\[root-of-the-server]__092393de._.js",
+      "extension": "js",
+      "lines": 472,
+      "non_empty_lines": 469,
+      "estimated_tokens": {
+        "min": 3776,
+        "avg": 5664,
+        "max": 7080
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\dev\\static\\chunks\\[root-of-the-server]__45f039c3._.js",
+      "extension": "js",
+      "lines": 472,
+      "non_empty_lines": 469,
+      "estimated_tokens": {
+        "min": 3776,
+        "avg": 5664,
+        "max": 7080
+      }
+    },
+    {
+      "file": "OLD CODEBASE\\lib\\PHPMailer\\POP3.php",
+      "extension": "php",
+      "lines": 470,
+      "non_empty_lines": 418,
+      "estimated_tokens": {
+        "min": 3760,
+        "avg": 5640,
+        "max": 7050
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\dev\\static\\chunks\\[turbopack]_browser_dev_hmr-client_hmr-client_ts_c8c997ce._.js",
+      "extension": "js",
+      "lines": 467,
+      "non_empty_lines": 465,
+      "estimated_tokens": {
+        "min": 3736,
+        "avg": 5604,
+        "max": 7005
+      }
+    },
+    {
+      "file": "agapay-web\\src\\app\\page.tsx",
+      "extension": "tsx",
+      "lines": 449,
+      "non_empty_lines": 425,
+      "estimated_tokens": {
+        "min": 3592,
+        "avg": 5388,
+        "max": 6735
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\server\\chunks\\node_modules_next_720d9a07._.js",
+      "extension": "js",
+      "lines": 442,
+      "non_empty_lines": 390,
+      "estimated_tokens": {
+        "min": 3536,
+        "avg": 5304,
+        "max": 6630
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\server\\edge\\chunks\\[root-of-the-server]__c6dd1739._.js",
+      "extension": "js",
+      "lines": 418,
+      "non_empty_lines": 369,
+      "estimated_tokens": {
+        "min": 3344,
+        "avg": 5016,
+        "max": 6270
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\dev\\server\\chunks\\ssr\\[root-of-the-server]__28e72b38._.js",
+      "extension": "js",
+      "lines": 394,
+      "non_empty_lines": 341,
+      "estimated_tokens": {
+        "min": 3152,
+        "avg": 4728,
+        "max": 5910
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\dev\\server\\chunks\\ssr\\[root-of-the-server]__191eb9b3._.js",
+      "extension": "js",
+      "lines": 349,
+      "non_empty_lines": 322,
+      "estimated_tokens": {
+        "min": 2792,
+        "avg": 4188,
+        "max": 5235
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\dev\\server\\chunks\\ssr\\[root-of-the-server]__304a42b0._.js",
+      "extension": "js",
+      "lines": 349,
+      "non_empty_lines": 310,
+      "estimated_tokens": {
+        "min": 2792,
+        "avg": 4188,
+        "max": 5235
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\dev\\server\\chunks\\ssr\\[root-of-the-server]__2e990e62._.js",
+      "extension": "js",
+      "lines": 348,
+      "non_empty_lines": 309,
+      "estimated_tokens": {
+        "min": 2784,
+        "avg": 4176,
+        "max": 5220
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\dev\\server\\chunks\\ssr\\[root-of-the-server]__d515ab55._.js",
+      "extension": "js",
+      "lines": 331,
+      "non_empty_lines": 296,
+      "estimated_tokens": {
+        "min": 2648,
+        "avg": 3972,
+        "max": 4965
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\required-server-files.js",
+      "extension": "js",
+      "lines": 320,
+      "non_empty_lines": 320,
+      "estimated_tokens": {
+        "min": 2560,
+        "avg": 3840,
+        "max": 4800
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\dev\\server\\chunks\\[root-of-the-server]__b91047bf._.js",
+      "extension": "js",
+      "lines": 297,
+      "non_empty_lines": 256,
+      "estimated_tokens": {
+        "min": 2376,
+        "avg": 3564,
+        "max": 4455
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\dev\\server\\chunks\\ssr\\[root-of-the-server]__70a73b34._.js",
+      "extension": "js",
+      "lines": 285,
+      "non_empty_lines": 276,
+      "estimated_tokens": {
+        "min": 2280,
+        "avg": 3420,
+        "max": 4275
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\dev\\server\\chunks\\ssr\\[root-of-the-server]__d60a210e._.js",
+      "extension": "js",
+      "lines": 277,
+      "non_empty_lines": 268,
+      "estimated_tokens": {
+        "min": 2216,
+        "avg": 3324,
+        "max": 4155
+      }
+    },
+    {
+      "file": "OLD CODEBASE\\members.php",
+      "extension": "php",
+      "lines": 258,
+      "non_empty_lines": 234,
+      "estimated_tokens": {
+        "min": 2064,
+        "avg": 3096,
+        "max": 3870
+      }
+    },
+    {
+      "file": "OLD CODEBASE\\reports.php",
+      "extension": "php",
+      "lines": 250,
+      "non_empty_lines": 241,
+      "estimated_tokens": {
+        "min": 2000,
+        "avg": 3000,
+        "max": 3750
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\dev\\server\\chunks\\[root-of-the-server]__310346d8._.js",
+      "extension": "js",
+      "lines": 249,
+      "non_empty_lines": 208,
+      "estimated_tokens": {
+        "min": 1992,
+        "avg": 2988,
+        "max": 3735
+      }
+    },
+    {
+      "file": "OLD CODEBASE\\lib\\PHPMailer\\DSNConfigurator.php",
+      "extension": "php",
+      "lines": 245,
+      "non_empty_lines": 216,
+      "estimated_tokens": {
+        "min": 1960,
+        "avg": 2940,
+        "max": 3675
+      }
+    },
+    {
+      "file": "OLD CODEBASE\\registration.php",
+      "extension": "php",
+      "lines": 243,
+      "non_empty_lines": 213,
+      "estimated_tokens": {
+        "min": 1944,
+        "avg": 2916,
+        "max": 3645
+      }
+    },
+    {
+      "file": "OLD CODEBASE\\daily_appointments_pdo.php",
+      "extension": "php",
+      "lines": 240,
+      "non_empty_lines": 213,
+      "estimated_tokens": {
+        "min": 1920,
+        "avg": 2880,
+        "max": 3600
+      }
+    },
+    {
+      "file": "OLD CODEBASE\\index.php",
+      "extension": "php",
+      "lines": 237,
+      "non_empty_lines": 225,
+      "estimated_tokens": {
+        "min": 1896,
+        "avg": 2844,
+        "max": 3555
+      }
+    },
+    {
+      "file": "OLD CODEBASE\\members_dashboard.php",
+      "extension": "php",
+      "lines": 233,
+      "non_empty_lines": 209,
+      "estimated_tokens": {
+        "min": 1864,
+        "avg": 2796,
+        "max": 3495
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\dev\\server\\chunks\\[root-of-the-server]__5d808725._.js",
+      "extension": "js",
+      "lines": 232,
+      "non_empty_lines": 209,
+      "estimated_tokens": {
+        "min": 1856,
+        "avg": 2784,
+        "max": 3480
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\dev\\server\\edge\\chunks\\[root-of-the-server]__9554b1b1._.js",
+      "extension": "js",
+      "lines": 225,
+      "non_empty_lines": 206,
+      "estimated_tokens": {
+        "min": 1800,
+        "avg": 2700,
+        "max": 3375
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\dev\\server\\edge\\chunks\\[root-of-the-server]__68969cee._.js",
+      "extension": "js",
+      "lines": 219,
+      "non_empty_lines": 201,
+      "estimated_tokens": {
+        "min": 1752,
+        "avg": 2628,
+        "max": 3285
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\build\\chunks\\[root-of-the-server]__51225daf._.js",
+      "extension": "js",
+      "lines": 206,
+      "non_empty_lines": 196,
+      "estimated_tokens": {
+        "min": 1648,
+        "avg": 2472,
+        "max": 3090
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\dev\\build\\chunks\\[root-of-the-server]__51225daf._.js",
+      "extension": "js",
+      "lines": 206,
+      "non_empty_lines": 196,
+      "estimated_tokens": {
+        "min": 1648,
+        "avg": 2472,
+        "max": 3090
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\dev\\server\\chunks\\ssr\\[root-of-the-server]__0be9ec4a._.js",
+      "extension": "js",
+      "lines": 206,
+      "non_empty_lines": 195,
+      "estimated_tokens": {
+        "min": 1648,
+        "avg": 2472,
+        "max": 3090
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\dev\\server\\chunks\\[root-of-the-server]__8c1a0f86._.js",
+      "extension": "js",
+      "lines": 206,
+      "non_empty_lines": 195,
+      "estimated_tokens": {
+        "min": 1648,
+        "avg": 2472,
+        "max": 3090
+      }
+    },
+    {
+      "file": "OLD CODEBASE\\staff_loans.php",
+      "extension": "php",
+      "lines": 191,
+      "non_empty_lines": 174,
+      "estimated_tokens": {
+        "min": 1528,
+        "avg": 2292,
+        "max": 2865
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\dev\\server\\chunks\\ssr\\[root-of-the-server]__3fb5af8f._.js",
+      "extension": "js",
+      "lines": 187,
+      "non_empty_lines": 162,
+      "estimated_tokens": {
+        "min": 1496,
+        "avg": 2244,
+        "max": 2805
+      }
+    },
+    {
+      "file": "agapay-web\\src\\components\\member\\loan-application-form.tsx",
+      "extension": "tsx",
+      "lines": 187,
+      "non_empty_lines": 172,
+      "estimated_tokens": {
+        "min": 1496,
+        "avg": 2244,
+        "max": 2805
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\dev\\server\\edge\\chunks\\[root-of-the-server]__e6a4e713._.js",
+      "extension": "js",
+      "lines": 186,
+      "non_empty_lines": 177,
+      "estimated_tokens": {
+        "min": 1488,
+        "avg": 2232,
+        "max": 2790
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\dev\\server\\chunks\\ssr\\[root-of-the-server]__a4d82cb7._.js",
+      "extension": "js",
+      "lines": 172,
+      "non_empty_lines": 162,
+      "estimated_tokens": {
+        "min": 1376,
+        "avg": 2064,
+        "max": 2580
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\dev\\server\\chunks\\ssr\\[root-of-the-server]__d34f4d51._.js",
+      "extension": "js",
+      "lines": 172,
+      "non_empty_lines": 162,
+      "estimated_tokens": {
+        "min": 1376,
+        "avg": 2064,
+        "max": 2580
+      }
+    },
+    {
+      "file": "OLD CODEBASE\\staff_dashboard.php",
+      "extension": "php",
+      "lines": 168,
+      "non_empty_lines": 147,
+      "estimated_tokens": {
+        "min": 1344,
+        "avg": 2016,
+        "max": 2520
+      }
+    },
+    {
+      "file": "agapay-web\\src\\components\\ui\\form.tsx",
+      "extension": "tsx",
+      "lines": 167,
+      "non_empty_lines": 143,
+      "estimated_tokens": {
+        "min": 1336,
+        "avg": 2004,
+        "max": 2505
+      }
+    },
+    {
+      "file": "OLD CODEBASE\\login.php",
+      "extension": "php",
+      "lines": 166,
+      "non_empty_lines": 149,
+      "estimated_tokens": {
+        "min": 1328,
+        "avg": 1992,
+        "max": 2490
+      }
+    },
+    {
+      "file": "OLD CODEBASE\\staff_reports.php",
+      "extension": "php",
+      "lines": 164,
+      "non_empty_lines": 147,
+      "estimated_tokens": {
+        "min": 1312,
+        "avg": 1968,
+        "max": 2460
+      }
+    },
+    {
+      "file": "agapay-web\\src\\components\\auth\\register-form.tsx",
+      "extension": "tsx",
+      "lines": 163,
+      "non_empty_lines": 155,
+      "estimated_tokens": {
+        "min": 1304,
+        "avg": 1956,
+        "max": 2445
+      }
+    },
+    {
+      "file": "agapay-web\\src\\components\\admin\\loan-products-tab.tsx",
+      "extension": "tsx",
+      "lines": 162,
+      "non_empty_lines": 155,
+      "estimated_tokens": {
+        "min": 1296,
+        "avg": 1944,
+        "max": 2430
+      }
+    },
+    {
+      "file": "agapay-web\\src\\components\\admin\\create-product-form.tsx",
+      "extension": "tsx",
+      "lines": 161,
+      "non_empty_lines": 151,
+      "estimated_tokens": {
+        "min": 1288,
+        "avg": 1932,
+        "max": 2415
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\dev\\server\\chunks\\ssr\\[root-of-the-server]__305743d6._.js",
+      "extension": "js",
+      "lines": 159,
+      "non_empty_lines": 152,
+      "estimated_tokens": {
+        "min": 1272,
+        "avg": 1908,
+        "max": 2385
+      }
+    },
+    {
+      "file": "agapay-web\\src\\components\\ui\\dialog.tsx",
+      "extension": "tsx",
+      "lines": 158,
+      "non_empty_lines": 145,
+      "estimated_tokens": {
+        "min": 1264,
+        "avg": 1896,
+        "max": 2370
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\dev\\server\\chunks\\ssr\\[root-of-the-server]__a8ab9a0d._.js",
+      "extension": "js",
+      "lines": 155,
+      "non_empty_lines": 146,
+      "estimated_tokens": {
+        "min": 1240,
+        "avg": 1860,
+        "max": 2325
+      }
+    },
+    {
+      "file": "agapay-web\\src\\components\\member\\loan-application-tab.tsx",
+      "extension": "tsx",
+      "lines": 154,
+      "non_empty_lines": 144,
+      "estimated_tokens": {
+        "min": 1232,
+        "avg": 1848,
+        "max": 2310
+      }
+    },
+    {
+      "file": "agapay-web\\src\\app\\pintuan\\page.tsx",
+      "extension": "tsx",
+      "lines": 153,
+      "non_empty_lines": 145,
+      "estimated_tokens": {
+        "min": 1224,
+        "avg": 1836,
+        "max": 2295
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\dev\\server\\chunks\\[root-of-the-server]__bdcdc7b6._.js",
+      "extension": "js",
+      "lines": 152,
+      "non_empty_lines": 122,
+      "estimated_tokens": {
+        "min": 1216,
+        "avg": 1824,
+        "max": 2280
+      }
+    },
+    {
+      "file": "agapay-web\\src\\components\\auth\\login-form.tsx",
+      "extension": "tsx",
+      "lines": 152,
+      "non_empty_lines": 144,
+      "estimated_tokens": {
+        "min": 1216,
+        "avg": 1824,
+        "max": 2280
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\dev\\server\\chunks\\ssr\\node_modules_next_dist_client_components_9774470f._.js",
+      "extension": "js",
+      "lines": 149,
+      "non_empty_lines": 144,
+      "estimated_tokens": {
+        "min": 1192,
+        "avg": 1788,
+        "max": 2235
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\dev\\types\\cache-life.d.ts",
+      "extension": "ts",
+      "lines": 145,
+      "non_empty_lines": 132,
+      "estimated_tokens": {
+        "min": 1160,
+        "avg": 1740,
+        "max": 2175
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\dev\\server\\chunks\\ssr\\[root-of-the-server]__78f9862a._.js",
+      "extension": "js",
+      "lines": 143,
+      "non_empty_lines": 136,
+      "estimated_tokens": {
+        "min": 1144,
+        "avg": 1716,
+        "max": 2145
+      }
+    },
+    {
+      "file": "OLD CODEBASE\\lib\\PHPMailer\\OAuth.php",
+      "extension": "php",
+      "lines": 139,
+      "non_empty_lines": 125,
+      "estimated_tokens": {
+        "min": 1112,
+        "avg": 1668,
+        "max": 2085
+      }
+    },
+    {
+      "file": "OLD CODEBASE\\staff_payments.php",
+      "extension": "php",
+      "lines": 133,
+      "non_empty_lines": 124,
+      "estimated_tokens": {
+        "min": 1064,
+        "avg": 1596,
+        "max": 1995
+      }
+    },
+    {
+      "file": "agapay-web\\src\\app\\globals.css",
+      "extension": "css",
+      "lines": 130,
+      "non_empty_lines": 125,
+      "estimated_tokens": {
+        "min": 1040,
+        "avg": 1560,
+        "max": 1950
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\dev\\server\\chunks\\ssr\\[root-of-the-server]__5bde72ca._.js",
+      "extension": "js",
+      "lines": 127,
+      "non_empty_lines": 120,
+      "estimated_tokens": {
+        "min": 1016,
+        "avg": 1524,
+        "max": 1905
+      }
+    },
+    {
+      "file": "agapay-web\\src\\app\\sibol\\page.tsx",
+      "extension": "tsx",
+      "lines": 126,
+      "non_empty_lines": 119,
+      "estimated_tokens": {
+        "min": 1008,
+        "avg": 1512,
+        "max": 1890
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\dev\\types\\validator.ts",
+      "extension": "ts",
+      "lines": 124,
+      "non_empty_lines": 107,
+      "estimated_tokens": {
+        "min": 992,
+        "avg": 1488,
+        "max": 1860
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\types\\validator.ts",
+      "extension": "ts",
+      "lines": 124,
+      "non_empty_lines": 107,
+      "estimated_tokens": {
+        "min": 992,
+        "avg": 1488,
+        "max": 1860
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\dev\\static\\chunks\\src_73cebc9c._.js",
+      "extension": "js",
+      "lines": 120,
+      "non_empty_lines": 117,
+      "estimated_tokens": {
+        "min": 960,
+        "avg": 1440,
+        "max": 1800
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\dev\\server\\chunks\\ssr\\[root-of-the-server]__c6394e93._.js",
+      "extension": "js",
+      "lines": 117,
+      "non_empty_lines": 103,
+      "estimated_tokens": {
+        "min": 936,
+        "avg": 1404,
+        "max": 1755
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\dev\\server\\edge\\chunks\\[root-of-the-server]__a2e13f11._.js",
+      "extension": "js",
+      "lines": 115,
+      "non_empty_lines": 108,
+      "estimated_tokens": {
+        "min": 920,
+        "avg": 1380,
+        "max": 1725
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\dev\\server\\chunks\\[root-of-the-server]__c4c4691e._.js",
+      "extension": "js",
+      "lines": 110,
+      "non_empty_lines": 94,
+      "estimated_tokens": {
+        "min": 880,
+        "avg": 1320,
+        "max": 1650
+      }
+    },
+    {
+      "file": "count-lines.php",
+      "extension": "php",
+      "lines": 108,
+      "non_empty_lines": 91,
+      "estimated_tokens": {
+        "min": 864,
+        "avg": 1296,
+        "max": 1620
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\dev\\server\\chunks\\ssr\\[root-of-the-server]__856001f1._.js",
+      "extension": "js",
+      "lines": 107,
+      "non_empty_lines": 97,
+      "estimated_tokens": {
+        "min": 856,
+        "avg": 1284,
+        "max": 1605
+      }
+    },
+    {
+      "file": "agapay-web\\src\\lib\\auth.ts",
+      "extension": "ts",
+      "lines": 107,
+      "non_empty_lines": 90,
+      "estimated_tokens": {
+        "min": 856,
+        "avg": 1284,
+        "max": 1605
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\dev\\server\\chunks\\ssr\\src_e0bb1a37._.js",
+      "extension": "js",
+      "lines": 105,
+      "non_empty_lines": 102,
+      "estimated_tokens": {
+        "min": 840,
+        "avg": 1260,
+        "max": 1575
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\dev\\server\\chunks\\ssr\\[root-of-the-server]__49a8bdf4._.js",
+      "extension": "js",
+      "lines": 103,
+      "non_empty_lines": 94,
+      "estimated_tokens": {
+        "min": 824,
+        "avg": 1236,
+        "max": 1545
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\dev\\server\\chunks\\ssr\\[root-of-the-server]__2e7b3a97._.js",
+      "extension": "js",
+      "lines": 98,
+      "non_empty_lines": 86,
+      "estimated_tokens": {
+        "min": 784,
+        "avg": 1176,
+        "max": 1470
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\dev\\server\\chunks\\_8ff63156._.js",
+      "extension": "js",
+      "lines": 97,
+      "non_empty_lines": 92,
+      "estimated_tokens": {
+        "min": 776,
+        "avg": 1164,
+        "max": 1455
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\dev\\server\\chunks\\_93feac71._.js",
+      "extension": "js",
+      "lines": 97,
+      "non_empty_lines": 92,
+      "estimated_tokens": {
+        "min": 776,
+        "avg": 1164,
+        "max": 1455
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\dev\\server\\chunks\\ssr\\[root-of-the-server]__3b2b1419._.js",
+      "extension": "js",
+      "lines": 96,
+      "non_empty_lines": 89,
+      "estimated_tokens": {
+        "min": 768,
+        "avg": 1152,
+        "max": 1440
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\dev\\static\\chunks\\src_components_ui_sonner_tsx_c1caca9b._.js",
+      "extension": "js",
+      "lines": 94,
+      "non_empty_lines": 92,
+      "estimated_tokens": {
+        "min": 752,
+        "avg": 1128,
+        "max": 1410
+      }
+    },
+    {
+      "file": "agapay-web\\src\\app\\auth\\new-verification\\page.tsx",
+      "extension": "tsx",
+      "lines": 93,
+      "non_empty_lines": 80,
+      "estimated_tokens": {
+        "min": 744,
+        "avg": 1116,
+        "max": 1395
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\dev\\server\\chunks\\ssr\\[root-of-the-server]__3caeec90._.js",
+      "extension": "js",
+      "lines": 92,
+      "non_empty_lines": 86,
+      "estimated_tokens": {
+        "min": 736,
+        "avg": 1104,
+        "max": 1380
+      }
+    },
+    {
+      "file": "agapay-web\\src\\components\\ui\\card.tsx",
+      "extension": "tsx",
+      "lines": 92,
+      "non_empty_lines": 83,
+      "estimated_tokens": {
+        "min": 736,
+        "avg": 1104,
+        "max": 1380
+      }
+    },
+    {
+      "file": "agapay-web\\src\\components\\ui\\tabs.tsx",
+      "extension": "tsx",
+      "lines": 91,
+      "non_empty_lines": 83,
+      "estimated_tokens": {
+        "min": 728,
+        "avg": 1092,
+        "max": 1365
+      }
+    },
+    {
+      "file": "agapay-web\\prisma\\seed.ts",
+      "extension": "ts",
+      "lines": 85,
+      "non_empty_lines": 77,
+      "estimated_tokens": {
+        "min": 680,
+        "avg": 1020,
+        "max": 1275
+      }
+    },
+    {
+      "file": "agapay-web\\prisma-dist\\seed.js",
+      "extension": "js",
+      "lines": 85,
+      "non_empty_lines": 85,
+      "estimated_tokens": {
+        "min": 680,
+        "avg": 1020,
+        "max": 1275
+      }
+    },
+    {
+      "file": "OLD CODEBASE\\process_membership.php",
+      "extension": "php",
+      "lines": 85,
+      "non_empty_lines": 72,
+      "estimated_tokens": {
+        "min": 680,
+        "avg": 1020,
+        "max": 1275
+      }
+    },
+    {
+      "file": "agapay-web\\src\\actions\\loan-product.ts",
+      "extension": "ts",
+      "lines": 81,
+      "non_empty_lines": 71,
+      "estimated_tokens": {
+        "min": 648,
+        "avg": 972,
+        "max": 1215
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\dev\\types\\routes.d.ts",
+      "extension": "ts",
+      "lines": 78,
+      "non_empty_lines": 67,
+      "estimated_tokens": {
+        "min": 624,
+        "avg": 936,
+        "max": 1170
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\types\\routes.d.ts",
+      "extension": "ts",
+      "lines": 78,
+      "non_empty_lines": 67,
+      "estimated_tokens": {
+        "min": 624,
+        "avg": 936,
+        "max": 1170
+      }
+    },
+    {
+      "file": "agapay-web\\src\\actions\\loan-application.ts",
+      "extension": "ts",
+      "lines": 77,
+      "non_empty_lines": 66,
+      "estimated_tokens": {
+        "min": 616,
+        "avg": 924,
+        "max": 1155
+      }
+    },
+    {
+      "file": "OLD CODEBASE\\submit_payment.php",
+      "extension": "php",
+      "lines": 76,
+      "non_empty_lines": 63,
+      "estimated_tokens": {
+        "min": 608,
+        "avg": 912,
+        "max": 1140
+      }
+    },
+    {
+      "file": "OLD CODEBASE\\schedule.php",
+      "extension": "php",
+      "lines": 72,
+      "non_empty_lines": 68,
+      "estimated_tokens": {
+        "min": 576,
+        "avg": 864,
+        "max": 1080
+      }
+    },
+    {
+      "file": "agapay-web\\src\\actions\\new-verification.ts",
+      "extension": "ts",
+      "lines": 68,
+      "non_empty_lines": 55,
+      "estimated_tokens": {
+        "min": 544,
+        "avg": 816,
+        "max": 1020
+      }
+    },
+    {
+      "file": "agapay-web\\src\\actions\\register.ts",
+      "extension": "ts",
+      "lines": 64,
+      "non_empty_lines": 50,
+      "estimated_tokens": {
+        "min": 512,
+        "avg": 768,
+        "max": 960
+      }
+    },
+    {
+      "file": "OLD CODEBASE\\process_payment.php",
+      "extension": "php",
+      "lines": 63,
+      "non_empty_lines": 52,
+      "estimated_tokens": {
+        "min": 504,
+        "avg": 756,
+        "max": 945
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\dev\\server\\chunks\\ssr\\[externals]__7f148858._.js",
+      "extension": "js",
+      "lines": 62,
+      "non_empty_lines": 42,
+      "estimated_tokens": {
+        "min": 496,
+        "avg": 744,
+        "max": 930
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\dev\\server\\chunks\\ssr\\[externals]__e8a2741f._.js",
+      "extension": "js",
+      "lines": 62,
+      "non_empty_lines": 42,
+      "estimated_tokens": {
+        "min": 496,
+        "avg": 744,
+        "max": 930
+      }
+    },
+    {
+      "file": "agapay-web\\src\\actions\\two-factor.ts",
+      "extension": "ts",
+      "lines": 61,
+      "non_empty_lines": 49,
+      "estimated_tokens": {
+        "min": 488,
+        "avg": 732,
+        "max": 915
+      }
+    },
+    {
+      "file": "agapay-web\\src\\components\\ui\\button.tsx",
+      "extension": "tsx",
+      "lines": 60,
+      "non_empty_lines": 55,
+      "estimated_tokens": {
+        "min": 480,
+        "avg": 720,
+        "max": 900
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\dev\\server\\chunks\\ssr\\[root-of-the-server]__1e1d6738._.js",
+      "extension": "js",
+      "lines": 58,
+      "non_empty_lines": 49,
+      "estimated_tokens": {
+        "min": 464,
+        "avg": 696,
+        "max": 870
+      }
+    },
+    {
+      "file": "agapay-web\\src\\lib\\mail.ts",
+      "extension": "ts",
+      "lines": 57,
+      "non_empty_lines": 53,
+      "estimated_tokens": {
+        "min": 456,
+        "avg": 684,
+        "max": 855
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\dev\\static\\chunks\\[next]_internal_font_google_plus_jakarta_sans_db46c7e9_module_css_bad6b30c._.single.css",
+      "extension": "css",
+      "lines": 56,
+      "non_empty_lines": 49,
+      "estimated_tokens": {
+        "min": 448,
+        "avg": 672,
+        "max": 840
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\dev\\server\\chunks\\ssr\\node_modules_next_f71b9665._.js",
+      "extension": "js",
+      "lines": 55,
+      "non_empty_lines": 52,
+      "estimated_tokens": {
+        "min": 440,
+        "avg": 660,
+        "max": 825
+      }
+    },
+    {
+      "file": "agapay-web\\tmp\\seed_tenants_secure.ts",
+      "extension": "ts",
+      "lines": 55,
+      "non_empty_lines": 48,
+      "estimated_tokens": {
+        "min": 440,
+        "avg": 660,
+        "max": 825
+      }
+    },
+    {
+      "file": "agapay-web\\src\\lib\\tokens.ts",
+      "extension": "ts",
+      "lines": 54,
+      "non_empty_lines": 43,
+      "estimated_tokens": {
+        "min": 432,
+        "avg": 648,
+        "max": 810
+      }
+    },
+    {
+      "file": "OLD CODEBASE\\statement.php",
+      "extension": "php",
+      "lines": 53,
+      "non_empty_lines": 51,
+      "estimated_tokens": {
+        "min": 424,
+        "avg": 636,
+        "max": 795
+      }
+    },
+    {
+      "file": "OLD CODEBASE\\view_profile.php",
+      "extension": "php",
+      "lines": 53,
+      "non_empty_lines": 49,
+      "estimated_tokens": {
+        "min": 424,
+        "avg": 636,
+        "max": 795
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\server\\chunks\\ssr\\_ceacd32a._.js",
+      "extension": "js",
+      "lines": 51,
+      "non_empty_lines": 45,
+      "estimated_tokens": {
+        "min": 408,
+        "avg": 612,
+        "max": 765
+      }
+    },
+    {
+      "file": "agapay-web\\src\\middleware.ts",
+      "extension": "ts",
+      "lines": 51,
+      "non_empty_lines": 42,
+      "estimated_tokens": {
+        "min": 408,
+        "avg": 612,
+        "max": 765
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\dev\\server\\chunks\\ssr\\src_actions_two-factor-token_ts_0eb088e0._.js",
+      "extension": "js",
+      "lines": 50,
+      "non_empty_lines": 48,
+      "estimated_tokens": {
+        "min": 400,
+        "avg": 600,
+        "max": 750
+      }
+    },
+    {
+      "file": "OLD CODEBASE\\submit_loan.php",
+      "extension": "php",
+      "lines": 50,
+      "non_empty_lines": 41,
+      "estimated_tokens": {
+        "min": 400,
+        "avg": 600,
+        "max": 750
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\dev\\static\\chunks\\node_modules_@swc_helpers_cjs_d80fb378._.js",
+      "extension": "js",
+      "lines": 49,
+      "non_empty_lines": 46,
+      "estimated_tokens": {
+        "min": 392,
+        "avg": 588,
+        "max": 735
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\dev\\static\\chunks\\[next]_internal_font_google_fraunces_328e9abe_module_css_bad6b30c._.single.css",
+      "extension": "css",
+      "lines": 47,
+      "non_empty_lines": 41,
+      "estimated_tokens": {
+        "min": 376,
+        "avg": 564,
+        "max": 705
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\dev\\static\\chunks\\[next]_internal_font_google_geist_a71539c9_module_css_bad6b30c._.single.css",
+      "extension": "css",
+      "lines": 47,
+      "non_empty_lines": 41,
+      "estimated_tokens": {
+        "min": 376,
+        "avg": 564,
+        "max": 705
+      }
+    },
+    {
+      "file": "OLD CODEBASE\\lib\\PHPMailer\\OAuthTokenProvider.php",
+      "extension": "php",
+      "lines": 44,
+      "non_empty_lines": 41,
+      "estimated_tokens": {
+        "min": 352,
+        "avg": 528,
+        "max": 660
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\dev\\server\\chunks\\ssr\\_5f85de43._.js",
+      "extension": "js",
+      "lines": 43,
+      "non_empty_lines": 39,
+      "estimated_tokens": {
+        "min": 344,
+        "avg": 516,
+        "max": 645
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\dev\\server\\chunks\\_4f36a216._.js",
+      "extension": "js",
+      "lines": 43,
+      "non_empty_lines": 39,
+      "estimated_tokens": {
+        "min": 344,
+        "avg": 516,
+        "max": 645
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\dev\\server\\chunks\\_63eb3c89._.js",
+      "extension": "js",
+      "lines": 43,
+      "non_empty_lines": 39,
+      "estimated_tokens": {
+        "min": 344,
+        "avg": 516,
+        "max": 645
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\dev\\server\\chunks\\_af7e84a1._.js",
+      "extension": "js",
+      "lines": 43,
+      "non_empty_lines": 39,
+      "estimated_tokens": {
+        "min": 344,
+        "avg": 516,
+        "max": 645
+      }
+    },
+    {
+      "file": "agapay-web\\src\\app\\layout.tsx",
+      "extension": "tsx",
+      "lines": 41,
+      "non_empty_lines": 35,
+      "estimated_tokens": {
+        "min": 328,
+        "avg": 492,
+        "max": 615
+      }
+    },
+    {
+      "file": "agapay-web\\src\\components\\auth\\auth-modal.tsx",
+      "extension": "tsx",
+      "lines": 41,
+      "non_empty_lines": 35,
+      "estimated_tokens": {
+        "min": 328,
+        "avg": 492,
+        "max": 615
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\server\\chunks\\ssr\\_06a921f8._.js",
+      "extension": "js",
+      "lines": 40,
+      "non_empty_lines": 34,
+      "estimated_tokens": {
+        "min": 320,
+        "avg": 480,
+        "max": 600
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\server\\chunks\\ssr\\_a79e2a29._.js",
+      "extension": "js",
+      "lines": 40,
+      "non_empty_lines": 34,
+      "estimated_tokens": {
+        "min": 320,
+        "avg": 480,
+        "max": 600
+      }
+    },
+    {
+      "file": "agapay-web\\src\\components\\ui\\sonner.tsx",
+      "extension": "tsx",
+      "lines": 40,
+      "non_empty_lines": 36,
+      "estimated_tokens": {
+        "min": 320,
+        "avg": 480,
+        "max": 600
+      }
+    },
+    {
+      "file": "agapay-web\\tmp\\seed_tenants.ts",
+      "extension": "ts",
+      "lines": 40,
+      "non_empty_lines": 35,
+      "estimated_tokens": {
+        "min": 320,
+        "avg": 480,
+        "max": 600
+      }
+    },
+    {
+      "file": "OLD CODEBASE\\lib\\PHPMailer\\Exception.php",
+      "extension": "php",
+      "lines": 40,
+      "non_empty_lines": 37,
+      "estimated_tokens": {
+        "min": 320,
+        "avg": 480,
+        "max": 600
+      }
+    },
+    {
+      "file": "OLD CODEBASE\\PHPMailer\\src\\Exception.php",
+      "extension": "php",
+      "lines": 40,
+      "non_empty_lines": 37,
+      "estimated_tokens": {
+        "min": 320,
+        "avg": 480,
+        "max": 600
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\dev\\server\\chunks\\ssr\\[externals]_next_dist_1aaf5479._.js",
+      "extension": "js",
+      "lines": 38,
+      "non_empty_lines": 26,
+      "estimated_tokens": {
+        "min": 304,
+        "avg": 456,
+        "max": 570
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\dev\\server\\chunks\\ssr\\[externals]_next_dist_c80f7c8f._.js",
+      "extension": "js",
+      "lines": 38,
+      "non_empty_lines": 26,
+      "estimated_tokens": {
+        "min": 304,
+        "avg": 456,
+        "max": 570
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\static\\chunks\\02f1db9300d90d44.js",
+      "extension": "js",
+      "lines": 38,
+      "non_empty_lines": 33,
+      "estimated_tokens": {
+        "min": 304,
+        "avg": 456,
+        "max": 570
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\static\\chunks\\ba9e8f068579fec7.js",
+      "extension": "js",
+      "lines": 38,
+      "non_empty_lines": 33,
+      "estimated_tokens": {
+        "min": 304,
+        "avg": 456,
+        "max": 570
+      }
+    },
+    {
+      "file": "OLD CODEBASE\\process_loan.php",
+      "extension": "php",
+      "lines": 35,
+      "non_empty_lines": 31,
+      "estimated_tokens": {
+        "min": 280,
+        "avg": 420,
+        "max": 525
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\dev\\server\\chunks\\ssr\\node_modules_next_dist_client_components_builtin_forbidden_45780354.js",
+      "extension": "js",
+      "lines": 32,
+      "non_empty_lines": 30,
+      "estimated_tokens": {
+        "min": 256,
+        "avg": 384,
+        "max": 480
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\dev\\server\\chunks\\ssr\\node_modules_next_dist_client_components_builtin_unauthorized_15817684.js",
+      "extension": "js",
+      "lines": 32,
+      "non_empty_lines": 30,
+      "estimated_tokens": {
+        "min": 256,
+        "avg": 384,
+        "max": 480
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\dev\\server\\chunks\\ssr\\[externals]__e6a4d965._.js",
+      "extension": "js",
+      "lines": 32,
+      "non_empty_lines": 22,
+      "estimated_tokens": {
+        "min": 256,
+        "avg": 384,
+        "max": 480
+      }
+    },
+    {
+      "file": "agapay-web\\src\\app\\auth\\register\\page.tsx",
+      "extension": "tsx",
+      "lines": 31,
+      "non_empty_lines": 29,
+      "estimated_tokens": {
+        "min": 248,
+        "avg": 372,
+        "max": 465
+      }
+    },
+    {
+      "file": "agapay-web\\src\\lib\\auth.config.ts",
+      "extension": "ts",
+      "lines": 31,
+      "non_empty_lines": 30,
+      "estimated_tokens": {
+        "min": 248,
+        "avg": 372,
+        "max": 465
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\server\\chunks\\_7825e59c._.js",
+      "extension": "js",
+      "lines": 29,
+      "non_empty_lines": 28,
+      "estimated_tokens": {
+        "min": 232,
+        "avg": 348,
+        "max": 435
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\dev\\server\\middleware-build-manifest.js",
+      "extension": "js",
+      "lines": 26,
+      "non_empty_lines": 26,
+      "estimated_tokens": {
+        "min": 208,
+        "avg": 312,
+        "max": 390
+      }
+    },
+    {
+      "file": "agapay-web\\src\\actions\\two-factor-token.ts",
+      "extension": "ts",
+      "lines": 25,
+      "non_empty_lines": 22,
+      "estimated_tokens": {
+        "min": 200,
+        "avg": 300,
+        "max": 375
+      }
+    },
+    {
+      "file": "agapay-web\\src\\types\\next-auth.d.ts",
+      "extension": "ts",
+      "lines": 25,
+      "non_empty_lines": 22,
+      "estimated_tokens": {
+        "min": 200,
+        "avg": 300,
+        "max": 375
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\dev\\server\\chunks\\ssr\\node_modules_next_dist_client_components_builtin_global-error_ece394eb.js",
+      "extension": "js",
+      "lines": 24,
+      "non_empty_lines": 20,
+      "estimated_tokens": {
+        "min": 192,
+        "avg": 288,
+        "max": 360
+      }
+    },
+    {
+      "file": "agapay-web\\src\\components\\ui\\label.tsx",
+      "extension": "tsx",
+      "lines": 24,
+      "non_empty_lines": 20,
+      "estimated_tokens": {
+        "min": 192,
+        "avg": 288,
+        "max": 360
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\dev\\static\\chunks\\[next]_entry_page-loader_ts_43b523b5._.js",
+      "extension": "js",
+      "lines": 23,
+      "non_empty_lines": 21,
+      "estimated_tokens": {
+        "min": 184,
+        "avg": 276,
+        "max": 345
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\dev\\static\\chunks\\[next]_entry_page-loader_ts_742e4b53._.js",
+      "extension": "js",
+      "lines": 23,
+      "non_empty_lines": 21,
+      "estimated_tokens": {
+        "min": 184,
+        "avg": 276,
+        "max": 345
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\dev\\server\\app\\sibol\\page.js",
+      "extension": "js",
+      "lines": 22,
+      "non_empty_lines": 22,
+      "estimated_tokens": {
+        "min": 176,
+        "avg": 264,
+        "max": 330
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\dev\\server\\chunks\\ssr\\src_app_5b2047f8._.js",
+      "extension": "js",
+      "lines": 22,
+      "non_empty_lines": 19,
+      "estimated_tokens": {
+        "min": 176,
+        "avg": 264,
+        "max": 330
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\server\\chunks\\[root-of-the-server]__ab31e122._.js",
+      "extension": "js",
+      "lines": 21,
+      "non_empty_lines": 18,
+      "estimated_tokens": {
+        "min": 168,
+        "avg": 252,
+        "max": 315
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\server\\middleware-build-manifest.js",
+      "extension": "js",
+      "lines": 21,
+      "non_empty_lines": 21,
+      "estimated_tokens": {
+        "min": 168,
+        "avg": 252,
+        "max": 315
+      }
+    },
+    {
+      "file": "agapay-web\\src\\components\\ui\\input.tsx",
+      "extension": "tsx",
+      "lines": 21,
+      "non_empty_lines": 18,
+      "estimated_tokens": {
+        "min": 168,
+        "avg": 252,
+        "max": 315
+      }
+    },
+    {
+      "file": "agapay-web\\src\\lib\\prisma.ts",
+      "extension": "ts",
+      "lines": 21,
+      "non_empty_lines": 16,
+      "estimated_tokens": {
+        "min": 168,
+        "avg": 252,
+        "max": 315
+      }
+    },
+    {
+      "file": "OLD CODEBASE\\lib\\font\\helvetica.php",
+      "extension": "php",
+      "lines": 21,
+      "non_empty_lines": 21,
+      "estimated_tokens": {
+        "min": 168,
+        "avg": 252,
+        "max": 315
+      }
+    },
+    {
+      "file": "OLD CODEBASE\\lib\\font\\helveticab.php",
+      "extension": "php",
+      "lines": 21,
+      "non_empty_lines": 21,
+      "estimated_tokens": {
+        "min": 168,
+        "avg": 252,
+        "max": 315
+      }
+    },
+    {
+      "file": "OLD CODEBASE\\lib\\font\\helveticai.php",
+      "extension": "php",
+      "lines": 21,
+      "non_empty_lines": 21,
+      "estimated_tokens": {
+        "min": 168,
+        "avg": 252,
+        "max": 315
+      }
+    },
+    {
+      "file": "OLD CODEBASE\\pending_notice.php",
+      "extension": "php",
+      "lines": 21,
+      "non_empty_lines": 20,
+      "estimated_tokens": {
+        "min": 168,
+        "avg": 252,
+        "max": 315
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\server\\chunks\\ssr\\_451b62a3._.js",
+      "extension": "js",
+      "lines": 20,
+      "non_empty_lines": 19,
+      "estimated_tokens": {
+        "min": 160,
+        "avg": 240,
+        "max": 300
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\dev\\server\\app\\page.js",
+      "extension": "js",
+      "lines": 19,
+      "non_empty_lines": 19,
+      "estimated_tokens": {
+        "min": 152,
+        "avg": 228,
+        "max": 285
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\server\\app\\page.js",
+      "extension": "js",
+      "lines": 19,
+      "non_empty_lines": 19,
+      "estimated_tokens": {
+        "min": 152,
+        "avg": 228,
+        "max": 285
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\server\\chunks\\_d140fcaa._.js",
+      "extension": "js",
+      "lines": 19,
+      "non_empty_lines": 18,
+      "estimated_tokens": {
+        "min": 152,
+        "avg": 228,
+        "max": 285
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\server\\app\\auth\\new-verification\\page.js",
+      "extension": "js",
+      "lines": 18,
+      "non_empty_lines": 18,
+      "estimated_tokens": {
+        "min": 144,
+        "avg": 216,
+        "max": 270
+      }
+    },
+    {
+      "file": "OLD CODEBASE\\db.php",
+      "extension": "php",
+      "lines": 18,
+      "non_empty_lines": 15,
+      "estimated_tokens": {
+        "min": 144,
+        "avg": 216,
+        "max": 270
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\dev\\server\\chunks\\ssr\\[root-of-the-server]__6b48513c._.js",
+      "extension": "js",
+      "lines": 16,
+      "non_empty_lines": 12,
+      "estimated_tokens": {
+        "min": 128,
+        "avg": 192,
+        "max": 240
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\server\\app\\auth\\login\\page.js",
+      "extension": "js",
+      "lines": 16,
+      "non_empty_lines": 16,
+      "estimated_tokens": {
+        "min": 128,
+        "avg": 192,
+        "max": 240
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\server\\app\\auth\\register\\page.js",
+      "extension": "js",
+      "lines": 16,
+      "non_empty_lines": 16,
+      "estimated_tokens": {
+        "min": 128,
+        "avg": 192,
+        "max": 240
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\server\\app\\pintuan\\page.js",
+      "extension": "js",
+      "lines": 16,
+      "non_empty_lines": 16,
+      "estimated_tokens": {
+        "min": 128,
+        "avg": 192,
+        "max": 240
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\server\\app\\sibol\\page.js",
+      "extension": "js",
+      "lines": 16,
+      "non_empty_lines": 16,
+      "estimated_tokens": {
+        "min": 128,
+        "avg": 192,
+        "max": 240
+      }
+    },
+    {
+      "file": "agapay-web\\prisma.config.ts",
+      "extension": "ts",
+      "lines": 16,
+      "non_empty_lines": 14,
+      "estimated_tokens": {
+        "min": 128,
+        "avg": 192,
+        "max": 240
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\dev\\static\\chunks\\pages__app_2da965e7._.js",
+      "extension": "js",
+      "lines": 15,
+      "non_empty_lines": 15,
+      "estimated_tokens": {
+        "min": 120,
+        "avg": 180,
+        "max": 225
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\dev\\static\\chunks\\pages__error_2da965e7._.js",
+      "extension": "js",
+      "lines": 15,
+      "non_empty_lines": 15,
+      "estimated_tokens": {
+        "min": 120,
+        "avg": 180,
+        "max": 225
+      }
+    },
+    {
+      "file": "OLD CODEBASE\\logout.php",
+      "extension": "php",
+      "lines": 15,
+      "non_empty_lines": 11,
+      "estimated_tokens": {
+        "min": 120,
+        "avg": 180,
+        "max": 225
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\dev\\server\\app\\auth\\login\\page.js",
+      "extension": "js",
+      "lines": 14,
+      "non_empty_lines": 14,
+      "estimated_tokens": {
+        "min": 112,
+        "avg": 168,
+        "max": 210
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\dev\\server\\app\\pintuan\\page.js",
+      "extension": "js",
+      "lines": 14,
+      "non_empty_lines": 14,
+      "estimated_tokens": {
+        "min": 112,
+        "avg": 168,
+        "max": 210
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\dev\\static\\chunks\\_a0ff3932._.js",
+      "extension": "js",
+      "lines": 14,
+      "non_empty_lines": 14,
+      "estimated_tokens": {
+        "min": 112,
+        "avg": 168,
+        "max": 210
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\server\\app\\_not-found\\page.js",
+      "extension": "js",
+      "lines": 14,
+      "non_empty_lines": 14,
+      "estimated_tokens": {
+        "min": 112,
+        "avg": 168,
+        "max": 210
+      }
+    },
+    {
+      "file": "agapay-web\\src\\app\\auth\\login\\page.tsx",
+      "extension": "tsx",
+      "lines": 14,
+      "non_empty_lines": 13,
+      "estimated_tokens": {
+        "min": 112,
+        "avg": 168,
+        "max": 210
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\build\\chunks\\[turbopack-node]_transforms_postcss_ts_6920245c._.js",
+      "extension": "js",
+      "lines": 13,
+      "non_empty_lines": 12,
+      "estimated_tokens": {
+        "min": 104,
+        "avg": 156,
+        "max": 195
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\dev\\build\\chunks\\[turbopack-node]_transforms_postcss_ts_6920245c._.js",
+      "extension": "js",
+      "lines": 13,
+      "non_empty_lines": 12,
+      "estimated_tokens": {
+        "min": 104,
+        "avg": 156,
+        "max": 195
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\dev\\server\\app\\api\\auth\\[...nextauth]\\route.js",
+      "extension": "js",
+      "lines": 13,
+      "non_empty_lines": 13,
+      "estimated_tokens": {
+        "min": 104,
+        "avg": 156,
+        "max": 195
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\dev\\static\\chunks\\pages\\_app.js",
+      "extension": "js",
+      "lines": 13,
+      "non_empty_lines": 13,
+      "estimated_tokens": {
+        "min": 104,
+        "avg": 156,
+        "max": 195
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\dev\\static\\chunks\\pages\\_error.js",
+      "extension": "js",
+      "lines": 13,
+      "non_empty_lines": 13,
+      "estimated_tokens": {
+        "min": 104,
+        "avg": 156,
+        "max": 195
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\dev\\static\\chunks\\[turbopack]_browser_dev_hmr-client_hmr-client_ts_956a0d3a._.js",
+      "extension": "js",
+      "lines": 13,
+      "non_empty_lines": 12,
+      "estimated_tokens": {
+        "min": 104,
+        "avg": 156,
+        "max": 195
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\dev\\server\\app\\_not-found\\page.js",
+      "extension": "js",
+      "lines": 12,
+      "non_empty_lines": 12,
+      "estimated_tokens": {
+        "min": 96,
+        "avg": 144,
+        "max": 180
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\dev\\server\\chunks\\node_modules_otplib_dist_index_f700df20.js",
+      "extension": "js",
+      "lines": 12,
+      "non_empty_lines": 11,
+      "estimated_tokens": {
+        "min": 96,
+        "avg": 144,
+        "max": 180
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\dev\\server\\chunks\\ssr\\[root-of-the-server]__03756c06._.js",
+      "extension": "js",
+      "lines": 12,
+      "non_empty_lines": 9,
+      "estimated_tokens": {
+        "min": 96,
+        "avg": 144,
+        "max": 180
+      }
+    },
+    {
+      "file": "OLD CODEBASE\\auth.php",
+      "extension": "php",
+      "lines": 12,
+      "non_empty_lines": 10,
+      "estimated_tokens": {
+        "min": 96,
+        "avg": 144,
+        "max": 180
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\dev\\static\\development\\_buildManifest.js",
+      "extension": "js",
+      "lines": 11,
+      "non_empty_lines": 11,
+      "estimated_tokens": {
+        "min": 88,
+        "avg": 132,
+        "max": 165
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\server\\app\\_global-error\\page.js",
+      "extension": "js",
+      "lines": 11,
+      "non_empty_lines": 11,
+      "estimated_tokens": {
+        "min": 88,
+        "avg": 132,
+        "max": 165
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\static\\F2jZylqXZyq4NVkBeQD69\\_buildManifest.js",
+      "extension": "js",
+      "lines": 11,
+      "non_empty_lines": 11,
+      "estimated_tokens": {
+        "min": 88,
+        "avg": 132,
+        "max": 165
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\dev\\static\\chunks\\src_app_page_tsx_3b4ca911._.js",
+      "extension": "js",
+      "lines": 10,
+      "non_empty_lines": 10,
+      "estimated_tokens": {
+        "min": 80,
+        "avg": 120,
+        "max": 150
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\dev\\static\\chunks\\src_app_page_tsx_d237f0c4._.js",
+      "extension": "js",
+      "lines": 10,
+      "non_empty_lines": 10,
+      "estimated_tokens": {
+        "min": 80,
+        "avg": 120,
+        "max": 150
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\dev\\static\\chunks\\src_app_sibol_page_tsx_3b4ca911._.js",
+      "extension": "js",
+      "lines": 10,
+      "non_empty_lines": 10,
+      "estimated_tokens": {
+        "min": 80,
+        "avg": 120,
+        "max": 150
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\server\\chunks\\ssr\\node_modules_63dba3f8._.js",
+      "extension": "js",
+      "lines": 10,
+      "non_empty_lines": 7,
+      "estimated_tokens": {
+        "min": 80,
+        "avg": 120,
+        "max": 150
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\server\\app\\api\\auth\\[...nextauth]\\route.js",
+      "extension": "js",
+      "lines": 9,
+      "non_empty_lines": 9,
+      "estimated_tokens": {
+        "min": 72,
+        "avg": 108,
+        "max": 135
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\dev\\server\\chunks\\ssr\\[externals]_next_dist_compiled_next-server_app-page-turbo_runtime_dev_062c5159.js",
+      "extension": "js",
+      "lines": 8,
+      "non_empty_lines": 6,
+      "estimated_tokens": {
+        "min": 64,
+        "avg": 96,
+        "max": 120
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\dev\\server\\chunks\\ssr\\[externals]_next_dist_shared_lib_no-fallback-error_external_59b92b38.js",
+      "extension": "js",
+      "lines": 8,
+      "non_empty_lines": 6,
+      "estimated_tokens": {
+        "min": 64,
+        "avg": 96,
+        "max": 120
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\dev\\server\\pages\\_error.js",
+      "extension": "js",
+      "lines": 8,
+      "non_empty_lines": 8,
+      "estimated_tokens": {
+        "min": 64,
+        "avg": 96,
+        "max": 120
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\dev\\static\\chunks\\node_modules_next_app_72f3d36f.js",
+      "extension": "js",
+      "lines": 8,
+      "non_empty_lines": 6,
+      "estimated_tokens": {
+        "min": 64,
+        "avg": 96,
+        "max": 120
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\dev\\static\\chunks\\node_modules_next_error_1cfbb379.js",
+      "extension": "js",
+      "lines": 8,
+      "non_empty_lines": 6,
+      "estimated_tokens": {
+        "min": 64,
+        "avg": 96,
+        "max": 120
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\dev\\static\\chunks\\src_app_auth_login_page_tsx_3b4ca911._.js",
+      "extension": "js",
+      "lines": 8,
+      "non_empty_lines": 8,
+      "estimated_tokens": {
+        "min": 64,
+        "avg": 96,
+        "max": 120
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\dev\\static\\chunks\\src_app_auth_login_page_tsx_d237f0c4._.js",
+      "extension": "js",
+      "lines": 8,
+      "non_empty_lines": 8,
+      "estimated_tokens": {
+        "min": 64,
+        "avg": 96,
+        "max": 120
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\dev\\static\\chunks\\src_app_layout_tsx_1cf6b850._.js",
+      "extension": "js",
+      "lines": 8,
+      "non_empty_lines": 8,
+      "estimated_tokens": {
+        "min": 64,
+        "avg": 96,
+        "max": 120
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\dev\\server\\chunks\\ssr\\_next-internal_server_app_auth_login_page_actions_1786e20a.js",
+      "extension": "js",
+      "lines": 7,
+      "non_empty_lines": 5,
+      "estimated_tokens": {
+        "min": 56,
+        "avg": 84,
+        "max": 105
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\dev\\server\\chunks\\ssr\\_next-internal_server_app_page_actions_39d4fc33.js",
+      "extension": "js",
+      "lines": 7,
+      "non_empty_lines": 5,
+      "estimated_tokens": {
+        "min": 56,
+        "avg": 84,
+        "max": 105
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\dev\\server\\chunks\\ssr\\_next-internal_server_app_pintuan_page_actions_79c5f3a8.js",
+      "extension": "js",
+      "lines": 7,
+      "non_empty_lines": 5,
+      "estimated_tokens": {
+        "min": 56,
+        "avg": 84,
+        "max": 105
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\dev\\server\\chunks\\ssr\\_next-internal_server_app_sibol_page_actions_38970a54.js",
+      "extension": "js",
+      "lines": 7,
+      "non_empty_lines": 5,
+      "estimated_tokens": {
+        "min": 56,
+        "avg": 84,
+        "max": 105
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\dev\\server\\chunks\\ssr\\_next-internal_server_app__not-found_page_actions_554ec2bf.js",
+      "extension": "js",
+      "lines": 7,
+      "non_empty_lines": 5,
+      "estimated_tokens": {
+        "min": 56,
+        "avg": 84,
+        "max": 105
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\dev\\server\\chunks\\_next-internal_server_app_api_auth_[___nextauth]_route_actions_1c865db8.js",
+      "extension": "js",
+      "lines": 7,
+      "non_empty_lines": 5,
+      "estimated_tokens": {
+        "min": 56,
+        "avg": 84,
+        "max": 105
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\dev\\static\\chunks\\src_app_favicon_ico_mjs_81d86e48._.js",
+      "extension": "js",
+      "lines": 7,
+      "non_empty_lines": 7,
+      "estimated_tokens": {
+        "min": 56,
+        "avg": 84,
+        "max": 105
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\dev\\static\\chunks\\src_app_page_tsx_58f1271d._.js",
+      "extension": "js",
+      "lines": 7,
+      "non_empty_lines": 7,
+      "estimated_tokens": {
+        "min": 56,
+        "avg": 84,
+        "max": 105
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\dev\\static\\chunks\\[turbopack]_browser_dev_hmr-client_hmr-client_ts_c7192189._.js",
+      "extension": "js",
+      "lines": 7,
+      "non_empty_lines": 7,
+      "estimated_tokens": {
+        "min": 56,
+        "avg": 84,
+        "max": 105
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\server\\app\\favicon.ico\\route.js",
+      "extension": "js",
+      "lines": 7,
+      "non_empty_lines": 7,
+      "estimated_tokens": {
+        "min": 56,
+        "avg": 84,
+        "max": 105
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\server\\chunks\\ssr\\_bac8be79._.js",
+      "extension": "js",
+      "lines": 7,
+      "non_empty_lines": 4,
+      "estimated_tokens": {
+        "min": 56,
+        "avg": 84,
+        "max": 105
+      }
+    },
+    {
+      "file": "agapay-web\\next.config.ts",
+      "extension": "ts",
+      "lines": 7,
+      "non_empty_lines": 5,
+      "estimated_tokens": {
+        "min": 56,
+        "avg": 84,
+        "max": 105
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\build\\postcss.js",
+      "extension": "js",
+      "lines": 6,
+      "non_empty_lines": 6,
+      "estimated_tokens": {
+        "min": 48,
+        "avg": 72,
+        "max": 90
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\dev\\build\\postcss.js",
+      "extension": "js",
+      "lines": 6,
+      "non_empty_lines": 6,
+      "estimated_tokens": {
+        "min": 48,
+        "avg": 72,
+        "max": 90
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\server\\chunks\\ssr\\node_modules_next_dist_esm_eedfc1fd._.js",
+      "extension": "js",
+      "lines": 6,
+      "non_empty_lines": 5,
+      "estimated_tokens": {
+        "min": 48,
+        "avg": 72,
+        "max": 90
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\server\\chunks\\ssr\\_774c0670._.js",
+      "extension": "js",
+      "lines": 6,
+      "non_empty_lines": 5,
+      "estimated_tokens": {
+        "min": 48,
+        "avg": 72,
+        "max": 90
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\server\\edge\\chunks\\turbopack-node_modules_next_dist_esm_build_templates_edge-wrapper_43264f4b.js",
+      "extension": "js",
+      "lines": 6,
+      "non_empty_lines": 5,
+      "estimated_tokens": {
+        "min": 48,
+        "avg": 72,
+        "max": 90
+      }
+    },
+    {
+      "file": "agapay-web\\next-env.d.ts",
+      "extension": "ts",
+      "lines": 6,
+      "non_empty_lines": 5,
+      "estimated_tokens": {
+        "min": 48,
+        "avg": 72,
+        "max": 90
+      }
+    },
+    {
+      "file": "agapay-web\\src\\lib\\utils.ts",
+      "extension": "ts",
+      "lines": 6,
+      "non_empty_lines": 5,
+      "estimated_tokens": {
+        "min": 48,
+        "avg": 72,
+        "max": 90
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\dev\\server\\pages\\_document.js",
+      "extension": "js",
+      "lines": 5,
+      "non_empty_lines": 5,
+      "estimated_tokens": {
+        "min": 40,
+        "avg": 60,
+        "max": 75
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\dev\\static\\chunks\\node_modules_next_dist_client_components_builtin_global-error_1cf6b850.js",
+      "extension": "js",
+      "lines": 5,
+      "non_empty_lines": 5,
+      "estimated_tokens": {
+        "min": 40,
+        "avg": 60,
+        "max": 75
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\static\\chunks\\5b027171cd78791b.js",
+      "extension": "js",
+      "lines": 5,
+      "non_empty_lines": 3,
+      "estimated_tokens": {
+        "min": 40,
+        "avg": 60,
+        "max": 75
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\static\\chunks\\e2967e6565dbadce.js",
+      "extension": "js",
+      "lines": 5,
+      "non_empty_lines": 5,
+      "estimated_tokens": {
+        "min": 40,
+        "avg": 60,
+        "max": 75
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\dev\\server\\pages\\_app.js",
+      "extension": "js",
+      "lines": 4,
+      "non_empty_lines": 4,
+      "estimated_tokens": {
+        "min": 32,
+        "avg": 48,
+        "max": 60
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\server\\chunks\\ssr\\node_modules_next_dist_12287b3d._.js",
+      "extension": "js",
+      "lines": 4,
+      "non_empty_lines": 3,
+      "estimated_tokens": {
+        "min": 32,
+        "avg": 48,
+        "max": 60
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\server\\chunks\\ssr\\node_modules_next_dist_esm_build_templates_app-page_68c68167.js",
+      "extension": "js",
+      "lines": 4,
+      "non_empty_lines": 3,
+      "estimated_tokens": {
+        "min": 32,
+        "avg": 48,
+        "max": 60
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\server\\chunks\\ssr\\[root-of-the-server]__b9356576._.js",
+      "extension": "js",
+      "lines": 4,
+      "non_empty_lines": 3,
+      "estimated_tokens": {
+        "min": 32,
+        "avg": 48,
+        "max": 60
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\server\\chunks\\ssr\\_059a1e9a._.js",
+      "extension": "js",
+      "lines": 4,
+      "non_empty_lines": 3,
+      "estimated_tokens": {
+        "min": 32,
+        "avg": 48,
+        "max": 60
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\server\\chunks\\ssr\\_06cda788._.js",
+      "extension": "js",
+      "lines": 4,
+      "non_empty_lines": 3,
+      "estimated_tokens": {
+        "min": 32,
+        "avg": 48,
+        "max": 60
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\server\\chunks\\ssr\\_16c181e8._.js",
+      "extension": "js",
+      "lines": 4,
+      "non_empty_lines": 3,
+      "estimated_tokens": {
+        "min": 32,
+        "avg": 48,
+        "max": 60
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\server\\chunks\\ssr\\_1f5792de._.js",
+      "extension": "js",
+      "lines": 4,
+      "non_empty_lines": 3,
+      "estimated_tokens": {
+        "min": 32,
+        "avg": 48,
+        "max": 60
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\server\\chunks\\ssr\\_25e6aab8._.js",
+      "extension": "js",
+      "lines": 4,
+      "non_empty_lines": 3,
+      "estimated_tokens": {
+        "min": 32,
+        "avg": 48,
+        "max": 60
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\server\\chunks\\ssr\\_90558f01._.js",
+      "extension": "js",
+      "lines": 4,
+      "non_empty_lines": 3,
+      "estimated_tokens": {
+        "min": 32,
+        "avg": 48,
+        "max": 60
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\server\\chunks\\_e8d17c2f._.js",
+      "extension": "js",
+      "lines": 4,
+      "non_empty_lines": 3,
+      "estimated_tokens": {
+        "min": 32,
+        "avg": 48,
+        "max": 60
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\static\\chunks\\turbopack-1abb868a90474b70.js",
+      "extension": "js",
+      "lines": 4,
+      "non_empty_lines": 4,
+      "estimated_tokens": {
+        "min": 32,
+        "avg": 48,
+        "max": 60
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\server\\chunks\\node_modules_next_dist_esm_build_templates_app-route_f5680d9e.js",
+      "extension": "js",
+      "lines": 3,
+      "non_empty_lines": 2,
+      "estimated_tokens": {
+        "min": 24,
+        "avg": 36,
+        "max": 45
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\server\\chunks\\node_modules_otplib_dist_index_aaae667d.js",
+      "extension": "js",
+      "lines": 3,
+      "non_empty_lines": 2,
+      "estimated_tokens": {
+        "min": 24,
+        "avg": 36,
+        "max": 45
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\server\\chunks\\ssr\\node_modules_d61f42a1._.js",
+      "extension": "js",
+      "lines": 3,
+      "non_empty_lines": 2,
+      "estimated_tokens": {
+        "min": 24,
+        "avg": 36,
+        "max": 45
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\server\\chunks\\ssr\\node_modules_next_dist_70ed294b._.js",
+      "extension": "js",
+      "lines": 3,
+      "non_empty_lines": 2,
+      "estimated_tokens": {
+        "min": 24,
+        "avg": 36,
+        "max": 45
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\server\\chunks\\ssr\\node_modules_next_dist_client_components_9774470f._.js",
+      "extension": "js",
+      "lines": 3,
+      "non_empty_lines": 2,
+      "estimated_tokens": {
+        "min": 24,
+        "avg": 36,
+        "max": 45
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\server\\chunks\\ssr\\node_modules_next_dist_client_components_builtin_forbidden_45780354.js",
+      "extension": "js",
+      "lines": 3,
+      "non_empty_lines": 2,
+      "estimated_tokens": {
+        "min": 24,
+        "avg": 36,
+        "max": 45
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\server\\chunks\\ssr\\node_modules_next_dist_client_components_builtin_global-error_ece394eb.js",
+      "extension": "js",
+      "lines": 3,
+      "non_empty_lines": 2,
+      "estimated_tokens": {
+        "min": 24,
+        "avg": 36,
+        "max": 45
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\server\\chunks\\ssr\\node_modules_next_dist_client_components_builtin_unauthorized_15817684.js",
+      "extension": "js",
+      "lines": 3,
+      "non_empty_lines": 2,
+      "estimated_tokens": {
+        "min": 24,
+        "avg": 36,
+        "max": 45
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\server\\chunks\\ssr\\node_modules_sonner_dist_index_mjs_1addfdea._.js",
+      "extension": "js",
+      "lines": 3,
+      "non_empty_lines": 2,
+      "estimated_tokens": {
+        "min": 24,
+        "avg": 36,
+        "max": 45
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\server\\chunks\\ssr\\src_app_5b2047f8._.js",
+      "extension": "js",
+      "lines": 3,
+      "non_empty_lines": 2,
+      "estimated_tokens": {
+        "min": 24,
+        "avg": 36,
+        "max": 45
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\server\\chunks\\ssr\\[root-of-the-server]__15600e29._.js",
+      "extension": "js",
+      "lines": 3,
+      "non_empty_lines": 2,
+      "estimated_tokens": {
+        "min": 24,
+        "avg": 36,
+        "max": 45
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\server\\chunks\\ssr\\[root-of-the-server]__1d183d5c._.js",
+      "extension": "js",
+      "lines": 3,
+      "non_empty_lines": 2,
+      "estimated_tokens": {
+        "min": 24,
+        "avg": 36,
+        "max": 45
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\server\\chunks\\ssr\\[root-of-the-server]__1e6ab1fe._.js",
+      "extension": "js",
+      "lines": 3,
+      "non_empty_lines": 2,
+      "estimated_tokens": {
+        "min": 24,
+        "avg": 36,
+        "max": 45
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\server\\chunks\\ssr\\[root-of-the-server]__26899a6f._.js",
+      "extension": "js",
+      "lines": 3,
+      "non_empty_lines": 2,
+      "estimated_tokens": {
+        "min": 24,
+        "avg": 36,
+        "max": 45
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\server\\chunks\\ssr\\[root-of-the-server]__2c73f2b4._.js",
+      "extension": "js",
+      "lines": 3,
+      "non_empty_lines": 2,
+      "estimated_tokens": {
+        "min": 24,
+        "avg": 36,
+        "max": 45
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\server\\chunks\\ssr\\[root-of-the-server]__2e007cb3._.js",
+      "extension": "js",
+      "lines": 3,
+      "non_empty_lines": 2,
+      "estimated_tokens": {
+        "min": 24,
+        "avg": 36,
+        "max": 45
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\server\\chunks\\ssr\\[root-of-the-server]__2e67cc54._.js",
+      "extension": "js",
+      "lines": 3,
+      "non_empty_lines": 2,
+      "estimated_tokens": {
+        "min": 24,
+        "avg": 36,
+        "max": 45
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\server\\chunks\\ssr\\[root-of-the-server]__41bf78d4._.js",
+      "extension": "js",
+      "lines": 3,
+      "non_empty_lines": 2,
+      "estimated_tokens": {
+        "min": 24,
+        "avg": 36,
+        "max": 45
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\server\\chunks\\ssr\\[root-of-the-server]__47da1700._.js",
+      "extension": "js",
+      "lines": 3,
+      "non_empty_lines": 2,
+      "estimated_tokens": {
+        "min": 24,
+        "avg": 36,
+        "max": 45
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\server\\chunks\\ssr\\[root-of-the-server]__6e48e811._.js",
+      "extension": "js",
+      "lines": 3,
+      "non_empty_lines": 2,
+      "estimated_tokens": {
+        "min": 24,
+        "avg": 36,
+        "max": 45
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\server\\chunks\\ssr\\[root-of-the-server]__70499c0d._.js",
+      "extension": "js",
+      "lines": 3,
+      "non_empty_lines": 2,
+      "estimated_tokens": {
+        "min": 24,
+        "avg": 36,
+        "max": 45
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\server\\chunks\\ssr\\[root-of-the-server]__a457c799._.js",
+      "extension": "js",
+      "lines": 3,
+      "non_empty_lines": 2,
+      "estimated_tokens": {
+        "min": 24,
+        "avg": 36,
+        "max": 45
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\server\\chunks\\ssr\\[root-of-the-server]__ac7e805c._.js",
+      "extension": "js",
+      "lines": 3,
+      "non_empty_lines": 2,
+      "estimated_tokens": {
+        "min": 24,
+        "avg": 36,
+        "max": 45
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\server\\chunks\\ssr\\[root-of-the-server]__b19a1d45._.js",
+      "extension": "js",
+      "lines": 3,
+      "non_empty_lines": 2,
+      "estimated_tokens": {
+        "min": 24,
+        "avg": 36,
+        "max": 45
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\server\\chunks\\ssr\\[root-of-the-server]__deab4b44._.js",
+      "extension": "js",
+      "lines": 3,
+      "non_empty_lines": 2,
+      "estimated_tokens": {
+        "min": 24,
+        "avg": 36,
+        "max": 45
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\server\\chunks\\ssr\\[root-of-the-server]__e6a73af8._.js",
+      "extension": "js",
+      "lines": 3,
+      "non_empty_lines": 2,
+      "estimated_tokens": {
+        "min": 24,
+        "avg": 36,
+        "max": 45
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\server\\chunks\\ssr\\[root-of-the-server]__e710d8f9._.js",
+      "extension": "js",
+      "lines": 3,
+      "non_empty_lines": 2,
+      "estimated_tokens": {
+        "min": 24,
+        "avg": 36,
+        "max": 45
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\server\\chunks\\ssr\\[root-of-the-server]__f437da88._.js",
+      "extension": "js",
+      "lines": 3,
+      "non_empty_lines": 2,
+      "estimated_tokens": {
+        "min": 24,
+        "avg": 36,
+        "max": 45
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\server\\chunks\\ssr\\_0efddc1b._.js",
+      "extension": "js",
+      "lines": 3,
+      "non_empty_lines": 2,
+      "estimated_tokens": {
+        "min": 24,
+        "avg": 36,
+        "max": 45
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\server\\chunks\\ssr\\_3f9d2bc4._.js",
+      "extension": "js",
+      "lines": 3,
+      "non_empty_lines": 2,
+      "estimated_tokens": {
+        "min": 24,
+        "avg": 36,
+        "max": 45
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\server\\chunks\\ssr\\_ace9cf6c._.js",
+      "extension": "js",
+      "lines": 3,
+      "non_empty_lines": 2,
+      "estimated_tokens": {
+        "min": 24,
+        "avg": 36,
+        "max": 45
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\server\\chunks\\ssr\\_next-internal_server_app_auth_login_page_actions_1786e20a.js",
+      "extension": "js",
+      "lines": 3,
+      "non_empty_lines": 2,
+      "estimated_tokens": {
+        "min": 24,
+        "avg": 36,
+        "max": 45
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\server\\chunks\\ssr\\_next-internal_server_app_auth_register_page_actions_461674e2.js",
+      "extension": "js",
+      "lines": 3,
+      "non_empty_lines": 2,
+      "estimated_tokens": {
+        "min": 24,
+        "avg": 36,
+        "max": 45
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\server\\chunks\\ssr\\_next-internal_server_app_pintuan_page_actions_79c5f3a8.js",
+      "extension": "js",
+      "lines": 3,
+      "non_empty_lines": 2,
+      "estimated_tokens": {
+        "min": 24,
+        "avg": 36,
+        "max": 45
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\server\\chunks\\ssr\\_next-internal_server_app_sibol_page_actions_38970a54.js",
+      "extension": "js",
+      "lines": 3,
+      "non_empty_lines": 2,
+      "estimated_tokens": {
+        "min": 24,
+        "avg": 36,
+        "max": 45
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\server\\chunks\\ssr\\_next-internal_server_app__global-error_page_actions_75761787.js",
+      "extension": "js",
+      "lines": 3,
+      "non_empty_lines": 2,
+      "estimated_tokens": {
+        "min": 24,
+        "avg": 36,
+        "max": 45
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\server\\chunks\\ssr\\_next-internal_server_app__not-found_page_actions_554ec2bf.js",
+      "extension": "js",
+      "lines": 3,
+      "non_empty_lines": 2,
+      "estimated_tokens": {
+        "min": 24,
+        "avg": 36,
+        "max": 45
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\server\\chunks\\[root-of-the-server]__32353857._.js",
+      "extension": "js",
+      "lines": 3,
+      "non_empty_lines": 2,
+      "estimated_tokens": {
+        "min": 24,
+        "avg": 36,
+        "max": 45
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\server\\chunks\\[root-of-the-server]__69dc0310._.js",
+      "extension": "js",
+      "lines": 3,
+      "non_empty_lines": 2,
+      "estimated_tokens": {
+        "min": 24,
+        "avg": 36,
+        "max": 45
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\server\\chunks\\[root-of-the-server]__ab4ad230._.js",
+      "extension": "js",
+      "lines": 3,
+      "non_empty_lines": 2,
+      "estimated_tokens": {
+        "min": 24,
+        "avg": 36,
+        "max": 45
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\server\\chunks\\[root-of-the-server]__b19a1d45._.js",
+      "extension": "js",
+      "lines": 3,
+      "non_empty_lines": 2,
+      "estimated_tokens": {
+        "min": 24,
+        "avg": 36,
+        "max": 45
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\server\\chunks\\[root-of-the-server]__c6642f9d._.js",
+      "extension": "js",
+      "lines": 3,
+      "non_empty_lines": 2,
+      "estimated_tokens": {
+        "min": 24,
+        "avg": 36,
+        "max": 45
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\server\\chunks\\_next-internal_server_app_api_auth_[___nextauth]_route_actions_1c865db8.js",
+      "extension": "js",
+      "lines": 3,
+      "non_empty_lines": 2,
+      "estimated_tokens": {
+        "min": 24,
+        "avg": 36,
+        "max": 45
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\server\\chunks\\_next-internal_server_app_favicon_ico_route_actions_353150a5.js",
+      "extension": "js",
+      "lines": 3,
+      "non_empty_lines": 2,
+      "estimated_tokens": {
+        "min": 24,
+        "avg": 36,
+        "max": 45
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\server\\edge\\chunks\\node_modules_next_dist_esm_build_templates_edge-wrapper_78fa9d6a.js",
+      "extension": "js",
+      "lines": 3,
+      "non_empty_lines": 2,
+      "estimated_tokens": {
+        "min": 24,
+        "avg": 36,
+        "max": 45
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\static\\chunks\\825090f95a7b50da.css",
+      "extension": "css",
+      "lines": 3,
+      "non_empty_lines": 3,
+      "estimated_tokens": {
+        "min": 24,
+        "avg": 36,
+        "max": 45
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\dev\\server\\app\\api\\auth\\[...nextauth]\\route_client-reference-manifest.js",
+      "extension": "js",
+      "lines": 2,
+      "non_empty_lines": 2,
+      "estimated_tokens": {
+        "min": 16,
+        "avg": 24,
+        "max": 30
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\dev\\server\\app\\auth\\login\\page_client-reference-manifest.js",
+      "extension": "js",
+      "lines": 2,
+      "non_empty_lines": 2,
+      "estimated_tokens": {
+        "min": 16,
+        "avg": 24,
+        "max": 30
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\dev\\server\\app\\page_client-reference-manifest.js",
+      "extension": "js",
+      "lines": 2,
+      "non_empty_lines": 2,
+      "estimated_tokens": {
+        "min": 16,
+        "avg": 24,
+        "max": 30
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\dev\\server\\app\\pintuan\\page_client-reference-manifest.js",
+      "extension": "js",
+      "lines": 2,
+      "non_empty_lines": 2,
+      "estimated_tokens": {
+        "min": 16,
+        "avg": 24,
+        "max": 30
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\dev\\server\\app\\sibol\\page_client-reference-manifest.js",
+      "extension": "js",
+      "lines": 2,
+      "non_empty_lines": 2,
+      "estimated_tokens": {
+        "min": 16,
+        "avg": 24,
+        "max": 30
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\dev\\server\\app\\_not-found\\page_client-reference-manifest.js",
+      "extension": "js",
+      "lines": 2,
+      "non_empty_lines": 2,
+      "estimated_tokens": {
+        "min": 16,
+        "avg": 24,
+        "max": 30
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\server\\app\\api\\auth\\[...nextauth]\\route_client-reference-manifest.js",
+      "extension": "js",
+      "lines": 2,
+      "non_empty_lines": 2,
+      "estimated_tokens": {
+        "min": 16,
+        "avg": 24,
+        "max": 30
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\server\\app\\auth\\login\\page_client-reference-manifest.js",
+      "extension": "js",
+      "lines": 2,
+      "non_empty_lines": 2,
+      "estimated_tokens": {
+        "min": 16,
+        "avg": 24,
+        "max": 30
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\server\\app\\auth\\new-verification\\page_client-reference-manifest.js",
+      "extension": "js",
+      "lines": 2,
+      "non_empty_lines": 2,
+      "estimated_tokens": {
+        "min": 16,
+        "avg": 24,
+        "max": 30
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\server\\app\\auth\\register\\page_client-reference-manifest.js",
+      "extension": "js",
+      "lines": 2,
+      "non_empty_lines": 2,
+      "estimated_tokens": {
+        "min": 16,
+        "avg": 24,
+        "max": 30
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\server\\app\\page_client-reference-manifest.js",
+      "extension": "js",
+      "lines": 2,
+      "non_empty_lines": 2,
+      "estimated_tokens": {
+        "min": 16,
+        "avg": 24,
+        "max": 30
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\server\\app\\pintuan\\page_client-reference-manifest.js",
+      "extension": "js",
+      "lines": 2,
+      "non_empty_lines": 2,
+      "estimated_tokens": {
+        "min": 16,
+        "avg": 24,
+        "max": 30
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\server\\app\\sibol\\page_client-reference-manifest.js",
+      "extension": "js",
+      "lines": 2,
+      "non_empty_lines": 2,
+      "estimated_tokens": {
+        "min": 16,
+        "avg": 24,
+        "max": 30
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\server\\app\\_global-error\\page_client-reference-manifest.js",
+      "extension": "js",
+      "lines": 2,
+      "non_empty_lines": 2,
+      "estimated_tokens": {
+        "min": 16,
+        "avg": 24,
+        "max": 30
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\server\\app\\_global-error.html",
+      "extension": "html",
+      "lines": 2,
+      "non_empty_lines": 2,
+      "estimated_tokens": {
+        "min": 16,
+        "avg": 24,
+        "max": 30
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\server\\app\\_not-found\\page_client-reference-manifest.js",
+      "extension": "js",
+      "lines": 2,
+      "non_empty_lines": 2,
+      "estimated_tokens": {
+        "min": 16,
+        "avg": 24,
+        "max": 30
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\server\\pages\\500.html",
+      "extension": "html",
+      "lines": 2,
+      "non_empty_lines": 2,
+      "estimated_tokens": {
+        "min": 16,
+        "avg": 24,
+        "max": 30
+      }
+    },
+    {
+      "file": "agapay-web\\src\\app\\api\\auth\\[...nextauth]\\route.ts",
+      "extension": "ts",
+      "lines": 2,
+      "non_empty_lines": 2,
+      "estimated_tokens": {
+        "min": 16,
+        "avg": 24,
+        "max": 30
+      }
+    },
+    {
+      "file": "OLD CODEBASE\\hash.php",
+      "extension": "php",
+      "lines": 2,
+      "non_empty_lines": 2,
+      "estimated_tokens": {
+        "min": 16,
+        "avg": 24,
+        "max": 30
+      }
+    },
+    {
+      "file": "OLD CODEBASE\\hello.php",
+      "extension": "php",
+      "lines": 2,
+      "non_empty_lines": 2,
+      "estimated_tokens": {
+        "min": 16,
+        "avg": 24,
+        "max": 30
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\dev\\server\\interception-route-rewrite-manifest.js",
+      "extension": "js",
+      "lines": 1,
+      "non_empty_lines": 1,
+      "estimated_tokens": {
+        "min": 8,
+        "avg": 12,
+        "max": 15
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\dev\\server\\next-font-manifest.js",
+      "extension": "js",
+      "lines": 1,
+      "non_empty_lines": 1,
+      "estimated_tokens": {
+        "min": 8,
+        "avg": 12,
+        "max": 15
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\dev\\server\\server-reference-manifest.js",
+      "extension": "js",
+      "lines": 1,
+      "non_empty_lines": 1,
+      "estimated_tokens": {
+        "min": 8,
+        "avg": 12,
+        "max": 15
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\dev\\static\\chunks\\node_modules_next_dist_build_polyfills_polyfill-nomodule.js",
+      "extension": "js",
+      "lines": 1,
+      "non_empty_lines": 1,
+      "estimated_tokens": {
+        "min": 8,
+        "avg": 12,
+        "max": 15
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\dev\\static\\development\\_ssgManifest.js",
+      "extension": "js",
+      "lines": 1,
+      "non_empty_lines": 1,
+      "estimated_tokens": {
+        "min": 8,
+        "avg": 12,
+        "max": 15
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\server\\app\\auth\\login.html",
+      "extension": "html",
+      "lines": 1,
+      "non_empty_lines": 1,
+      "estimated_tokens": {
+        "min": 8,
+        "avg": 12,
+        "max": 15
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\server\\app\\auth\\new-verification.html",
+      "extension": "html",
+      "lines": 1,
+      "non_empty_lines": 1,
+      "estimated_tokens": {
+        "min": 8,
+        "avg": 12,
+        "max": 15
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\server\\app\\auth\\register.html",
+      "extension": "html",
+      "lines": 1,
+      "non_empty_lines": 1,
+      "estimated_tokens": {
+        "min": 8,
+        "avg": 12,
+        "max": 15
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\server\\app\\index.html",
+      "extension": "html",
+      "lines": 1,
+      "non_empty_lines": 1,
+      "estimated_tokens": {
+        "min": 8,
+        "avg": 12,
+        "max": 15
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\server\\app\\pintuan.html",
+      "extension": "html",
+      "lines": 1,
+      "non_empty_lines": 1,
+      "estimated_tokens": {
+        "min": 8,
+        "avg": 12,
+        "max": 15
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\server\\app\\sibol.html",
+      "extension": "html",
+      "lines": 1,
+      "non_empty_lines": 1,
+      "estimated_tokens": {
+        "min": 8,
+        "avg": 12,
+        "max": 15
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\server\\app\\_not-found.html",
+      "extension": "html",
+      "lines": 1,
+      "non_empty_lines": 1,
+      "estimated_tokens": {
+        "min": 8,
+        "avg": 12,
+        "max": 15
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\server\\interception-route-rewrite-manifest.js",
+      "extension": "js",
+      "lines": 1,
+      "non_empty_lines": 1,
+      "estimated_tokens": {
+        "min": 8,
+        "avg": 12,
+        "max": 15
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\server\\next-font-manifest.js",
+      "extension": "js",
+      "lines": 1,
+      "non_empty_lines": 1,
+      "estimated_tokens": {
+        "min": 8,
+        "avg": 12,
+        "max": 15
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\server\\pages\\404.html",
+      "extension": "html",
+      "lines": 1,
+      "non_empty_lines": 1,
+      "estimated_tokens": {
+        "min": 8,
+        "avg": 12,
+        "max": 15
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\server\\server-reference-manifest.js",
+      "extension": "js",
+      "lines": 1,
+      "non_empty_lines": 1,
+      "estimated_tokens": {
+        "min": 8,
+        "avg": 12,
+        "max": 15
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\static\\chunks\\5877ed32a2e45ff5.js",
+      "extension": "js",
+      "lines": 1,
+      "non_empty_lines": 1,
+      "estimated_tokens": {
+        "min": 8,
+        "avg": 12,
+        "max": 15
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\static\\chunks\\6fc2f8ee3fef7103.js",
+      "extension": "js",
+      "lines": 1,
+      "non_empty_lines": 1,
+      "estimated_tokens": {
+        "min": 8,
+        "avg": 12,
+        "max": 15
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\static\\chunks\\7eae9326428a7e96.js",
+      "extension": "js",
+      "lines": 1,
+      "non_empty_lines": 1,
+      "estimated_tokens": {
+        "min": 8,
+        "avg": 12,
+        "max": 15
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\static\\chunks\\982c91891661898c.js",
+      "extension": "js",
+      "lines": 1,
+      "non_empty_lines": 1,
+      "estimated_tokens": {
+        "min": 8,
+        "avg": 12,
+        "max": 15
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\static\\chunks\\a2bfe1322977c853.js",
+      "extension": "js",
+      "lines": 1,
+      "non_empty_lines": 1,
+      "estimated_tokens": {
+        "min": 8,
+        "avg": 12,
+        "max": 15
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\static\\chunks\\a6dad97d9634a72d.js",
+      "extension": "js",
+      "lines": 1,
+      "non_empty_lines": 1,
+      "estimated_tokens": {
+        "min": 8,
+        "avg": 12,
+        "max": 15
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\static\\chunks\\b2bbe27c70aa2efd.js",
+      "extension": "js",
+      "lines": 1,
+      "non_empty_lines": 1,
+      "estimated_tokens": {
+        "min": 8,
+        "avg": 12,
+        "max": 15
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\static\\chunks\\cff38cd4aa4b40f2.js",
+      "extension": "js",
+      "lines": 1,
+      "non_empty_lines": 1,
+      "estimated_tokens": {
+        "min": 8,
+        "avg": 12,
+        "max": 15
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\static\\chunks\\d2be314c3ece3fbe.js",
+      "extension": "js",
+      "lines": 1,
+      "non_empty_lines": 1,
+      "estimated_tokens": {
+        "min": 8,
+        "avg": 12,
+        "max": 15
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\static\\chunks\\f2f58a7e93290fbb.js",
+      "extension": "js",
+      "lines": 1,
+      "non_empty_lines": 1,
+      "estimated_tokens": {
+        "min": 8,
+        "avg": 12,
+        "max": 15
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\static\\chunks\\fb937427008bd9ee.js",
+      "extension": "js",
+      "lines": 1,
+      "non_empty_lines": 1,
+      "estimated_tokens": {
+        "min": 8,
+        "avg": 12,
+        "max": 15
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\static\\chunks\\ff1a16fafef87110.js",
+      "extension": "js",
+      "lines": 1,
+      "non_empty_lines": 1,
+      "estimated_tokens": {
+        "min": 8,
+        "avg": 12,
+        "max": 15
+      }
+    },
+    {
+      "file": "agapay-web\\.next\\static\\F2jZylqXZyq4NVkBeQD69\\_ssgManifest.js",
+      "extension": "js",
+      "lines": 1,
+      "non_empty_lines": 1,
+      "estimated_tokens": {
+        "min": 8,
+        "avg": 12,
+        "max": 15
+      }
+    }
+  ]
+}

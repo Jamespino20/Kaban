@@ -129,7 +129,7 @@ export async function getEndOfDayReconciliation(
       },
     };
   };
-  return await prisma.$withTenant(tenantId!, async (tx) => {
+  return await prisma.$withTenant(tenantId!, async (tx: any) => {
     return await queryFn(tx);
   });
 }
@@ -142,7 +142,7 @@ export async function resolveAndSignEndOfDay(reason?: string) {
     throw new Error("EOD sign-off requires a tenant context.");
   }
 
-  return await prisma.$withTenant(tenantId, async (tx) => {
+  return await prisma.$withTenant(tenantId, async (tx: any) => {
     const eodData = await getEndOfDayReconciliation(undefined, tenantId);
 
     // If healthy and balanced, we just sign off.

@@ -22,13 +22,12 @@ const FEATURE_CARDS = [
   },
 ];
 
-export default async function TenantIndexPage({
-  params,
-  searchParams,
-}: {
-  params: { tenant: string };
-  searchParams: { preview?: string };
+export default async function TenantIndexPage(props: {
+  params: Promise<{ tenant: string }>;
+  searchParams: Promise<{ preview?: string }>;
 }) {
+  const params = await props.params;
+  const searchParams = await props.searchParams;
   const { tenant } = params;
   const isPreview = searchParams.preview === "true";
   const session = await auth();

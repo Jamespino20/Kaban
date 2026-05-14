@@ -457,7 +457,7 @@ export function WalletTab({ savings, transactions }: WalletTabProps) {
         <CardContent className="p-4">
           <div className="space-y-3">
             {transactions.length > 0 ? (
-              transactions.map((tx) => {
+              transactions.map((tx: any) => {
                 const tone = getTransactionTone(tx.transaction_type);
 
                 return (

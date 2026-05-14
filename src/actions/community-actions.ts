@@ -94,7 +94,9 @@ async function assertConversationAccess(
     });
 
     if (!conversation) {
-      throw new Error(`Conversation not found for conversation ID: ${conversationId}.`);
+      throw new Error(
+        `Conversation not found for conversation ID: ${conversationId}.`,
+      );
     }
 
     const sameTenant =
@@ -104,20 +106,28 @@ async function assertConversationAccess(
         : session.user.tenantId === conversation.tenant_id;
 
     if (!sameTenant) {
-       throw new Error("Unauthorized: User does not belong to tenant of conversation " + conversationId + ".");
+      throw new Error(
+        "Unauthorized: User does not belong to tenant of conversation " +
+          conversationId +
+          ".",
+      );
     }
 
     if (
       conversation.type === ConversationType.direct &&
       conversation.participants.length === 0
     ) {
-       throw new Error("Unauthorized: User is not a participant of direct conversation " + conversationId + ".");
+      throw new Error(
+        "Unauthorized: User is not a participant of direct conversation " +
+          conversationId +
+          ".",
+      );
     }
 
     return conversation;
   };
 
-  return await prisma.$withTenant(tenantId || -1, async (tx) => {
+  return await prisma.$withTenant(tenantId || -1, async (tx: any) => {
     return await query(tx);
   });
 }
@@ -145,7 +155,7 @@ export async function getCommunityDashboardData() {
     };
   }
 
-  return await prisma.$withTenant(tenantId, async (tx) => {
+  return await prisma.$withTenant(tenantId, async (tx: any) => {
     await ensureTenantRooms(tenantId, session.user.user_id, tx);
 
     const [
@@ -470,7 +480,7 @@ export async function getCommunityStaffSummary() {
     };
   };
 
-  return await prisma.$withTenant(tenantId || -1, async (tx) => {
+  return await prisma.$withTenant(tenantId || -1, async (tx: any) => {
     return await query(tx);
   });
 }
@@ -538,7 +548,9 @@ export async function getConversationThread(
     });
 
     if (!thread) {
-       throw new Error("Conversation thread not found for ID: " + conversationId + ".");
+      throw new Error(
+        "Conversation thread not found for ID: " + conversationId + ".",
+      );
     }
 
     return {
@@ -587,7 +599,7 @@ export async function getConversationThread(
     };
   };
 
-  return await prisma.$withTenant(tenantId || -1, async (tx) => {
+  return await prisma.$withTenant(tenantId || -1, async (tx: any) => {
     return await query(tx);
   });
 }
@@ -603,7 +615,7 @@ export async function openDirectConversation(targetUserId: number) {
     return { error: "You cannot send a message to yourself." };
   }
 
-  return await prisma.$withTenant(tenantId, async (tx) => {
+  return await prisma.$withTenant(tenantId, async (tx: any) => {
     const target = await tx.user.findFirst({
       where: { user_id: targetUserId },
     });
@@ -677,7 +689,7 @@ export async function sendConversationMessage(input: {
     return { error: "Please select a tenant before sending a message." };
   }
 
-  const result = await prisma.$withTenant(resolvedTenantId, async (tx) => {
+  const result = await prisma.$withTenant(resolvedTenantId, async (tx: any) => {
     const message = await tx.message.create({
       data: {
         tenant_id: resolvedTenantId,
@@ -729,7 +741,7 @@ export async function createGroupConversation(input: {
     return { error: "A group chat requires at least 3 participants." };
   }
 
-  return await prisma.$withTenant(tenantId, async (tx) => {
+  return await prisma.$withTenant(tenantId, async (tx: any) => {
     const validMembers = await tx.user.findMany({
       where: { user_id: { in: allParticipantIds } },
       select: { user_id: true },
@@ -778,13 +790,15 @@ export async function requestMentorship(input: {
   }
 
   try {
-    await prisma.$withTenant(tenantId, async (tx) => {
+    await prisma.$withTenant(tenantId, async (tx: any) => {
       const mentor = await tx.user.findFirst({
         where: { user_id: input.mentorUserId },
       });
 
       if (!mentor) {
-        throw new Error(`Mentor with user ID ${input.mentorUserId} not found or not available in tenant.`);
+        throw new Error(
+          `Mentor with user ID ${input.mentorUserId} not found or not available in tenant.`,
+        );
       }
 
       await tx.mentorshipConnection.upsert({
@@ -853,14 +867,20 @@ export async function reviewMentorshipConnection(input: {
       });
 
       if (!connection) {
-        throw new Error(`Mentorship request not found for connection ID: ${input.connectionId}.`);
+        throw new Error(
+          `Mentorship request not found for connection ID: ${input.connectionId}.`,
+        );
       }
 
       if (
         !canAccessTenantStaffResource(session, connection.tenant_id) &&
         session.user.role !== "superadmin"
       ) {
-        throw new Error("Unauthorized: User does not have staff access to tenant " + connection.tenant_id + ".");
+        throw new Error(
+          "Unauthorized: User does not have staff access to tenant " +
+            connection.tenant_id +
+            ".",
+        );
       }
 
       await db.mentorshipConnection.update({
@@ -908,7 +928,7 @@ export async function reviewMentorshipConnection(input: {
     if (!tenantId) {
       result = await query(prisma);
     } else {
-      result = await prisma.$withTenant(tenantId, async (tx) => {
+      result = await prisma.$withTenant(tenantId, async (tx: any) => {
         return await query(tx);
       });
     }
@@ -926,7 +946,7 @@ export async function markConversationRead(conversationId: string) {
 
   if (!tenantId) return { error: "Tenant context required." };
 
-  await prisma.$withTenant(tenantId, async (tx) => {
+  await prisma.$withTenant(tenantId, async (tx: any) => {
     await tx.conversationParticipant.update({
       where: {
         conversation_id_user_id: {
@@ -950,7 +970,7 @@ export async function toggleMessageReaction(input: {
 
     if (!tenantId) return { error: "Tenant context required." };
 
-    await prisma.$withTenant(tenantId, async (tx) => {
+    await prisma.$withTenant(tenantId, async (tx: any) => {
       const existing = await tx.messageReaction.findFirst({
         where: {
           message_id: input.messageId,

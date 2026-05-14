@@ -94,7 +94,7 @@ export const requestCompassionAction = async (
 
     const result = await prisma.$withTenant(
       session.user.tenantId,
-      async (tx) => {
+      async (tx: any) => {
         return await queryFn(tx);
       },
     );
@@ -148,7 +148,7 @@ export const processCompassionAction = async (
   const { action_id, status, admin_notes } = validatedFields.data;
 
   try {
-    const result = await prisma.$withTenant(tenantId!, async (tx) => {
+    const result = await prisma.$withTenant(tenantId!, async (tx: any) => {
       const action = await tx.compassionAction.findUnique({
         where: { action_id },
         include: { loan: { include: { product: true } } },

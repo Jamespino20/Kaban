@@ -1,7 +1,6 @@
 import type { NextAuthConfig } from "next-auth";
 import Credentials from "next-auth/providers/credentials";
-import { neon } from "@neondatabase/serverless";
-import { getDbUrl } from "@/lib/db-url";
+import { sql } from "@/lib/db";
 
 export const authConfig = {
   providers: [Credentials({})],
@@ -40,6 +39,7 @@ export const authConfig = {
         token.email = user.email;
         token.accessibleTenantIds = user.accessibleTenantIds || [];
         if (user.id) token.id = user.id;
+        if (user.apiToken) token.apiToken = user.apiToken;
       }
 
       // Handle seamless tenant switching
@@ -48,9 +48,7 @@ export const authConfig = {
         session?.action === "switch_tenant" &&
         session?.tenantId
       ) {
-        const connectionString = getDbUrl();
-        if (connectionString) {
-          const sql = neon(connectionString);
+        {
           const switchingToGlobal = session.tenantId === "global";
           const targetTenantId = switchingToGlobal
             ? null
@@ -79,37 +77,31 @@ export const authConfig = {
             if (isSuperadmin) {
               if (switchingToGlobal) {
                 token.tenantId = null;
-                token.tenantSlug = "main";
+                // Force superadmin to Malolos instead of 'main' when going global
+                token.tenantSlug = "malolos";
                 return token;
               }
 
-              const tenants = await sql`
-                SELECT tenant_id, slug
-                FROM tenants
-                WHERE tenant_id = ${targetTenantId}
-                AND is_active = true
-                LIMIT 1
-              `;
+              const tenants = await sql(
+                "SELECT tenant_id, slug FROM tenants WHERE tenant_id = ? AND is_active = 1 LIMIT 1",
+                [targetTenantId],
+              );
 
               if (tenants && tenants.length > 0) {
                 token.tenantId = targetTenantId;
-                token.tenantSlug = tenants[0].slug;
+                token.tenantSlug = (tenants[0] as any).slug;
               }
 
               return token;
             }
 
-            const users = await sql`
-              SELECT u.user_id, u.tenant_id, u.username, u.email, u.role, t.slug as tenant_slug
-              FROM users u
-              LEFT JOIN tenants t ON u.tenant_id = t.tenant_id
-              WHERE u.tenant_id = ${targetTenantId}
-              AND u.email = ${token.email}
-              LIMIT 1
-            `;
+            const users = await sql(
+              "SELECT u.user_id, u.tenant_id, u.username, u.email, u.role, t.slug as tenant_slug FROM users u LEFT JOIN tenants t ON u.tenant_id = t.tenant_id WHERE u.tenant_id = ? AND u.email = ? LIMIT 1",
+              [targetTenantId, token.email],
+            );
 
             if (users && users.length > 0) {
-              const u = users[0];
+              const u = users[0] as any;
               token.tenantId = u.tenant_id;
               token.tenantSlug = u.tenant_slug;
               token.role = u.role;
@@ -149,6 +141,9 @@ export const authConfig = {
         : [];
       if (token?.id) {
         session.user.id = token.id as string;
+      }
+      if (token?.apiToken) {
+        session.user.apiToken = token.apiToken as string;
       }
       return session;
     },

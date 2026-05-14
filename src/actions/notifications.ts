@@ -12,7 +12,7 @@ export async function getUserNotifications() {
   try {
     const notifications = await prisma.$withTenant(
       session.user.tenantId,
-      async (tx) => {
+      async (tx: any) => {
         return await tx.notification.findMany({
           where: { user_id: userId },
           orderBy: { created_at: "desc" },
@@ -37,7 +37,7 @@ export async function getUnreadNotificationCount() {
   try {
     const count = await prisma.$withTenant(
       session.user.tenantId,
-      async (tx) => {
+      async (tx: any) => {
         return await tx.notification.count({
           where: {
             user_id: userId,
@@ -60,7 +60,7 @@ export async function markNotificationAsRead(id: string) {
   const userId = parseInt(session.user.id);
   const tenantSlug = (session.user as any).tenantSlug as string | null;
   try {
-    await prisma.$withTenant(session.user.tenantId, async (tx) => {
+    await prisma.$withTenant(session.user.tenantId, async (tx: any) => {
       await tx.notification.update({
         where: { id, user_id: userId },
         data: { is_read: true },
@@ -79,7 +79,7 @@ export async function markAllNotificationsAsRead() {
   const userId = parseInt(session.user.id);
   const tenantSlug = (session.user as any).tenantSlug as string | null;
   try {
-    await prisma.$withTenant(session.user.tenantId, async (tx) => {
+    await prisma.$withTenant(session.user.tenantId, async (tx: any) => {
       await tx.notification.updateMany({
         where: { user_id: userId, is_read: false },
         data: { is_read: true },

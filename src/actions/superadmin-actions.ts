@@ -1,5 +1,7 @@
 "use server";
 
+import { shouldUseApiClient } from "@/lib/api-config";
+import { api } from "@/lib/api-client";
 import prisma from "@/lib/prisma";
 import { requireSuperadminSession } from "@/lib/authorization";
 import { unstable_cache } from "next/cache";
@@ -7,6 +9,10 @@ import { unstable_cache } from "next/cache";
 // Superadmin Overview Data
 export async function getSuperadminOverview() {
   const session = await requireSuperadminSession();
+
+  if (shouldUseApiClient()) {
+    return api.admin.getOverview();
+  }
 
   try {
     // Get global KPIs across all tenants
@@ -107,6 +113,10 @@ export async function getTenantApplicationsForReview(filters?: {
 }) {
   const session = await requireSuperadminSession();
 
+  if (shouldUseApiClient()) {
+    return api.admin.getTenantApplications();
+  }
+
   try {
     const where: any = {};
 
@@ -159,7 +169,7 @@ export async function reviewTenantApplication(
   try {
     const newStatus = action === "approve" ? "approved" : "rejected";
 
-    const result = await prisma.$transaction(async (tx) => {
+    const result = await prisma.$transaction(async (tx: any) => {
       const app = await tx.tenantApplication.findUnique({
         where: { application_id: applicationId },
       });
@@ -272,6 +282,10 @@ export async function updateTenantLifecycle(
   action: "avail" | "suspend" | "decommission" | "restore",
 ) {
   const session = await requireSuperadminSession();
+
+  if (shouldUseApiClient()) {
+    return api.admin.updateTenantLifecycle({ tenantId, action });
+  }
 
   try {
     let updateData: any = {};

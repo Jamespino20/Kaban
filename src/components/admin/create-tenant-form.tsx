@@ -263,7 +263,11 @@ export function CreateTenantForm({
                 <option value="">Select a plan (optional)</option>
                 {plans.map((p: any) => (
                   <option key={p.id} value={p.id.toString()}>
-                    {p.tier_name} — ₱{Number(p.price_monthly).toLocaleString()}/mo ({p.max_members} members)
+                    {p.tier_name} — ₱{p.tier_name.toLowerCase().includes("core") 
+                      ? Number(p.price_quarterly).toLocaleString() + " / 3 mos"
+                      : p.tier_name.toLowerCase().includes("pro")
+                      ? Number(p.price_semi_annually).toLocaleString() + " / 6 mos"
+                      : Number(p.price_annually).toLocaleString() + " / year"} ({p.max_members} members)
                   </option>
                 ))}
               </select>

@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Agapay Microfinance - Growth Analytics</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@500;600;700&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "surface-container-high": "#222a3d",
+                      "on-tertiary": "#472a00",
+                      "surface-bright": "#31394d",
+                      "secondary-fixed-dim": "#4edea3",
+                      "error-container": "#93000a",
+                      "background": "#0b1326",
+                      "surface": "#0b1326",
+                      "primary-container": "#2563eb",
+                      "secondary-fixed": "#6ffbbe",
+                      "outline-variant": "#434655",
+                      "on-error": "#690005",
+                      "inverse-surface": "#dae2fd",
+                      "on-tertiary-fixed": "#2a1700",
+                      "on-surface-variant": "#c3c6d7",
+                      "inverse-on-surface": "#283044",
+                      "tertiary-fixed-dim": "#ffb95f",
+                      "tertiary-container": "#996100",
+                      "inverse-primary": "#0053db",
+                      "surface-dim": "#0b1326",
+                      "primary": "#b4c5ff",
+                      "on-primary-container": "#eeefff",
+                      "on-error-container": "#ffdad6",
+                      "on-secondary-fixed": "#002113",
+                      "surface-container-lowest": "#060e20",
+                      "outline": "#8d90a0",
+                      "surface-container": "#171f33",
+                      "on-primary": "#002a78",
+                      "tertiary-fixed": "#ffddb8",
+                      "surface-variant": "#2d3449",
+                      "on-secondary-container": "#00311f",
+                      "on-primary-fixed": "#00174b",
+                      "on-secondary": "#003824",
+                      "primary-fixed-dim": "#b4c5ff",
+                      "on-tertiary-fixed-variant": "#653e00",
+                      "surface-container-low": "#131b2e",
+                      "on-tertiary-container": "#ffeedd",
+                      "error": "#ffb4ab",
+                      "surface-tint": "#b4c5ff",
+                      "on-surface": "#dae2fd",
+                      "secondary": "#4edea3",
+                      "primary-fixed": "#dbe1ff",
+                      "tertiary": "#ffb95f",
+                      "surface-container-highest": "#2d3449",
+                      "on-secondary-fixed-variant": "#005236",
+                      "secondary-container": "#00a572",
+                      "on-primary-fixed-variant": "#003ea8",
+                      "on-background": "#dae2fd"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.125rem",
+                      "lg": "0.25rem",
+                      "xl": "0.5rem",
+                      "full": "0.75rem"
+              },
+              "spacing": {
+                      "stack_lg": "24px",
+                      "sidebar_width": "280px",
+                      "container_max_width": "1440px",
+                      "stack_md": "16px",
+                      "margin_mobile": "16px",
+                      "stack_sm": "8px",
+                      "margin_desktop": "32px",
+                      "gutter": "24px"
+              },
+              "fontFamily": {
+                      "display-lg": [
+                              "Outfit"
+                      ],
+                      "headline-sm": [
+                              "Outfit"
+                      ],
+                      "body-md": [
+                              "Inter"
+                      ],
+                      "headline-md": [
+                              "Outfit"
+                      ],
+                      "body-sm": [
+                              "Inter"
+                      ],
+                      "body-lg": [
+                              "Inter"
+                      ],
+                      "label-md": [
+                              "Inter"
+                      ],
+                      "mono-data": [
+                              "Inter"
+                      ],
+                      "headline-lg": [
+                              "Outfit"
+                      ]
+              },
+              "fontSize": {
+                      "display-lg": [
+                              "48px",
+                              {
+                                      "lineHeight": "56px",
+                                      "letterSpacing": "-0.02em",
+                                      "fontWeight": "700"
+                              }
+                      ],
+                      "headline-sm": [
+                              "20px",
+                              {
+                                      "lineHeight": "28px",
+                                      "fontWeight": "500"
+                              }
+                      ],
+                      "body-md": [
+                              "16px",
+                              {
+                                      "lineHeight": "24px",
+                                      "fontWeight": "400"
+                              }
+                      ],
+                      "headline-md": [
+                              "24px",
+                              {
+                                      "lineHeight": "32px",
+                                      "fontWeight": "600"
+                              }
+                      ],
+                      "body-sm": [
+                              "14px",
+                              {
+                                      "lineHeight": "20px",
+                                      "fontWeight": "400"
+                              }
+                      ],
+                      "body-lg": [
+                              "18px",
+                              {
+                                      "lineHeight": "28px",
+                                      "fontWeight": "400"
+                              }
+                      ],
+                      "label-md": [
+                              "12px",
+                              {
+                                      "lineHeight": "16px",
+                                      "letterSpacing": "0.05em",
+                                      "fontWeight": "600"
+                              }
+                      ],
+                      "mono-data": [
+                              "14px",
+                              {
+                                      "lineHeight": "20px",
+                                      "fontWeight": "500"
+                              }
+                      ],
+                      "headline-lg": [
+                              "32px",
+                              {
+                                      "lineHeight": "40px",
+                                      "letterSpacing": "-0.01em",
+                                      "fontWeight": "600"
+                              }
+                      ]
+              }
+      },
+          },
+        }
+      </script>
+<style>
+        body { background-color: #0b1326; color: #dae2fd; }
+    </style>
+</head>
+<body class="bg-background text-on-background font-body-md antialiased min-h-screen">
+<!-- SideNavBar -->
+<nav class="hidden md:flex flex-col h-full py-stack_lg fixed left-0 top-0 w-sidebar_width bg-surface-container dark:bg-surface-container border-r border-outline-variant z-50">
+<div class="px-6 mb-8 flex items-center gap-4">
+<div class="w-10 h-10 rounded-full bg-primary flex items-center justify-center text-on-primary font-bold font-headline-sm">A</div>
+<div>
+<h1 class="font-headline-md text-headline-md font-bold text-on-surface">Agapay Microfinance</h1>
+<p class="font-label-md text-label-md text-on-surface-variant">Institutional Portal</p>
+</div>
+</div>
+<div class="px-4 mb-6">
+<button class="w-full bg-primary text-on-primary font-label-md text-label-md py-3 rounded-DEFAULT hover:bg-primary-fixed-dim transition-colors flex items-center justify-center gap-2">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">add</span>
+                New Disbursement
+            </button>
+</div>
+<div class="flex-1 flex flex-col gap-1 px-2 overflow-y-auto">
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:bg-surface-container-highest hover:text-on-surface transition-colors rounded-DEFAULT" href="#">
+<span class="material-symbols-outlined" data-icon="dashboard">dashboard</span>
+<span class="font-label-md text-label-md">Dashboard</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:bg-surface-container-highest hover:text-on-surface transition-colors rounded-DEFAULT" href="#">
+<span class="material-symbols-outlined" data-icon="payments">payments</span>
+<span class="font-label-md text-label-md">Loans</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:bg-surface-container-highest hover:text-on-surface transition-colors rounded-DEFAULT" href="#">
+<span class="material-symbols-outlined" data-icon="account_balance_wallet">account_balance_wallet</span>
+<span class="font-label-md text-label-md">Collections</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:bg-surface-container-highest hover:text-on-surface transition-colors rounded-DEFAULT" href="#">
+<span class="material-symbols-outlined" data-icon="group">group</span>
+<span class="font-label-md text-label-md">Clients</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface border-l-4 border-primary bg-surface-container-high rounded-r-DEFAULT translate-x-1 duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="assessment">assessment</span>
+<span class="font-label-md text-label-md">Reports</span>
+</a>
+</div>
+<div class="mt-auto px-2 flex flex-col gap-1 border-t border-outline-variant pt-4">
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:bg-surface-container-highest hover:text-on-surface transition-colors rounded-DEFAULT" href="#">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+<span class="font-label-md text-label-md">Settings</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:bg-surface-container-highest hover:text-on-surface transition-colors rounded-DEFAULT" href="#">
+<span class="material-symbols-outlined" data-icon="logout">logout</span>
+<span class="font-label-md text-label-md">Sign Out</span>
+</a>
+</div>
+</nav>
+<!-- TopNavBar -->
+<header class="hidden md:flex justify-between items-center h-16 px-margin_desktop ml-sidebar_width bg-surface dark:bg-surface border-b border-outline-variant shadow-sm docked full-width top-0 sticky z-40">
+<div class="flex items-center gap-4">
+<span class="font-headline-md text-headline-md font-semibold text-primary">Agapay SaaS</span>
+</div>
+<div class="flex-1 flex justify-center px-8">
+<div class="relative w-full max-w-md">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant">search</span>
+<input class="w-full bg-surface-container-high border border-outline-variant rounded-full py-2 pl-10 pr-4 text-body-sm text-on-surface focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors" placeholder="Search portfolios, clients..." type="text"/>
+</div>
+</div>
+<div class="flex items-center gap-6">
+<div class="flex items-center gap-4 text-on-surface-variant">
+<button class="hover:text-primary transition-opacity opacity-80 duration-150">
+<span class="material-symbols-outlined" data-icon="notifications">notifications</span>
+</button>
+<button class="hover:text-primary transition-opacity opacity-80 duration-150">
+<span class="material-symbols-outlined" data-icon="help_outline">help_outline</span>
+</button>
+</div>
+<div class="flex items-center gap-3 pl-6 border-l border-outline-variant">
+<div class="flex flex-col items-end">
+<span class="font-label-md text-label-md text-on-surface">Admin User</span>
+<span class="font-label-md text-label-md text-on-surface-variant">Administrator</span>
+</div>
+<img alt="User Avatar" class="w-8 h-8 rounded-full border border-outline-variant" data-alt="A professional corporate headshot of a person looking directly at the camera. The lighting is balanced and neutral, suitable for a business profile picture. The background is a soft, out-of-focus grey that compliments the dark slate UI. The overall mood is approachable yet authoritative, fitting for an Administrator role in a financial application." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBjYG_d_UzPGoJl1kWKNVN-o-ZIATpZDikWwRzMFj8fYF1Wdw2Jqy2YPUcz_c1fFA7z1mccHzNvEuOAbR-d_m7gYOtAbA_Su4CIrfgS-rEDIW8dmgsLJ1oEaXr8j8HFjw7Mhav_T8NAYSPZhkkepeVU7uoU7tTZRFsyqOmQIXHS0UE39ruhXa6Ltaj45q7mhg4za_G8hgvJCeep-vYaWuEVAC9-d9Qp7IhZ-0QDks6I_FaDQ__gFQph7MaqLYTGvHKsPwTdg1ekwas"/>
+</div>
+</div>
+</header>
+<!-- Main Content -->
+<main class="md:ml-sidebar_width p-margin_mobile md:p-margin_desktop pb-24 md:pb-margin_desktop min-h-screen">
+<div class="max-w-container_max_width mx-auto space-y-stack_lg">
+<!-- Page Header -->
+<div class="flex flex-col md:flex-row md:items-end justify-between gap-4">
+<div>
+<h2 class="font-display-lg text-display-lg text-on-surface mb-2">Growth Analytics</h2>
+<p class="font-body-lg text-body-lg text-on-surface-variant">AI-assisted insights and portfolio performance metrics.</p>
+</div>
+<div class="flex gap-3">
+<button class="px-4 py-2 bg-surface-container-high border border-outline-variant rounded-DEFAULT font-label-md text-label-md text-on-surface flex items-center gap-2 hover:bg-surface-container-highest transition-colors">
+<span class="material-symbols-outlined text-[18px]">calendar_today</span>
+                        Last 30 Days
+                    </button>
+<button class="px-4 py-2 bg-surface-container-high border border-outline-variant rounded-DEFAULT font-label-md text-label-md text-on-surface flex items-center gap-2 hover:bg-surface-container-highest transition-colors">
+<span class="material-symbols-outlined text-[18px]">download</span>
+                        Export Report
+                    </button>
+</div>
+</div>
+<!-- Bento Grid Layout -->
+<div class="grid grid-cols-1 md:grid-cols-12 gap-gutter">
+<!-- AI Portfolio Analyst (Spans 8 columns) -->
+<div class="md:col-span-8 bg-surface-container border border-outline-variant rounded-xl p-stack_lg relative overflow-hidden group">
+<div class="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full blur-3xl -mr-16 -mt-16 pointer-events-none"></div>
+<div class="flex items-center gap-3 mb-6">
+<div class="w-8 h-8 rounded-DEFAULT bg-primary/10 flex items-center justify-center text-primary border border-primary/20">
+<span class="material-symbols-outlined text-[20px]" style="font-variation-settings: 'FILL' 1;">auto_awesome</span>
+</div>
+<h3 class="font-headline-md text-headline-md text-on-surface">AI Portfolio Analyst</h3>
+</div>
+<div class="space-y-4">
+<div class="bg-surface-container-low border border-outline-variant rounded-lg p-4 flex gap-4">
+<div class="mt-1">
+<span class="material-symbols-outlined text-tertiary">warning</span>
+</div>
+<div>
+<h4 class="font-headline-sm text-headline-sm text-on-surface mb-1">Risk Alert: Agri-Sector Delinquency</h4>
+<p class="font-body-md text-body-md text-on-surface-variant mb-3">Increasing delinquency rates detected in the Agri-sector portfolio over the last 14 days. Current exposure is at 12% of total AUM.</p>
+<button class="font-label-md text-label-md text-tertiary hover:text-tertiary-fixed-dim flex items-center gap-1 transition-colors">
+                                    View Affected Loans <span class="material-symbols-outlined text-[16px]">arrow_forward</span>
+</button>
+</div>
+</div>
+<div class="bg-surface-container-low border border-outline-variant rounded-lg p-4 flex gap-4">
+<div class="mt-1">
+<span class="material-symbols-outlined text-secondary">trending_up</span>
+</div>
+<div>
+<h4 class="font-headline-sm text-headline-sm text-on-surface mb-1">Growth Opportunity: Micro-Retail Expansion</h4>
+<p class="font-body-md text-body-md text-on-surface-variant mb-3">Strong repayment velocity observed in urban micro-retail segments. Suggest allocating additional liquidity to pre-approved credit lines for top-tier clients.</p>
+<button class="font-label-md text-label-md text-secondary hover:text-secondary-fixed-dim flex items-center gap-1 transition-colors">
+                                    Review Credit Lines <span class="material-symbols-outlined text-[16px]">arrow_forward</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+<!-- Liquidity Forecast (Spans 4 columns) -->
+<div class="md:col-span-4 bg-surface-container border border-outline-variant rounded-xl p-stack_lg flex flex-col">
+<h3 class="font-headline-sm text-headline-sm text-on-surface mb-6">Liquidity Forecast</h3>
+<div class="flex-1 flex flex-col justify-center">
+<div class="mb-8">
+<span class="font-label-md text-label-md text-on-surface-variant uppercase tracking-wider block mb-1">Available Capital</span>
+<div class="flex items-baseline gap-2">
+<span class="font-display-lg text-display-lg text-on-surface">₱12.4M</span>
+<span class="font-mono-data text-mono-data text-secondary flex items-center"><span class="material-symbols-outlined text-[14px]">arrow_upward</span> 4.2%</span>
+</div>
+</div>
+<div class="space-y-4">
+<div>
+<div class="flex justify-between font-body-sm text-body-sm mb-1">
+<span class="text-on-surface-variant">Projected Inflows (30d)</span>
+<span class="text-on-surface font-mono-data text-mono-data">₱3.8M</span>
+</div>
+<div class="w-full bg-surface-container-highest rounded-full h-1.5">
+<div class="bg-secondary h-1.5 rounded-full" style="width: 70%"></div>
+</div>
+</div>
+<div>
+<div class="flex justify-between font-body-sm text-body-sm mb-1">
+<span class="text-on-surface-variant">Pending Disbursements</span>
+<span class="text-on-surface font-mono-data text-mono-data">₱1.2M</span>
+</div>
+<div class="w-full bg-surface-container-highest rounded-full h-1.5">
+<div class="bg-primary h-1.5 rounded-full" style="width: 30%"></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Key Metrics Cards -->
+<div class="md:col-span-4 bg-surface-container border border-outline-variant rounded-xl p-stack_lg">
+<div class="flex justify-between items-start mb-4">
+<h3 class="font-headline-sm text-headline-sm text-on-surface-variant">Portfolio Growth</h3>
+<div class="w-8 h-8 rounded-full bg-surface-container-high flex items-center justify-center">
+<span class="material-symbols-outlined text-primary text-[18px]">account_balance</span>
+</div>
+</div>
+<div class="font-display-lg text-display-lg text-on-surface mb-2">₱48.2M</div>
+<div class="flex items-center gap-2">
+<span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-secondary/10 text-secondary border border-secondary/20">
+<span class="material-symbols-outlined text-[14px] mr-1">arrow_upward</span> 12.5%
+                        </span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">vs last quarter</span>
+</div>
+<!-- Minimal Sparkline Placeholder -->
+<div class="mt-4 h-12 w-full bg-gradient-to-r from-transparent via-primary/5 to-primary/20 rounded-b-lg border-b-2 border-primary"></div>
+</div>
+<div class="md:col-span-4 bg-surface-container border border-outline-variant rounded-xl p-stack_lg">
+<div class="flex justify-between items-start mb-4">
+<h3 class="font-headline-sm text-headline-sm text-on-surface-variant">Member Acquisition</h3>
+<div class="w-8 h-8 rounded-full bg-surface-container-high flex items-center justify-center">
+<span class="material-symbols-outlined text-tertiary text-[18px]">person_add</span>
+</div>
+</div>
+<div class="font-display-lg text-display-lg text-on-surface mb-2">1,248</div>
+<div class="flex items-center gap-2">
+<span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-secondary/10 text-secondary border border-secondary/20">
+<span class="material-symbols-outlined text-[14px] mr-1">arrow_upward</span> 8.3%
+                        </span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">vs last month</span>
+</div>
+<!-- Minimal Sparkline Placeholder -->
+<div class="mt-4 h-12 w-full bg-gradient-to-r from-transparent via-tertiary/5 to-tertiary/20 rounded-b-lg border-b-2 border-tertiary"></div>
+</div>
+<div class="md:col-span-4 bg-surface-container border border-outline-variant rounded-xl p-stack_lg">
+<div class="flex justify-between items-start mb-4">
+<h3 class="font-headline-sm text-headline-sm text-on-surface-variant">Repayment Velocity</h3>
+<div class="w-8 h-8 rounded-full bg-surface-container-high flex items-center justify-center">
+<span class="material-symbols-outlined text-secondary text-[18px]">speed</span>
+</div>
+</div>
+<div class="font-display-lg text-display-lg text-on-surface mb-2">94.8%</div>
+<div class="flex items-center gap-2">
+<span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-error/10 text-error border border-error/20">
+<span class="material-symbols-outlined text-[14px] mr-1">arrow_downward</span> 1.2%
+                        </span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">vs last month</span>
+</div>
+<!-- Minimal Sparkline Placeholder -->
+<div class="mt-4 h-12 w-full bg-gradient-to-r from-transparent via-secondary/5 to-secondary/20 rounded-b-lg border-b-2 border-secondary"></div>
+</div>
+<!-- Trust Score Distribution Heat Map (Spans 12 columns) -->
+<div class="md:col-span-12 bg-surface-container border border-outline-variant rounded-xl p-stack_lg">
+<div class="flex justify-between items-center mb-6">
+<div>
+<h3 class="font-headline-sm text-headline-sm text-on-surface">Trust Score Distribution</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Client risk categorization based on historical repayment data.</p>
+</div>
+<button class="text-primary hover:text-primary-fixed transition-colors font-label-md text-label-md flex items-center gap-1">
+                            Detailed View <span class="material-symbols-outlined text-[16px]">open_in_new</span>
+</button>
+</div>
+<!-- CSS Heatmap Representation -->
+<div class="grid grid-cols-5 gap-2 h-32">
+<!-- High Risk -->
+<div class="flex flex-col justify-end bg-surface-container-high rounded p-2 border border-outline-variant relative group">
+<div class="absolute inset-x-0 bottom-0 bg-error/20 rounded-b h-1/4"></div>
+<span class="font-label-md text-label-md text-on-surface z-10">0-300</span>
+<span class="font-mono-data text-mono-data text-on-surface-variant z-10">5%</span>
+</div>
+<!-- Moderate Risk -->
+<div class="flex flex-col justify-end bg-surface-container-high rounded p-2 border border-outline-variant relative group">
+<div class="absolute inset-x-0 bottom-0 bg-tertiary/20 rounded-b h-2/4"></div>
+<span class="font-label-md text-label-md text-on-surface z-10">301-500</span>
+<span class="font-mono-data text-mono-data text-on-surface-variant z-10">15%</span>
+</div>
+<!-- Good -->
+<div class="flex flex-col justify-end bg-surface-container-high rounded p-2 border border-outline-variant relative group">
+<div class="absolute inset-x-0 bottom-0 bg-primary/20 rounded-b h-3/4"></div>
+<span class="font-label-md text-label-md text-on-surface z-10">501-700</span>
+<span class="font-mono-data text-mono-data text-on-surface-variant z-10">35%</span>
+</div>
+<!-- Excellent -->
+<div class="flex flex-col justify-end bg-surface-container-high rounded p-2 border border-outline-variant relative group">
+<div class="absolute inset-x-0 bottom-0 bg-secondary/30 rounded-b h-full"></div>
+<span class="font-label-md text-label-md text-on-surface z-10">701-850</span>
+<span class="font-mono-data text-mono-data text-on-surface-variant z-10">30%</span>
+</div>
+<!-- Prime -->
+<div class="flex flex-col justify-end bg-surface-container-high rounded p-2 border border-outline-variant relative group">
+<div class="absolute inset-x-0 bottom-0 bg-secondary/50 rounded-b h-3/5"></div>
+<span class="font-label-md text-label-md text-on-surface z-10">851-1000</span>
+<span class="font-mono-data text-mono-data text-on-surface-variant z-10">15%</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+</body></html>

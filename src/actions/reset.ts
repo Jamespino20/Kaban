@@ -43,12 +43,12 @@ export const reset = async (values: z.infer<typeof ResetSchema>) => {
   }
 
   const uniqueTenantIds = Array.from(
-    new Set(existingUsers.map((user) => user.tenant_id)),
+    new Set(existingUsers.map((user: any) => (user.tenant_id as number))),
   );
 
   for (const tenantId of uniqueTenantIds) {
-    const matchingUser = existingUsers.find((user) => user.tenant_id === tenantId);
-    const passwordResetToken = await generatePasswordResetToken(email, tenantId);
+    const matchingUser = existingUsers.find((user: any) => (user.tenant_id as number) === tenantId);
+    const passwordResetToken = await generatePasswordResetToken(email, tenantId as number);
 
     await sendTenantScopedPasswordResetEmail({
       email: passwordResetToken.email,

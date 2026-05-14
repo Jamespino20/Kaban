@@ -35,40 +35,21 @@ The previous issue-derived matrix has been replaced. All entries below are sourc
    - Fixed build-blocking TypeScript error in `src/components/member/loan-servicing-tab.tsx` by adding `installment_number` to `LoanScheduleItem` type.
    - Verified successful local production build (`npm run build`).
 
-### Completed Fixes in Session 2026-05-13:
-1. **Registration Draft Persistence (FL-05/FL-14):**
-   - Wired `useFormPersistence` hook to `EnhancedRegisterForm` with `dismissDraftNotice` integration on success card.
-   - Added `useEffect` to auto-clear draft when registration succeeds.
-   - Files: `src/components/auth/enhanced-register-form.tsx`
-2. **Loan Payment Error Message (FL-31):**
-   - Fixed `payLoanWithWallet` error message in `wallet-actions.ts` — replaced Tagalog message ("Kulang ang pondo sa iyong wallet.") with English equivalent: "Insufficient wallet balance. Please top up your wallet before making this payment."
-   - File: `src/actions/wallet-actions.ts`
-3. **Admin Profile Settings Form Persistence (TO-21):**
-   - Converted `AdminProfileSettings` to use `react-hook-form` with `useFormPersistence` for draft save/restore.
-   - Added draft notice banner, beforeunload warning, and dismiss functionality.
-   - File: `src/components/admin/admin-profile-settings.tsx`
-4. **Member Settings Form Persistence (TM-09):**
-   - Converted `MemberSettingsTab` profile fields to use `react-hook-form` with `useFormPersistence`.
-   - Replaced manual `renderEditableField` pattern with `Form`/`FormField` components.
-   - Added draft notice banner and auto-save with draft recovery.
-   - File: `src/components/member/member-settings-tab.tsx`
-5. **Member Directory Row Actions Verified (TO-11):**
-   - Verified `MemberRowActions` dropdown menu is functional with proper handlers for View Profile, Edit Details, Reset Password, Activity Log, Send Notification, Suspend/Activate/Deactivate.
-   - File: `src/components/admin/member-directory-tab.tsx`
-6. **ISSUES.md Updated:**
-   - Marked several items as completed, updated descriptions to reflect actual implementation state.
-   - File: `docs/ISSUES.md`
-7. **Sidebar UI Refinements (Global Layout):**
-   - Reduced sidebar horizontal padding from `px-4` to `px-3` in `AuthenticatedShell` to remove excessive indentations.
-   - Refined `getContrastColor` threshold (0.5) and updated semantic shades (`slate-900`) for navigation text readability.
-   - Balanced active state opacities for better visual feedback across all tenant brand colors.
-   - File: `src/components/layout/authenticated-shell.tsx`
-8. **Dark Mode UI Cleanup:**
-   - Removed all `dark:` utility class remnants from core UI components (`textarea`, `tabs`, `select`, `input`, `draft-banner`, `dashboard-skeletons`, `button`, `badge`, `analytics-dashboard-tab`).
-   - Standardized the platform strictly to a light-mode institutional aesthetic as per `DESIGN.md`.
-9. **Build Error Resolution:**
-   - Investigated Prisma adapter lazy bundling WebSocket issue (`TypeError: b.mask is not a function`).
-   - Successfully ran local Next.js production build (`npm run build`, version 15.5.18). Codebase is verified to be buildable and deployable to Vercel.
+### Completed Fixes in Session 2026-05-13 (PHP Migration):
+1. **Financial Engine Migration:**
+   - Successfully ported `LoanActions.php`, `RepaymentHandler.php`, and `StatementOfAccount.php` to native PHP.
+   - Refactored all data interactions to use the static `Database` helper class (MariaDB/mysqli).
+   - Restored and verified transactional integrity for loan schedule generation and installment allocation.
+2. **Premium UI Reimplementation (Pintig/Tanaw/Super Tanaw):**
+   - Created a shared `dashboard-layout.php` with 16px sidebar spacing and 48px module padding.
+   - Implemented a premium `dashboard.css` using glassmorphism and the established Agapay color palette.
+   - Refactored Member Dashboard (Pintig) with real-time loan summaries and activity logs.
+   - Refactored Admin Dashboard (Tanaw) with tenant-scoped KPI cards and pending review queues.
+   - Refactored Superadmin Console (Super Tanaw) with cross-tenant health and platform-level metrics.
+3. **Identity & Security Porting:**
+   - Ported digital promissory note signing with IP/User-Agent tracking.
+   - Verified subdomain-based tenant resolution in `public/index.php` router.
+   - Integrated `Branding::getStyles()` for dynamic tenant customization across all PHP dashboards.
 
 ---
 

@@ -78,7 +78,7 @@ export function SuperadminApprovalsTab({ initialApplications = [] }: ApprovalsTa
   useEffect(() => {
     async function fetchApplications() {
       try {
-        const response = await getTenantApplicationsForReview();
+        const response = await getTenantApplicationsForReview() as any;
         if (response.success && response.data) {
           setApplications(response.data as unknown as TenantApplication[]);
         }
@@ -114,7 +114,7 @@ export function SuperadminApprovalsTab({ initialApplications = [] }: ApprovalsTa
         if (result.success) {
           toast.success(`Application ${action === "approve" ? "approved" : "rejected"} successfully`);
           // Refresh the list
-          const response = await getTenantApplicationsForReview();
+          const response = await getTenantApplicationsForReview() as any;
           if (response.success && response.data) {
             setApplications(response.data as unknown as TenantApplication[]);
           }

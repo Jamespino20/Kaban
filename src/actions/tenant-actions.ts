@@ -31,7 +31,7 @@ export async function getTenantOverview() {
       loansGrowth,
       membersGrowth,
       operatorsGrowth,
-    ] = await prisma.$withTenant(tenantId, async (tx) => {
+    ] = await prisma.$withTenant(tenantId, async (tx: any) => {
       return await tx.$transaction([
         // Total funds (sum of wallet balances)
         tx.$queryRaw`

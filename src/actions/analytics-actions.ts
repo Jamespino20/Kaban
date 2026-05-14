@@ -49,8 +49,9 @@ export async function getTenantAnalytics(
   try {
     const query = async (db: any) => {
       // 1. Traffic Trends
-      const traffic = await db.trafficLog.findMany({
+      const traffic = await db.auditLog.findMany({
         where: {
+          log_type: "TRAFFIC",
           created_at: { gte: startDate },
         },
         orderBy: { created_at: "asc" },
@@ -66,36 +67,39 @@ export async function getTenantAnalytics(
       );
 
       // 2. Behavioral Heatmap
-      const interactions = await db.interactionLog.groupBy({
+      const interactions = await db.auditLog.groupBy({
         by: ["event_type"],
         where: {
+          log_type: "INTERACTION",
           created_at: { gte: startDate },
         },
-        _count: { id: true },
-        orderBy: { _count: { id: "desc" } },
+        _count: { log_id: true },
+        orderBy: { _count: { log_id: "desc" } },
         take: 10,
       });
 
       // 3. Geo Distribution
-      const geoDistribution = await db.trafficLog.groupBy({
+      const geoDistribution = await db.auditLog.groupBy({
         by: ["region", "city"],
         where: {
+          log_type: "TRAFFIC",
           created_at: { gte: startDate },
         },
-        _count: { id: true },
-        orderBy: { _count: { id: "desc" } },
+        _count: { log_id: true },
+        orderBy: { _count: { log_id: "desc" } },
         take: 20,
       });
 
       // 4. User Interaction Density
-      const activeUsers = await db.interactionLog.groupBy({
+      const activeUsers = await db.auditLog.groupBy({
         by: ["user_id"],
         where: {
+          log_type: "INTERACTION",
           user_id: { not: null },
           created_at: { gte: startDate },
         },
-        _count: { id: true },
-        orderBy: { _count: { id: "desc" } },
+        _count: { log_id: true },
+        orderBy: { _count: { log_id: "desc" } },
         take: 5,
       });
 
@@ -106,16 +110,16 @@ export async function getTenantAnalytics(
         })),
         interactionHeatmap: interactions.map((i: any) => ({
           type: i.event_type as string,
-          count: i._count.id as number,
+          count: i._count.log_id as number,
         })),
         geoData: geoDistribution.map((g: any) => ({
           region: (g.region as string) || "Unknown",
           city: (g.city as string) || "Unknown",
-          count: g._count.id as number,
+          count: g._count.log_id as number,
         })),
         activeUserDensity: activeUsers.map((u: any) => ({
           userId: u.user_id as number,
-          count: u._count.id as number,
+          count: u._count.log_id as number,
         })),
       };
     };
@@ -124,7 +128,7 @@ export async function getTenantAnalytics(
       return await query(prisma);
     }
 
-    return await prisma.$withTenant(tenantId, async (tx) => {
+    return await prisma.$withTenant(tenantId, async (tx: any) => {
       return await query(tx);
     });
   } catch (error) {
@@ -230,7 +234,7 @@ export async function getOperationalInsights(
       return await query(prisma);
     }
 
-    return await prisma.$withTenant(tenantId, async (tx) => {
+    return await prisma.$withTenant(tenantId, async (tx: any) => {
       return await query(tx);
     });
   } catch (error) {
@@ -270,7 +274,9 @@ export async function getFinancialIntegrityCheck(): Promise<FinancialIntegrity |
         Number(treasuryLedger._sum.credit || 0);
 
       // 2. Member Savings Pool (Liability)
-      const savingsPool = await db.$queryRaw<{ total: number }[]>`SELECT COALESCE(SUM(balance), 0) as total FROM savings_accounts`;
+      const savingsPool = await db.$queryRaw<
+        { total: number }[]
+      >`SELECT COALESCE(SUM(balance), 0) as total FROM savings_accounts`;
 
       const poolTotal = Number(savingsPool[0]?.total || 0);
       const variance = treasuryBalance - poolTotal;
@@ -288,7 +294,7 @@ export async function getFinancialIntegrityCheck(): Promise<FinancialIntegrity |
       return await query(prisma);
     }
 
-    return await prisma.$withTenant(tenantId, async (tx) => {
+    return await prisma.$withTenant(tenantId, async (tx: any) => {
       return await query(tx);
     });
   } catch (error) {

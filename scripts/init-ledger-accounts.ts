@@ -1,18 +1,7 @@
 import { PrismaClient } from "@prisma/client";
-import { PrismaNeon } from "@prisma/adapter-neon";
-import { neonConfig, Pool } from "@neondatabase/serverless";
-import ws from "ws";
 import "dotenv/config";
 
-const connectionString = process.env.DATABASE_URL;
-if (!connectionString) {
-  console.error("DATABASE_URL is missing");
-  process.exit(1);
-}
-
-neonConfig.webSocketConstructor = ws;
-const adapter = new PrismaNeon({ connectionString } as any);
-const prisma = new PrismaClient({ adapter });
+const prisma = new PrismaClient();
 
 async function main() {
   console.log("🚀 Initializing missing ledger accounts (System-Wide)...");

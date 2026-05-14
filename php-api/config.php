@@ -1,0 +1,128 @@
+<?php
+header("Access-Control-Allow-Origin: *");
+header("Content-Type: application/json; charset=UTF-8");
+header("Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS");
+header("Access-Control-Allow-Headers: Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With");
+
+if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') { http_response_code(204); exit; }
+
+// ── Environment-aware DB credentials ──
+// Priority: env vars > auto-detection > fallback
+$envHost  = getenv('DB_HOST');
+$envUser  = getenv('DB_USER');
+$envPass  = getenv('DB_PASS');
+$envName  = getenv('DB_NAME');
+$envPort  = getenv('DB_PORT');
+
+if ($envHost && $envUser && $envName) {
+    // Env vars set — use those (CI, Docker, manual config)
+    define('DB_HOST', $envHost);
+    define('DB_USER', $envUser);
+    define('DB_PASS', $envPass ?: '');
+    define('DB_NAME', $envName);
+    define('DB_PORT', $envPort ?: '3306');
+} else {
+    // Auto-detect: check hostname, document root, HTTP_HOST
+    $hostname = $_SERVER['HOSTNAME'] ?? '';
+    $docRoot  = $_SERVER['DOCUMENT_ROOT'] ?? '';
+    $httpHost = $_SERVER['HTTP_HOST'] ?? '';
+
+    $isInfinity = str_contains($hostname, 'free') || str_contains($docRoot, 'infinity') || str_contains($httpHost, 'gt.tc');
+    $isLocal    = !$isInfinity && ($hostname === 'localhost' || $hostname === '' || str_contains($docRoot, 'xampp') || str_contains($httpHost, 'localhost'));
+
+    if ($isInfinity) {
+        define('DB_HOST', 'sql112.infinityfree.com');
+        define('DB_USER', 'if0_41904755');
+        define('DB_PASS', 'Bryant09200');
+        define('DB_NAME', 'if0_41904755_agapay_db');
+        define('DB_PORT', '3306');
+    } elseif ($isLocal) {
+        define('DB_HOST', 'localhost');
+        define('DB_USER', 'root');
+        define('DB_PASS', '');
+        define('DB_NAME', 'agapay_db');
+        define('DB_PORT', '3307');
+    } else {
+        // Unknown env — try InfinityFree as reasonable default
+        define('DB_HOST', 'sql112.infinityfree.com');
+        define('DB_USER', 'if0_41904755');
+        define('DB_PASS', 'Bryant09200');
+        define('DB_NAME', 'if0_41904755_agapay_db');
+        define('DB_PORT', '3306');
+    }
+}
+define('JWT_SECRET', getenv('JWT_SECRET') ?: 'agapay-dev-secret-key-change-in-production');
+define('JWT_EXPIRY', 86400 * 7);
+
+try {
+    $pdo = new PDO("mysql:host=" . DB_HOST . ";port=" . DB_PORT . ";dbname=" . DB_NAME . ";charset=utf8mb4", DB_USER, DB_PASS, [
+        PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+        PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+        PDO::ATTR_EMULATE_PREPARES => false,
+    ]);
+} catch (PDOException $e) {
+    http_response_code(500);
+    echo json_encode(["status" => "error", "message" => "Database connection failed"]);
+    exit;
+}
+
+function jsonResponse($data, $code = 200) {
+    http_response_code($code);
+    echo json_encode($data, JSON_UNESCAPED_UNICODE);
+    exit;
+}
+
+function getJsonInput(): array {
+    $input = file_get_contents('php://input');
+    return $input ? (json_decode($input, true) ?: []) : [];
+}
+
+function generateJWT(array $payload): string {
+    $header = base64url_encode(json_encode(['alg' => 'HS256', 'typ' => 'JWT']));
+    $payload['iat'] = time();
+    $payload['exp'] = time() + JWT_EXPIRY;
+    $payloadEncoded = base64url_encode(json_encode($payload));
+    $signature = base64url_encode(hash_hmac('sha256', "$header.$payloadEncoded", JWT_SECRET, true));
+    return "$header.$payloadEncoded.$signature";
+}
+
+function getAuthorizationHeader(): string {
+    $auth = $_SERVER['HTTP_AUTHORIZATION'] ?? $_SERVER['REDIRECT_HTTP_AUTHORIZATION'] ?? '';
+    if (!$auth && function_exists('apache_request_headers')) {
+        $headers = apache_request_headers();
+        $auth = $headers['Authorization'] ?? $headers['authorization'] ?? '';
+    }
+    return $auth;
+}
+
+function verifyJWT(): ?array {
+    $auth = getAuthorizationHeader();
+    if (!preg_match('/^Bearer\s+(.+)$/', $auth, $m)) return null;
+    $parts = explode('.', $m[1]);
+    if (count($parts) !== 3) return null;
+    $header = $parts[0]; $payload = $parts[1]; $sig = $parts[2];
+    $expected = base64url_encode(hash_hmac('sha256', "$header.$payload", JWT_SECRET, true));
+    if (!hash_equals($expected, $sig)) return null;
+    $data = json_decode(base64url_decode($payload), true);
+    if (!$data || !isset($data['exp']) || $data['exp'] < time()) return null;
+    return $data;
+}
+
+function requireAuth(): array {
+    $user = verifyJWT();
+    if (!$user) jsonResponse(['status' => 'error', 'message' => 'Unauthorized'], 401);
+    return $user;
+}
+
+function requireRole(array $roles): array {
+    $user = requireAuth();
+    if (!in_array($user['role'] ?? '', $roles)) jsonResponse(['status' => 'error', 'message' => 'Forbidden'], 403);
+    return $user;
+}
+
+function base64url_encode(string $data): string {
+    return rtrim(strtr(base64_encode($data), '+/', '-_'), '=');
+}
+function base64url_decode(string $data): string {
+    return base64_decode(strtr($data, '-_', '+/'));
+}

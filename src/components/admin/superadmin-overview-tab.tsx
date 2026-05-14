@@ -7,7 +7,7 @@ import { InterestTier } from "@prisma/client";
 import { TrustScoreBreakdown } from "@/lib/trust-engine";
 
 export default async function SuperadminOverviewTab() {
-  const overviewData = await getSuperadminOverview();
+  const overviewData = (await getSuperadminOverview()) as any;
 
   const { data, success } = overviewData;
 
@@ -97,7 +97,7 @@ export default async function SuperadminOverviewTab() {
             <Clock className="h-4 w-4 text-slate-400" />
           </div>
           <div className="space-y-3">
-            {data.recentLogs.slice(0, 5).map((log) => (
+            {data.recentLogs.slice(0, 5).map((log: any) => (
               <div key={log.log_id} className="flex items-start gap-3 py-2">
                 <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-[0.375rem] bg-slate-100 text-slate-500">
                   <Info className="h-3 w-3" />

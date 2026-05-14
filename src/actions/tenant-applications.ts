@@ -34,7 +34,7 @@ export async function getTenantApplicationsFiltered(filters?: {
     // Apply search filter in memory
     if (filters?.search) {
       const searchLower = filters.search.toLowerCase();
-      filtered = applications.filter(app =>
+      filtered = applications.filter((app: any) =>
         app.tenant_name.toLowerCase().includes(searchLower) ||
         app.applicant_name?.toLowerCase().includes(searchLower) ||
         app.applicant_email?.toLowerCase().includes(searchLower)
@@ -73,7 +73,7 @@ export async function processApplication(
   const session = await requireSuperadminSession();
   
   try {
-    const result = await prisma.$transaction(async (tx) => {
+    const result = await prisma.$transaction(async (tx: any) => {
       const app = await tx.tenantApplication.findUnique({
         where: { application_id: applicationId }
       });

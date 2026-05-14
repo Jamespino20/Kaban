@@ -65,14 +65,18 @@ export async function logTraffic(path: string, tenantId?: number | null) {
 
     const meta = getRequestMetadata({ headers: head });
 
-    await prisma.trafficLog.create({
+    await prisma.auditLog.create({
       data: {
+        log_type: "TRAFFIC",
         tenant_id: tenantId,
-        path,
+        route: path,
         ip_address: meta.ip,
         city: meta.city,
         region: meta.region,
         user_agent: meta.userAgent,
+        action: "page_view",
+        module: "system",
+        entity_type: "page",
       },
     });
   } catch (error) {
@@ -95,8 +99,9 @@ export async function logInteraction(params: {
 
     const meta = getRequestMetadata({ headers: head });
 
-    await prisma.interactionLog.create({
+    await prisma.auditLog.create({
       data: {
+        log_type: "INTERACTION",
         event_type: params.eventType,
         tenant_id: params.tenantId,
         user_id: params.userId,
@@ -104,6 +109,9 @@ export async function logInteraction(params: {
         ip_address: meta.ip,
         city: meta.city,
         region: meta.region,
+        action: "user_interaction",
+        module: "system",
+        entity_type: "interaction",
       },
     });
   } catch (error) {

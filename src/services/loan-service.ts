@@ -213,7 +213,7 @@ export class LoanService {
       return await query(prisma);
     }
 
-    return await prisma.$withTenant(tenantId, async (tx) => {
+    return await prisma.$withTenant(tenantId, async (tx: any) => {
       return await query(tx);
     });
   }

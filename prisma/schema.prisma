@@ -1,9 +1,10 @@
 generator client {
   provider = "prisma-client-js"
+  engineType = "library"
 }
 
 datasource db {
-  provider = "postgresql"
+  provider = "mysql"
 }
 
 model TenantGroup {
@@ -41,10 +42,8 @@ model Tenant {
   audit_logs               AuditLog[]
   conversations            Conversation[]
   decommissioned_backups   DecommissionedBackup[]
-  feedbackEntries          FeedbackEntry[]
   homepage_faqs            HomepageFaq[]
   homepage_testimonials    HomepageTestimonial[]
-  interaction_logs         InteractionLog[]
   products                 LoanProduct[]
   loans                    Loan[]
   mentorship_connections   MentorshipConnection[]
@@ -53,10 +52,10 @@ model Tenant {
   payment_methods          PaymentMethod[]
   savings                  SavingsAccount[]
   tenant_group             TenantGroup?              @relation(fields: [tenant_group_id], references: [id])
-  traffic_logs             TrafficLog[]
   users                    User[]
   system_files             SystemFile[]
   tenantSubscription       TenantSubscription?
+  supportTickets           SupportTicket[]
   topup_requests           TopUpRequest[]
   userProfiles             UserProfile[]
   userDocuments            UserDocument[]
@@ -130,8 +129,6 @@ model User {
   requested_compassions     CompassionAction[]        @relation("RequestedCompassion")
   conversation_participants ConversationParticipant[]
   created_conversations     Conversation[]            @relation("ConversationCreator")
-  feedback_entries          FeedbackEntry[]
-  interaction_logs          InteractionLog[]
   submitted_faqs            HomepageFaq[]         @relation("FaqSubmitter")
   reviewed_faqs             HomepageFaq[]         @relation("FaqReviewer")
   submitted_testimonials    HomepageTestimonial[] @relation("TestimonialSubmitter")
@@ -157,6 +154,9 @@ model User {
   processed_topups          TopUpRequest[]            @relation("TopUpProcessor")
   profile                   UserProfile?
   tenant                    Tenant?                   @relation(fields: [tenant_id], references: [tenant_id])
+  supportTickets            SupportTicket[]           @relation("RequesterTickets")
+  assignedTickets           SupportTicket[]           @relation("AssignedTickets")
+  resolvedTickets           SupportTicket[]           @relation("ResolvedTickets")
 
   @@unique([email, tenant_id])
   @@unique([username, tenant_id])
@@ -229,7 +229,7 @@ model LoanProduct {
   max_term_months          Int
   is_active                Boolean              @default(true)
   tenant_id                Int
-  allowed_frequencies      RepaymentFrequency[] @default([monthly])
+  allowed_frequencies      Json?
   guarantor_liability_rate Decimal              @default(25) @db.Decimal(5, 2)
   tenant                   Tenant               @relation(fields: [tenant_id], references: [tenant_id])
   loans                    Loan[]
@@ -382,8 +382,16 @@ model SavingsTransaction {
   @@map("savings_transactions")
 }
 
+enum AuditLogType {
+  AUDIT
+  TRAFFIC
+  INTERACTION
+}
+
 model AuditLog {
   log_id                  Int                 @id @default(autoincrement())
+  log_type                AuditLogType        @default(AUDIT)
+  event_type              String?             @db.VarChar(100)
   tenant_id               Int?
   user_id                 Int?
   actor_role              Role?
@@ -516,37 +524,7 @@ model DailyReconciliation {
   @@map("daily_reconciliations")
 }
 
-model TrafficLog {
-  id         String   @id @default(cuid())
-  tenant_id  Int?
-  path       String
-  ip_address String?  @db.VarChar(45)
-  city       String?  @db.VarChar(100)
-  region     String?  @db.VarChar(100)
-  user_agent String?
-  created_at DateTime @default(now())
-  tenant     Tenant?  @relation(fields: [tenant_id], references: [tenant_id])
-
-  @@index([tenant_id, created_at])
-  @@map("traffic_logs")
-}
-
-model InteractionLog {
-  id         String   @id @default(cuid())
-  tenant_id  Int?
-  user_id    Int?
-  event_type String   @db.VarChar(100)
-  metadata   Json?
-  ip_address String?  @db.VarChar(45)
-  city       String?  @db.VarChar(100)
-  region     String?  @db.VarChar(100)
-  created_at DateTime @default(now())
-  tenant     Tenant?  @relation(fields: [tenant_id], references: [tenant_id])
-  user       User?    @relation(fields: [user_id], references: [user_id])
-
-  @@index([tenant_id, event_type, created_at])
-  @@map("interaction_logs")
-}
+// Consolidated into AuditLog
 
 model HomepageFaq {
   id                   Int      @id @default(autoincrement())
@@ -594,64 +572,19 @@ model HomepageTestimonial {
   @@map("homepage_testimonials")
 }
 
-model FeedbackEntry {
-  id                    Int             @id @default(autoincrement())
-  tenant_id             Int?
-  user_id               Int?
-  name                  String          @db.VarChar(150)
-  email                 String?         @db.VarChar(150)
-  category              String          @db.VarChar(100)
-  feedback_type         FeedbackType    @default(general)
-  module_context        FeedbackModule  @default(general)
-  related_entity_type   String?         @db.VarChar(80)
-  related_entity_id     String?         @db.VarChar(120)
-  wallet_transaction_id Int?
-  loan_id               Int?
-  payment_id            Int?
-  topup_request_id      Int?
-  support_ticket_id     Int?
-  page_path             String?         @db.VarChar(255)
-  subject               String?         @db.VarChar(255)
-  message               String
-  status                String          @default("open") @db.VarChar(50)
-  priority              SupportPriority @default(normal)
-  assigned_to           Int?
-  assigned_at           DateTime?
-  resolved_by           Int?
-  resolved_at           DateTime?
-  resolution_notes      String?
-  audit_log_id          Int?
-  metadata              Json?
-  created_at            DateTime        @default(now())
-  updated_at            DateTime        @updatedAt
-  tenant                Tenant?         @relation(fields: [tenant_id], references: [tenant_id])
-  user                  User?           @relation(fields: [user_id], references: [user_id])
-
-  @@index([tenant_id, status, created_at])
-  @@index([user_id, created_at])
-  @@index([feedback_type, module_context])
-  @@index([related_entity_type, related_entity_id])
-  @@index([wallet_transaction_id])
-  @@index([loan_id])
-  @@index([payment_id])
-  @@index([topup_request_id])
-  @@index([support_ticket_id])
-  @@index([assigned_to, status])
-  @@index([priority, status])
-  @@index([audit_log_id])
-  @@map("feedback_entries")
-}
+// Consolidated into SupportTicket
 
 model SupportTicket {
   id                    Int                   @id @default(autoincrement())
   ticket_number         String                @unique @db.VarChar(50)
+  ticket_type           SupportTicketType     @default(SUPPORT)
   tenant_id             Int?
   requester_id          Int?
-  feedback_entry_id     Int?
   category              SupportTicketCategory
   module_context        FeedbackModule        @default(general)
   status                SupportTicketStatus   @default(open)
   priority              SupportPriority       @default(normal)
+  rating                Int?                  @default(5)
   subject               String                @db.VarChar(255)
   description           String
   related_entity_type   String?               @db.VarChar(80)
@@ -673,9 +606,13 @@ model SupportTicket {
   created_at            DateTime              @default(now())
   updated_at            DateTime              @updatedAt
 
+  tenant                Tenant?               @relation(fields: [tenant_id], references: [tenant_id])
+  requester             User?                 @relation("RequesterTickets", fields: [requester_id], references: [user_id])
+  assignee              User?                 @relation("AssignedTickets", fields: [assigned_to], references: [user_id])
+  resolver              User?                 @relation("ResolvedTickets", fields: [resolved_by], references: [user_id])
+
   @@index([tenant_id, status, priority, created_at])
   @@index([requester_id, created_at])
-  @@index([feedback_entry_id])
   @@index([category, status])
   @@index([module_context, status])
   @@index([related_entity_type, related_entity_id])
@@ -688,40 +625,23 @@ model SupportTicket {
   @@map("support_tickets")
 }
 
-model VerificationToken {
-  id        Int      @id @default(autoincrement())
-  email     String
-  token     String   @unique
-  expires   DateTime
-  tenant_id Int?
-
-  @@unique([tenant_id, email, token])
-  @@index([tenant_id, email])
-  @@map("verification_tokens")
+enum SecurityTokenType {
+  VERIFICATION
+  TWO_FACTOR
+  PASSWORD_RESET
 }
 
-model TwoFactorToken {
-  id        Int      @id @default(autoincrement())
+model AuthToken {
+  id        Int               @id @default(autoincrement())
   email     String
-  token     String   @unique
+  token     String            @unique
   expires   DateTime
+  type      SecurityTokenType
   tenant_id Int?
 
-  @@unique([tenant_id, email, token])
-  @@index([tenant_id, email])
-  @@map("two_factor_tokens")
-}
-
-model PasswordResetToken {
-  id        Int      @id @default(autoincrement())
-  tenant_id Int?
-  email     String
-  token     String   @unique
-  expires   DateTime
-
-  @@unique([tenant_id, email, token])
-  @@index([tenant_id, email])
-  @@map("password_reset_tokens")
+  @@unique([tenant_id, email, token, type])
+  @@index([tenant_id, email, type])
+  @@map("auth_tokens")
 }
 
 model Message {
@@ -1306,6 +1226,13 @@ enum FeedbackModule {
   reports
 }
 
+enum SupportTicketType {
+  SUPPORT
+  FEEDBACK
+  DISPUTE
+  BUG
+}
+
 enum SupportTicketCategory {
   wallet_issue
   loan_issue
@@ -1315,6 +1242,9 @@ enum SupportTicketCategory {
   feature_request
   homepage_concern
   general_support
+  testimonial
+  concern
+  general
 }
 
 enum SupportTicketStatus {
@@ -1664,6 +1594,8 @@ enum TenantEntitlementStatus {
 
 enum BillingCycle {
   monthly
+  quarterly
+  semi_annually
   annually
 }
 
@@ -1680,20 +1612,22 @@ enum AppModule {
 }
 
 model SubscriptionPlan {
-  id             Int                  @id @default(autoincrement())
-  tier_name      String               @unique @db.VarChar(50) // "Core", "Pro", "Enterprise", "Sangay"
-  price_monthly  Decimal              @db.Decimal(10, 2)
-  price_annually Decimal              @db.Decimal(10, 2)
-  max_members    Int
-  max_storage_mb Int
-  features       String[]
-  is_active      Boolean              @default(true)
-  is_addon       Boolean              @default(false) // Sangay is an add-on to Enterprise
-  tenant_price   Int?                 @default(3000) // Per-tenant price for Sangay
-  tenant_storage Int?                 @default(10000) // Per-tenant storage for Sangay
-  created_at     DateTime             @default(now())
-  updated_at     DateTime             @updatedAt
-  subscriptions  TenantSubscription[]
+  id                 Int                  @id @default(autoincrement())
+  tier_name          String               @unique @db.VarChar(50) // "Core", "Pro", "Enterprise", "Sangay"
+  price_monthly      Decimal              @db.Decimal(10, 2)
+  price_quarterly    Decimal              @default(0) @db.Decimal(10, 2)
+  price_semi_annually Decimal             @default(0) @db.Decimal(10, 2)
+  price_annually     Decimal              @db.Decimal(10, 2)
+  max_members        Int
+  max_storage_mb     Int
+  features           Json?
+  is_active          Boolean              @default(true)
+  is_addon           Boolean              @default(false) // Sangay is an add-on to Enterprise
+  tenant_price       Int?                 @default(3000) // Per-tenant price for Sangay
+  tenant_storage     Int?                 @default(10000) // Per-tenant storage for Sangay
+  created_at         DateTime             @default(now())
+  updated_at         DateTime             @updatedAt
+  subscriptions      TenantSubscription[]
 
   @@map("subscription_plans")
 }
@@ -1708,7 +1642,7 @@ model TenantSubscription {
   end_date          DateTime?
   created_at        DateTime     @default(now())
   updated_at        DateTime     @updatedAt
-  activated_modules AppModule[]  @default([])
+  activated_modules Json?
 
   tenant Tenant           @relation(fields: [tenant_id], references: [tenant_id], onDelete: Cascade)
   plan   SubscriptionPlan @relation(fields: [plan_id], references: [id], onDelete: Restrict)
@@ -1742,7 +1676,7 @@ model EmailTemplate {
   subject    String                @db.VarChar(255)
   html_body  String                @db.Text
   text_body  String?               @db.Text
-  variables  String[] // documented placeholders e.g. {{member_name}}
+  variables   Json? // documented placeholders e.g. {{member_name}}
   is_active  Boolean               @default(true)
   created_at DateTime              @default(now())
   updated_at DateTime              @updatedAt
@@ -1803,7 +1737,7 @@ model ReportDefinition {
   schedule_freq     ReportScheduleFrequency?
   schedule_day      Int?
   next_run_at       DateTime?
-  recipients        String[]
+  recipients        Json?
   is_active         Boolean                  @default(true)
   created_at        DateTime                 @default(now())
   updated_at        DateTime                 @updatedAt
@@ -1829,7 +1763,7 @@ model GeneratedReport {
   period_start        DateTime?
   period_end          DateTime?
   dispatched_at       DateTime?
-  dispatch_recipients String[]
+  dispatch_recipients Json?
   dispatch_status     String?           @db.VarChar(50)
   expires_at          DateTime?
   audit_log_id        Int?
@@ -1945,7 +1879,7 @@ model BackupRecord {
   storage_path     String?          @db.VarChar(512)
   file_size_bytes  BigInt?
   checksum         String?          @db.VarChar(128)
-  affected_schemas String[]
+  affected_schemas Json?
   error_message    String?
   started_at       DateTime?
   completed_at     DateTime?
@@ -1966,7 +1900,7 @@ model RestoreRequest {
   backup_id      Int
   requested_by   Int
   status         RestoreStatus @default(requested)
-  target_schemas String[]
+  target_schemas Json?
   notes          String?
   error_message  String?
   approved_by    Int?
@@ -1988,70 +1922,6 @@ model RestoreRequest {
 // DM-32: AI Analytics
 // ============================================================
 
-enum AiUseCase {
-  portfolio_summary
-  risk_detection
-  repayment_forecast
-  member_financial_tip
-  anomaly_alert
-  support_draft
-}
-
-enum AiProcessingStatus {
-  queued
-  processing
-  completed
-  failed
-  skipped
-}
-
-model AiConfig {
-  id                  Int          @id @default(autoincrement())
-  tenant_id           Int?
-  use_case            AiUseCase
-  is_enabled          Boolean      @default(true)
-  risk_sensitivity    String       @default("medium") @db.VarChar(20)
-  prompt_template     String?      @db.Text
-  max_tokens          Int          @default(512)
-  temperature         Decimal      @default(0.3) @db.Decimal(3, 2)
-  allowed_data_scopes String[]
-  created_at          DateTime     @default(now())
-  updated_at          DateTime     @updatedAt
-  snapshots           AiSnapshot[]
-
-  @@unique([tenant_id, use_case])
-  @@index([tenant_id, is_enabled])
-  @@map("ai_configs")
-}
-
-model AiSnapshot {
-  id               Int                @id @default(autoincrement())
-  config_id        Int?
-  tenant_id        Int?
-  use_case         AiUseCase
-  status           AiProcessingStatus @default(queued)
-  input_summary    Json?
-  output_text      String?            @db.Text
-  risk_level       String?            @db.VarChar(20)
-  confidence_score Decimal?           @db.Decimal(5, 2)
-  requires_review  Boolean            @default(false)
-  reviewed_by      Int?
-  reviewed_at      DateTime?
-  review_notes     String?
-  error_message    String?
-  processing_ms    Int?
-  period_start     DateTime?
-  period_end       DateTime?
-  metadata         Json?
-  created_at       DateTime           @default(now())
-  updated_at       DateTime           @updatedAt
-  config           AiConfig?          @relation(fields: [config_id], references: [id])
-
-  @@index([tenant_id, use_case, created_at])
-  @@index([status])
-  @@index([requires_review, reviewed_at])
-  @@map("ai_snapshots")
-}
 
 // ============================================================
 // DM-33: Fraud and Risk Monitoring
@@ -2182,9 +2052,9 @@ model SecuritySettings {
   password_policy     Json?     // Password requirements
   session_settings   Json?     // Session configuration
   two_factor_required Boolean   @default(false)
-  two_factor_roles   String[]  // Roles requiring 2FA
-  ip_whitelist       String[]  // Allowed IP addresses
-  allowed_domains    String[]  // Email domains for registration
+  two_factor_roles   Json?
+  ip_whitelist       Json?
+  allowed_domains    Json?
   created_at         DateTime  @default(now())
   updated_at         DateTime  @updatedAt
 
@@ -2220,7 +2090,7 @@ model NotificationTemplate {
   type        String    // email, sms, push
   subject     String?   @db.VarChar(255)
   body        String    @db.Text
-  variables   String[]
+  variables   Json?
   category    String
   is_active   Boolean   @default(true)
   created_at  DateTime  @default(now())

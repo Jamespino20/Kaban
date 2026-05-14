@@ -80,9 +80,9 @@ export function AuditLogViewer({
         userId,
       });
 
-      if (result.success && result.data) {
-        setLogs(result.data);
-        setTotalPages(result.pagination.totalPages);
+      if (result.success && result.data && "pagination" in result) {
+        setLogs(result.data as any);
+        setTotalPages((result as any).pagination.totalPages);
       }
     } catch (error) {
       console.error("Failed to load logs:", error);

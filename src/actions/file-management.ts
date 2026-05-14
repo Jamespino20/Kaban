@@ -43,7 +43,7 @@ export async function uploadSystemFile({
     if (!finalTenantId) {
       file = await query(prisma);
     } else {
-      file = await prisma.$withTenant(finalTenantId, async (tx) => {
+      file = await prisma.$withTenant(finalTenantId, async (tx: any) => {
         return await query(tx);
       });
     }
@@ -87,7 +87,7 @@ export async function getSystemFile(fileId: string) {
     if (!tenantId) {
       return await query(prisma);
     }
-    return await prisma.$withTenant(tenantId, async (tx) => {
+    return await prisma.$withTenant(tenantId, async (tx: any) => {
       return await query(tx);
     });
   } catch (error) {
@@ -131,7 +131,7 @@ export async function getSystemFiles(tenantId?: number) {
     if (!finalTenantId) {
       files = await query(prisma);
     } else {
-      files = await prisma.$withTenant(finalTenantId, async (tx) => {
+      files = await prisma.$withTenant(finalTenantId, async (tx: any) => {
         return await query(tx);
       });
     }
@@ -178,7 +178,7 @@ export async function deleteSystemFile(fileId: string) {
     if (!tenantId) {
       result = await query(prisma);
     } else {
-      result = await prisma.$withTenant(tenantId, async (tx) => {
+      result = await prisma.$withTenant(tenantId, async (tx: any) => {
         return await query(tx);
       });
     }

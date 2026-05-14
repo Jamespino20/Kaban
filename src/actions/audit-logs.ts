@@ -71,11 +71,12 @@ export async function getAuditLogsPaginated(filters?: AuditFilters) {
 
     if (filters?.search) {
       const searchLower = filters.search.toLowerCase();
-      filteredLogs = logs.filter((log) =>
-        log.action.toLowerCase().includes(searchLower) ||
-        log.entity_type?.toLowerCase().includes(searchLower) ||
-        log.user?.username?.toLowerCase().includes(searchLower) ||
-        log.actor_label?.toLowerCase().includes(searchLower),
+      filteredLogs = logs.filter(
+        (log: any) =>
+          log.action.toLowerCase().includes(searchLower) ||
+          log.entity_type?.toLowerCase().includes(searchLower) ||
+          log.user?.username?.toLowerCase().includes(searchLower) ||
+          log.actor_label?.toLowerCase().includes(searchLower),
       );
     }
 

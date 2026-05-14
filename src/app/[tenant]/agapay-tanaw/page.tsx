@@ -87,11 +87,10 @@ function getTanawRoleLabel(role: string) {
   return "Tanaw User";
 }
 
-export default async function AgapayTanawPage({
-  params,
-}: {
-  params: { tenant: string };
+export default async function AgapayTanawPage(props: {
+  params: Promise<{ tenant: string }>;
 }) {
+  const params = await props.params;
   const { tenant } = params;
   const session = await requireTanawSession();
 
@@ -515,7 +514,7 @@ export default async function AgapayTanawPage({
               <MemberDirectoryTab
                 members={members}
                 userRole={session?.user?.role}
-                tenants={tenants.map((t) => ({
+                tenants={tenants.map((t: any) => ({
                   id: t.tenant_id,
                   name: t.name,
                 }))}

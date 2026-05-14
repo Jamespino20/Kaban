@@ -1,8 +1,11 @@
 "use server";
 
+import { shouldUseApiClient } from "@/lib/api-config";
+import { api } from "@/lib/api-client";
 import prisma from "@/lib/prisma";
 import { requireAuthenticatedSession } from "@/lib/authorization";
 import { revalidatePath } from "next/cache";
+import { serializeDecimal } from "@/lib/utils";
 import {
   Prisma,
   ScheduleStatus,
@@ -22,7 +25,7 @@ export async function approveWalletTopUp(requestId: number) {
   if (!tenantId) return { error: "Tenant context required." };
 
   try {
-    return await prisma.$withTenant(tenantId, async (tx) => {
+    return await prisma.$withTenant(tenantId, async (tx: any) => {
       // 1. Get request
       const request = await tx.topUpRequest.findUnique({
         where: { id: requestId },
@@ -117,7 +120,7 @@ export async function rejectWalletTopUp(requestId: number) {
   if (!tenantId) return { error: "Tenant context required." };
 
   try {
-    await prisma.$withTenant(tenantId, async (tx) => {
+    await prisma.$withTenant(tenantId, async (tx: any) => {
       await tx.topUpRequest.update({
         where: { id: requestId },
         data: {
@@ -141,12 +144,16 @@ export async function getPendingTopUps() {
 
   if (!tenantId) return [];
 
-  return await prisma.$withTenant(tenantId, async (tx) => {
-    return await tx.topUpRequest.findMany({
+  if (shouldUseApiClient()) {
+    return api.wallet.getPendingTopUps();
+  }
+
+  return await prisma.$withTenant(tenantId, async (tx: any) => {
+    return serializeDecimal(await tx.topUpRequest.findMany({
       where: { status: "pending" },
       include: { user: { include: { profile: true } } },
       orderBy: { created_at: "asc" },
-    });
+    }));
   });
 }
 
@@ -157,15 +164,15 @@ export async function getMemberWallets() {
 
   if (!tenantId) return [];
 
-  return await prisma.$withTenant(tenantId, async (tx) => {
-    return await tx.savingsAccount.findMany({
+  return await prisma.$withTenant(tenantId, async (tx: any) => {
+    return serializeDecimal(await tx.savingsAccount.findMany({
       where: {
         user_id: userId,
       },
       orderBy: {
         account_type: "asc",
       },
-    });
+    }));
   });
 }
 
@@ -183,8 +190,13 @@ export async function requestWalletTopUp(
   if (amount <= 0)
     return { error: "Deposit amount must be greater than zero." };
 
+  if (shouldUseApiClient()) {
+    const result = await api.wallet.requestTopUp({ userId, tenantId, amount, receiptUrl, methodLabel, externalReference });
+    return result;
+  }
+
   try {
-    return await prisma.$withTenant(tenantId, async (tx) => {
+    return await prisma.$withTenant(tenantId, async (tx: any) => {
       // Auto-process: create top-up request record for audit
       const request = await tx.topUpRequest.create({
         data: {
@@ -265,7 +277,7 @@ export async function payLoanWithWallet(loanId: number, amount: number) {
     return { error: "Payment amount must be greater than zero." };
 
   try {
-    await prisma.$withTenant(tenantId, async (tx) => {
+    await prisma.$withTenant(tenantId, async (tx: any) => {
       // 1. Get wallet
       const wallet = await tx.savingsAccount.findFirst({
         where: {
@@ -382,7 +394,11 @@ export async function getWalletTransactions() {
 
   if (!tenantId) return [];
 
-  const savingsAccount = await prisma.$withTenant(tenantId, async (tx) => {
+  if (shouldUseApiClient()) {
+    return api.wallet.getTransactions(userId);
+  }
+
+  const savingsAccount = await prisma.$withTenant(tenantId, async (tx: any) => {
     return await tx.savingsAccount.findFirst({
       where: {
         user_id: userId,
@@ -425,7 +441,7 @@ export async function processPosTransaction(data: {
     return { error: "Transaction amount must be greater than zero." };
 
   try {
-    return await prisma.$withTenant(tenantId, async (tx) => {
+    return await prisma.$withTenant(tenantId, async (tx: any) => {
       if (data.type === "deposit") {
         // 1. Update or create wallet
         let wallet = await tx.savingsAccount.findFirst({

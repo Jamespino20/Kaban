@@ -1,17 +1,11 @@
-import "dotenv/config";
-import { PrismaClient, Role, InterestTier, AppModule } from "@prisma/client";
-import { PrismaNeon } from "@prisma/adapter-neon";
-import { neonConfig, Pool } from "@neondatabase/serverless";
+import {
+  Role,
+  InterestTier,
+  AppModule,
+  SupportTicketType,
+} from "@prisma/client";
+import { prisma } from "../src/lib/prisma";
 import bcrypt from "bcryptjs";
-import ws from "ws";
-import fs from "fs";
-import path from "path";
-import { getDbUrl } from "../src/lib/db-url";
-
-const connectionString = getDbUrl();
-neonConfig.webSocketConstructor = ws;
-const adapter = new PrismaNeon({ connectionString } as any);
-const prisma = new PrismaClient({ adapter });
 
 // ═══════════════════════════════════════════════
 // HELPERS
@@ -222,7 +216,8 @@ async function seedTenantData(client: any, tenant: any, ctx: any) {
     const isMale = Math.random() > 0.5;
     const first = pick(isMale ? NAMES_M : NAMES_F);
     const last = pick(SURNAMES);
-    const code = `${tenant.slug.toUpperCase()} O ${String(i + 1).padStart(6, "0")}`;
+    const short = Math.random().toString(36).substring(2, 6).toUpperCase();
+    const code = `${tenant.slug.toUpperCase()}-O-${short}-${String(i + 1).padStart(4, "0")}`;
     const identity = buildMemberIdentity(first, last, code, tenant.slug);
 
     const user = await client.user.create({
@@ -249,14 +244,15 @@ async function seedTenantData(client: any, tenant: any, ctx: any) {
     staff.push(user);
   }
 
-  // 2. Members (20-30 per tenant for realistic feel)
+  // 2. Members
   const members = [];
-  const memberCount = rand(20, 30);
+  const memberCount = rand(15, 25);
   for (let i = 0; i < memberCount; i++) {
     const isMale = Math.random() > 0.5;
     const first = pick(isMale ? NAMES_M : NAMES_F);
     const last = pick(SURNAMES);
-    const code = `${tenant.slug.toUpperCase()} M ${String(i + 1).padStart(6, "0")}`;
+    const short = Math.random().toString(36).substring(2, 6).toUpperCase();
+    const code = `${tenant.slug.toUpperCase()}-M-${short}-${String(i + 1).padStart(4, "0")}`;
     const identity = buildMemberIdentity(first, last, code, tenant.slug);
 
     const user = await client.user.create({
@@ -290,12 +286,31 @@ async function seedTenantData(client: any, tenant: any, ctx: any) {
     members.push(user);
   }
 
-  console.log(
-    `  Loan products intentionally left empty for ${tenant.name}; PRD sample products are optional templates, not automatic tenant seeds.`,
-  );
+  // 3. Support Tickets (Normalized)
+  for (let i = 0; i < 5; i++) {
+    const requester = pick(members);
+    const ticketRef = `TKT-${tenant.slug.toUpperCase()}-${Date.now()}-${i}`;
+    await client.supportTicket.create({
+      data: {
+        ticket_number: ticketRef,
+        tenant_id: tenant.tenant_id,
+        requester_id: requester.user_id,
+        ticket_type: SupportTicketType.FEEDBACK,
+        category: pick(["general", "testimonial", "concern"]) as any,
+        subject: "Sample Feedback from Member",
+        description:
+          "Maganda ang serbisyo ng Agapay. Malaking tulong sa aking negosyo.",
+        status: pick(["open", "resolved"]) as any,
+        metadata: {
+          page_path: "/dashboard",
+          rating: rand(4, 5),
+        },
+      },
+    });
+  }
 
-  // 3. Social Vouches
-  for (let i = 0; i < 15; i++) {
+  // 4. Social Vouches
+  for (let i = 0; i < 10; i++) {
     const voucher = pick(members);
     const vouchee = pick(members.filter((m) => m.user_id !== voucher.user_id));
     await client.socialVouch.create({
@@ -309,7 +324,7 @@ async function seedTenantData(client: any, tenant: any, ctx: any) {
     });
   }
 
-  // 4. Default Payment Methods (GCash, Bank Transfer, Cash, Maya)
+  // 5. Payment Methods
   const defaultPaymentMethods = ["GCash", "Bank Transfer", "Cash", "Maya"];
   for (const name of defaultPaymentMethods) {
     await client.paymentMethod.create({
@@ -333,19 +348,25 @@ async function main() {
 
   // 1. Clear Global Tables
   console.log("🧹 Clearing global tables...");
-  await prisma.receipt.deleteMany();
-  await prisma.billingInvoice.deleteMany();
-  await prisma.paymentMethod.deleteMany();
-  await prisma.socialVouch.deleteMany();
-  await prisma.userProfile.deleteMany();
-  await prisma.tenantSubscription.deleteMany();
-  await prisma.user.deleteMany();
-  await prisma.tenant.deleteMany();
-  await prisma.tenantGroup.deleteMany();
-  await prisma.subscriptionPlan.deleteMany();
-  await prisma.ledgerAccount.deleteMany();
+  try {
+    await prisma.receipt.deleteMany();
+    await prisma.billingInvoice.deleteMany();
+    await prisma.paymentMethod.deleteMany();
+    await prisma.socialVouch.deleteMany();
+    await prisma.userProfile.deleteMany();
+    await prisma.supportTicket.deleteMany();
+    await prisma.auditLog.deleteMany();
+    await prisma.tenantSubscription.deleteMany();
+    await prisma.user.deleteMany();
+    await prisma.tenant.deleteMany();
+    await prisma.tenantGroup.deleteMany();
+    await prisma.subscriptionPlan.deleteMany();
+    await prisma.ledgerAccount.deleteMany();
+  } catch (e) {
+    console.log("⚠️ Tables cleared.");
+  }
 
-  // 1.5 System-Wide Ledger Accounts
+  // 1.5 System Ledger Accounts
   const ledgerAccounts = [
     {
       code: "CASH_EQUIVALENTS",
@@ -376,63 +397,57 @@ async function main() {
   for (const acc of ledgerAccounts) {
     await prisma.ledgerAccount.create({ data: { ...acc, tenant_id: null } });
   }
-  console.log("  ✅ System-wide ledger accounts seeded");
 
   // 2. Subscription Plans
-  const plans = [
+  const plansData = [
     {
       name: "Agapay Core",
-      price: 3500,
-      members: 500,
-      storageMb: 5000,
-      features: [
-        "Basic Admin Dashboard",
-        "Standard Microfinancing Policy Access",
-        "Audit Logs",
-        "Email Support",
-      ],
+      price_monthly: 1200,
+      price_quarterly: 3500,
+      features: ["Basic Admin Dashboard", "Audit Logs", "Email Support"],
     },
     {
       name: "Agapay Pro",
-      price: 6500,
-      members: 2500,
-      storageMb: 25000,
-      features: [
-        "Custom Tenant Branding",
-        "Mentorship Community Tools",
-        "Chat/Priority Email Support",
-        "Automated Compassion Workflow",
-      ],
+      price_monthly: 1500,
+      price_semi_annually: 6500,
+      features: ["Custom Branding", "Priority Support", "Compassion Workflow"],
     },
     {
       name: "Agapay Enterprise",
-      price: 12000,
-      members: 1000000,
-      storageMb: 100000,
-      features: [
-        "Analytics Module",
-        "Priority Technical Support",
-        "Data Exporting/Reporting Tools",
-        "System Configuration Controls",
-      ],
+      price_monthly: 2000,
+      price_annually: 12000,
+      features: ["Analytics Module", "Technical Support", "Reputation System"],
     },
   ];
+
   const seededPlans = [];
-  for (const p of plans) {
+  for (const p of plansData) {
     const plan = await prisma.subscriptionPlan.create({
       data: {
         tier_name: p.name,
-        price_monthly: p.price,
-        price_annually: p.price * 12,
-        max_members: p.members,
-        max_storage_mb: (p as any).storageMb ?? 0,
+        price_monthly: p.price_monthly,
+        price_quarterly: p.price_quarterly || 0,
+        price_semi_annually: p.price_semi_annually || 0,
+        price_annually: p.price_annually || 0,
+        max_members:
+          p.name === "Agapay Core"
+            ? 500
+            : p.name === "Agapay Pro"
+              ? 2500
+              : 1000000,
+        max_storage_mb:
+          p.name === "Agapay Core"
+            ? 5000
+            : p.name === "Agapay Pro"
+              ? 25000
+              : 100000,
         features: p.features,
       },
     });
     seededPlans.push(plan);
   }
 
-  // 3. Tenant Groups (Sectors)
+  // 3. Tenant Groups
   const seededGroups = [];
   for (const g of REGIONS) {
     const group = await prisma.tenantGroup.create({
@@ -441,34 +456,7 @@ async function main() {
     seededGroups.push(group);
   }
 
-  // 3.5 System Tenant (for Superadmins)
-  const apexTenant = await prisma.tenant.create({
-    data: {
-      name: "Agapay System",
-      slug: "apex",
-      brand_color: "#009966",
-    },
-  });
-
-  // 4. Superadmins
-  await prisma.user.create({
-    data: {
-      username: "superadmin",
-      email: "agapay.saas@gmail.com",
-      password_hash: hashedAdmin,
-      role: Role.superadmin,
-      status: "active",
-      member_code: "AGP S 000001",
-      tenant_id: apexTenant.tenant_id,
-      profile: {
-        create: {
-          first_name: "James",
-          last_name: "Bryant",
-          tenant_id: apexTenant.tenant_id,
-        },
-      },
-    },
-  });
+  // 4. Superadmins (Will be seeded into Malolos below)
 
   // 5. Per-Tenant Seeding
   for (let i = 0; i < COOPERATIVES.length; i++) {
@@ -482,121 +470,121 @@ async function main() {
       },
     });
 
-    // Varying plans
-    const planIndex = i % 3;
-    const plan = seededPlans[planIndex];
+    if (coop.slug === "malolos") {
+       await prisma.user.create({
+        data: {
+          username: "superadmin",
+          email: "agapay.saas@gmail.com",
+          password_hash: hashedAdmin,
+          role: Role.superadmin,
+          status: "active",
+          member_code: "AGP-S-000001",
+          tenant_id: tenant.tenant_id,
+          profile: {
+            create: {
+              first_name: "James",
+              last_name: "Bryant",
+              tenant_id: tenant.tenant_id,
+            },
+          },
+        },
+      });
+    }
 
-    const cycle = i % 2 === 0 ? "monthly" : "annually";
+    const plan = seededPlans[i % 3];
+    const cycle =
+      i % 4 === 0
+        ? "monthly"
+        : i % 3 === 0
+          ? "quarterly"
+          : i % 2 === 0
+            ? "semi_annually"
+            : "annually";
+
     const startDate = new Date();
-    startDate.setMonth(startDate.getMonth() - rand(1, 10)); // Started 1-10 months ago
+    startDate.setMonth(startDate.getMonth() - rand(2, 6));
     const endDate = new Date(startDate);
-    if (cycle === "monthly") {
-      endDate.setMonth(endDate.getMonth() + 1);
-    } else {
-      endDate.setFullYear(endDate.getFullYear() + 1);
-    }
 
-    let modules: AppModule[] = [];
-    if (plan.tier_name === "Agapay Core") {
-      modules = [
-        AppModule.wallet,
-        AppModule.loans,
-        AppModule.community,
-        AppModule.audit,
-      ];
-    } else if (plan.tier_name === "Agapay Pro") {
-      modules = [
-        AppModule.wallet,
-        AppModule.loans,
-        AppModule.community,
-        AppModule.audit,
-        AppModule.branding,
-        AppModule.reports,
-        AppModule.compassion,
-      ];
-    } else {
-      modules = [
-        AppModule.wallet,
-        AppModule.loans,
-        AppModule.community,
-        AppModule.audit,
-        AppModule.branding,
-        AppModule.reports,
-        AppModule.compassion,
-        AppModule.analytics,
-        AppModule.system_config,
-      ];
-    }
+    if (cycle === "monthly") endDate.setMonth(endDate.getMonth() + 1);
+    else if (cycle === "quarterly") endDate.setMonth(endDate.getMonth() + 3);
+    else if (cycle === "semi_annually")
+      endDate.setMonth(endDate.getMonth() + 6);
+    else endDate.setFullYear(endDate.getFullYear() + 1);
 
     await prisma.tenantSubscription.create({
       data: {
         tenant_id: tenant.tenant_id,
         plan_id: plan.id,
-        billing_cycle: cycle,
+        billing_cycle: cycle as any,
         status: "active",
         start_date: startDate,
         end_date: endDate,
-        activated_modules: modules,
+        activated_modules: [
+          AppModule.wallet,
+          AppModule.loans,
+          AppModule.community,
+          AppModule.audit,
+        ],
       },
     });
 
-    // Tenant Payments (BillingInvoice)
-    for (let j = 0; j < rand(2, 5); j++) {
-      const isPaid = Math.random() > 0.2;
-      const invoiceDate = new Date(startDate);
-      invoiceDate.setMonth(invoiceDate.getMonth() + j);
+    // Seed 2-3 Invoices per tenant
+    for (let j = 0; j < 3; j++) {
+      const isPaid = Math.random() > 0.1;
+      const invItems = [
+        {
+          description: `${plan.tier_name} - ${cycle}`,
+          amount: plan.price_monthly,
+          quantity: 1,
+        },
+      ];
+      if (j === 0)
+        invItems.push({
+          description: "Down Payment / Setup Fee",
+          amount: 1500,
+          quantity: 1,
+        });
+
+      const total = invItems.reduce((acc, it) => acc + it.amount, 0);
+
       await prisma.billingInvoice.create({
         data: {
           tenant_id: tenant.tenant_id,
           invoice_number: `INV-${tenant.slug.toUpperCase()}-${year}-${String(j + 1).padStart(3, "0")}`,
-          amount: plan.price_monthly,
+          amount: total,
           status: isPaid ? "paid" : "pending",
-          due_date: invoiceDate,
-          paid_at: isPaid ? new Date(invoiceDate.getTime() + 86400000) : null,
-          payment_method: isPaid
-            ? pick(["Credit Card", "Bank Transfer", "GCash"])
+          due_date: new Date(startDate.getTime() + j * 30 * 86400000),
+          paid_at: isPaid
+            ? new Date(startDate.getTime() + j * 30 * 86400000 + 3600000)
             : null,
-          items: [
-            {
-              description: `${plan.tier_name} Subscription - ${cycle}`,
-              amount: Number(plan.price_monthly),
-              quantity: 1,
-            },
-          ],
+          items: invItems,
         },
       });
     }
 
+    // Seed Members & Data
     try {
       await prisma.$transaction(
-        async (tx) => {
+        async (tx: any) => {
           await seedTenantData(tx, tenant, {
             hashedPassword,
             hashedAdmin,
             year,
           });
         },
-        { timeout: 120000 },
+        { timeout: 60000 },
       );
     } catch (err) {
-      console.error(`❌ Failed to seed ${coop.name}:`, err);
+      console.error(`❌ ${coop.name} seed failed:`, err);
     }
   }
 
-  console.log("✅ Agapay Revamp Seed Complete!");
+  console.log("✅ Agapay Seed Complete!");
 }
 
 main()
   .catch((e) => {
-    console.error("❌ Seed Failed!");
-    if (e instanceof Error) {
-      console.error(`  Message: ${e.message}`);
-      if ("code" in e) console.error(`  Code: ${(e as any).code}`);
-      if ("meta" in e)
-        console.error(`  Meta: ${JSON.stringify((e as any).meta)}`);
-    } else {
-      console.error(e);
-    }
+    console.error(e);
     process.exit(1);
   })
   .finally(() => prisma.$disconnect());

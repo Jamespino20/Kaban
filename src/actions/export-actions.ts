@@ -33,7 +33,7 @@ export async function exportRestrictedModuleData(moduleName: string) {
 
   switch (moduleName) {
     case "E-Wallet": {
-      const transactions = await prisma.$withTenant(tenantId, async (tx) => {
+      const transactions = await prisma.$withTenant(tenantId, async (tx: any) => {
         return tx.savingsTransaction.findMany({
           where: { tenant_id: tenantId },
           include: {
@@ -64,7 +64,7 @@ export async function exportRestrictedModuleData(moduleName: string) {
     case "Loaning Node":
     case "Loan Application":
     case "My Loans & Repayment": {
-      const loans = await prisma.$withTenant(tenantId, async (tx) => {
+      const loans = await prisma.$withTenant(tenantId, async (tx: any) => {
         return tx.loan.findMany({
           where: { tenant_id: tenantId },
           include: {
@@ -93,7 +93,7 @@ export async function exportRestrictedModuleData(moduleName: string) {
     }
 
     case "Community": {
-      const conversations = await prisma.$withTenant(tenantId, async (tx) => {
+      const conversations = await prisma.$withTenant(tenantId, async (tx: any) => {
         return tx.conversation.findMany({
           where: { tenant_id: tenantId },
           include: {
@@ -120,7 +120,7 @@ export async function exportRestrictedModuleData(moduleName: string) {
     }
 
     case "Audit Logs": {
-      const logs = await prisma.$withTenant(tenantId, async (tx) => {
+      const logs = await prisma.$withTenant(tenantId, async (tx: any) => {
         return tx.auditLog.findMany({
           where: { tenant_id: tenantId },
           include: { user: { select: { username: true } } },
@@ -147,7 +147,7 @@ export async function exportRestrictedModuleData(moduleName: string) {
     }
 
     case "Analytics Module": {
-      const [usersCount, loansCount, txCount, activeLoans, pendingLoans] = await prisma.$withTenant(tenantId, async (tx) => {
+      const [usersCount, loansCount, txCount, activeLoans, pendingLoans] = await prisma.$withTenant(tenantId, async (tx: any) => {
         return Promise.all([
           tx.user.count({ where: { tenant_id: tenantId } }),
           tx.loan.count({ where: { tenant_id: tenantId } }),

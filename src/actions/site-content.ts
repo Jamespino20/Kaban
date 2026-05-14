@@ -117,7 +117,7 @@ export async function fetchHomepageContent() {
     return await query(prisma);
   }
 
-  return await prisma.$withTenant(malolosTenant.tenant_id, async (tx) => {
+  return await prisma.$withTenant(malolosTenant.tenant_id, async (tx: any) => {
     return await query(tx);
   });
 }
@@ -163,7 +163,7 @@ export async function getHomepageContentAdmin() {
     return await query(prisma);
   }
 
-  return await prisma.$withTenant(tenantId, async (tx) => {
+  return await prisma.$withTenant(tenantId, async (tx: any) => {
     return await query(tx);
   });
 }
@@ -194,18 +194,22 @@ export async function getPlatformContentModeration() {
 
     const faqUserIds = [
       ...new Set([
-        ...platformFaqs.map((f) => f.submitted_by_user_id).filter(Boolean),
-        ...platformFaqs.map((f) => f.reviewed_by_user_id).filter(Boolean),
+        ...platformFaqs
+          .map((f: { submitted_by_user_id: any }) => f.submitted_by_user_id)
+          .filter(Boolean),
+        ...platformFaqs
+          .map((f: { reviewed_by_user_id: any }) => f.reviewed_by_user_id)
+          .filter(Boolean),
       ]),
     ].filter((id): id is number => typeof id === "number");
 
     const testimonialUserIds = [
       ...new Set([
         ...platformTestimonials
-          .map((t) => t.submitted_by_user_id)
+          .map((t: { submitted_by_user_id: any }) => t.submitted_by_user_id)
           .filter(Boolean),
         ...platformTestimonials
-          .map((t) => t.reviewed_by_user_id)
+          .map((t: { reviewed_by_user_id: any }) => t.reviewed_by_user_id)
           .filter(Boolean),
       ]),
     ].filter((id): id is number => typeof id === "number");
@@ -217,9 +221,9 @@ export async function getPlatformContentModeration() {
       select: { user_id: true, username: true, email: true },
     });
 
-    const userMap = new Map(users.map((u) => [u.user_id, u]));
+    const userMap = new Map(users.map((u: any) => [u.user_id, u]));
 
-    const enrichedFaqs = platformFaqs.map((f) => ({
+    const enrichedFaqs = platformFaqs.map((f: any) => ({
       ...f,
       submitted_by_user: f.submitted_by_user_id
         ? userMap.get(f.submitted_by_user_id)
@@ -229,15 +233,17 @@ export async function getPlatformContentModeration() {
         : null,
     }));
 
-    const enrichedTestimonials = platformTestimonials.map((t) => ({
-      ...t,
-      submitted_by_user: t.submitted_by_user_id
-        ? userMap.get(t.submitted_by_user_id)
-        : null,
-      reviewed_by_user: t.reviewed_by_user_id
-        ? userMap.get(t.reviewed_by_user_id)
-        : null,
-    }));
+    const enrichedTestimonials = platformTestimonials.map(
+      (t: { submitted_by_user_id: unknown; reviewed_by_user_id: unknown }) => ({
+        ...t,
+        submitted_by_user: t.submitted_by_user_id
+          ? userMap.get(t.submitted_by_user_id)
+          : null,
+        reviewed_by_user: t.reviewed_by_user_id
+          ? userMap.get(t.reviewed_by_user_id)
+          : null,
+      }),
+    );
 
     return {
       success: true,
@@ -381,8 +387,7 @@ export async function submitHomepageFaqProposal(
           existing.workflow_status === CONTENT_STATUS.published
         ) {
           return {
-            error:
-              "Only superadmin can modify published FAQs.",
+            error: "Only superadmin can modify published FAQs.",
           };
         }
       }
@@ -430,7 +435,7 @@ export async function submitHomepageFaqProposal(
     if (!tenantId) {
       result = await query(prisma);
     } else {
-      result = await prisma.$withTenant(tenantId, async (tx) => {
+      result = await prisma.$withTenant(tenantId, async (tx: any) => {
         return await query(tx);
       });
     }
@@ -464,8 +469,7 @@ export async function submitHomepageTestimonialProposal(
         const existing = await db.homepageTestimonial.findUnique({
           where: { id: data.id },
         });
-        if (!existing)
-          return { error: "Testimonial proposal not found." };
+        if (!existing) return { error: "Testimonial proposal not found." };
         if (
           session.user.role !== "superadmin" &&
           existing.tenant_id !== tenantId
@@ -477,8 +481,7 @@ export async function submitHomepageTestimonialProposal(
           existing.workflow_status === CONTENT_STATUS.published
         ) {
           return {
-            error:
-              "Only superadmin can modify published testimonials.",
+            error: "Only superadmin can modify published testimonials.",
           };
         }
       }
@@ -530,7 +533,7 @@ export async function submitHomepageTestimonialProposal(
     if (!tenantId) {
       result = await query(prisma);
     } else {
-      result = await prisma.$withTenant(tenantId, async (tx) => {
+      result = await prisma.$withTenant(tenantId, async (tx: any) => {
         return await query(tx);
       });
     }
@@ -588,7 +591,7 @@ export async function reviewHomepageFaqProposal(
     if (!tenantId) {
       result = await query(prisma);
     } else {
-      result = await prisma.$withTenant(tenantId, async (tx) => {
+      result = await prisma.$withTenant(tenantId, async (tx: any) => {
         return await query(tx);
       });
     }
@@ -648,7 +651,7 @@ export async function reviewHomepageTestimonialProposal(
     if (!tenantId) {
       result = await query(prisma);
     } else {
-      result = await prisma.$withTenant(tenantId, async (tx) => {
+      result = await prisma.$withTenant(tenantId, async (tx: any) => {
         return await query(tx);
       });
     }
@@ -717,7 +720,9 @@ export async function pickTenantTestimonialForPlatform(id: number) {
     });
 
     revalidateContentPaths();
-    return { success: "Testimonial has been picked for the platform homepage." };
+    return {
+      success: "Testimonial has been picked for the platform homepage.",
+    };
   } catch (error) {
     console.error("pickTenantTestimonialForPlatform failed:", error);
     return { error: "Failed to pick testimonial for platform." };
@@ -738,7 +743,7 @@ export async function deleteHomepageFaq(id: number) {
     if (!tenantId) {
       result = await query(prisma);
     } else {
-      result = await prisma.$withTenant(tenantId, async (tx) => {
+      result = await prisma.$withTenant(tenantId, async (tx: any) => {
         return await query(tx);
       });
     }
@@ -767,7 +772,7 @@ export async function deleteHomepageTestimonial(id: number) {
     if (!tenantId) {
       result = await query(prisma);
     } else {
-      result = await prisma.$withTenant(tenantId, async (tx) => {
+      result = await prisma.$withTenant(tenantId, async (tx: any) => {
         return await query(tx);
       });
     }
@@ -802,16 +807,22 @@ export async function submitFeedback(input: z.infer<typeof feedbackSchema>) {
         message: data.message,
       });
 
-      await db.feedbackEntry.create({
+      await db.supportTicket.create({
         data: {
           tenant_id: tenantId ?? null,
-          user_id: session?.user?.user_id ?? null,
-          name: data.name,
-          email: data.email || session?.user?.email || null,
-          category: data.category,
-          page_path: data.page_path || null,
-          subject: data.subject || null,
-          message: data.message,
+          requester_id: session?.user?.user_id ?? null,
+          ticket_number: `FDB-PUB-${Date.now().toString(36).toUpperCase()}`,
+          ticket_type: "FEEDBACK",
+          category: (data.category as any) || "general_support",
+          subject: data.subject || "Public Feedback",
+          description: data.message,
+          module_context: (data.category as any) || "general",
+          status: "open",
+          metadata: {
+            name: data.name,
+            email: data.email || session?.user?.email || null,
+            page_path: data.page_path || null,
+          },
         },
       });
 
@@ -822,7 +833,7 @@ export async function submitFeedback(input: z.infer<typeof feedbackSchema>) {
     if (!tenantId) {
       result = await query(prisma);
     } else {
-      result = await prisma.$withTenant(tenantId, async (tx) => {
+      result = await prisma.$withTenant(tenantId, async (tx: any) => {
         return await query(tx);
       });
     }
@@ -846,11 +857,11 @@ export async function getFeedbackEntries() {
   const tenantId = session.user.tenantId;
 
   const query = async (db: any, whereClause: any) => {
-    return db.feedbackEntry.findMany({
+    return db.supportTicket.findMany({
       where: whereClause,
       orderBy: [{ status: "asc" }, { created_at: "desc" }],
       include: {
-        user: {
+        requester: {
           select: { username: true, email: true },
         },
         tenant: {
@@ -867,7 +878,7 @@ export async function getFeedbackEntries() {
   }
 
   // Scoped view for the current tenant
-  const scopedResults = await prisma.$withTenant(tenantId, async (tx) => {
+  const scopedResults = await prisma.$withTenant(tenantId, async (tx: any) => {
     return await query(tx, { tenant_id: tenantId });
   });
 
@@ -898,7 +909,7 @@ export async function getFeedbackEntries() {
   return scopedResults;
 }
 
-export async function updateFeedbackEntryStatus(
+export async function updateSupportTicketStatus(
   input: z.infer<typeof feedbackUpdateSchema>,
 ) {
   try {
@@ -907,7 +918,7 @@ export async function updateFeedbackEntryStatus(
     const data = feedbackUpdateSchema.parse(input);
 
     const query = async (db: any) => {
-      const existing = await db.feedbackEntry.findUnique({
+      const existing = await db.supportTicket.findUnique({
         where: { id: data.id },
       });
 
@@ -919,7 +930,7 @@ export async function updateFeedbackEntryStatus(
         return { error: "You are not allowed to update this feedback." };
       }
 
-      await db.feedbackEntry.update({
+      await db.supportTicket.update({
         where: { id: data.id },
         data: { status: data.status },
       });
@@ -931,7 +942,7 @@ export async function updateFeedbackEntryStatus(
     if (!tenantId) {
       result = await query(prisma);
     } else {
-      result = await prisma.$withTenant(tenantId, async (tx) => {
+      result = await prisma.$withTenant(tenantId, async (tx: any) => {
         return await query(tx);
       });
     }
@@ -941,7 +952,7 @@ export async function updateFeedbackEntryStatus(
     }
     return result;
   } catch (error) {
-    console.error("updateFeedbackEntryStatus failed:", error);
+    console.error("updateSupportTicketStatus failed:", error);
     return { error: "Failed to update feedback." };
   }
 }
@@ -976,13 +987,13 @@ export async function getContentWorkflowSummary() {
       db.homepageTestimonial.count({
         where: { ...tenantWhere, workflow_status: CONTENT_STATUS.pending },
       }),
-      db.feedbackEntry.count({
+      db.supportTicket.count({
         where: {
           ...feedbackWhere,
           status: { in: ["open", "in_review"] },
         },
       }),
-      db.feedbackEntry.count({
+      db.supportTicket.count({
         where: {
           ...feedbackWhere,
           category: "testimonial",
@@ -1003,7 +1014,7 @@ export async function getContentWorkflowSummary() {
     return await query(prisma);
   }
 
-  return await prisma.$withTenant(tenantId, async (tx) => {
+  return await prisma.$withTenant(tenantId, async (tx: any) => {
     return await query(tx);
   });
 }
