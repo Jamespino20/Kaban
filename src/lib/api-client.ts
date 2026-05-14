@@ -2,6 +2,7 @@ const API_BASE = process.env.NEXT_PUBLIC_API_URL || '';
 const API_PREFIX = '/v1';
 
 let authToken: string | null = null;
+let cookieJar: string = '';
 
 export function setAuthToken(token: string | null) {
   authToken = token;
@@ -26,12 +27,15 @@ async function apiFetch<T>(
 ): Promise<T> {
   const url = `${API_BASE}${API_PREFIX}${endpoint}`;
   const headers: Record<string, string> = {
-    'Content-Type': 'application/json',
+    'User-Agent': 'Mozilla/5.0 (compatible; Agapay/1.0)',
+    'Accept': 'application/json, text/plain, */*',
+    'Accept-Language': 'en-US,en;q=0.9',
     ...(options.headers as Record<string, string>),
   };
 
   const token = getAuthToken();
   if (token) headers['Authorization'] = `Bearer ${token}`;
+  if (cookieJar) headers['Cookie'] = cookieJar;
 
   if (!API_BASE && !process.env.CI) {
     throw new Error(
@@ -43,15 +47,32 @@ async function apiFetch<T>(
     console.log(`[API Client] → ${url}`);
   }
 
-  const res = await fetch(url, { ...options, headers });
+  let res = await fetch(url, { ...options, headers, redirect: 'follow' });
 
-  // Check content type before parsing JSON
+  // Handle InfinityFree security challenge (aes.js HTML page)
   const contentType = res.headers.get('content-type') || '';
   if (!contentType.includes('json')) {
     const text = await res.text();
-    const snippet = text.substring(0, 200);
-    console.error(`[API Client] Non-JSON response from ${endpoint} (${res.status}): ${snippet}`);
-    throw new Error(`API returned ${res.status} ${contentType} — expected JSON. Check ${url}`);
+    if (text.includes('aes.js') || text.includes('toNumbers')) {
+      // Store any cookies from the challenge response
+      const setCookie = res.headers.get('set-cookie');
+      if (setCookie) cookieJar = setCookie.split(';')[0];
+      // Retry with the cookie
+      const retryHeaders = { ...headers };
+      if (cookieJar) retryHeaders['Cookie'] = cookieJar;
+      res = await fetch(url, { ...options, headers: retryHeaders, redirect: 'follow' });
+      const retryContentType = res.headers.get('content-type') || '';
+      if (!retryContentType.includes('json')) {
+        const retryText = await res.text();
+        const snippet = retryText.substring(0, 200);
+        console.error(`[API Client] Retry still non-JSON from ${endpoint}: ${snippet}`);
+        throw new Error(`API security challenge could not be bypassed for ${url}. Try disabling InfinityFree bot protection or use a different hosting URL.`);
+      }
+    } else {
+      const snippet = text.substring(0, 200);
+      console.error(`[API Client] Non-JSON response from ${endpoint} (${res.status}): ${snippet}`);
+      throw new Error(`API returned ${res.status} — expected JSON. Check ${url}`);
+    }
   }
 
   const data = await res.json();
