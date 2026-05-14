@@ -1,4 +1,5 @@
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || '';
+const API_HOST = process.env.NEXT_PUBLIC_API_HOST || '';
 const API_PREFIX = '/v1';
 
 let authToken: string | null = null;
@@ -36,6 +37,7 @@ async function apiFetch<T>(
   const token = getAuthToken();
   if (token) headers['Authorization'] = `Bearer ${token}`;
   if (cookieJar) headers['Cookie'] = cookieJar;
+  if (API_HOST) headers['Host'] = API_HOST;
 
   if (!API_BASE && !process.env.CI) {
     throw new Error(

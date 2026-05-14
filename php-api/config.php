@@ -27,8 +27,15 @@ if ($envHost && $envUser && $envName) {
     // Auto-detect by HTTP_HOST
     $httpHost = $_SERVER['HTTP_HOST'] ?? '';
 
-    // InfinityFree: host contains gt.tc or free
-    if (str_contains($httpHost, 'gt.tc') || str_contains($httpHost, 'free')) {
+    // AwardSpace: host contains atwebpages.com
+    if (str_contains($httpHost, 'atwebpages.com')) {
+        // Fill in these after AwardSpace provisions the DB
+        define('DB_HOST', 'localhost');
+        define('DB_USER', '');
+        define('DB_PASS', '');
+        define('DB_NAME', '');
+        define('DB_PORT', '3306');
+    } elseif (str_contains($httpHost, 'gt.tc') || str_contains($httpHost, 'free')) {
         define('DB_HOST', 'sql112.infinityfree.com');
         define('DB_USER', 'if0_41904755');
         define('DB_PASS', 'Bryant09200');
