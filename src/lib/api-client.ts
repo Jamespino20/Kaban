@@ -38,7 +38,21 @@ async function apiFetch<T>(
     );
   }
 
+  if (process.env.NODE_ENV !== 'production') {
+    console.log(`[API Client] → ${url}`);
+  }
+
   const res = await fetch(url, { ...options, headers });
+
+  // Check content type before parsing JSON
+  const contentType = res.headers.get('content-type') || '';
+  if (!contentType.includes('json')) {
+    const text = await res.text();
+    const snippet = text.substring(0, 200);
+    console.error(`[API Client] Non-JSON response from ${endpoint} (${res.status}): ${snippet}`);
+    throw new Error(`API returned ${res.status} ${contentType} — expected JSON. Check ${url}`);
+  }
+
   const data = await res.json();
 
   if (!res.ok) {
