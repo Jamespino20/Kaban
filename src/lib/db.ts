@@ -1,5 +1,4 @@
 import mysql from "mysql2/promise";
-import { connection } from "next/server";
 import { shouldUseApiClient } from "@/lib/api-config";
 
 function getMysqlConfig() {
@@ -9,19 +8,34 @@ function getMysqlConfig() {
   }
 
   // Prefer explicit DATABASE_URL; fall back to constructing from parts
-  let url =
+  const dbUrl =
     process.env.DATABASE_URL ||
     process.env.MYSQL_LOCAL_URL ||
     process.env.PROD_DATABASE_URL;
 
-  if (!url) {
+  if (!dbUrl) {
     throw new Error("No MySQL DATABASE_URL configured.");
   }
 
-  // Transform TiDB-specific sslaccept to mysql2-compatible ssl parameter
-  url = url.replace('sslaccept=strict', 'ssl=true');
+  // TiDB Cloud requires SSL to be an object in many environments
+  if (dbUrl.includes("tidbcloud")) {
+    const url = new URL(dbUrl);
+    return {
+      host: url.hostname,
+      port: parseInt(url.port || "4000"),
+      user: decodeURIComponent(url.username),
+      password: decodeURIComponent(url.password),
+      database: url.pathname.replace("/", ""),
+      ssl: {
+        minVersion: "TLSv1.2",
+        rejectUnauthorized: true,
+      },
+      connectTimeout: 30000, // 30s for cold start
+    };
+  }
 
-  return url;
+  // Transform TiDB-specific sslaccept to mysql2-compatible ssl parameter for other MySQL environments
+  return dbUrl.replace("sslaccept=strict", "ssl=true");
 }
 
 /**
@@ -40,7 +54,7 @@ export async function sql<T = Record<string, unknown>>(
   }
 
   const url = getMysqlConfig();
-  const connection = await mysql.createConnection(url);
+  const connection = await mysql.createConnection(url as any);
 
   try {
     let query: string;
