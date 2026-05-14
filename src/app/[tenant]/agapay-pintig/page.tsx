@@ -1,4 +1,5 @@
 import { TabsContent } from "@/components/ui/tabs";
+export const dynamic = "force-dynamic";
 import {
   Wallet,
   LayoutDashboard,

@@ -7,6 +7,8 @@ import { Navbar } from "@/components/layout/navbar";
 import { Footer } from "@/components/layout/footer";
 import { getActiveTenantsForNav } from "@/actions/tenant-management";
 
+export const dynamic = "force-dynamic";
+
 const FEATURE_CARDS = [
   {
     title: "Digital Receipts and clear transaction records",

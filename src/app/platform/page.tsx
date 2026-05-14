@@ -1,6 +1,8 @@
 import { Footer } from "@/components/layout/footer";
 import { Navbar } from "@/components/layout/navbar";
 import { getActiveTenantsForNav } from "@/actions/tenant-management";
+
+export const dynamic = "force-dynamic";
 import {
   BadgeCheck,
   CheckCircle2,

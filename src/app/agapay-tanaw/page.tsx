@@ -1,4 +1,5 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+export const dynamic = "force-dynamic";
 import {
   BarChart3,
   Settings2,
@@ -12,6 +13,7 @@ import {
   AlertTriangle,
   Activity,
 } from "lucide-react";
+
 import { LoanProductsTab } from "@/components/admin/loan-products-tab";
 import { TenantManagementTab } from "@/components/admin/tenant-management-tab";
 import { AuditLogViewer } from "@/components/admin/audit-log-viewer";

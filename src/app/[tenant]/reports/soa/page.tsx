@@ -2,6 +2,8 @@ import { Prisma } from "@prisma/client";
 import prisma from "@/lib/prisma";
 import { notFound } from "next/navigation";
 import { format } from "date-fns";
+
+export const dynamic = "force-dynamic";
 import { headers } from "next/headers";
 import {
   canAccessOwnOrTenantStaffResource,

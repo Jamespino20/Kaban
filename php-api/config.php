@@ -1,4 +1,7 @@
 <?php
+error_reporting(0);
+ini_set('display_errors', '0');
+
 header("Access-Control-Allow-Origin: *");
 header("Content-Type: application/json; charset=UTF-8");
 header("Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS");
@@ -7,7 +10,7 @@ header("Access-Control-Allow-Headers: Content-Type, Access-Control-Allow-Headers
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') { http_response_code(204); exit; }
 
 // ── Environment-aware DB credentials ──
-// Priority: env vars > auto-detection > fallback
+// Priority: env vars > auto-detection > InfinityFree default
 $envHost  = getenv('DB_HOST');
 $envUser  = getenv('DB_USER');
 $envPass  = getenv('DB_PASS');
@@ -15,54 +18,52 @@ $envName  = getenv('DB_NAME');
 $envPort  = getenv('DB_PORT');
 
 if ($envHost && $envUser && $envName) {
-    // Env vars set — use those (CI, Docker, manual config)
     define('DB_HOST', $envHost);
     define('DB_USER', $envUser);
     define('DB_PASS', $envPass ?: '');
     define('DB_NAME', $envName);
     define('DB_PORT', $envPort ?: '3306');
 } else {
-    // Auto-detect: check hostname, document root, HTTP_HOST
-    $hostname = $_SERVER['HOSTNAME'] ?? '';
-    $docRoot  = $_SERVER['DOCUMENT_ROOT'] ?? '';
+    // Auto-detect by HTTP_HOST
     $httpHost = $_SERVER['HTTP_HOST'] ?? '';
 
-    $isInfinity = str_contains($hostname, 'free') || str_contains($docRoot, 'infinity') || str_contains($httpHost, 'gt.tc');
-    $isLocal    = !$isInfinity && ($hostname === 'localhost' || $hostname === '' || str_contains($docRoot, 'xampp') || str_contains($httpHost, 'localhost'));
-
-    if ($isInfinity) {
+    // InfinityFree: host contains gt.tc or free
+    if (str_contains($httpHost, 'gt.tc') || str_contains($httpHost, 'free')) {
         define('DB_HOST', 'sql112.infinityfree.com');
         define('DB_USER', 'if0_41904755');
         define('DB_PASS', 'Bryant09200');
         define('DB_NAME', 'if0_41904755_agapay_db');
         define('DB_PORT', '3306');
-    } elseif ($isLocal) {
+    } else {
+        // Local dev fallback
         define('DB_HOST', 'localhost');
         define('DB_USER', 'root');
         define('DB_PASS', '');
         define('DB_NAME', 'agapay_db');
         define('DB_PORT', '3307');
-    } else {
-        // Unknown env — try InfinityFree as reasonable default
-        define('DB_HOST', 'sql112.infinityfree.com');
-        define('DB_USER', 'if0_41904755');
-        define('DB_PASS', 'Bryant09200');
-        define('DB_NAME', 'if0_41904755_agapay_db');
-        define('DB_PORT', '3306');
     }
 }
+
 define('JWT_SECRET', getenv('JWT_SECRET') ?: 'agapay-dev-secret-key-change-in-production');
 define('JWT_EXPIRY', 86400 * 7);
 
+// Safe PDO connection
 try {
-    $pdo = new PDO("mysql:host=" . DB_HOST . ";port=" . DB_PORT . ";dbname=" . DB_NAME . ";charset=utf8mb4", DB_USER, DB_PASS, [
+    $pdo = @new PDO("mysql:host=" . DB_HOST . ";port=" . DB_PORT . ";dbname=" . DB_NAME . ";charset=utf8mb4", DB_USER, DB_PASS, [
         PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
         PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
         PDO::ATTR_EMULATE_PREPARES => false,
     ]);
-} catch (PDOException $e) {
+} catch (Throwable $e) {
     http_response_code(500);
-    echo json_encode(["status" => "error", "message" => "Database connection failed"]);
+    echo json_encode([
+        "status" => "error",
+        "message" => "Database connection failed",
+        "detail" => $e->getMessage(),
+        "host" => DB_HOST,
+        "db" => DB_NAME,
+        "user" => DB_USER,
+    ]);
     exit;
 }
 
@@ -100,10 +101,9 @@ function verifyJWT(): ?array {
     if (!preg_match('/^Bearer\s+(.+)$/', $auth, $m)) return null;
     $parts = explode('.', $m[1]);
     if (count($parts) !== 3) return null;
-    $header = $parts[0]; $payload = $parts[1]; $sig = $parts[2];
-    $expected = base64url_encode(hash_hmac('sha256', "$header.$payload", JWT_SECRET, true));
-    if (!hash_equals($expected, $sig)) return null;
-    $data = json_decode(base64url_decode($payload), true);
+    $expected = base64url_encode(hash_hmac('sha256', "$parts[0].$parts[1]", JWT_SECRET, true));
+    if (!hash_equals($expected, $parts[2])) return null;
+    $data = json_decode(base64url_decode($parts[1]), true);
     if (!$data || !isset($data['exp']) || $data['exp'] < time()) return null;
     return $data;
 }

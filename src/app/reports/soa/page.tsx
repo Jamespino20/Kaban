@@ -2,6 +2,8 @@ import prisma from "@/lib/prisma";
 import { notFound } from "next/navigation";
 import { format } from "date-fns";
 
+export const dynamic = "force-dynamic";
+
 /**
  * Statement of Account (SOA) Template Page
  * This page is intended to be rendered by Puppeteer.

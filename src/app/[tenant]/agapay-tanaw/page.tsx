@@ -44,7 +44,10 @@ import {
   type ShellIconName,
 } from "@/components/layout/authenticated-shell";
 import { DashboardTabsShell } from "@/components/layout/dashboard-tabs-shell";
-import { getCommunityStaffSummary, getCommunityDashboardData } from "@/actions/community-actions";
+import {
+  getCommunityStaffSummary,
+  getCommunityDashboardData,
+} from "@/actions/community-actions";
 import { SuperadminCommunityTab } from "@/components/admin/superadmin-community-tab";
 import { CommunityOperationsTab } from "@/components/admin/community-operations-tab";
 import { CommunityTab } from "@/components/member/community-tab";
@@ -65,7 +68,10 @@ import { AdminProfileSettings } from "@/components/admin/admin-profile-settings"
 import { EmailTemplatesTab } from "@/components/admin/email-templates-tab";
 import { AIConfigTab } from "@/components/admin/ai-config-tab";
 import { SubscriptionsModule } from "@/components/admin/subscriptions-module";
-import { getAllSubscriptionPlans, getAllTenantSubscriptions } from "@/actions/subscription-actions";
+import {
+  getAllSubscriptionPlans,
+  getAllTenantSubscriptions,
+} from "@/actions/subscription-actions";
 import { RestrictedAccess } from "@/components/layout/restricted-access";
 
 function SystemFileManagementSkeleton() {
@@ -150,11 +156,18 @@ export default async function AgapayTanawPage(props: {
         getAllSubscriptionPlans(),
         getAllTenantSubscriptions(),
       ])
-    : [{ success: false, plans: [] }, { success: false, tenants: [] }];
+    : [
+        { success: false, plans: [] },
+        { success: false, tenants: [] },
+      ];
   const subscriptionPlans = allPlansRes.success ? allPlansRes.plans || [] : [];
-  const tenantSubscriptions = allTenantSubsRes.success ? allTenantSubsRes.tenants || [] : [];
+  const tenantSubscriptions = allTenantSubsRes.success
+    ? allTenantSubsRes.tenants || []
+    : [];
   const communitySummary = await getCommunityStaffSummary();
-  const operatorCommunityData = isOperator ? await getCommunityDashboardData() : null;
+  const operatorCommunityData = isOperator
+    ? await getCommunityDashboardData()
+    : null;
   const currentTenantIdentity =
     tenantContextId !== null
       ? await prisma.tenant.findUnique({
@@ -171,17 +184,20 @@ export default async function AgapayTanawPage(props: {
             tenantSubscription: {
               select: {
                 activated_modules: true,
-              }
-            }
+              },
+            },
           },
         })
       : null;
 
-  const enabledFeatures = currentTenantIdentity?.tenantSubscription?.activated_modules || ["loans", "wallet", "community"];
+  const enabledFeatures = currentTenantIdentity?.tenantSubscription
+    ?.activated_modules || ["loans", "wallet", "community"];
 
   const isFeatureEnabled = (feature: string) => {
     if (isSuperAdmin) return true; // Superadmins bypass all limits
-    return Array.isArray(enabledFeatures) && enabledFeatures.includes(feature as any);
+    return (
+      Array.isArray(enabledFeatures) && enabledFeatures.includes(feature as any)
+    );
   };
 
   // Define role-specific navigation based on PRD hierarchy
@@ -376,325 +392,340 @@ export default async function AgapayTanawPage(props: {
       tenantSlug={tenant}
     >
       <TanawPollingWrapper>
-      <div className="space-y-5">
-        {reconciliation && !reconciliation.holdings.isTreasuryHealthy && (
-          <div className="dashboard-card border-red-200 bg-red-50 text-slate-900 animate-in fade-in slide-in-from-top-4 duration-500 flex flex-col md:flex-row items-center gap-6">
-            <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-red-100 text-red-600 ring-4 ring-white shadow-sm">
-              <ShieldAlert className="h-7 w-7" />
-            </div>
-            <div className="flex-1 text-center md:text-left space-y-1">
-              <h3 className="text-xl font-heading font-bold text-red-900 italic">
-                Imbalance Alert: Treasury Pulse Check Failed
-              </h3>
-              <p className="text-red-700 font-medium">
-                There is an imbalance of{" "}
-                <span className="font-black">
-                  ₱{reconciliation.holdings.imbalance.toLocaleString()}
-                </span>{" "}
-                between the Co-op Treasury and Member Wallets. Please review the
-                EOD Reconciliation tab.
-              </p>
-            </div>
-          </div>
-        )}
-        {/* Shared / Role-Specific TabsContent */}
-        <TabsContent value="overview" className="space-y-6 outline-none">
-          {isGlobalSuperadminView ? (
-            <SuperadminOverviewTab />
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-              <KPIMetricCard
-                label="Total Funds"
-                value={`₱${(metrics.totalLiquidity / 1000000).toFixed(1)}M`}
-                description={`Total: ₱${metrics.totalLiquidity.toLocaleString()}`}
-                iconName="wallet"
-                trend={{ value: 12.5, isPositive: true }}
-              />
-              <KPIMetricCard
-                label="Active Loans"
-                value={metrics.activeLoans}
-                iconName="activity"
-                trend={{ value: 8.2, isPositive: true }}
-              />
-              <KPIMetricCard
-                label="Repayment Rate"
-                value={`${metrics.repaymentRate.toFixed(1)}%`}
-                iconName="check"
-                trend={{ value: 1.4, isPositive: true }}
-              />
-              <KPIMetricCard
-                label="Risk Exposure"
-                value={`₱${(metrics.riskExposure / 1000).toFixed(0)}K`}
-                description={`Delinquent: ₱${metrics.riskExposure.toLocaleString()}`}
-                iconName="alert"
-                trend={{ value: 3.1, isPositive: false }}
-                variant="ghost"
-              />
+        <div className="space-y-5">
+          {reconciliation && !reconciliation.holdings.isTreasuryHealthy && (
+            <div className="dashboard-card border-red-200 bg-red-50 text-slate-900 animate-in fade-in slide-in-from-top-4 duration-500 flex flex-col md:flex-row items-center gap-6">
+              <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-red-100 text-red-600 ring-4 ring-white shadow-sm">
+                <ShieldAlert className="h-7 w-7" />
+              </div>
+              <div className="flex-1 text-center md:text-left space-y-1">
+                <h3 className="text-xl font-heading font-bold text-red-900 italic">
+                  Imbalance Alert: Treasury Pulse Check Failed
+                </h3>
+                <p className="text-red-700 font-medium">
+                  There is an imbalance of{" "}
+                  <span className="font-black">
+                    ₱{reconciliation.holdings.imbalance.toLocaleString()}
+                  </span>{" "}
+                  between the Co-op Treasury and Member Wallets. Please review
+                  the EOD Reconciliation tab.
+                </p>
+              </div>
             </div>
           )}
-
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
-            {!isGlobalSuperadminView && (
-              <div className="dashboard-card lg:col-span-2 flex flex-col md:flex-row items-center gap-8 p-6">
-                <div className="flex-1 text-center md:text-left">
-                  <h3 className="text-xl font-heading font-bold text-slate-900">
-                    Cooperative Trust Index
-                  </h3>
-                  <p className="text-slate-500 text-sm mt-1 mb-6">
-                    Current status of the trust network
-                  </p>
-                  <TrustDistributionChart
-                    distribution={trustData.distribution}
-                  />
-                </div>
-                <div className="flex-shrink-0 scale-110 md:scale-125">
-                  <TrustMeter data={trustData.aggregateTrust} />
-                </div>
+          {/* Shared / Role-Specific TabsContent */}
+          <TabsContent value="overview" className="space-y-6 outline-none">
+            {isGlobalSuperadminView ? (
+              <SuperadminOverviewTab />
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <KPIMetricCard
+                  label="Total Funds"
+                  value={`₱${(metrics.totalLiquidity / 1000000).toFixed(1)}M`}
+                  description={`Total: ₱${metrics.totalLiquidity.toLocaleString()}`}
+                  iconName="wallet"
+                  trend={{ value: 12.5, isPositive: true }}
+                />
+                <KPIMetricCard
+                  label="Active Loans"
+                  value={metrics.activeLoans}
+                  iconName="activity"
+                  trend={{ value: 8.2, isPositive: true }}
+                />
+                <KPIMetricCard
+                  label="Repayment Rate"
+                  value={`${metrics.repaymentRate.toFixed(1)}%`}
+                  iconName="check"
+                  trend={{ value: 1.4, isPositive: true }}
+                />
+                <KPIMetricCard
+                  label="Risk Exposure"
+                  value={`₱${(metrics.riskExposure / 1000).toFixed(0)}K`}
+                  description={`Delinquent: ₱${metrics.riskExposure.toLocaleString()}`}
+                  iconName="alert"
+                  trend={{ value: 3.1, isPositive: false }}
+                  variant="ghost"
+                />
               </div>
             )}
 
-            <div
-              className={`${isGlobalSuperadminView ? "lg:col-span-3" : ""} dashboard-card-strong flex flex-col justify-between overflow-hidden relative group min-h-[240px]`}
-            >
-              <div className="relative z-10 space-y-4">
-                <div className="w-12 h-12 rounded-2xl bg-primary shadow-[0_0_20px_color-mix(in_srgb,var(--primary)_30%,transparent)] flex items-center justify-center mb-6">
-                  <TrendingUp className="w-6 h-6 text-white" />
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
+              {!isGlobalSuperadminView && (
+                <div className="dashboard-card lg:col-span-2 flex flex-col md:flex-row items-center gap-8 p-6">
+                  <div className="flex-1 text-center md:text-left">
+                    <h3 className="text-xl font-heading font-bold text-slate-900">
+                      Cooperative Trust Index
+                    </h3>
+                    <p className="text-slate-500 text-sm mt-1 mb-6">
+                      Current status of the trust network
+                    </p>
+                    <TrustDistributionChart
+                      distribution={trustData.distribution}
+                    />
+                  </div>
+                  <div className="flex-shrink-0 scale-110 md:scale-125">
+                    <TrustMeter data={trustData.aggregateTrust} />
+                  </div>
                 </div>
-                <h3 className="text-2xl font-heading font-medium leading-tight">
-                  Portfolio <br />
-                  Status
-                </h3>
-                <p className="text-slate-400 text-xs leading-relaxed font-sans">
-                  Your portfolio and collection dashboard for tenant operations.
-                </p>
-              </div>
+              )}
 
-              <div className="relative z-10 pt-8 border-t border-white/10 mt-8">
-                <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2">
-                  Platform Health
-                </p>
-                <div className="h-1.5 w-full bg-white/10 rounded-full overflow-hidden">
-                  <div
-                    className="h-full bg-primary rounded-full shadow-[0_0_10px_color-mix(in_srgb,var(--primary)_50%,transparent)] transition-all duration-1000"
-                    style={{ width: "88%" }}
-                  />
+              <div
+                className={`${isGlobalSuperadminView ? "lg:col-span-3" : ""} dashboard-card-strong flex flex-col justify-between overflow-hidden relative group min-h-[240px]`}
+              >
+                <div className="relative z-10 space-y-4">
+                  <div className="w-12 h-12 rounded-2xl bg-primary shadow-[0_0_20px_color-mix(in_srgb,var(--primary)_30%,transparent)] flex items-center justify-center mb-6">
+                    <TrendingUp className="w-6 h-6 text-white" />
+                  </div>
+                  <h3 className="text-2xl font-heading font-medium leading-tight">
+                    Portfolio <br />
+                    Status
+                  </h3>
+                  <p className="text-slate-400 text-xs leading-relaxed font-sans">
+                    Your portfolio and collection dashboard for tenant
+                    operations.
+                  </p>
                 </div>
-              </div>
 
-              <div className="absolute -bottom-10 -right-10 w-48 h-48 bg-primary/10 rounded-full blur-3xl group-hover:bg-primary/20 transition-all duration-500" />
+                <div className="relative z-10 pt-8 border-t border-white/10 mt-8">
+                  <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2">
+                    Platform Health
+                  </p>
+                  <div className="h-1.5 w-full bg-white/10 rounded-full overflow-hidden">
+                    <div
+                      className="h-full bg-primary rounded-full shadow-[0_0_10px_color-mix(in_srgb,var(--primary)_50%,transparent)] transition-all duration-1000"
+                      style={{ width: "88%" }}
+                    />
+                  </div>
+                </div>
+
+                <div className="absolute -bottom-10 -right-10 w-48 h-48 bg-primary/10 rounded-full blur-3xl group-hover:bg-primary/20 transition-all duration-500" />
+              </div>
             </div>
-          </div>
-        </TabsContent>
-
-        {/* Approvals */}
-        {isSuperAdmin && (
-          <TabsContent value="approvals" className="outline-none">
-            <SuperadminApprovalsTab />
           </TabsContent>
-        )}
-        {isOperator && (
-          <TabsContent value="approvals" className="outline-none">
-            <ApprovalsQueueModule
-              data={pendingData}
-              members={members}
-              pendingTopUps={pendingTopUps as any}
-              compassionActions={pendingData.compassion || []}
-              isOperator={isOperator}
-            />
-          </TabsContent>
-        )}
 
-        {/* Tenant Operator Modules */}
-        {isOperator && (
-          <>
-            <TabsContent value="vault" className="outline-none">
-              {isFeatureEnabled("wallet") ? <OperatorVaultTab /> : <RestrictedAccess moduleName="E-Wallet" />}
+          {/* Approvals */}
+          {isSuperAdmin && (
+            <TabsContent value="approvals" className="outline-none">
+              <SuperadminApprovalsTab />
             </TabsContent>
-            <TabsContent value="members" className="outline-none">
-              <MemberDirectoryTab
+          )}
+          {isOperator && (
+            <TabsContent value="approvals" className="outline-none">
+              <ApprovalsQueueModule
+                data={pendingData}
                 members={members}
-                userRole={session?.user?.role}
-                tenants={tenants.map((t: any) => ({
-                  id: t.tenant_id,
-                  name: t.name,
-                }))}
+                pendingTopUps={pendingTopUps as any}
+                compassionActions={pendingData.compassion || []}
+                isOperator={isOperator}
               />
             </TabsContent>
-            <TabsContent value="products" className="outline-none">
-              {isFeatureEnabled("loans") ? <LoanProductsTab /> : <RestrictedAccess moduleName="Loaning Node" />}
-            </TabsContent>
-            <TabsContent value="reconciliation" className="outline-none">
-              <ReconciliationTab />
-            </TabsContent>
-          </>
-        )}
+          )}
 
-        {/* Superadmin Only Modules */}
-        {isSuperAdmin && (
-          <>
-            <TabsContent value="tenants" className="outline-none">
-              <TenantManagementTab
-                initialTenants={tenants}
-                role={session?.user?.role as string}
-              />
-            </TabsContent>
-            <TabsContent
-              value="reports"
-              className="animate-in fade-in slide-in-from-bottom-4 duration-500"
-            >
-              <div className="space-y-6">
-                {isFeatureEnabled("reports") ? (
-                  <>
-                    <ReportsTab />
-                    <TenantPerformanceReportsTab />
-                  </>
+          {/* Tenant Operator Modules */}
+          {isOperator && (
+            <>
+              <TabsContent value="vault" className="outline-none">
+                {isFeatureEnabled("wallet") ? (
+                  <OperatorVaultTab />
                 ) : (
-                  <RestrictedAccess moduleName="Analytics" />
+                  <RestrictedAccess moduleName="E-Wallet" />
                 )}
-                <div className="border-t border-slate-200 pt-6">
-                  <h3 className="text-2xl font-bold font-heading text-slate-900 mb-4">
-                    System Health
-                  </h3>
-                  <SystemHealthTab />
-                </div>
-                <div className="border-t border-slate-200 pt-6">
-                  <h3 className="text-2xl font-bold font-heading text-slate-900 mb-4">
-                    Fraud & Risk Monitoring
-                  </h3>
-                  <FraudRiskTab />
-                </div>
-              </div>
-            </TabsContent>
-            <TabsContent value="email-templates" className="outline-none">
-              <EmailTemplatesTab />
-            </TabsContent>
-            <TabsContent value="ai-config" className="outline-none">
-              <AIConfigTab />
-            </TabsContent>
-            <TabsContent value="subscriptions" className="outline-none">
-              <SubscriptionsModule
-                initialPlans={subscriptionPlans}
-                initialTenants={tenantSubscriptions}
-              />
-            </TabsContent>
-          </>
-        )}
+              </TabsContent>
+              <TabsContent value="members" className="outline-none">
+                <MemberDirectoryTab
+                  members={members}
+                  userRole={session?.user?.role}
+                  tenants={tenants.map((t: any) => ({
+                    id: t.tenant_id,
+                    name: t.name,
+                  }))}
+                />
+              </TabsContent>
+              <TabsContent value="products" className="outline-none">
+                {isFeatureEnabled("loans") ? (
+                  <LoanProductsTab />
+                ) : (
+                  <RestrictedAccess moduleName="Loaning Node" />
+                )}
+              </TabsContent>
+              <TabsContent value="reconciliation" className="outline-none">
+                <ReconciliationTab />
+              </TabsContent>
+            </>
+          )}
 
-        {/* Shared Management Modules */}
-        <TabsContent value="community" className="outline-none">
-          {isFeatureEnabled("community") ? (
-            isOperator ? (
-              <div className="grid grid-cols-1 gap-5 xl:grid-cols-[1.5fr_1fr]">
-                <CommunityTab initialData={operatorCommunityData} />
-                <CommunityOperationsTab summary={communitySummary} />
+          {/* Superadmin Only Modules */}
+          {isSuperAdmin && (
+            <>
+              <TabsContent value="tenants" className="outline-none">
+                <TenantManagementTab
+                  initialTenants={tenants}
+                  role={session?.user?.role as string}
+                />
+              </TabsContent>
+              <TabsContent
+                value="reports"
+                className="animate-in fade-in slide-in-from-bottom-4 duration-500"
+              >
+                <div className="space-y-6">
+                  {isFeatureEnabled("reports") ? (
+                    <>
+                      <ReportsTab />
+                      <TenantPerformanceReportsTab />
+                    </>
+                  ) : (
+                    <RestrictedAccess moduleName="Analytics" />
+                  )}
+                  <div className="border-t border-slate-200 pt-6">
+                    <h3 className="text-2xl font-bold font-heading text-slate-900 mb-4">
+                      System Health
+                    </h3>
+                    <SystemHealthTab />
+                  </div>
+                  <div className="border-t border-slate-200 pt-6">
+                    <h3 className="text-2xl font-bold font-heading text-slate-900 mb-4">
+                      Fraud & Risk Monitoring
+                    </h3>
+                    <FraudRiskTab />
+                  </div>
+                </div>
+              </TabsContent>
+              <TabsContent value="email-templates" className="outline-none">
+                <EmailTemplatesTab />
+              </TabsContent>
+              <TabsContent value="ai-config" className="outline-none">
+                <AIConfigTab />
+              </TabsContent>
+              <TabsContent value="subscriptions" className="outline-none">
+                <SubscriptionsModule
+                  initialPlans={subscriptionPlans}
+                  initialTenants={tenantSubscriptions}
+                />
+              </TabsContent>
+            </>
+          )}
+
+          {/* Shared Management Modules */}
+          <TabsContent value="community" className="outline-none">
+            {isFeatureEnabled("community") ? (
+              isOperator ? (
+                <div className="grid grid-cols-1 gap-5 xl:grid-cols-[1.5fr_1fr]">
+                  <CommunityTab initialData={operatorCommunityData} />
+                  <CommunityOperationsTab summary={communitySummary} />
+                </div>
+              ) : (
+                <SuperadminCommunityTab />
+              )
+            ) : (
+              <RestrictedAccess moduleName="Community" />
+            )}
+          </TabsContent>
+
+          <TabsContent value="audit" className="outline-none">
+            {isFeatureEnabled("audit") ? (
+              <AuditLogViewer
+                tenantId={
+                  isSuperAdmin && tenantContextId === null
+                    ? undefined
+                    : (tenantContextId ?? undefined)
+                }
+              />
+            ) : (
+              <RestrictedAccess moduleName="Audit Logs" />
+            )}
+          </TabsContent>
+
+          <TabsContent value="content" className="outline-none">
+            {isFeatureEnabled("branding") ? (
+              <div className="space-y-8">
+                {currentTenantIdentity && (isOperator || isSuperAdmin) && (
+                  <BrandingTabWrapper
+                    tenantId={
+                      isSuperAdmin ? currentTenantIdentity.tenant_id : undefined
+                    }
+                    initialBranding={{
+                      brand_color: currentTenantIdentity.brand_color,
+                      accent_color: currentTenantIdentity.accent_color,
+                      font_pairing: currentTenantIdentity.font_pairing,
+                      logo_url: currentTenantIdentity.logo_url,
+                    }}
+                    displayName={currentTenantIdentity.name}
+                  />
+                )}
+                <HomepageContentTab
+                  role={userRole}
+                  faqs={homepageContent.faqs}
+                  testimonials={homepageContent.testimonials}
+                />
               </div>
             ) : (
-              <SuperadminCommunityTab />
-            )
-          ) : (
-            <RestrictedAccess moduleName="Community" />
-          )}
-        </TabsContent>
+              <RestrictedAccess moduleName="Content & Branding" />
+            )}
+          </TabsContent>
 
-        <TabsContent value="audit" className="outline-none">
-          {isFeatureEnabled("audit") ? (
-            <AuditLogViewer tenantId={isSuperAdmin && tenantContextId === null ? undefined : tenantContextId ?? undefined} />
-          ) : (
-            <RestrictedAccess moduleName="Audit Logs" />
-          )}
-        </TabsContent>
+          <TabsContent value="feedback" className="outline-none">
+            <SupportAnalyticsModule
+              role={userRole}
+              feedbackEntries={feedbackEntries}
+            />
+          </TabsContent>
 
-        <TabsContent value="content" className="outline-none">
-          {isFeatureEnabled("branding") ? (
-            <div className="space-y-8">
-              {currentTenantIdentity && (isOperator || isSuperAdmin) && (
-                <BrandingTabWrapper
-                  tenantId={
-                    isSuperAdmin ? currentTenantIdentity.tenant_id : undefined
-                  }
-                  initialBranding={{
-                    brand_color: currentTenantIdentity.brand_color,
-                    accent_color: currentTenantIdentity.accent_color,
-                    font_pairing: currentTenantIdentity.font_pairing,
-                    logo_url: currentTenantIdentity.logo_url,
+          <TabsContent value="settings" className="outline-none">
+            <div className="flex flex-col items-center justify-center space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+              <div className="grid w-full max-w-5xl gap-6">
+                <AdminProfileSettings
+                  initialData={{
+                    firstName: adminProfileData?.first_name || userName,
+                    lastName: adminProfileData?.last_name || "",
+                    email: session?.user?.email || "",
+                    phone: "",
+                    photoUrl: adminProfileData?.photo_url,
                   }}
-                  displayName={currentTenantIdentity.name}
                 />
-              )}
-              <HomepageContentTab
-                role={userRole}
-                faqs={homepageContent.faqs}
-                testimonials={homepageContent.testimonials}
-              />
-            </div>
-          ) : (
-            <RestrictedAccess moduleName="Content & Branding" />
-          )}
-        </TabsContent>
 
-        <TabsContent value="feedback" className="outline-none">
-          <SupportAnalyticsModule
-            role={userRole}
-            feedbackEntries={feedbackEntries}
-          />
-        </TabsContent>
-
-        <TabsContent value="settings" className="outline-none">
-          <div className="flex flex-col items-center justify-center space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-            <div className="grid w-full max-w-5xl gap-6">
-              <AdminProfileSettings
-                initialData={{
-                  firstName: adminProfileData?.first_name || userName,
-                  lastName: adminProfileData?.last_name || "",
-                  email: session?.user?.email || "",
-                  phone: "",
-                  photoUrl: adminProfileData?.photo_url,
-                }}
-              />
-
-              {currentTenantIdentity ? (
-                <TenantNameSettingsCard
-                  tenantId={
-                    isSuperAdmin ? currentTenantIdentity.tenant_id : undefined
-                  }
-                  initialName={currentTenantIdentity.name}
-                  title="Tenant Name"
-                  description={
-                    isSuperAdmin
-                      ? "Update the name for the current tenant context."
-                      : "Update your tenant's company or tenant name."
-                  }
-                />
-              ) : isSuperAdmin ? (
-                <div className="dashboard-card border-amber-200 bg-amber-50 text-amber-800 max-w-2xl">
-                  Select a tenant from the sidebar if you want to change the
-                  tenant name from `Global View`.
-                </div>
-              ) : null}
-
-              {tenantContextId && (isOperator || isSuperAdmin) && (
-                <div className="flex justify-center -mx-4 md:mx-0">
-                  <SubscriptionSettings
-                    tenantId={tenantContextId}
-                    isAdmin={isOperator || isSuperAdmin}
-                    tenantSlug={tenant}
+                {currentTenantIdentity ? (
+                  <TenantNameSettingsCard
+                    tenantId={
+                      isSuperAdmin ? currentTenantIdentity.tenant_id : undefined
+                    }
+                    initialName={currentTenantIdentity.name}
+                    title="Tenant Name"
+                    description={
+                      isSuperAdmin
+                        ? "Update the name for the current tenant context."
+                        : "Update your tenant's company or tenant name."
+                    }
                   />
-                </div>
-              )}
+                ) : isSuperAdmin ? (
+                  <div className="dashboard-card border-amber-200 bg-amber-50 text-amber-800 max-w-2xl">
+                    Select a tenant from the sidebar if you want to change the
+                    tenant name from `Global View`.
+                  </div>
+                ) : null}
 
-              <div className="px-4 text-center space-y-2">
-                <h2 className="text-3xl font-heading font-bold text-slate-900 italic">
-                  Account Security
-                </h2>
-                <p className="text-slate-500">Secure your access with 2FA.</p>
-              </div>
-              <div className="flex justify-center">
-                <TwoFactorSetup isEnabledInitial={is2FAEnabled} />
+                {tenantContextId && (isOperator || isSuperAdmin) && (
+                  <div className="flex justify-center -mx-4 md:mx-0">
+                    <SubscriptionSettings
+                      tenantId={tenantContextId}
+                      isAdmin={isOperator || isSuperAdmin}
+                      tenantSlug={tenant}
+                    />
+                  </div>
+                )}
+
+                <div className="px-4 text-center space-y-2">
+                  <h2 className="text-3xl font-heading font-bold text-slate-900 italic">
+                    Account Security
+                  </h2>
+                  <p className="text-slate-500">Secure your access with 2FA.</p>
+                </div>
+                <div className="flex justify-center">
+                  <TwoFactorSetup isEnabledInitial={is2FAEnabled} />
+                </div>
               </div>
             </div>
-          </div>
-        </TabsContent>
-      </div>
+          </TabsContent>
+        </div>
       </TanawPollingWrapper>
     </DashboardTabsShell>
   );
