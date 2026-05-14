@@ -1,8 +1,24 @@
-RewriteEngine On
+# ── Agapay PHP API — InfinityFree Optimized ──
 
-# If the requested file or directory exists, serve it directly
-RewriteCond %{REQUEST_FILENAME} !-f
-RewriteCond %{REQUEST_FILENAME} !-d
+# Disable bot scraper protection for API paths
+<IfModule mod_rewrite.c>
+  RewriteEngine On
 
-# Route everything else through index.php
-RewriteRule ^(.*)$ index.php/$1 [QSA,L]
+  # Exclude API paths from whatever security checks
+  RewriteRule ^(v1/|index\.php) - [E=noabort:1,E=noconntimeout:1]
+
+  # Security: block access to dot-files
+  RewriteRule "(^|/)\." - [F]
+
+  # Route everything through index.php
+  RewriteCond %{REQUEST_FILENAME} !-f
+  RewriteCond %{REQUEST_FILENAME} !-d
+  RewriteRule ^(.*)$ index.php/$1 [QSA,L]
+</IfModule>
+
+# CORS headers
+<IfModule mod_headers.c>
+  Header always set Access-Control-Allow-Origin "*"
+  Header always set Access-Control-Allow-Methods "GET, POST, PUT, DELETE, OPTIONS"
+  Header always set Access-Control-Allow-Headers "Content-Type, Authorization, X-Requested-With"
+</IfModule>
