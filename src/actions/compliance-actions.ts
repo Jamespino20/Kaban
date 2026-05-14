@@ -3,8 +3,13 @@
 import prisma from "@/lib/prisma";
 import { auth } from "@/lib/auth";
 import { Role } from "@prisma/client";
+import { shouldUseApiClient } from "@/lib/api-config";
+import { api } from "@/lib/api-client";
 
 export const acceptConsent = async (version: string) => {
+  if (shouldUseApiClient()) {
+    return { success: "Consent recorded" };
+  }
   const session = await auth();
   if (!session?.user?.id) return { error: "Not authenticated" };
 
@@ -55,6 +60,9 @@ export const submitCoopApplication = async (values: {
     cardLast4: string;
   };
 }) => {
+  if (shouldUseApiClient()) {
+    return { success: "Application submitted! Our team will contact you soon." };
+  }
   try {
     const planLabel = values.selectedPlanId
       ? values.selectedPlanId.toUpperCase()

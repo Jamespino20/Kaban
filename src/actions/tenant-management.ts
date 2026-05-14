@@ -10,11 +10,16 @@ import { sql } from "@/lib/db";
 import { requireAdminSession, requireSuperadminSession } from "@/lib/authorization";
 import { unstable_cache } from "next/cache";
 import { serializeDecimal } from "@/lib/utils";
+import { shouldUseApiClient } from "@/lib/api-config";
+import { api } from "@/lib/api-client";
 
 // 0. Get List of Regions (Public for Registration)
 export async function getRegions() {
+  if (shouldUseApiClient()) {
+    const res = await api.tenants.regions();
+    return (res.regions || []) as any;
+  }
   try {
-    // const sql = neon(connectionString); // Removed neon dependency
     const regions = await sql`
       SELECT id, name, reg_code 
       FROM tenant_groups 
@@ -31,8 +36,10 @@ export async function getRegions() {
 
 // 0.5 Get Tenants by Region (Public for Registration)
 export async function getTenantsByRegion(regionId: number) {
+  if (shouldUseApiClient()) {
+    return [];
+  }
   try {
-    // const sql = neon(connectionString); // Removed neon dependency
     const tenants = await sql`
       SELECT tenant_id, name, slug 
       FROM tenants 
@@ -51,6 +58,10 @@ export async function getTenantsByRegion(regionId: number) {
 
 // 1. Get List of Tenants
 export async function getTenants() {
+  if (shouldUseApiClient()) {
+    const res = await api.admin.allTenants();
+    return (res as any)?.tenants || [];
+  }
   try {
     const tenants = await prisma.tenant.findMany({
       include: {
@@ -85,6 +96,10 @@ export async function getTenants() {
 
 // 1.5 Get Active Tenants (Public for Navigation/Map)
 export async function getActiveTenants() {
+  if (shouldUseApiClient()) {
+    const res = await api.tenants.list();
+    return (res.tenants || []).filter((t: any) => t.is_active) as any;
+  }
   try {
     if (!prisma || !prisma.tenant) {
       throw new Error(

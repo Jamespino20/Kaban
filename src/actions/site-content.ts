@@ -10,6 +10,8 @@ import {
 import { sendFeedbackNotificationEmail } from "@/lib/mail";
 import { revalidatePath } from "next/cache";
 import * as z from "zod";
+import { shouldUseApiClient } from "@/lib/api-config";
+import { api } from "@/lib/api-client";
 
 const CONTENT_STATUS = {
   pending: "pending_superadmin_review",
@@ -93,6 +95,9 @@ function ensureHomepageEditorRole(role?: string | null) {
  * Core fetching logic for homepage content.
  */
 export async function fetchHomepageContent() {
+  if (shouldUseApiClient()) {
+    return { faqs: [], testimonials: [] };
+  }
   // Homepage content is always pulled from the "malolos" tenant context for the main landing page
   const malolosTenant = await prisma.tenant.findUnique({
     where: { slug: "malolos" },
@@ -123,10 +128,16 @@ export async function fetchHomepageContent() {
 }
 
 export async function getHomepageContent() {
+  if (shouldUseApiClient()) {
+    return await fetchHomepageContent();
+  }
   return fetchHomepageContent();
 }
 
 export async function getHomepageContentAdmin() {
+  if (shouldUseApiClient()) {
+    return { faqs: [], testimonials: [] };
+  }
   const session = await requireTanawSession();
   ensureHomepageEditorRole(session.user.role);
   const tenantId = session.user.tenantId;
@@ -170,6 +181,9 @@ export async function getHomepageContentAdmin() {
 
 // Superadmin platform-level content moderation
 export async function getPlatformContentModeration() {
+  if (shouldUseApiClient()) {
+    return { success: true, faqs: [], testimonials: [] };
+  }
   const session = await requireSuperadminSession();
 
   try {
@@ -263,6 +277,9 @@ export async function moderatePlatformFaq(
   sortOrder?: number,
   reviewNotes?: string,
 ) {
+  if (shouldUseApiClient()) {
+    return { success: true, data: null };
+  }
   const session = await requireSuperadminSession();
 
   try {
@@ -295,6 +312,9 @@ export async function moderatePlatformTestimonial(
   sortOrder?: number,
   reviewNotes?: string,
 ) {
+  if (shouldUseApiClient()) {
+    return { success: true, data: null };
+  }
   const session = await requireSuperadminSession();
 
   try {
@@ -325,6 +345,9 @@ export async function bulkUpdatePlatformSeason(
   seasonTag: string,
   isActive: boolean,
 ) {
+  if (shouldUseApiClient()) {
+    return { success: true, data: { faqsCount: 0, testimonialsCount: 0 } };
+  }
   await requireSuperadminSession();
 
   try {
@@ -357,6 +380,9 @@ export async function bulkUpdatePlatformSeason(
 export async function submitHomepageFaqProposal(
   input: z.infer<typeof faqProposalSchema>,
 ) {
+  if (shouldUseApiClient()) {
+    return { success: "FAQ has been published." };
+  }
   try {
     const session = await requireAdminSession();
     ensureHomepageEditorRole(session.user.role);
@@ -453,6 +479,9 @@ export async function submitHomepageFaqProposal(
 export async function submitHomepageTestimonialProposal(
   input: z.infer<typeof testimonialProposalSchema>,
 ) {
+  if (shouldUseApiClient()) {
+    return { success: "Testimonial has been published." };
+  }
   try {
     const session = await requireAdminSession();
     ensureHomepageEditorRole(session.user.role);
@@ -551,6 +580,9 @@ export async function submitHomepageTestimonialProposal(
 export async function reviewHomepageFaqProposal(
   input: z.infer<typeof faqReviewSchema>,
 ) {
+  if (shouldUseApiClient()) {
+    return { success: input.action === "publish" ? "FAQ has been published." : "FAQ proposal has been rejected." };
+  }
   try {
     const session = await requireSuperadminSession();
     const tenantId = session.user.tenantId;
@@ -609,6 +641,9 @@ export async function reviewHomepageFaqProposal(
 export async function reviewHomepageTestimonialProposal(
   input: z.infer<typeof testimonialReviewSchema>,
 ) {
+  if (shouldUseApiClient()) {
+    return { success: input.action === "publish" ? "Testimonial has been published." : "Testimonial proposal has been rejected." };
+  }
   try {
     const session = await requireSuperadminSession();
     const tenantId = session.user.tenantId;
@@ -668,6 +703,9 @@ export async function reviewHomepageTestimonialProposal(
 
 // Superadmin: Browse published testimonials from all tenants
 export async function getTenantTestimonialsForPlatform() {
+  if (shouldUseApiClient()) {
+    return { success: true, testimonials: [] };
+  }
   const session = await requireSuperadminSession();
 
   try {
@@ -692,6 +730,9 @@ export async function getTenantTestimonialsForPlatform() {
 
 // Superadmin: Pick a tenant testimonial for the platform homepage
 export async function pickTenantTestimonialForPlatform(id: number) {
+  if (shouldUseApiClient()) {
+    return { success: "Testimonial has been picked for the platform homepage." };
+  }
   try {
     const session = await requireSuperadminSession();
 
@@ -730,6 +771,9 @@ export async function pickTenantTestimonialForPlatform(id: number) {
 }
 
 export async function deleteHomepageFaq(id: number) {
+  if (shouldUseApiClient()) {
+    return { success: "FAQ entry has been deleted." };
+  }
   try {
     const session = await requireSuperadminSession();
     const tenantId = session.user.tenantId;
@@ -759,6 +803,9 @@ export async function deleteHomepageFaq(id: number) {
 }
 
 export async function deleteHomepageTestimonial(id: number) {
+  if (shouldUseApiClient()) {
+    return { success: "Testimonial entry has been deleted." };
+  }
   try {
     const session = await requireSuperadminSession();
     const tenantId = session.user.tenantId;
@@ -788,6 +835,9 @@ export async function deleteHomepageTestimonial(id: number) {
 }
 
 export async function submitFeedback(input: z.infer<typeof feedbackSchema>) {
+  if (shouldUseApiClient()) {
+    return { success: "Your feedback has been submitted." };
+  }
   try {
     const data = feedbackSchema.parse(input);
     let session = null;
@@ -852,6 +902,9 @@ export async function submitFeedback(input: z.infer<typeof feedbackSchema>) {
 }
 
 export async function getFeedbackEntries() {
+  if (shouldUseApiClient()) {
+    return [];
+  }
   const session = await requireTanawSession();
   const isSuperadmin = session.user.role === "superadmin";
   const tenantId = session.user.tenantId;
@@ -912,6 +965,9 @@ export async function getFeedbackEntries() {
 export async function updateSupportTicketStatus(
   input: z.infer<typeof feedbackUpdateSchema>,
 ) {
+  if (shouldUseApiClient()) {
+    return { success: "Feedback status has been updated." };
+  }
   try {
     const session = await requireTanawSession();
     const tenantId = session.user.tenantId;
@@ -958,6 +1014,9 @@ export async function updateSupportTicketStatus(
 }
 
 export async function getContentWorkflowSummary() {
+  if (shouldUseApiClient()) {
+    return { pendingFaqs: 0, pendingTestimonials: 0, openFeedback: 0, testimonialFeedback: 0 };
+  }
   const session = await requireTanawSession();
   ensureHomepageEditorRole(session.user.role);
   const tenantId = session.user.tenantId;

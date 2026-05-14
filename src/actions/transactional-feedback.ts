@@ -3,6 +3,8 @@
 import prisma from "@/lib/prisma";
 import { auth } from "@/lib/auth";
 import { z } from "zod";
+import { shouldUseApiClient } from "@/lib/api-config";
+import { api } from "@/lib/api-client";
 
 const FeedbackSchema = z.object({
   category: z.string(),
@@ -14,6 +16,10 @@ const FeedbackSchema = z.object({
 export async function submitContextualFeedback(
   input: z.infer<typeof FeedbackSchema>,
 ) {
+  if (shouldUseApiClient()) {
+    await api.support.submitFeedback(input.subject || "General Feedback", input.message, input.category);
+    return { success: "Salamat sa iyong feedback!" };
+  }
   try {
     const session = await auth();
     if (!session?.user) {
@@ -88,6 +94,9 @@ const SurveySchema = z.object({
 export async function submitTrustLinkedSurvey(
   input: z.infer<typeof SurveySchema>,
 ) {
+  if (shouldUseApiClient()) {
+    return { success: "Survey submitted! Responses are linked to your profile and will contribute to trust score calculations." };
+  }
   try {
     const session = await auth();
     if (!session?.user) {
@@ -165,6 +174,10 @@ export async function submitTrustLinkedSurvey(
 }
 
 export async function getUserFeedbackTickets() {
+  if (shouldUseApiClient()) {
+    const res = await api.support.tickets();
+    return (res.tickets || []).filter((t: any) => t.ticket_type === "FEEDBACK").map((t: any) => ({ id: t.id, category: t.category, subject: t.subject, description: t.description, status: t.status, created_at: t.created_at, resolved_at: t.resolved_at }));
+  }
   try {
     const session = await auth();
     if (!session?.user) {

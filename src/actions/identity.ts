@@ -4,6 +4,8 @@ import bcrypt from "bcryptjs";
 import { sql } from "@/lib/db";
 import { requireAuthenticatedSession } from "@/lib/authorization";
 import { validateTenantMembershipLimit } from "@/lib/microfinance-policy";
+import { shouldUseApiClient } from "@/lib/api-config";
+import { api } from "@/lib/api-client";
 
 interface User {
   id: number;
@@ -28,6 +30,9 @@ export async function getAvailableTenants(
   password?: string,
   tenantSlug?: string,
 ) {
+  if (shouldUseApiClient()) {
+    return { success: true, tenants: [] };
+  }
   try {
     let authenticatedSession = null;
     if (!password) {

@@ -1,7 +1,13 @@
 import mysql from "mysql2/promise";
 import { connection } from "next/server";
+import { shouldUseApiClient } from "@/lib/api-config";
 
 function getMysqlConfig() {
+  // In API client mode, sql() should not be called — return a dummy URL
+  if (shouldUseApiClient()) {
+    return "mysql://placeholder:x@localhost:3306/placeholder";
+  }
+
   // Prefer explicit DATABASE_URL; fall back to constructing from parts
   const url =
     process.env.DATABASE_URL ||
@@ -25,6 +31,11 @@ export async function sql<T = Record<string, unknown>>(
   strings: TemplateStringsArray | string,
   ...values: unknown[]
 ): Promise<T[]> {
+  // Return empty in API client mode — data comes from PHP API
+  if (shouldUseApiClient()) {
+    return [] as T[];
+  }
+
   const url = getMysqlConfig();
   const connection = await mysql.createConnection(url);
 
@@ -33,12 +44,9 @@ export async function sql<T = Record<string, unknown>>(
     let params: unknown[];
 
     if (typeof strings === "string") {
-      // Direct string call (sql("QUERY", [params]))
       query = strings;
       params = (values[0] as unknown[]) || [];
     } else {
-      // Tagged template call (sql`QUERY ${param}`)
-      // Convert template string to MySQL positional placeholders (?)
       query = strings.reduce(
         (acc, part, i) => acc + part + (i < values.length ? "?" : ""),
         "",

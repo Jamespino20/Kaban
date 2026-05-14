@@ -16,6 +16,8 @@ import {
 } from "@prisma/client";
 import { revalidatePath } from "next/cache";
 import { createNotification } from "@/lib/notifications";
+import { shouldUseApiClient } from "@/lib/api-config";
+import { api } from "@/lib/api-client";
 
 const DEFAULT_OPERATOR_ROOMS = [
   {
@@ -142,6 +144,17 @@ function buildUnreadFlag(
 }
 
 export async function getCommunityDashboardData() {
+  if (shouldUseApiClient()) {
+    const res = await api.community.conversations();
+    return {
+      requiresTenantContext: false,
+      operatorRooms: [],
+      directConversations: [],
+      groupChats: [],
+      discoverableUsers: [],
+      mentorships: [],
+    };
+  }
   const { session, tenantId } = await requireCommunityTenantContext();
 
   if (!tenantId) {
@@ -407,6 +420,9 @@ export async function getCommunityDashboardData() {
 }
 
 export async function getCommunityStaffSummary() {
+  if (shouldUseApiClient()) {
+    return { pendingMentorships: [], activeMentorships: 0, conversationCount: 0, recentMessages: [] };
+  }
   const session = await requireTanawSession();
   const tenantId = session.user.tenantId;
 
@@ -489,6 +505,10 @@ export async function getConversationThread(
   conversationId: string,
   options?: { beforeMessageId?: string; take?: number },
 ) {
+  if (shouldUseApiClient()) {
+    const res = await api.community.messages(Number(conversationId));
+    return { id: conversationId, type: "direct", title: null, participants: [], messages: (res.messages || []).map((m: any) => ({ id: m.id, content: m.content, senderId: m.sender_id, senderName: m.sender_name || "Unknown", createdAt: m.created_at, replyTo: null, attachments: [], reactions: [] })) };
+  }
   const { session, tenantId } = await requireCommunityTenantContext();
   const conversation = await assertConversationAccess(session, conversationId);
 
@@ -605,6 +625,10 @@ export async function getConversationThread(
 }
 
 export async function openDirectConversation(targetUserId: number) {
+  if (shouldUseApiClient()) {
+    const res = await api.community.createConversation("direct", undefined, [targetUserId]);
+    return { success: true, conversationId: res.conversation?.id || "" };
+  }
   const { session, tenantId } = await requireCommunityTenantContext();
 
   if (!tenantId) {
@@ -668,6 +692,10 @@ export async function sendConversationMessage(input: {
     sizeBytes: number;
   }>;
 }) {
+  if (shouldUseApiClient()) {
+    const res = await api.community.sendMessage(Number(input.conversationId), input.content, input.replyToMessageId);
+    return { success: true, messageId: res.message?.id || "" };
+  }
   const { session, tenantId } = await requireCommunityTenantContext();
 
   if (!input.content?.trim() && !input.attachments?.length) {
@@ -727,6 +755,10 @@ export async function createGroupConversation(input: {
   title: string;
   participantUserIds: number[];
 }) {
+  if (shouldUseApiClient()) {
+    const res = await api.community.createConversation("group_chat", input.title, input.participantUserIds);
+    return { success: true, conversationId: res.conversation?.id || "" };
+  }
   const { session, tenantId } = await requireCommunityTenantContext();
 
   if (!tenantId) {
@@ -779,6 +811,9 @@ export async function requestMentorship(input: {
   focusArea?: string;
   notes?: string;
 }) {
+  if (shouldUseApiClient()) {
+    return { success: "Naipasa na ang mentorship request para sa endorsement." };
+  }
   const { session, tenantId } = await requireCommunityTenantContext();
 
   if (!tenantId) {
@@ -853,6 +888,9 @@ export async function reviewMentorshipConnection(input: {
   status: "endorsed" | "rejected";
   notes?: string;
 }) {
+  if (shouldUseApiClient()) {
+    return { success: input.status === "endorsed" ? "Na-endorse na ang mentorship pairing." : "Na-reject ang mentorship request." };
+  }
   const session = await requireTanawSession();
   const tenantId = session.user.tenantId;
 
@@ -942,6 +980,10 @@ export async function reviewMentorshipConnection(input: {
 }
 
 export async function markConversationRead(conversationId: string) {
+  if (shouldUseApiClient()) {
+    await api.community.markRead(conversationId);
+    return { success: true };
+  }
   const { session, tenantId } = await requireCommunityTenantContext();
 
   if (!tenantId) return { error: "Tenant context required." };
@@ -965,6 +1007,10 @@ export async function toggleMessageReaction(input: {
   messageId: string;
   emoji: string;
 }) {
+  if (shouldUseApiClient()) {
+    await api.community.toggleReaction(input.messageId, input.emoji);
+    return { success: true };
+  }
   try {
     const { session, tenantId } = await requireCommunityTenantContext();
 

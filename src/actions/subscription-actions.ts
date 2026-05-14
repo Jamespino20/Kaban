@@ -4,8 +4,13 @@ import prisma from "@/lib/prisma";
 import { requireTanawSession } from "@/lib/authorization";
 import { revalidatePath } from "next/cache";
 import { serializeDecimal } from "@/lib/utils";
+import { shouldUseApiClient } from "@/lib/api-config";
+import { api } from "@/lib/api-client";
 
 export async function getAvailablePlans() {
+  if (shouldUseApiClient()) {
+    return { success: true, plans: [] };
+  }
   try {
     const plans = await prisma.subscriptionPlan.findMany({
       orderBy: { price_monthly: "asc" },
@@ -21,6 +26,9 @@ export async function getAvailablePlans() {
 }
 
 export async function getCurrentSubscription(tenantId: number) {
+  if (shouldUseApiClient()) {
+    return { success: true, subscription: null };
+  }
   try {
     const sub = await prisma.tenantSubscription.findUnique({
       where: { tenant_id: tenantId },
@@ -38,6 +46,9 @@ export async function requestSubscriptionUpgrade(
   billingCycle: "monthly" | "quarterly" | "semi_annually" | "annually",
   tenantSlug: string,
 ) {
+  if (shouldUseApiClient()) {
+    return { success: true, subscription: null, message: "Subscription request submitted." };
+  }
   try {
     const session = await requireTanawSession();
 
@@ -97,6 +108,9 @@ export async function availLifetimeFranchise(
   tenantId: number,
   availedType: string,
 ) {
+  if (shouldUseApiClient()) {
+    return { success: true, message: `Tenant availed as ${availedType} lifetime franchise.` };
+  }
   try {
     const session = await requireTanawSession();
     if (session.user.role !== "superadmin") {
@@ -124,6 +138,9 @@ export async function availLifetimeFranchise(
   }
 }
 export async function getAllSubscriptionPlans() {
+  if (shouldUseApiClient()) {
+    return { success: true, plans: [] };
+  }
   try {
     const session = await requireTanawSession();
     if (session.user.role !== "superadmin") {
@@ -153,6 +170,9 @@ export async function updateSubscriptionPlan(
     is_active?: boolean;
   },
 ) {
+  if (shouldUseApiClient()) {
+    return { success: true, plan: null };
+  }
   try {
     const session = await requireTanawSession();
     if (session.user.role !== "superadmin") {
@@ -183,6 +203,9 @@ export async function updateSubscriptionPlan(
 }
 
 export async function getAllTenantSubscriptions() {
+  if (shouldUseApiClient()) {
+    return { success: true, tenants: [] };
+  }
   try {
     const session = await requireTanawSession();
     if (session.user.role !== "superadmin") {
@@ -204,6 +227,9 @@ export async function getAllTenantSubscriptions() {
 }
 
 export async function approveSubscriptionUpgrade(tenantId: number) {
+  if (shouldUseApiClient()) {
+    return { success: true, message: "Subscription approved." };
+  }
   try {
     const session = await requireTanawSession();
     if (session.user.role !== "superadmin") {

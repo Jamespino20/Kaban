@@ -2,6 +2,8 @@
 
 import prisma from "@/lib/prisma";
 import { requireSuperadminSession } from "@/lib/authorization";
+import { shouldUseApiClient } from "@/lib/api-config";
+import { api } from "@/lib/api-client";
 
 // Get tenant applications with filtering
 export async function getTenantApplicationsFiltered(filters?: {
@@ -9,6 +11,20 @@ export async function getTenantApplicationsFiltered(filters?: {
   region?: string;
   search?: string;
 }) {
+  if (shouldUseApiClient()) {
+    const res = await api.admin.pendingApplications();
+    let apps = res.applications || [];
+    if (filters?.status) apps = apps.filter((a: any) => a.status === filters.status);
+    if (filters?.search) {
+      const q = filters.search.toLowerCase();
+      apps = apps.filter((a: any) =>
+        a.tenant_name?.toLowerCase().includes(q) ||
+        a.applicant_name?.toLowerCase().includes(q) ||
+        a.applicant_email?.toLowerCase().includes(q)
+      );
+    }
+    return { success: true, data: apps };
+  }
   const session = await requireSuperadminSession();
   
   try {
@@ -50,6 +66,10 @@ export async function getTenantApplicationsFiltered(filters?: {
 
 // Get pending count
 export async function getPendingApplicationsCount() {
+  if (shouldUseApiClient()) {
+    const res = await api.admin.pendingApplications();
+    return { success: true, count: (res.applications || []).filter((a: any) => a.status === 'pending').length };
+  }
   await requireSuperadminSession();
   
   try {
@@ -70,6 +90,14 @@ export async function processApplication(
   action: "approve" | "reject",
   reason?: string
 ) {
+  if (shouldUseApiClient()) {
+    if (action === "approve") {
+      await api.admin.approveApplication(applicationId, undefined, reason);
+    } else {
+      await api.admin.rejectApplication(applicationId, reason);
+    }
+    return { success: true, data: null };
+  }
   const session = await requireSuperadminSession();
   
   try {

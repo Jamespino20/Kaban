@@ -2,9 +2,35 @@
 
 import prisma from "@/lib/prisma";
 import { requireAdminSession } from "@/lib/authorization";
+import { shouldUseApiClient } from "@/lib/api-config";
+import { api } from "@/lib/api-client";
 
 // Get tenant overview data for Tenant Admin dashboard
 export async function getTenantOverview() {
+  if (shouldUseApiClient()) {
+    const res = await api.admin.dashboardMetrics();
+    return {
+      success: true,
+      data: {
+        totalFunds: res.metrics?.total_savings || 0,
+        totalActiveLoans: res.metrics?.active_loans || 0,
+        totalMembers: res.metrics?.active_members || 0,
+        totalOperators: 0,
+        tenantTrustScore: 0,
+        paymentScore: 100,
+        businessScore: 100,
+        peerScore: 100,
+        guarantorScore: 100,
+        interestTier: "T1_5_PERCENT",
+        recentLogs: [],
+        aiSnapshot: null,
+        fundsGrowth: 0,
+        loansGrowth: 0,
+        membersGrowth: 0,
+        operatorsGrowth: 0,
+      },
+    };
+  }
   const session = await requireAdminSession();
   const tenantId = session.user.tenantId;
 

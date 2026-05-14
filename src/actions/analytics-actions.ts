@@ -3,6 +3,8 @@
 import prisma from "@/lib/prisma";
 import { requireAuthenticatedSession } from "@/lib/authorization";
 import { subDays, startOfDay, format } from "date-fns";
+import { shouldUseApiClient } from "@/lib/api-config";
+import { api } from "@/lib/api-client";
 
 export interface AnalyticsData {
   trafficTrends: { date: string; count: number }[];
@@ -37,6 +39,9 @@ export interface FinancialIntegrity {
 export async function getTenantAnalytics(
   days: number = 7,
 ): Promise<AnalyticsData | null> {
+  if (shouldUseApiClient()) {
+    return null;
+  }
   const session = await requireAuthenticatedSession();
   const tenantId = session.user.tenantId;
 
@@ -143,6 +148,9 @@ export async function getTenantAnalytics(
 export async function getOperationalInsights(
   days: number = 30,
 ): Promise<OperationalInsights | null> {
+  if (shouldUseApiClient()) {
+    return null;
+  }
   const session = await requireAuthenticatedSession();
   const tenantId = session.user.tenantId;
 
@@ -247,6 +255,9 @@ export async function getOperationalInsights(
  * Health check: Treasury balance vs sum of all Member Deposits.
  */
 export async function getFinancialIntegrityCheck(): Promise<FinancialIntegrity | null> {
+  if (shouldUseApiClient()) {
+    return null;
+  }
   const session = await requireAuthenticatedSession();
   const tenantId = session.user.tenantId;
 
