@@ -443,7 +443,7 @@ export function EnhancedRegisterForm({
             Create Your Account
           </h2>
           <p className="text-white/80 text-sm mt-1">
-            Step {step} of 4: {getStepTitle(step)}
+            Step {step} of 6: {getStepTitle(step)}
           </p>
         </div>
         <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -mr-16 -mt-16 blur-3xl" />
@@ -1074,11 +1074,20 @@ export function EnhancedRegisterForm({
 
                 {step === 5 && (
                   <div className="space-y-4 animate-in fade-in slide-in-from-right-4 duration-300">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-4">
+                      <h4 className="text-sm font-semibold text-slate-500 uppercase tracking-wider">
+                        Documents
+                      </h4>
+                      <p className="text-sm text-slate-500">
+                        Upload your ID and proof documents so we can verify your registration.
+                      </p>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                       <div className="space-y-4">
                         <FormLabel>ID Picture</FormLabel>
                         <Card
-                          className="border-dashed border-2 border-slate-200 p-6 flex flex-col items-center justify-center text-center space-y-4 cursor-pointer hover:bg-slate-50 transition-colors"
+                          className="border-dashed border-2 border-slate-200 p-8 min-h-[260px] flex flex-col items-center justify-center text-center space-y-4 cursor-pointer hover:bg-slate-50 transition-colors"
                           onClick={() =>
                             document.getElementById("id-upload")?.click()
                           }
@@ -1091,20 +1100,20 @@ export function EnhancedRegisterForm({
                             onChange={(e) => handleFileUpload(e, "id")}
                           />
                           {idUrl ? (
-                            <div className="space-y-2">
+                            <div className="space-y-3">
                               <img
                                 src={idUrl}
                                 alt="ID Preview"
-                                className="w-16 h-16 object-cover rounded-xl mx-auto shadow-md"
+                                className="w-32 h-32 object-cover rounded-2xl mx-auto shadow-md"
                               />
-                              <p className="text-[10px] font-bold" style={{ color: bc }}>
+                              <p className="text-sm font-bold" style={{ color: bc }}>
                                 Change
                               </p>
                             </div>
                           ) : (
                             <>
-                              <IdCard className="w-8 h-8 text-slate-300" />
-                              <p className="text-[10px] text-slate-500">
+                              <IdCard className="w-10 h-10 text-slate-300" />
+                              <p className="text-sm text-slate-500">
                                 Click to upload ID
                               </p>
                             </>
@@ -1115,7 +1124,7 @@ export function EnhancedRegisterForm({
                       <div className="space-y-4">
                         <FormLabel>Barangay Certificate</FormLabel>
                         <Card
-                          className="border-dashed border-2 border-slate-200 p-6 flex flex-col items-center justify-center text-center space-y-4 cursor-pointer hover:bg-slate-50 transition-colors"
+                          className="border-dashed border-2 border-slate-200 p-8 min-h-[260px] flex flex-col items-center justify-center text-center space-y-4 cursor-pointer hover:bg-slate-50 transition-colors"
                           onClick={() =>
                             document.getElementById("brgy-upload")?.click()
                           }
@@ -1128,67 +1137,79 @@ export function EnhancedRegisterForm({
                             onChange={(e) => handleFileUpload(e, "brgy")}
                           />
                           {brgyCertUrl ? (
-                            <div className="space-y-2">
+                            <div className="space-y-3">
                               <img
                                 src={brgyCertUrl}
                                 alt="Brgy Preview"
-                                className="w-16 h-16 object-cover rounded-xl mx-auto shadow-md"
+                                className="w-32 h-32 object-cover rounded-2xl mx-auto shadow-md"
                               />
-                              <p className="text-[10px] font-bold" style={{ color: bc }}>
+                              <p className="text-sm font-bold" style={{ color: bc }}>
                                 Change
                               </p>
                             </div>
                           ) : (
                             <>
-                              <FileText className="w-8 h-8 text-slate-300" />
-                              <p className="text-[10px] text-slate-500">
+                              <FileText className="w-10 h-10 text-slate-300" />
+                              <p className="text-sm text-slate-500">
                                 Click to upload Brgy Cert
                               </p>
                             </>
                           )}
                         </Card>
                       </div>
+
+                      {form.getValues("businessName") && (
+                        <div className="space-y-4">
+                          <FormLabel>Business Permit</FormLabel>
+                          <Card
+                            className="border-dashed border-2 border-slate-200 p-8 min-h-[260px] flex flex-col items-center justify-center text-center space-y-4 cursor-pointer hover:bg-slate-50 transition-colors"
+                            onClick={() =>
+                              document.getElementById("business-upload")?.click()
+                            }
+                          >
+                            <input
+                              id="business-upload"
+                              type="file"
+                              accept="image/*"
+                              className="hidden"
+                              onChange={(e) => handleFileUpload(e, "business")}
+                            />
+                            {businessPermitUrl ? (
+                              <div className="space-y-3">
+                                <img
+                                  src={businessPermitUrl}
+                                  alt="Business Preview"
+                                  className="w-32 h-32 object-cover rounded-2xl mx-auto shadow-md"
+                                />
+                                <p className="text-sm font-bold" style={{ color: bc }}>
+                                  Change
+                                </p>
+                              </div>
+                            ) : (
+                              <>
+                                <Building2 className="w-10 h-10 text-slate-300" />
+                                <p className="text-sm text-slate-500">
+                                  Click to upload Business Permit
+                                </p>
+                              </>
+                            )}
+                          </Card>
+                        </div>
+                      )}
                     </div>
+                  </div>
+                )}
 
-                    {form.getValues("businessName") && (
-                      <div className="space-y-4">
-                        <FormLabel>Business Permit</FormLabel>
-                        <Card
-                          className="border-dashed border-2 border-slate-200 p-6 flex flex-col items-center justify-center text-center space-y-4 cursor-pointer hover:bg-slate-50 transition-colors"
-                          onClick={() =>
-                            document.getElementById("business-upload")?.click()
-                          }
-                        >
-                          <input
-                            id="business-upload"
-                            type="file"
-                            accept="image/*"
-                            className="hidden"
-                            onChange={(e) => handleFileUpload(e, "business")}
-                          />
-                          {businessPermitUrl ? (
-                            <div className="space-y-2">
-                              <img
-                                src={businessPermitUrl}
-                                alt="Business Preview"
-                                className="w-16 h-16 object-cover rounded-xl mx-auto shadow-md"
-                              />
-                              <p className="text-[10px] font-bold" style={{ color: bc }}>
-                                Change
-                              </p>
-                            </div>
-                          ) : (
-                            <>
-                              <Building2 className="w-8 h-8 text-slate-300" />
-                              <p className="text-[10px] text-slate-500">
-                                Click to upload Business Permit
-                              </p>
-                            </>
-                          )}
-                        </Card>
-                      </div>
-                    )}
-
+                {step === 6 && (
+                  <div className="space-y-4 animate-in fade-in slide-in-from-right-4 duration-300">
+                    <div className="space-y-4">
+                      <h4 className="text-sm font-semibold text-slate-500 uppercase tracking-wider">
+                        Verification
+                      </h4>
+                      <p className="text-sm text-slate-500">
+                        Agree to the terms and privacy policy to complete your registration.
+                      </p>
+                    </div>
                     <div className="space-y-4">
                       <FormField
                         control={form.control}
@@ -1256,7 +1277,7 @@ export function EnhancedRegisterForm({
                       Back
                     </Button>
                   )}
-                  {step < 5 ? (
+                  {step < 6 ? (
                     <Button
                       type="button"
                       onClick={nextStep}
