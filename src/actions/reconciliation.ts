@@ -102,8 +102,13 @@ export async function getEndOfDayReconciliation(
 
     // 5. Master Pulse Check: Treasury (Asset) vs. User Wallets (Liability)
     const treasuryAccount = await db.ledgerAccount.findFirst({
-      where: { code: "CASH_EQUIVALENTS", tenant_id: { in: [tenantId, null] } },
-      orderBy: { tenant_id: "desc" },  // prefer tenant-specific, fall back to platform
+      where: {
+        code: "CASH_EQUIVALENTS",
+        OR: tenantId
+          ? [{ tenant_id: tenantId }, { tenant_id: null }]
+          : [{ tenant_id: null }],
+      },
+      orderBy: { tenant_id: "desc" }, // prefer tenant-specific, fall back to platform
     });
 
     const treasuryEntries = treasuryAccount
@@ -140,7 +145,7 @@ export async function getEndOfDayReconciliation(
       },
     };
   };
-  return await prisma.$withTenant(tenantId!, async (tx: any) => {
+  return await prisma.$withTenant(tenantId || -1, async (tx: any) => {
     return await queryFn(tx);
   });
 }
@@ -182,7 +187,12 @@ export async function resolveAndSignEndOfDay(reason?: string) {
 
     if (!eodData.holdings.isTreasuryHealthy) {
       const treasuryAccount = await tx.ledgerAccount.findFirst({
-        where: { code: "CASH_EQUIVALENTS", tenant_id: { in: [tenantId, null] } },
+        where: {
+          code: "CASH_EQUIVALENTS",
+          OR: tenantId
+            ? [{ tenant_id: tenantId }, { tenant_id: null }]
+            : [{ tenant_id: null }],
+        },
         orderBy: { tenant_id: "desc" },
       });
       if (!treasuryAccount) throw new Error("Missing treasury account. Please run the database seed to create ledger accounts.");
