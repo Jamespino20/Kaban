@@ -221,8 +221,6 @@ export function EnhancedRegisterForm({
     }
   }, [successData, dismissDraftNotice]);
 
-  if (!isMounted) return null;
-
   // Handler: When Agapay Region (TenantGroup/Tenant) Changes
   const onRegionChange = async (regionId: string) => {
     form.setValue("regionId", regionId);
@@ -309,6 +307,8 @@ export function EnhancedRegisterForm({
 
     restoreAddressLists();
   }, [form, geoProvinces.length, geoCities.length, geoBarangays.length]);
+
+  if (!isMounted) return null;
 
   const nextStep = async () => {
     const fields = getStepFields(step);
