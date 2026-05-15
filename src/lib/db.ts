@@ -28,7 +28,7 @@ function getMysqlConfig() {
       database: url.pathname.replace("/", ""),
       ssl: {
         minVersion: "TLSv1.2",
-        rejectUnauthorized: true,
+        rejectUnauthorized: false,
       },
       connectTimeout: 30000, // 30s for cold start
     };
@@ -54,6 +54,9 @@ export async function sql<T = Record<string, unknown>>(
   }
 
   const url = getMysqlConfig();
+  if (process.env.DEBUG_SQL === "true") {
+    console.log(`[SQL Query] → Initializing connection`);
+  }
   const connection = await mysql.createConnection(url as any);
 
   try {
@@ -71,7 +74,17 @@ export async function sql<T = Record<string, unknown>>(
       params = values;
     }
 
+    if (process.env.DEBUG_SQL === "true") {
+      console.log(`[SQL Query] → ${query.replace(/\s+/g, ' ').trim()}`);
+      console.log(`[SQL Params] → ${JSON.stringify(params)}`);
+    }
+
     const [rows] = await connection.execute(query, params as any);
+
+    if (process.env.DEBUG_SQL === "true") {
+      console.log(`[SQL Result] → Found ${(rows as any[]).length} rows`);
+    }
+
     return rows as T[];
   } finally {
     await connection.end();

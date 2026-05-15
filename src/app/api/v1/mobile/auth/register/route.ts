@@ -1,7 +1,9 @@
 import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
-import prisma from "@/lib/prisma";
 import * as z from "zod";
+import { sql } from "@/lib/db";
+import prisma from "@/lib/prisma";
+import { createAuthToken } from "../../_helpers";
 import { generateVerificationToken } from "@/lib/tokens";
 import { sendVerificationEmail } from "@/lib/mail";
 
@@ -37,12 +39,8 @@ export async function POST(req: Request) {
 
     if (!validatedFields.success) {
       return NextResponse.json(
-        { 
-          status: "error", 
-          message: "Invalid fields.",
-          errors: validatedFields.error.flatten().fieldErrors 
-        },
-        { status: 400 }
+        { status: "error", message: "Invalid fields." },
+        { status: 400 },
       );
     }
 
@@ -166,10 +164,13 @@ export async function POST(req: Request) {
           member_code: memberCode,
           tenant_id: tenantId,
         },
+        newUserId: user.user_id,
+        newTenantId: tenantId,
       };
     });
 
-    return NextResponse.json(result, { status: 201 });
+    const token = await createAuthToken(result.newUserId, result.newTenantId);
+    return NextResponse.json({ ...result, token, newUserId: undefined, newTenantId: undefined }, { status: 201 });
   } catch (error) {
     console.error("Mobile registration error:", error);
     return NextResponse.json(

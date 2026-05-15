@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import { sql } from "@/lib/db";
 import * as z from "zod";
+import { createAuthToken } from "../../_helpers";
 
 const LoginSchema = z.object({
   username: z.string(),
@@ -79,9 +80,12 @@ export async function POST(req: Request) {
       });
     }
 
-    // Return success response with user details
+    // Generate auth token for subsequent API calls
+    const token = await createAuthToken(user.user_id, user.tenant_id);
+
     return NextResponse.json({
       status: "success",
+      token,
       user: {
         user_id: user.user_id,
         username: user.username,

@@ -156,26 +156,15 @@ export default async function middleware(req: NextRequest) {
     }
 
     // 2.2 Portal Correction (Member vs Staff)
+    const isStaffRole = role === "operator";
     const isTanawRoute = domainInternalPath.includes("/agapay-tanaw");
     const isPintigRoute = domainInternalPath.includes("/agapay-pintig");
-    // Accept both new 'operator' role and legacy 'admin'/'lender' roles for tanaw access
-    const isStaffRole = role === "operator";
 
-    if (role === "member" && isTanawRoute) {
+    // BLOCK: Member at Tanaw Dashboard
+    if (!isStaffRole && !isSuperadmin && isTanawRoute) {
       return NextResponse.redirect(
         tenantUrl(urlTenantSlug || "malolos", "/agapay-pintig"),
       );
-    }
-    if (!isStaffRole && isPintigRoute && !isSuperadmin) {
-      return NextResponse.redirect(
-        tenantUrl(urlTenantSlug || "malolos", "/agapay-tanaw"),
-      );
-    }
-
-    // 2.3 Entitlement Checks (Exclude Superadmin)
-    if (!isSuperadmin && userTenantId) {
-      // In middleware, we only do a quick check if possible or rely on the page guards
-      // to avoid excessive DB calls. The page guards in requireTanawSession handle this robustly.
     }
 
     if (domainTenantSlug && shouldUseTenantRewrite(nextUrl.pathname)) {

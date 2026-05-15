@@ -1,0 +1,29 @@
+Testing SQL connection...
+User count: [ { count: 119 } ]
+Top users: [
+  {
+    user_id: 1,
+    email: 'agapay.saas@gmail.com',
+    username: 'superadmin'
+  },
+  {
+    user_id: 2,
+    email: 'jocelyn.domingo.MALOLOS-O-WC7Z-0001@gmail.com',
+    username: 'jocyd-MALOLOS-O-WC7Z-0001'
+  },
+  {
+    user_id: 3,
+    email: 'gregorio.bautista.MALOLOS-M-F48K-0001@gmail.com',
+    username: 'gregorio-bautista-MALOLOS-M-F48K-0001'
+  },
+  {
+    user_id: 4,
+    email: 'arturo.zamora.MALOLOS-M-HWR4-0002@gmail.com',
+    username: 'arturo-zamora-MALOLOS-M-HWR4-0002'
+  },
+  {
+    user_id: 5,
+    email: 'miguel.reyes.MALOLOS-M-K3EN-0003@gmail.com',
+    username: 'miguel-reyes-MALOLOS-M-K3EN-0003'
+  }
+]
