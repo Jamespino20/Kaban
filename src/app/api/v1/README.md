@@ -1,15 +1,15 @@
 # Agapay Mobile REST API — v1
 
-> Secure, multi-tenant REST endpoints for the **Agapay Pintig** native Android client.
+> Secure, multi-tenant REST endpoints for the **Agapay Pintig** native Android/iOS client.
 
 Base URL (production):
 ```
-https://agapay-saas.vercel.app/api/v1
+https://agapay-saas.vercel.app/api/v1/mobile
 ```
 
 Base URL (local dev):
 ```
-http://10.0.2.2:3000/api/v1
+http://10.0.2.2:3000/api/v1/mobile
 ```
 
 > ⚠️ Android emulators map `localhost` to the emulator itself. Use `10.0.2.2` to reach your host machine.
@@ -20,116 +20,48 @@ http://10.0.2.2:3000/api/v1
 
 1. [Authentication](#authentication)
 2. [Endpoints](#endpoints)
-   - [POST /mobile/auth/register](#post-mobileauthregister)
-   - [POST /mobile/auth/login](#post-mobileauthlogin)
+   - [Auth](#auth)
+   - [Tenants](#tenants)
+   - [Users / Wallet](#users--wallet)
+   - [Loans](#loans)
+   - [Community](#community)
+   - [Support](#support)
+   - [Notifications](#notifications)
 3. [Error Reference](#error-reference)
 4. [Android Integration Guide](#android-integration-guide)
-   - [Step 1 — Add Internet Permission](#step-1--add-internet-permission)
-   - [Step 2 — Create an ApiClient helper](#step-2--create-an-apiclient-helper)
-   - [Step 3 — Build models](#step-3--build-models)
-   - [Step 4 — Call Login](#step-4--call-login)
-   - [Step 5 — Call Register](#step-5--call-register)
-   - [Step 6 — Persist the session](#step-6--persist-the-session)
-   - [Step 7 — Protect screens](#step-7--protect-screens)
 
 ---
 
 ## Authentication
 
-These endpoints are **public** (no token required). They are the entry point for the app; all subsequent authenticated actions should use the `user_id` and `tenant_id` returned here.
+### Public Endpoints (no token required)
 
-> **Multi-tenancy note** — every request *must* include a `tenantId` in the body. This uniquely scopes the user to their cooperative. The same email may exist in multiple tenants; they are treated as entirely separate accounts.
+| Endpoint | Method | Description |
+|---|---|---|
+| `/auth/login` | POST | Authenticate with email/username + password |
+| `/auth/register` | POST | Create a new member account |
+| `/auth/forgot-password` | POST | Request password reset email |
+| `/auth/reset-password` | POST | Reset password with token |
+| `/tenants` | GET | List active cooperatives |
+| `/tenants/regions` | GET | List regions/groups |
+
+### Authenticated Endpoints (Bearer token required)
+
+All other endpoints require an `Authorization: Bearer <token>` header. Obtain the token from the login response (see below).
+
+> **Multi-tenancy** — every request is scoped to the user's tenant via their account. The token already encodes the user's tenant context.
 
 ---
 
 ## Endpoints
 
-### POST /mobile/auth/register
+### Auth
 
-Register a new member within a specific tenant cooperative.
+#### `POST /auth/login`
 
-**Request body** — `application/json`
+Authenticate a member within their cooperative.
 
-| Field | Type | Required | Description |
-|---|---|---|---|
-| `tenantId` | `number` | ✅ | Cooperative's numeric ID |
-| `email` | `string` | ✅ | Valid email address |
-| `username` | `string` | ✅ | Min 3 characters |
-| `password` | `string` | ✅ | Min 6 characters |
-| `firstName` | `string` | ✅ | Legal first name |
-| `lastName` | `string` | ✅ | Legal last name |
-| `middleName` | `string` | — | Optional |
-| `phone` | `string` | ✅ | Min 10 digits |
-| `maritalStatus` | `string` | ✅ | e.g. `"single"`, `"married"` |
-| `birthdate` | `string` | ✅ | ISO format: `"YYYY-MM-DD"` |
-| `gender` | `string` | ✅ | e.g. `"male"`, `"female"` |
-| `region` | `string` | ✅ | e.g. `"NCR"` |
-| `province` | `string` | ✅ | e.g. `"Metro Manila"` |
-| `city` | `string` | ✅ | e.g. `"Quezon City"` |
-| `barangay` | `string` | ✅ | e.g. `"Commonwealth"` |
-| `streetAddress` | `string` | ✅ | Full street address |
-| `idPicture` | `string` | ✅ | URL of uploaded valid ID |
-| `businessName` | `string` | — | Optional |
-| `placeOfBirth` | `string` | — | Optional |
-| `tin` | `string` | — | Optional TIN number |
-| `brgyCertUrl` | `string` | — | URL of barangay certificate |
-| `businessPermitUrl` | `string` | — | URL of business permit |
-
-**Example request**
-
-```json
-{
-  "tenantId": 60001,
-  "email": "maria.santos@example.com",
-  "username": "mariasantos",
-  "password": "secret123",
-  "firstName": "Maria",
-  "lastName": "Santos",
-  "phone": "09171234567",
-  "maritalStatus": "single",
-  "birthdate": "1995-06-15",
-  "gender": "female",
-  "region": "NCR",
-  "province": "Metro Manila",
-  "city": "Quezon City",
-  "barangay": "Commonwealth",
-  "streetAddress": "123 Rizal St",
-  "idPicture": "https://example.com/uploads/id.jpg"
-}
-```
-
-**201 — Success**
-
-```json
-{
-  "status": "success",
-  "message": "Registration successful. Please verify your email.",
-  "user": {
-    "user_id": 60118,
-    "username": "mariasantos",
-    "email": "maria.santos@example.com",
-    "member_code": "MALOLOS M 060118",
-    "tenant_id": 60001
-  }
-}
-```
-
-**Error responses**
-
-| Status | Reason |
-|---|---|
-| `400` | Missing or invalid fields |
-| `404` | `tenantId` does not exist |
-| `409` | Email or username already used in this tenant |
-| `500` | Internal server error |
-
----
-
-### POST /mobile/auth/login
-
-Authenticate a member within a specific tenant cooperative.
-
-**Request body** — `application/json`
+**Request body:**
 
 | Field | Type | Required | Description |
 |---|---|---|---|
@@ -137,21 +69,12 @@ Authenticate a member within a specific tenant cooperative.
 | `username` | `string` | ✅ | Username **or** email address |
 | `password` | `string` | ✅ | Account password |
 
-**Example request**
-
-```json
-{
-  "tenantId": 60001,
-  "username": "mariasantos",
-  "password": "secret123"
-}
-```
-
-**200 — Success**
+**200 — Success:**
 
 ```json
 {
   "status": "success",
+  "token": "uuid-string-here",
   "user": {
     "user_id": 60118,
     "username": "mariasantos",
@@ -159,35 +82,288 @@ Authenticate a member within a specific tenant cooperative.
     "role": "member",
     "tenant_id": 60001,
     "tenant_slug": "malolos",
-    "member_code": "MALOLOS M 060118"
+    "member_code": "MALOLOS-M-060118"
   }
 }
 ```
 
-**200 — 2FA Required** (do not proceed; prompt the OTP screen)
+**200 — 2FA Required:**
 
 ```json
 {
   "status": "success",
   "requires_2fa": true,
-  "user": {
-    "user_id": 60118,
-    "username": "mariasantos",
-    "email": "maria.santos@example.com",
-    "role": "member",
-    "tenant_id": 60001
-  }
+  "user": { "user_id": 60118, "username": "mariasantos", "role": "member", "tenant_id": 60001 }
 }
 ```
 
-**Error responses**
+**Errors:** `400` invalid fields, `401` wrong credentials, `403` account suspended.
 
-| Status | Reason |
-|---|---|
-| `400` | Missing or invalid fields |
-| `401` | User not found in this tenant, or wrong password |
-| `403` | Account is suspended |
-| `500` | Internal server error |
+---
+
+#### `POST /auth/register`
+
+Register a new member within a specific tenant.
+
+**Request body:**
+
+| Field | Type | Required | Description |
+|---|---|---|---|
+| `tenantId` | `number` | ✅ | Cooperative's numeric ID |
+| `email` | `string` | ✅ | Valid email |
+| `username` | `string` | ✅ | Min 3 characters |
+| `password` | `string` | ✅ | Min 6 characters |
+| `firstName` | `string` | ✅ | Legal first name |
+| `lastName` | `string` | ✅ | Legal last name |
+| `phone` | `string` | ✅ | Min 10 digits |
+| `maritalStatus` | `string` | ✅ | `single`, `married`, etc. |
+| `birthdate` | `string` | ✅ | `YYYY-MM-DD` |
+| `gender` | `string` | ✅ | `male`, `female` |
+| `region` | `string` | ✅ | PSGC region |
+| `province` | `string` | ✅ | Province name |
+| `city` | `string` | ✅ | City/Municipality |
+| `barangay` | `string` | ✅ | Barangay |
+| `streetAddress` | `string` | ✅ | Full address |
+| `idPicture` | `string` | ✅ | URL of uploaded valid ID |
+
+**201 — Success:**
+
+```json
+{
+  "status": "success",
+  "message": "Registration successful. Please verify your email.",
+  "user": { "user_id": 60118, "username": "mariasantos", "member_code": "MALOLOS-M-060118", "tenant_id": 60001 },
+  "token": "uuid-auth-token"
+}
+```
+
+**Errors:** `400` invalid fields, `404` tenant not found, `409` email/username taken.
+
+---
+
+#### `POST /auth/2fa/verify`
+
+Complete 2FA challenge during login.
+
+**Request body:** `{ "userId": 60118, "code": "123456" }`
+
+**200 — Success:** `{ "status": "success", "token": "uuid", "user": { ... } }`
+
+---
+
+#### `POST /auth/forgot-password`
+
+Request a password reset token.
+
+**Request body:** `{ "email": "user@example.com", "tenantId": 60001 }`
+
+**200:** `{ "status": "success", "message": "If the email exists, a reset link has been sent." }`
+
+---
+
+#### `POST /auth/reset-password`
+
+Reset password with token.
+
+**Request body:** `{ "token": "reset-token", "password": "newPassword123" }`
+
+**200:** `{ "status": "success", "message": "Password has been reset." }`
+
+---
+
+#### `GET /auth/session`
+
+Validate the current Bearer token and return user profile.
+
+**Headers:** `Authorization: Bearer <token>`
+
+**200:** `{ "status": "success", "data": { "user": { ... }, "profile": { ... } } }`
+
+---
+
+### Tenants
+
+#### `GET /tenants`
+
+List all active cooperatives. Public.
+
+**200:** `{ "status": "success", "data": [{ "tenant_id": 1, "name": "Malolos...", "slug": "malolos", "brand_color": "#2563eb", "member_count": 26 }, ...] }`
+
+#### `GET /tenants/{id}`
+
+Get a single tenant's details.
+
+**200:** `{ "status": "success", "data": { "tenant_id": 1, "name": "...", "slug": "...", "brand_color": "...", "accent_color": "...", "group_name": "Central Luzon", "member_count": 26 } }`
+
+#### `GET /tenants/search?q=malolos`
+
+Search tenants by name.
+
+**200:** `{ "status": "success", "data": [{ "tenant_id": 1, "name": "Malolos...", "slug": "malolos", ... }] }`
+
+#### `GET /tenants/regions`
+
+List tenant groups with nested tenants.
+
+**200:** `{ "status": "success", "data": [{ "group_name": "Central Luzon", "tenants": [{ "tenant_id": 1, "name": "Malolos..." }] }] }`
+
+---
+
+### Users / Wallet
+
+All endpoints require `Authorization: Bearer <token>`.
+
+#### `GET /users/profile`
+
+Get the current user's full profile.
+
+**200:** `{ "status": "success", "data": { "user": { "user_id": 1, "username": "...", "email": "...", "role": "member" }, "profile": { "first_name": "...", "last_name": "...", "photo_url": "...", "phone": "..." } } }`
+
+#### `PUT /users/profile`
+
+Update profile fields.
+
+**Request body:** `{ "firstName": "...", "lastName": "...", "email": "...", "phone": "...", "photoUrl": "..." }`
+
+**200:** `{ "status": "success", "data": { "user": { ... }, "profile": { ... } } }`
+
+#### `GET /users/wallet`
+
+Get wallet balance and recent transactions.
+
+**200:** `{ "status": "success", "data": { "balance": 1500.00, "transactions": [{ "type": "deposit", "amount": 500, "status": "verified", "created_at": "..." }] } }`
+
+#### `POST /users/wallet/topup`
+
+Request a wallet top-up (deposit).
+
+**Request body:** `{ "amount": 500, "method": "GCash", "reference": "REF123" }`
+
+**200:** `{ "status": "success", "data": { "request_id": 1, "status": "pending" } }`
+
+#### `POST /users/wallet/withdraw`
+
+Request a withdrawal.
+
+**Request body:** `{ "amount": 200, "method": "GCash", "account_ref": "0917xxxxxxx" }`
+
+**200:** `{ "status": "success", "data": { "request_id": 2, "status": "pending" } }`
+
+#### `POST /users/wallet/pay-loan`
+
+Pay a loan installment from wallet balance.
+
+**Request body:** `{ "loan_id": 1, "amount": 1250.00 }`
+
+**200:** `{ "status": "success", "data": { "payment_id": 1, "new_balance": 250.00 } }`
+
+**Errors:** `400` insufficient balance, `404` loan not found.
+
+---
+
+### Loans
+
+All endpoints require `Authorization: Bearer <token>`.
+
+#### `GET /loans`
+
+List current user's loans.
+
+**200:** `{ "status": "success", "data": [{ "loan_id": 1, "loan_reference": "LN-...", "product_name": "Agapay Sari-Sari", "principal_amount": 5000, "balance_remaining": 3750, "status": "active", "next_due_date": "2026-06-01" }] }`
+
+#### `POST /loans/apply`
+
+Apply for a new loan.
+
+**Request body:** `{ "product_id": 1, "amount": 5000, "term_months": 6, "repayment_frequency": "monthly", "purpose": "Small business capital", "guarantor_ids": [102, 103] }`
+
+**200:** `{ "status": "success", "data": { "loan_id": 10, "reference": "LN-20260515-XXXXXX" } }`
+
+#### `GET /loans/products`
+
+List available loan products for the user's tenant.
+
+**200:** `{ "status": "success", "data": [{ "product_id": 1, "name": "Agapay Sari-Sari", "min_amount": 2000, "max_amount": 5000, "interest_rate_percent": 5.0, "max_term_months": 12 }] }`
+
+#### `GET /loans/{id}/schedule`
+
+Get repayment schedule for a specific loan.
+
+**200:** `{ "status": "success", "data": [{ "installment_number": 1, "due_date": "2026-06-01", "principal_amount": 833.33, "interest_amount": 208.33, "total_due": 1041.66, "status": "pending" }] }`
+
+#### `POST /loans/{id}/pay`
+
+Submit a payment for a loan installment.
+
+**Request body:** `{ "amount": 1041.66, "method": "GCash", "reference": "PAY-REF-001" }`
+
+**200:** `{ "status": "success", "data": { "payment_id": 5, "status": "pending_verification" } }`
+
+---
+
+### Community
+
+#### `GET /community/conversations`
+
+Get user's conversations with last message preview.
+
+**Headers:** `Authorization: Bearer <token>`
+
+**200:** `{ "status": "success", "data": [{ "id": "conv-uuid", "title": "Operator Chat", "type": "operator_room", "last_message": "Hello!", "last_message_at": "2026-05-15T...", "unread_count": 2 }] }`
+
+#### `GET /community/messages?conversation_id=xxx&limit=50&before=timestamp`
+
+Get paginated messages for a conversation.
+
+**200:** `{ "status": "success", "data": [{ "id": "msg-uuid", "sender_id": 1, "sender_name": "Juan", "content": "Hello!", "created_at": "2026-05-15T...", "reactions": [{ "emoji": "👍", "count": 3 }] }] }`
+
+#### `POST /community/messages`
+
+Send a message.
+
+**Request body:** `{ "conversation_id": "conv-uuid", "content": "Hello everyone!", "reply_to_id": "prev-msg-uuid" }`
+
+**200:** `{ "status": "success", "data": { "id": "new-msg-uuid", "created_at": "..." } }`
+
+---
+
+### Support
+
+#### `GET /support/tickets`
+
+Get user's support tickets.
+
+**Headers:** `Authorization: Bearer <token>`
+
+**200:** `{ "status": "success", "data": [{ "id": 1, "ticket_number": "TKT-...", "category": "loan", "subject": "Payment issue", "status": "open", "created_at": "..." }] }`
+
+#### `POST /support/tickets`
+
+Create a support ticket.
+
+**Request body:** `{ "subject": "Payment not reflecting", "description": "I paid via GCash but...", "category": "payment" }`
+
+**200:** `{ "status": "success", "data": { "id": 2, "ticket_number": "TKT-20260515-XXXX" } }`
+
+---
+
+### Notifications
+
+#### `GET /notifications`
+
+Get user's notifications (last 50).
+
+**Headers:** `Authorization: Bearer <token>`
+
+**200:** `{ "status": "success", "data": { "notifications": [{ "id": "notif-uuid", "title": "Loan Approved", "body": "Your loan has been approved.", "is_read": false, "created_at": "..." }], "unread_count": 3 } }`
+
+#### `POST /notifications/mark-read`
+
+Mark notifications as read.
+
+**Request body:** `{ "ids": ["notif-uuid-1", "notif-uuid-2"] }` or `{ "all": true }` to mark all as read.
+
+**200:** `{ "status": "success", "data": { "marked": 5 } }`
 
 ---
 
@@ -202,46 +378,50 @@ All error responses follow this shape:
 }
 ```
 
-Validation errors (400) may also include a field-level breakdown:
+Validation errors (400) may include field-level breakdown:
 
 ```json
 {
   "status": "error",
   "message": "Invalid fields.",
-  "errors": {
-    "email": ["Invalid email"],
-    "phone": ["String must contain at least 10 character(s)"]
-  }
+  "errors": { "email": ["Invalid email"], "phone": ["Min 10 characters"] }
 }
 ```
+
+| HTTP Status | Meaning |
+|---|---|
+| 200 | Success |
+| 201 | Created (registration) |
+| 400 | Invalid input / validation failure |
+| 401 | Unauthorized — missing or invalid token |
+| 403 | Forbidden — account suspended |
+| 404 | Resource not found |
+| 409 | Conflict — duplicate email/username |
+| 500 | Internal server error |
 
 ---
 
 ## Android Integration Guide
 
-This guide uses **native Android (Java/Kotlin)** with only the standard library — no Retrofit required.
-
 ### Step 1 — Add Internet Permission
 
-In `AndroidManifest.xml`, inside `<manifest>`:
+In `AndroidManifest.xml`:
 
 ```xml
 <uses-permission android:name="android.permission.INTERNET" />
 ```
 
-For cleartext (local dev only), inside `<application>`:
+For local dev only, add to `<application>`:
 
 ```xml
 android:usesCleartextTraffic="true"
 ```
 
-> Remove `usesCleartextTraffic` before deploying to production. Production uses HTTPS.
+> Remove `usesCleartextTraffic` for production builds.
 
 ---
 
-### Step 2 — Create an ApiClient helper
-
-Create `ApiClient.java` (or `.kt`) to handle all HTTP JSON calls.
+### Step 2 — Create ApiClient
 
 ```java
 // ApiClient.java
@@ -252,55 +432,50 @@ import java.net.URL;
 import java.nio.charset.StandardCharsets;
 
 public class ApiClient {
+    private static final String BASE_URL = "https://agapay-saas.vercel.app/api/v1/mobile";
 
-    // Change this to the production URL before release
-    private static final String BASE_URL = "http://10.0.2.2:3000/api/v1";
-
-    /**
-     * Sends a POST request with a JSON body.
-     *
-     * @param endpoint  e.g. "/mobile/auth/login"
-     * @param payload   JSONObject to send as the request body
-     * @return          Parsed JSONObject response
-     * @throws Exception on network or I/O error
-     */
-    public static JSONObject post(String endpoint, JSONObject payload) throws Exception {
+    public static JSONObject request(String method, String endpoint, JSONObject payload, String token) throws Exception {
         URL url = new URL(BASE_URL + endpoint);
         HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-
-        conn.setRequestMethod("POST");
+        conn.setRequestMethod(method);
         conn.setRequestProperty("Content-Type", "application/json; charset=UTF-8");
         conn.setRequestProperty("Accept", "application/json");
-        conn.setDoOutput(true);
-        conn.setConnectTimeout(10_000);
+        if (token != null) conn.setRequestProperty("Authorization", "Bearer " + token);
+        conn.setDoOutput(method.equals("POST") || method.equals("PUT"));
+        conn.setConnectTimeout(15_000);
         conn.setReadTimeout(15_000);
 
-        byte[] body = payload.toString().getBytes(StandardCharsets.UTF_8);
-        try (OutputStream os = conn.getOutputStream()) {
-            os.write(body);
+        if (payload != null) {
+            byte[] body = payload.toString().getBytes(StandardCharsets.UTF_8);
+            try (OutputStream os = conn.getOutputStream()) { os.write(body); }
         }
 
         int code = conn.getResponseCode();
         InputStream stream = (code >= 400) ? conn.getErrorStream() : conn.getInputStream();
-
         StringBuilder sb = new StringBuilder();
         try (BufferedReader br = new BufferedReader(new InputStreamReader(stream, StandardCharsets.UTF_8))) {
-            String line;
-            while ((line = br.readLine()) != null) sb.append(line);
+            String line; while ((line = br.readLine()) != null) sb.append(line);
         }
-
         JSONObject response = new JSONObject(sb.toString());
-        response.put("_httpStatus", code); // attach HTTP status for caller inspection
+        response.put("_httpStatus", code);
         return response;
+    }
+
+    public static JSONObject get(String endpoint, String token) throws Exception {
+        return request("GET", endpoint, null, token);
+    }
+    public static JSONObject post(String endpoint, JSONObject payload, String token) throws Exception {
+        return request("POST", endpoint, payload, token);
+    }
+    public static JSONObject put(String endpoint, JSONObject payload, String token) throws Exception {
+        return request("PUT", endpoint, payload, token);
     }
 }
 ```
 
 ---
 
-### Step 3 — Build models
-
-Create a simple `AgapayUser.java` to hold the authenticated session:
+### Step 3 — Build Models
 
 ```java
 // AgapayUser.java
@@ -312,16 +487,17 @@ public class AgapayUser {
     public int tenantId;
     public String tenantSlug;
     public String memberCode;
+    public String token;
 
-    public static AgapayUser fromJson(org.json.JSONObject json) throws Exception {
+    public static AgapayUser fromJson(JSONObject json) {
         AgapayUser u = new AgapayUser();
         u.userId     = json.getInt("user_id");
-        u.username   = json.getString("username");
-        u.email      = json.getString("email");
-        u.role       = json.getString("role");
-        u.tenantId   = json.getInt("tenant_id");
-        u.tenantSlug = json.optString("tenant_slug", "");
-        u.memberCode = json.optString("member_code", "");
+        u.username   = json.optString("username");
+        u.email      = json.optString("email");
+        u.role       = json.optString("role");
+        u.tenantId   = json.optInt("tenant_id");
+        u.tenantSlug = json.optString("tenant_slug");
+        u.memberCode = json.optString("member_code");
         return u;
     }
 }
@@ -329,116 +505,55 @@ public class AgapayUser {
 
 ---
 
-### Step 4 — Call Login
-
-Network calls must run off the main thread. Use `AsyncTask` or `Thread` for simplicity:
+### Step 4 — Login Example
 
 ```java
-// In your LoginActivity.java
+new Thread(() -> {
+    try {
+        JSONObject payload = new JSONObject();
+        payload.put("username", "mariasantos");
+        payload.put("password", "secret123");
+        payload.put("tenantId", 60001);
 
-private void performLogin(String username, String password, int tenantId) {
-    new Thread(() -> {
-        try {
-            JSONObject payload = new JSONObject();
-            payload.put("username", username);
-            payload.put("password", password);
-            payload.put("tenantId", tenantId);
+        JSONObject res = ApiClient.post("/auth/login", payload, null);
+        int status = res.getInt("_httpStatus");
 
-            JSONObject response = ApiClient.post("/mobile/auth/login", payload);
-            int httpStatus = response.getInt("_httpStatus");
-
-            runOnUiThread(() -> {
-                try {
-                    if (httpStatus == 200 && "success".equals(response.getString("status"))) {
-
-                        if (response.optBoolean("requires_2fa", false)) {
-                            // TODO: navigate to OTP / 2FA screen
-                            return;
-                        }
-
-                        AgapayUser user = AgapayUser.fromJson(response.getJSONObject("user"));
-                        saveSession(user);       // see Step 6
-                        navigateToDashboard();   // your navigation call
-
-                    } else {
-                        String message = response.optString("message", "Login failed.");
-                        showError(message);
-                    }
-                } catch (Exception e) {
-                    showError("Unexpected error. Try again.");
-                }
-            });
-
-        } catch (Exception e) {
-            runOnUiThread(() -> showError("Network error. Check your connection."));
+        if (status == 200 && "success".equals(res.getString("status"))) {
+            String token = res.getString("token");
+            AgapayUser user = AgapayUser.fromJson(res.getJSONObject("user"));
+            user.token = token;
+            saveSession(user); // store in SharedPreferences
         }
-    }).start();
-}
+    } catch (Exception e) { /* handle error */ }
+}).start();
 ```
 
 ---
 
-### Step 5 — Call Register
+### Step 5 — Authenticated Requests
 
 ```java
-// In your RegisterActivity.java
+String token = sessionManager.getToken(); // from SharedPreferences
 
-private void performRegister(/* pass form fields */) {
-    new Thread(() -> {
-        try {
-            JSONObject payload = new JSONObject();
-            payload.put("tenantId",      selectedTenantId);  // from tenant picker
-            payload.put("email",         emailField.getText().toString().trim());
-            payload.put("username",      usernameField.getText().toString().trim());
-            payload.put("password",      passwordField.getText().toString());
-            payload.put("firstName",     firstNameField.getText().toString().trim());
-            payload.put("lastName",      lastNameField.getText().toString().trim());
-            payload.put("phone",         phoneField.getText().toString().trim());
-            payload.put("maritalStatus", selectedMaritalStatus);
-            payload.put("birthdate",     selectedBirthdate);   // "YYYY-MM-DD"
-            payload.put("gender",        selectedGender);
-            payload.put("region",        regionField.getText().toString().trim());
-            payload.put("province",      provinceField.getText().toString().trim());
-            payload.put("city",          cityField.getText().toString().trim());
-            payload.put("barangay",      barangayField.getText().toString().trim());
-            payload.put("streetAddress", addressField.getText().toString().trim());
-            payload.put("idPicture",     uploadedIdUrl);       // URL from your file upload step
+// GET user profile
+JSONObject profile = ApiClient.get("/users/profile", token);
 
-            JSONObject response = ApiClient.post("/mobile/auth/register", payload);
-            int httpStatus = response.getInt("_httpStatus");
+// GET wallet balance
+JSONObject wallet = ApiClient.get("/users/wallet", token);
 
-            runOnUiThread(() -> {
-                try {
-                    if (httpStatus == 201 && "success".equals(response.getString("status"))) {
-                        showSuccess("Account created! Please verify your email.");
-                        navigateToLogin();
+// GET loans
+JSONObject loans = ApiClient.get("/loans", token);
 
-                    } else if (httpStatus == 409) {
-                        showError("Email or username already used in this cooperative.");
-
-                    } else if (httpStatus == 400) {
-                        showError("Check your inputs and try again.");
-
-                    } else {
-                        showError(response.optString("message", "Registration failed."));
-                    }
-                } catch (Exception e) {
-                    showError("Unexpected error.");
-                }
-            });
-
-        } catch (Exception e) {
-            runOnUiThread(() -> showError("Network error. Check your connection."));
-        }
-    }).start();
-}
+// POST loan payment
+JSONObject payment = ApiClient.post("/loans/1/pay",
+    new JSONObject().put("amount", 1041.66).put("method", "GCash"),
+    token
+);
 ```
 
 ---
 
-### Step 6 — Persist the session
-
-Use `SharedPreferences` to keep the user logged in across app restarts:
+### Step 6 — Persist Session
 
 ```java
 // SessionManager.java
@@ -446,98 +561,62 @@ import android.content.Context;
 import android.content.SharedPreferences;
 
 public class SessionManager {
-    private static final String PREF_NAME    = "agapay_session";
-    private static final String KEY_USER_ID  = "user_id";
-    private static final String KEY_USERNAME = "username";
-    private static final String KEY_EMAIL    = "email";
-    private static final String KEY_ROLE     = "role";
-    private static final String KEY_TENANT   = "tenant_id";
-    private static final String KEY_SLUG     = "tenant_slug";
-    private static final String KEY_CODE     = "member_code";
-
+    private static final String PREFS = "agapay_session";
     private final SharedPreferences prefs;
 
-    public SessionManager(Context ctx) {
-        prefs = ctx.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE);
-    }
+    public SessionManager(Context ctx) { prefs = ctx.getSharedPreferences(PREFS, Context.MODE_PRIVATE); }
 
-    public void save(AgapayUser user) {
+    public void save(AgapayUser u) {
         prefs.edit()
-            .putInt(KEY_USER_ID,  user.userId)
-            .putString(KEY_USERNAME, user.username)
-            .putString(KEY_EMAIL,    user.email)
-            .putString(KEY_ROLE,     user.role)
-            .putInt(KEY_TENANT,      user.tenantId)
-            .putString(KEY_SLUG,     user.tenantSlug)
-            .putString(KEY_CODE,     user.memberCode)
+            .putInt("user_id", u.userId)
+            .putString("username", u.username)
+            .putString("token", u.token)
+            .putInt("tenant_id", u.tenantId)
+            .putString("tenant_slug", u.tenantSlug)
             .apply();
     }
 
-    public boolean isLoggedIn() {
-        return prefs.getInt(KEY_USER_ID, -1) != -1;
-    }
-
-    public AgapayUser getUser() {
-        AgapayUser u  = new AgapayUser();
-        u.userId      = prefs.getInt(KEY_USER_ID, -1);
-        u.username    = prefs.getString(KEY_USERNAME, "");
-        u.email       = prefs.getString(KEY_EMAIL, "");
-        u.role        = prefs.getString(KEY_ROLE, "");
-        u.tenantId    = prefs.getInt(KEY_TENANT, -1);
-        u.tenantSlug  = prefs.getString(KEY_SLUG, "");
-        u.memberCode  = prefs.getString(KEY_CODE, "");
-        return u;
-    }
-
-    public void clear() {
-        prefs.edit().clear().apply();
-    }
+    public String getToken() { return prefs.getString("token", null); }
+    public boolean isLoggedIn() { return getToken() != null; }
+    public void clear() { prefs.edit().clear().apply(); }
 }
 ```
 
 ---
 
-### Step 7 — Protect screens
-
-In every protected `Activity.onCreate`, redirect unauthenticated users to `LoginActivity`:
+### Step 7 — Protect Screens
 
 ```java
 @Override
 protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
-
     SessionManager session = new SessionManager(this);
     if (!session.isLoggedIn()) {
         startActivity(new Intent(this, LoginActivity.class));
         finish();
         return;
     }
-
-    AgapayUser currentUser = session.getUser();
-    // currentUser.tenantId, currentUser.role etc. are available here
+    // session.getToken() available for API calls
 }
 ```
 
 ---
 
-## Tenants Reference
-
-To let users select their cooperative at the login/register screen, you can hard-code the seed list or fetch it from a future `GET /mobile/tenants` endpoint.
-
-| `tenantId` | Name | `slug` |
-|---|---|---|
-| `60001` | Malolos Market Vendors Cooperative | `malolos` |
-| `60002` | San Jose Rural Workers Coop | `san-jose` |
-| `60003` | Quezon City Vendors Trust | `qc-vendors` |
-| `60004` | Makati Business Sari-Sari Coop | `makati-business` |
-| `60005` | Calamba Agricultural Cooperative | `calamba-agri` |
-
-> IDs are subject to change after a database re-seed. Fetch from `/mobile/tenants` for a production app.
-
----
-
 ## Changelog
 
+### v1.1 — 2026-05-15
+- Added token-based auth (`POST /auth/login` now returns `token`)
+- `POST /auth/2fa/verify` — 2FA challenge flow
+- `POST /auth/forgot-password`, `/auth/reset-password`
+- `GET /auth/session` — token validation
+- `GET /tenants`, `GET /tenants/{id}`, `GET /tenants/search`, `GET /tenants/regions`
+- `GET /users/profile`, `PUT /users/profile`
+- `GET /users/wallet`, `POST /users/wallet/topup`, `/withdraw`, `/pay-loan`
+- `GET /loans`, `POST /loans/apply`, `GET /loans/products`, `GET /loans/{id}/schedule`, `POST /loans/{id}/pay`
+- `GET /community/conversations`, `GET /community/messages`, `POST /community/messages`
+- `GET /support/tickets`, `POST /support/tickets`
+- `GET /notifications`, `POST /notifications/mark-read`
+
 ### v1.0 — 2026-05-14
-- `POST /mobile/auth/register` — Member registration with tenant isolation
 - `POST /mobile/auth/login` — Password auth with 2FA detection
+- `POST /mobile/auth/register` — Member registration

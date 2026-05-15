@@ -482,6 +482,12 @@ function IdentityCard({ user }: { user: any }) {
       meta={[
         { label: "Uploaded IDs", value: `${user.documents.length} file(s)` },
         { label: "Status", value: user.status?.replaceAll("_", " ") || "pending" },
+        {
+          label: "Monthly Income",
+          value: user.profile?.income_min && user.profile?.income_max 
+            ? `₱${Number(user.profile.income_min).toLocaleString()} - ₱${Number(user.profile.income_max).toLocaleString()}`
+            : "N/A"
+        },
         { label: "Tenant", value: user.tenant?.name || "Current tenant" },
       ]}
       extra={

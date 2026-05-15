@@ -400,13 +400,33 @@ export function validateLoanRequestAgainstPolicy({
   termMonths,
   guarantorCount,
   tier,
+  minIncome,
+  maxIncome,
+  incomeRange,
 }: {
   amount: number;
   termMonths: number;
   guarantorCount: number;
   tier: InterestTier | null | undefined;
+  minIncome?: number | null;
+  maxIncome?: number | null;
+  incomeRange?: string | null;
 }) {
   const tierPolicy = getTierPolicy(tier);
+
+  // 1. Basic DSR Check
+  const maxMonthlyRepayment = calculateMaxMonthlyRepayment({
+    minIncome,
+    maxIncome,
+    incomeRange,
+  });
+
+  const estimatedMonthlyRepayment = amount / termMonths;
+
+  if (maxMonthlyRepayment > 0 && estimatedMonthlyRepayment > maxMonthlyRepayment) {
+    const formattedMaxAmt = (maxMonthlyRepayment * termMonths).toLocaleString();
+    return `Loan amount exceeds your repayment capacity based on Agapay's Debt Service Ratio (DSR) policy. For a ${termMonths}-month term, your max eligible amount is approximately PHP ${formattedMaxAmt}.`;
+  }
 
   if (amount < MICROFINANCE_POLICY.minAmount) {
     return `Minimum loan amount is PHP ${MICROFINANCE_POLICY.minAmount.toLocaleString()}.`;
@@ -434,9 +454,28 @@ export function validateLoanRequestAgainstPolicy({
  * Calculates the maximum monthly repayment capability based on DSR policy.
  * DSR = (Monthly Installments) / (Monthly Gross Income)
  */
-export function calculateMaxMonthlyRepayment(incomeRange: string | null | undefined): number {
-  if (!incomeRange) return 0;
-  const monthlyIncome = INCOME_RANGE_MAPPING[incomeRange] || 0;
+export function calculateMaxMonthlyRepayment({
+  minIncome,
+  maxIncome,
+  incomeRange,
+}: {
+  minIncome?: number | null;
+  maxIncome?: number | null;
+  incomeRange?: string | null;
+}): number {
+  let monthlyIncome = 0;
+
+  if (minIncome != null && maxIncome != null) {
+    // Use the average of the range as requested by the user
+    monthlyIncome = (minIncome + maxIncome) / 2;
+  } else if (minIncome != null) {
+    monthlyIncome = minIncome;
+  } else if (incomeRange) {
+    monthlyIncome = INCOME_RANGE_MAPPING[incomeRange] || 0;
+  }
+
+  if (monthlyIncome <= 0) return 0;
+
   return roundMoney(monthlyIncome * MICROFINANCE_POLICY.debtServiceRatioCap);
 }
 

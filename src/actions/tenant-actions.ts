@@ -125,7 +125,7 @@ export async function getTenantOverview() {
               WHEN COUNT(DISTINCT u.user_id) = 0 THEN 100
               ELSE LEAST(100, 
                 ROUND(
-                  (COUNT(DISTINCT CASE WHEN u.last_login >= NOW() - INTERVAL '30 days' THEN u.user_id END) * 100.0) / 
+                  (COUNT(DISTINCT CASE WHEN u.last_login >= NOW() - INTERVAL 30 DAY THEN u.user_id END) * 100.0) / 
                   COUNT(DISTINCT u.user_id)
                 )
               )

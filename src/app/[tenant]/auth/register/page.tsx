@@ -24,7 +24,7 @@ export default async function RegisterPage({
       <div className="w-full max-w-4xl z-10 animate-in fade-in zoom-in duration-700 bg-white shadow-2xl rounded-3xl overflow-hidden border border-slate-100">
         <EnhancedRegisterForm
           preselectedTenantId={tenantData.tenant_id.toString()}
-          preselectedRegionId={tenantData.tenant_group_id?.toString() || "SKIP"}
+          preselectedRegionId={tenantData.tenant_group_id?.toString()}
           tenantSlug={tenant}
         />
       </div>

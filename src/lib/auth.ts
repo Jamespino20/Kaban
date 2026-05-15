@@ -11,6 +11,10 @@ class TwoFactorRequiredError extends CredentialsSignin {
   code = "2fa_required";
 }
 
+class PendingApprovalError extends CredentialsSignin {
+  code = "pending_approval";
+}
+
 let nextAuthInstance: any;
 
 const getNextAuth = () => {
@@ -25,7 +29,16 @@ const getNextAuth = () => {
             .object({
               username: z.string(),
               password: z.string().min(6),
-              tenantId: z.string().optional().default("global"),
+              tenantId: z
+                .string()
+                .optional()
+                .transform((value) => {
+                  if (typeof value === "string") {
+                    const trimmed = value.trim();
+                    return trimmed === "" ? undefined : trimmed;
+                  }
+                  return value;
+                }),
               code: z.string().optional(),
             })
             .safeParse(credentials);
@@ -37,8 +50,8 @@ const getNextAuth = () => {
             // Parse tenantId from credentials
             let parsedTenantId: number | null = null;
             if (tenantId && tenantId !== "global" && tenantId !== "undefined") {
-              const integerId = parseInt(tenantId);
-              if (!isNaN(integerId)) parsedTenantId = integerId;
+              const integerId = parseInt(tenantId, 10);
+              if (!Number.isNaN(integerId)) parsedTenantId = integerId;
             }
 
             // Resolve Target Schema
@@ -50,10 +63,19 @@ const getNextAuth = () => {
 
             try {
               if (validatedTenantId === null) {
-                users = await sql(
-                  "SELECT u.user_id, u.tenant_id, u.username, u.email, u.password_hash, u.role, u.status, u.member_code, t.slug as tenant_slug FROM users u LEFT JOIN tenants t ON u.tenant_id = t.tenant_id WHERE u.role = 'superadmin' AND (u.email = ? OR u.username = ?) LIMIT 1",
+                const candidateUsers = await sql(
+                  "SELECT u.user_id, u.tenant_id, u.username, u.email, u.password_hash, u.role, u.status, u.member_code, t.slug as tenant_slug FROM users u LEFT JOIN tenants t ON u.tenant_id = t.tenant_id WHERE (u.email = ? OR u.username = ?) LIMIT 2",
                   [username, username],
                 );
+
+                if (candidateUsers.length === 1) {
+                  users = candidateUsers;
+                } else {
+                  users = await sql(
+                    "SELECT u.user_id, u.tenant_id, u.username, u.email, u.password_hash, u.role, u.status, u.member_code, t.slug as tenant_slug FROM users u LEFT JOIN tenants t ON u.tenant_id = t.tenant_id WHERE u.role = 'superadmin' AND (u.email = ? OR u.username = ?) LIMIT 1",
+                    [username, username],
+                  );
+                }
               } else {
                 users = await sql(
                   "SELECT u.user_id, u.tenant_id, u.username, u.email, u.password_hash, u.role, u.status, u.member_code, t.slug as tenant_slug FROM users u LEFT JOIN tenants t ON u.tenant_id = t.tenant_id WHERE u.tenant_id = ? AND (u.email = ? OR u.username = ?) LIMIT 1",
@@ -74,6 +96,9 @@ const getNextAuth = () => {
 
             if (passwordsMatch) {
               if (user.status === "suspended") return null;
+              if (user.status === "pending") {
+                throw new PendingApprovalError();
+              }
 
               const switchableAccounts = await sql(
                 "SELECT tenant_id, password_hash FROM users WHERE email = ?",

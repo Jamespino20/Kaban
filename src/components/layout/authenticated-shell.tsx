@@ -175,10 +175,10 @@ export function AuthenticatedShell({
   const navScrollRef = useRef<HTMLDivElement>(null);
 
   // Force system green theme for superadmin
-  const isSuperadmin = accountRole === "superadmin";
+  const isSuperadmin = accountRole?.toLowerCase() === "superadmin";
 
   const normalizedTenantColor = isSuperadmin 
-    ? "#009966"
+    ? "#059669"
     : normalizeHexColor(tenantBrandColor);
     
   const normalizedAccentColor = normalizeHexColor(tenantAccentColor);

@@ -311,21 +311,14 @@ export default async function TenantIndexPage(props: {
                     tenantId={tenantData.tenant_id.toString()}
                     Trigger={
                       <Button
-                        className="bg-white font-black h-14 px-10 rounded-full shadow-xl transition-all flex items-center justify-between gap-3 text-xl"
-                        style={{ color: brandColor }}
+                        className="h-14 px-10 rounded-full font-black shadow-xl transition-all text-xl"
+                        style={{
+                          backgroundColor: "#ffffff",
+                          color: brandColor,
+                          border: `2px solid ${brandColor}`,
+                        }}
                       >
-                        Member Login
-                      </Button>
-                    }
-                  />
-                  <AuthModal
-                    initialTab="register"
-                    tenantId={tenantData.tenant_id.toString()}
-                    Trigger={
-                      <Button
-                        className="h-14 px-10 rounded-full border-2 border-white/40 font-bold text-white hover:bg-white/10 transition-all flex items-center gap-3"
-                      >
-                        Register Now
+                        Access {tenantData.name}
                       </Button>
                     }
                   />

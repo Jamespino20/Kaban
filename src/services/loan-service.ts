@@ -48,6 +48,13 @@ export class LoanService {
           select: {
             email: true,
             interest_tier: true,
+            profile: {
+              select: {
+                income_min: true,
+                income_max: true,
+                income_range: true,
+              },
+            },
           },
         }),
       ]);
@@ -132,6 +139,9 @@ export class LoanService {
         termMonths: term_months,
         guarantorCount: uniqueGuarantorIds.length,
         tier: member.interest_tier,
+        minIncome: member.profile?.income_min ? Number(member.profile.income_min) : null,
+        maxIncome: member.profile?.income_max ? Number(member.profile.income_max) : null,
+        incomeRange: member.profile?.income_range,
       });
 
       if (policyValidationError) {

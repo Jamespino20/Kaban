@@ -186,9 +186,7 @@ export const processCompassionAction = async (
           // Grace Period: shift all unpaid schedules forward by 1 interval
           await tx.$executeRaw`
             UPDATE loan_schedules
-            SET due_date = due_date + interval '${Prisma.raw(
-              `${MICROFINANCE_POLICY.gracePeriodDays} days`,
-            )}' 
+            SET due_date = DATE_ADD(due_date, INTERVAL ${MICROFINANCE_POLICY.gracePeriodDays} DAY)
             WHERE loan_id = ${action.loan_id} AND status = 'pending'
           `;
         } else if (action.action_type === "penalty_freeze") {

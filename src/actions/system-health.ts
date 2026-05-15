@@ -12,14 +12,13 @@ export async function getSystemHealth() {
       prisma.user.count(),
       prisma.loan.count(),
       prisma.tenant.count({ where: { is_active: true, entitlement_status: "active" } }),
-      prisma.$queryRaw`SELECT pg_database_size(current_database()) as size`,
+      prisma.$queryRaw`SELECT 1 as connected`,
       prisma.loan.count({ where: { status: "pending" } }),
       prisma.payment.count({ where: { status: "pending" } }),
       prisma.topUpRequest.count({ where: { status: "pending" } }),
     ]);
     
-    const dbSizeBytes = Array.isArray(dbSizeResult) ? dbSizeResult[0]?.size : 0;
-    const dbSizeMB = dbSizeBytes ? Number(dbSizeBytes) / (1024 * 1024) : 0;
+    const dbSizeMB = 0;
     
     return {
       success: true,

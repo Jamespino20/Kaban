@@ -62,10 +62,11 @@ export async function getSuperadminOverview() {
       }),
 
       // AI-generated platform snapshot summary (placeholder - would integrate with AI service)
-      prisma.aiSnapshot.findFirst({
-        orderBy: { created_at: "desc" },
-        take: 1,
-      }),
+      (prisma as any).aiSnapshot
+        ? (prisma as any).aiSnapshot.findFirst({
+            orderBy: { created_at: "desc" },
+          })
+        : Promise.resolve(null),
     ]);
 
     // Process raw query results
@@ -223,6 +224,20 @@ export async function reviewTenantApplication(
             brand_color: app.brand_color,
             accent_color: app.accent_color,
             logo_url: app.logo_url,
+          },
+        });
+      } else if (action === "reject" && app.payment_proof_url) {
+        // Refund payment on rejection
+        await tx.billingInvoice.create({
+          data: {
+            tenant_id: 0,
+            invoice_number: `REF-${app.application_id}-${Date.now()}`,
+            amount: app.payment_amount || 0,
+            status: "paid",
+            due_date: new Date(),
+            paid_at: new Date(),
+            reference: `REFUND-TENANT-APP-${app.application_id}`,
+            items: [{ type: "refund", reason: "Application rejected", applicationId: app.application_id }],
           },
         });
       }
@@ -517,7 +532,7 @@ export async function getTenantPerformanceReports(params: {
       SELECT 
         t.tenant_id,
         t.name as tenant_name,
-        DATE_TRUNC('month', u.created_at) as month,
+        DATE_FORMAT(u.created_at, '%Y-%m-01') as month,
         COUNT(DISTINCT u.user_id) as new_members,
         COUNT(DISTINCT l.loan_id) as new_loans
       FROM tenants t
@@ -773,8 +788,8 @@ export async function getFraudRiskMonitoring() {
         up.phone,
         up.email,
         COUNT(DISTINCT up.user_id) as user_count,
-        ARRAY_AGG(DISTINCT t.name) as tenant_names,
-        ARRAY_AGG(DISTINCT up.first_name || ' ' || up.last_name) as full_names
+        GROUP_CONCAT(DISTINCT t.name) as tenant_names,
+        GROUP_CONCAT(DISTINCT CONCAT(up.first_name, ' ', up.last_name)) as full_names
       FROM user_profiles up
       JOIN tenants t ON t.tenant_id = up.tenant_id
       WHERE up.phone IS NOT NULL AND up.phone != ''
@@ -800,8 +815,8 @@ export async function getFraudRiskMonitoring() {
       JOIN users u ON u.user_id = l.user_id
       LEFT JOIN loans l2 ON l2.user_id = l.user_id 
         AND l2.tenant_id = l.tenant_id 
-        AND l2.applied_at >= l.applied_at - INTERVAL '7 days'
-        AND l2.applied_at <= l.applied_at + INTERVAL '7 days'
+        AND l2.applied_at >= l.applied_at - INTERVAL 7 DAY
+        AND l2.applied_at <= l.applied_at + INTERVAL 7 DAY
       WHERE l.principal_amount > 50000
       GROUP BY l.loan_id, l.loan_reference, t.name, u.username, l.principal_amount, l.status, l.applied_at
       HAVING COUNT(l2.loan_id) >= 3
@@ -817,8 +832,8 @@ export async function getFraudRiskMonitoring() {
         up.phone,
         up.tin,
         COUNT(DISTINCT up.tenant_id) as tenant_count,
-        ARRAY_AGG(DISTINCT t.name) as tenant_names,
-        STRING_AGG(DISTINCT u.username, ', ') as usernames
+        GROUP_CONCAT(DISTINCT t.name) as tenant_names,
+        GROUP_CONCAT(DISTINCT u.username SEPARATOR ', ') as usernames
       FROM user_profiles up
       JOIN users u ON u.user_id = up.user_id
       JOIN tenants t ON t.tenant_id = up.tenant_id
@@ -1078,10 +1093,10 @@ export async function updatePlatformConfig(data: {
       const existingId = existingArr[0].id;
       await prisma.$executeRaw`
         UPDATE platform_config SET 
-          scoring_weights = ${JSON.stringify(data.scoringWeights)}::jsonb,
-          risk_thresholds = ${JSON.stringify(data.riskThresholds)}::jsonb,
-          default_loan_config = ${JSON.stringify(data.defaultLoanConfig)}::jsonb,
-          platform_settings = ${JSON.stringify(data.platformSettings)}::jsonb,
+          scoring_weights = ${JSON.stringify(data.scoringWeights)},
+          risk_thresholds = ${JSON.stringify(data.riskThresholds)},
+          default_loan_config = ${JSON.stringify(data.defaultLoanConfig)},
+          platform_settings = ${JSON.stringify(data.platformSettings)},
           updated_at = NOW()
         WHERE id = ${existingId}
       `;
@@ -1097,10 +1112,10 @@ export async function updatePlatformConfig(data: {
       await prisma.$executeRaw`
         INSERT INTO platform_config (scoring_weights, risk_thresholds, default_loan_config, platform_settings, created_at, updated_at)
         VALUES (
-          ${JSON.stringify(data.scoringWeights)}::jsonb,
-          ${JSON.stringify(data.riskThresholds)}::jsonb,
-          ${JSON.stringify(data.defaultLoanConfig)}::jsonb,
-          ${JSON.stringify(data.platformSettings)}::jsonb,
+          ${JSON.stringify(data.scoringWeights)},
+          ${JSON.stringify(data.riskThresholds)},
+          ${JSON.stringify(data.defaultLoanConfig)},
+          ${JSON.stringify(data.platformSettings)},
           NOW(),
           NOW()
         )
@@ -1325,10 +1340,10 @@ export async function updateAIConfig(data: {
       const existingId = existingArr[0].id;
       await prisma.$executeRaw`
         UPDATE ai_config SET 
-          snapshot_prompts = ${JSON.stringify(data.snapshotPrompts)}::jsonb,
-          risk_sensitivity = ${data.riskSensitivity}::varchar,
-          notification_settings = ${JSON.stringify(data.notificationSettings)}::jsonb,
-          analysis_config = ${JSON.stringify(data.analysisConfig)}::jsonb,
+          snapshot_prompts = ${JSON.stringify(data.snapshotPrompts)},
+          risk_sensitivity = ${data.riskSensitivity},
+          notification_settings = ${JSON.stringify(data.notificationSettings)},
+          analysis_config = ${JSON.stringify(data.analysisConfig)},
           updated_at = NOW()
         WHERE id = ${existingId}
       `;
@@ -1344,10 +1359,10 @@ export async function updateAIConfig(data: {
       await prisma.$executeRaw`
         INSERT INTO ai_config (snapshot_prompts, risk_sensitivity, notification_settings, analysis_config, created_at, updated_at)
         VALUES (
-          ${JSON.stringify(data.snapshotPrompts)}::jsonb,
-          ${data.riskSensitivity}::varchar,
-          ${JSON.stringify(data.notificationSettings)}::jsonb,
-          ${JSON.stringify(data.analysisConfig)}::jsonb,
+          ${JSON.stringify(data.snapshotPrompts)},
+          ${data.riskSensitivity},
+          ${JSON.stringify(data.notificationSettings)},
+          ${JSON.stringify(data.analysisConfig)},
           NOW(),
           NOW()
         )
@@ -1555,11 +1570,11 @@ export async function broadcastPlatformMessage(data: {
         await prisma.$executeRaw`
           INSERT INTO notifications (id, user_id, type, title, body, is_read, created_at)
           VALUES (
-            gen_random_uuid()::varchar,
-            ${uid}::integer,
-            'tenant_announcement'::"NotificationType",
-            ${data.subject}::varchar,
-            ${data.message}::varchar,
+            UUID(),
+            ${uid},
+            'tenant_announcement',
+            ${data.subject},
+            ${data.message},
             false,
             NOW()
           )
@@ -1645,12 +1660,12 @@ export async function updateSecuritySettings(data: {
       const existingId = existingArr[0].id;
       await prisma.$executeRaw`
         UPDATE security_settings SET 
-          password_policy = ${JSON.stringify(data.passwordPolicy)}::jsonb,
-          session_settings = ${JSON.stringify(data.sessionSettings)}::jsonb,
-          two_factor_required = ${data.twoFactorRequired}::boolean,
-          two_factor_roles = ${JSON.stringify(data.twoFactorRoles)}::jsonb,
-          ip_whitelist = ${JSON.stringify(data.ipWhitelist)}::jsonb,
-          allowed_domains = ${JSON.stringify(data.allowedDomains)}::jsonb,
+          password_policy = ${JSON.stringify(data.passwordPolicy)},
+          session_settings = ${JSON.stringify(data.sessionSettings)},
+          two_factor_required = ${data.twoFactorRequired},
+          two_factor_roles = ${JSON.stringify(data.twoFactorRoles)},
+          ip_whitelist = ${JSON.stringify(data.ipWhitelist)},
+          allowed_domains = ${JSON.stringify(data.allowedDomains)},
           updated_at = NOW()
         WHERE id = ${existingId}
       `;
@@ -1666,12 +1681,12 @@ export async function updateSecuritySettings(data: {
       await prisma.$executeRaw`
         INSERT INTO security_settings (password_policy, session_settings, two_factor_required, two_factor_roles, ip_whitelist, allowed_domains, created_at, updated_at)
         VALUES (
-          ${JSON.stringify(data.passwordPolicy)}::jsonb,
-          ${JSON.stringify(data.sessionSettings)}::jsonb,
-          ${data.twoFactorRequired || false}::boolean,
-          ${JSON.stringify(data.twoFactorRoles || ["superadmin", "admin"])}::jsonb,
-          ${JSON.stringify(data.ipWhitelist)}::jsonb,
-          ${JSON.stringify(data.allowedDomains)}::jsonb,
+          ${JSON.stringify(data.passwordPolicy)},
+          ${JSON.stringify(data.sessionSettings)},
+          ${data.twoFactorRequired || false},
+          ${JSON.stringify(data.twoFactorRoles || ["superadmin", "admin"])},
+          ${JSON.stringify(data.ipWhitelist)},
+          ${JSON.stringify(data.allowedDomains)},
           NOW(),
           NOW()
         )
@@ -1738,20 +1753,20 @@ export async function getSuperadminReports() {
     // Performance Trends (Last 6 Months)
     const growthTrends = await prisma.$queryRaw`
       SELECT 
-        DATE_TRUNC('month', created_at) as month,
+        DATE_FORMAT(created_at, '%Y-%m-01') as month,
         COUNT(tenant_id) as new_tenants
       FROM tenants
-      WHERE created_at >= NOW() - INTERVAL '6 months'
+      WHERE created_at >= NOW() - INTERVAL 6 MONTH
       GROUP BY month
       ORDER BY month ASC
     `;
 
     const userGrowth = await prisma.$queryRaw`
       SELECT 
-        DATE_TRUNC('month', created_at) as month,
+        DATE_FORMAT(created_at, '%Y-%m-01') as month,
         COUNT(user_id) as new_users
       FROM users
-      WHERE created_at >= NOW() - INTERVAL '6 months' AND role = 'member'
+      WHERE created_at >= NOW() - INTERVAL 6 MONTH AND role = 'member'
       GROUP BY month
       ORDER BY month ASC
     `;

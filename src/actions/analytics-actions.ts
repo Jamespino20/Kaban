@@ -72,31 +72,33 @@ export async function getTenantAnalytics(
       );
 
       // 2. Behavioral Heatmap
-      const interactions = await db.auditLog.groupBy({
+      const interactionsRaw = await db.auditLog.groupBy({
         by: ["event_type"],
         where: {
           log_type: "INTERACTION",
           created_at: { gte: startDate },
         },
         _count: { log_id: true },
-        orderBy: { _count: { log_id: "desc" } },
-        take: 10,
       });
+      const interactions = interactionsRaw
+        .sort((a: any, b: any) => b._count.log_id - a._count.log_id)
+        .slice(0, 10);
 
       // 3. Geo Distribution
-      const geoDistribution = await db.auditLog.groupBy({
+      const geoRaw = await db.auditLog.groupBy({
         by: ["region", "city"],
         where: {
           log_type: "TRAFFIC",
           created_at: { gte: startDate },
         },
         _count: { log_id: true },
-        orderBy: { _count: { log_id: "desc" } },
-        take: 20,
       });
+      const geoDistribution = geoRaw
+        .sort((a: any, b: any) => b._count.log_id - a._count.log_id)
+        .slice(0, 20);
 
       // 4. User Interaction Density
-      const activeUsers = await db.auditLog.groupBy({
+      const activeUsersRaw = await db.auditLog.groupBy({
         by: ["user_id"],
         where: {
           log_type: "INTERACTION",
@@ -104,9 +106,10 @@ export async function getTenantAnalytics(
           created_at: { gte: startDate },
         },
         _count: { log_id: true },
-        orderBy: { _count: { log_id: "desc" } },
-        take: 5,
       });
+      const activeUsers = activeUsersRaw
+        .sort((a: any, b: any) => b._count.log_id - a._count.log_id)
+        .slice(0, 5);
 
       return {
         trafficTrends: Object.entries(trafficByDay).map(([date, count]) => ({

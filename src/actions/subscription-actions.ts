@@ -417,7 +417,11 @@ export async function updateTenantSubscription(
 
         const amount = Math.abs(delta);
         if (delta > 0 && Number(wallet.balance) < amount) {
-          throw new Error("Insufficient wallet balance for subscription charge.");
+          return {
+            success: false,
+            error: `Insufficient wallet balance. Required: ₱${amount.toLocaleString()}, Available: ₱${Number(wallet.balance).toLocaleString()}. Please top up before upgrading.`,
+            code: "INSUFFICIENT_BALANCE",
+          };
         }
 
         wallet = await tx.savingsAccount.update({
@@ -560,7 +564,11 @@ export async function approveSubscriptionUpgrade(tenantId: number) {
 
         const amount = Math.abs(billingDelta);
         if (billingDelta > 0 && Number(wallet.balance) < amount) {
-          throw new Error("Insufficient wallet balance for subscription charge.");
+          return {
+            success: false,
+            error: `Insufficient wallet balance. Required: ₱${amount.toLocaleString()}, Available: ₱${Number(wallet.balance).toLocaleString()}. Please top up your wallet before upgrading.`,
+            code: "INSUFFICIENT_BALANCE",
+          };
         }
 
         wallet = await tx.savingsAccount.update({
@@ -667,5 +675,59 @@ export async function approveSubscriptionUpgrade(tenantId: number) {
   } catch (error) {
     console.error("Failed to approve subscription:", error);
     return { success: false, error: "Failed to approve subscription." };
+  }
+}
+
+export async function rejectSubscriptionUpgrade(tenantId: number, reason?: string) {
+  try {
+    const session = await requireTanawSession();
+    if (session.user.role !== "superadmin") {
+      return { success: false, error: "Unauthorized. Superadmin only." };
+    }
+
+    const result = await prisma.$transaction(async (tx: any) => {
+      // Refund any pending invoice charges
+      const pendingInvoice = await tx.billingInvoice.findFirst({
+        where: { tenant_id: tenantId, status: "pending" },
+        orderBy: { created_at: "desc" },
+      });
+
+      if (pendingInvoice) {
+        await tx.billingInvoice.update({
+          where: { id: pendingInvoice.id },
+          data: { status: "cancelled", paid_at: null },
+        });
+      }
+
+      // Reset subscription status
+      const sub = await tx.tenantSubscription.findFirst({
+        where: { tenant_id: tenantId },
+        orderBy: { created_at: "desc" },
+      });
+
+      if (sub) {
+        await tx.tenantSubscription.update({
+          where: { id: sub.id },
+          data: { status: "active" },
+        });
+      }
+
+      await tx.auditLog.create({
+        data: {
+          action: "REJECT_SUBSCRIPTION_UPGRADE",
+          entity_type: "Tenant",
+          entity_id: tenantId,
+          user_id: session.user.user_id,
+          new_values: { status: "rejected", reason: reason || "No reason provided" } as any,
+        },
+      });
+
+      return { success: true };
+    });
+
+    return { success: true, message: "Subscription upgrade rejected and reverted." };
+  } catch (error) {
+    console.error("Failed to reject subscription:", error);
+    return { success: false, error: "Failed to reject subscription upgrade." };
   }
 }

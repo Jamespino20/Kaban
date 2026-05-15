@@ -69,6 +69,7 @@ model Tenant {
   compassionActions        CompassionAction[]
   businessLedgers          BusinessLedger[]
   interestAudits           InterestAudit[]
+  aiSnapshots              AiSnapshot[]
 
   @@map("tenants")
 }
@@ -185,6 +186,8 @@ model UserProfile {
   city             String?        @db.VarChar(255)
   barangay         String?        @db.VarChar(255)
   income_range     String?        @db.VarChar(50)
+  income_min       Decimal?       @db.Decimal(15, 2)
+  income_max       Decimal?       @db.Decimal(15, 2)
   personal_savings Decimal?       @db.Decimal(15, 2) @map("savings")
   photo_url        String?        @db.LongText
   user           User           @relation(fields: [user_id], references: [user_id], onDelete: Cascade)
@@ -1853,6 +1856,31 @@ model RestoreRequest {
 // ============================================================
 // DM-32: AI Analytics
 // ============================================================
+
+enum AiSnapshotStatus {
+  queued
+  processing
+  completed
+  failed
+  skipped
+}
+
+model AiSnapshot {
+  snapshot_id      Int              @id @default(autoincrement())
+  config_id        Int?
+  tenant_id        Int?
+  use_case         String           @db.VarChar(25)
+  status           AiSnapshotStatus @default(queued)
+  output_text      String?          @db.Text
+  confidence_score Decimal?         @db.Decimal(5, 2)
+  error_message    String?          @db.Text
+  created_at       DateTime         @default(now())
+  updated_at       DateTime         @updatedAt
+
+  tenant Tenant? @relation(fields: [tenant_id], references: [tenant_id])
+
+  @@map("ai_snapshots")
+}
 
 
 // ============================================================

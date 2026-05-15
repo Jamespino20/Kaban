@@ -81,7 +81,8 @@ const EnhancedRegisterSchema = z
     streetAddress: z.string().min(1, "Street address is required"),
     placeOfBirth: z.string().min(1, "Place of birth is required"),
     tin: z.string().optional(),
-    incomeRange: z.string().min(1, "Income range is required"),
+    minIncome: z.string().min(1, "Min income is required"),
+    maxIncome: z.string().min(1, "Max income is required"),
     personalSavings: z.string().optional(),
     termsAccepted: z.boolean().refine((v) => v === true, "Must accept terms"),
     privacyAccepted: z
@@ -165,6 +166,9 @@ export function EnhancedRegisterForm({
       streetAddress: "",
       placeOfBirth: "",
       tin: "",
+      minIncome: "",
+      maxIncome: "",
+      personalSavings: "",
       termsAccepted: false,
       privacyAccepted: false,
     },
@@ -189,9 +193,7 @@ export function EnhancedRegisterForm({
         if (preselectedRegionId) {
           restoredValues.regionId = preselectedRegionId;
         }
-        form.reset(
-          restoredValues as z.infer<typeof EnhancedRegisterSchema>,
-        );
+        form.reset(restoredValues as z.infer<typeof EnhancedRegisterSchema>);
       },
       !successData,
     );
@@ -320,17 +322,25 @@ export function EnhancedRegisterForm({
   if (!isMounted) return null;
 
   const nextStep = async () => {
-    if (step === 3 && preselectedTenantId) {
-      form.setValue("tenantId", preselectedTenantId);
-      if (preselectedRegionId) {
-        form.setValue("regionId", preselectedRegionId);
-      }
-      setStep((s) => s + 1);
-      return;
-    }
-
     const fields = getStepFields(step);
     const isValid = await form.trigger(fields as any);
+
+    if (step === 5) {
+      if (!idUrl || !brgyCertUrl) {
+        toast.error(
+          "Please upload your ID picture and barangay certificate before continuing.",
+        );
+        return;
+      }
+
+      if (form.getValues("businessName") && !businessPermitUrl) {
+        toast.error(
+          "Business Permit is required when a business name is provided.",
+        );
+        return;
+      }
+    }
+
     if (isValid) setStep((s) => s + 1);
   };
 
@@ -352,11 +362,10 @@ export function EnhancedRegisterForm({
           "businessName",
         ];
       case 3:
-        return ["incomeRange", "personalSavings"];
+        return ["minIncome", "maxIncome", "personalSavings"];
       case 4:
         return [
-          "regionId",
-          "tenantId",
+          ...(preselectedTenantId ? [] : ["regionId", "tenantId"]),
           "streetAddress",
           "psgcRegion",
           "province",
@@ -387,14 +396,24 @@ export function EnhancedRegisterForm({
         if (type === "business") setBusinessPermitUrl(res.url!);
         toast.success(`${type.toUpperCase()} Picture uploaded`);
       } else {
-        toast.error(res.error || "Upload failed. Please check the file size (max 5MB) and format, then try again.");
+        toast.error(
+          res.error ||
+            "Upload failed. Please check the file size (max 5MB) and format, then try again.",
+        );
       }
     }
   };
 
   const onSubmit = (values: z.infer<typeof EnhancedRegisterSchema>) => {
-    if (!idUrl) {
-      toast.error("Please upload an ID picture");
+    if (!idUrl || !brgyCertUrl) {
+      toast.error(
+        "Please upload an ID picture and barangay certificate before submitting.",
+      );
+      return;
+    }
+
+    if (values.businessName && !businessPermitUrl) {
+      toast.error("Business Permit is required when a business name is provided.");
       return;
     }
 
@@ -410,7 +429,17 @@ export function EnhancedRegisterForm({
 
     startTransition(async () => {
       const res = (await register({
-        ...values,
+        email: values.email,
+        username: values.username,
+        password: values.password,
+        firstName: values.firstName,
+        middleName: values.middleName,
+        lastName: values.lastName,
+        phone: values.phone,
+        businessName: values.businessName,
+        maritalStatus: values.maritalStatus,
+        birthdate: values.birthdate,
+        gender: values.gender,
         region: selectedRegion?.name || "Unknown",
         province: selectedProv?.name || values.province,
         city: selectedCity?.name || values.city,
@@ -422,8 +451,9 @@ export function EnhancedRegisterForm({
         businessPermitUrl,
         placeOfBirth: values.placeOfBirth,
         tin: values.tin,
-      incomeRange: values.incomeRange,
-      personalSavings: values.personalSavings,
+        minIncome: values.minIncome,
+        maxIncome: values.maxIncome,
+        personalSavings: values.personalSavings,
       })) as any;
 
       if (res.error) toast.error(res.error);
@@ -439,7 +469,10 @@ export function EnhancedRegisterForm({
 
   return (
     <div className="w-full">
-      <div className="p-8 text-white relative overflow-hidden" style={{ backgroundColor: bc }}>
+      <div
+        className="p-8 text-white relative overflow-hidden"
+        style={{ backgroundColor: bc }}
+      >
         <div className="relative z-10">
           <h2 className="text-3xl font-display font-bold italic">
             Create Your Account
@@ -454,14 +487,16 @@ export function EnhancedRegisterForm({
       <div className="p-8">
         {successData ? (
           <div className="space-y-8 animate-in zoom-in duration-500 text-center py-8">
-              <div className="w-24 h-24 rounded-full flex items-center justify-center mx-auto mb-6 shadow-xl"
-                style={{ backgroundColor: `${bc}20` }}>
-                <CheckCircle2 className="w-12 h-12" style={{ color: bc }} />
-              </div>
-              <div className="space-y-2">
-                <h3 className="text-3xl font-display font-bold text-slate-900 leading-tight">
-                  Welcome to Agapay!
-                </h3>
+            <div
+              className="w-24 h-24 rounded-full flex items-center justify-center mx-auto mb-6 shadow-xl"
+              style={{ backgroundColor: `${bc}20` }}
+            >
+              <CheckCircle2 className="w-12 h-12" style={{ color: bc }} />
+            </div>
+            <div className="space-y-2">
+              <h3 className="text-3xl font-display font-bold text-slate-900 leading-tight">
+                Welcome to Agapay!
+              </h3>
               <p className="text-slate-500">
                 Your account has been successfully created.
               </p>
@@ -471,7 +506,10 @@ export function EnhancedRegisterForm({
               <p className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em]">
                 Your Member Code
               </p>
-              <p className="text-4xl font-display font-black tracking-tighter" style={{ color: bc }}>
+              <p
+                className="text-4xl font-display font-black tracking-tighter"
+                style={{ color: bc }}
+              >
                 {successData.memberCode}
               </p>
             </div>
@@ -610,11 +648,11 @@ export function EnhancedRegisterForm({
                                   className="pl-11 pr-10 rounded-xl h-12"
                                 />
                                 <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400"
-                    style={{}}
-                  >
+                                  type="button"
+                                  onClick={() => setShowPassword(!showPassword)}
+                                  className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400"
+                                  style={{}}
+                                >
                                   {showPassword ? (
                                     <EyeOff className="w-4 h-4" />
                                   ) : (
@@ -821,29 +859,47 @@ export function EnhancedRegisterForm({
                         Financial Capability
                       </h4>
                       <p className="text-sm text-slate-500">
-                        Help us understand your ability to repay loans by sharing your typical income range and savings.
+                        Help us understand your ability to repay loans by
+                        sharing your typical income range and savings.
                       </p>
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                       <FormField
                         control={form.control}
-                        name="incomeRange"
+                        name="minIncome"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Monthly Income Range</FormLabel>
+                            <FormLabel>Min Monthly Income</FormLabel>
                             <FormControl>
-                              <select
-                                {...field}
-                                className="w-full rounded-xl h-12 border border-slate-200 px-4 bg-white outline-none"
-                              >
-                                <option value="">Select income range</option>
-                                <option value="under_10k">Below ₱10,000</option>
-                                <option value="10k_20k">₱10,000 - ₱20,000</option>
-                                <option value="20k_50k">₱20,000 - ₱50,000</option>
-                                <option value="50k_100k">₱50,000 - ₱100,000</option>
-                                <option value="above_100k">Above ₱100,000</option>
-                              </select>
+                              <div className="relative">
+                                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 font-bold">₱</span>
+                                <Input
+                                  {...field}
+                                  placeholder="0.00"
+                                  className="rounded-xl h-12 pl-8 font-bold"
+                                />
+                              </div>
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={form.control}
+                        name="maxIncome"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Max Monthly Income</FormLabel>
+                            <FormControl>
+                              <div className="relative">
+                                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 font-bold">₱</span>
+                                <Input
+                                  {...field}
+                                  placeholder="0.00"
+                                  className="rounded-xl h-12 pl-8 font-bold"
+                                />
+                              </div>
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -921,7 +977,7 @@ export function EnhancedRegisterForm({
                                       !!preselectedTenantId
                                     }
                                     className="w-full rounded-xl h-12 border border-slate-200 px-4 bg-white outline-none font-bold disabled:opacity-50"
-                                          style={{ color: bc }}
+                                    style={{ color: bc }}
                                   >
                                     <option value="">Select Tenant</option>
                                     {tenants.map((t: any) => (
@@ -1081,7 +1137,8 @@ export function EnhancedRegisterForm({
                         Documents
                       </h4>
                       <p className="text-sm text-slate-500">
-                        Upload your ID and proof documents so we can verify your registration.
+                        Upload your ID and proof documents so we can verify your
+                        registration.
                       </p>
                     </div>
 
@@ -1108,7 +1165,10 @@ export function EnhancedRegisterForm({
                                 alt="ID Preview"
                                 className="w-32 h-32 object-cover rounded-2xl mx-auto shadow-md"
                               />
-                              <p className="text-sm font-bold" style={{ color: bc }}>
+                              <p
+                                className="text-sm font-bold"
+                                style={{ color: bc }}
+                              >
                                 Change
                               </p>
                             </div>
@@ -1145,7 +1205,10 @@ export function EnhancedRegisterForm({
                                 alt="Brgy Preview"
                                 className="w-32 h-32 object-cover rounded-2xl mx-auto shadow-md"
                               />
-                              <p className="text-sm font-bold" style={{ color: bc }}>
+                              <p
+                                className="text-sm font-bold"
+                                style={{ color: bc }}
+                              >
                                 Change
                               </p>
                             </div>
@@ -1166,7 +1229,9 @@ export function EnhancedRegisterForm({
                           <Card
                             className="border-dashed border-2 border-slate-200 p-8 min-h-[260px] flex flex-col items-center justify-center text-center space-y-4 cursor-pointer hover:bg-slate-50 transition-colors"
                             onClick={() =>
-                              document.getElementById("business-upload")?.click()
+                              document
+                                .getElementById("business-upload")
+                                ?.click()
                             }
                           >
                             <input
@@ -1183,7 +1248,10 @@ export function EnhancedRegisterForm({
                                   alt="Business Preview"
                                   className="w-32 h-32 object-cover rounded-2xl mx-auto shadow-md"
                                 />
-                                <p className="text-sm font-bold" style={{ color: bc }}>
+                                <p
+                                  className="text-sm font-bold"
+                                  style={{ color: bc }}
+                                >
                                   Change
                                 </p>
                               </div>
@@ -1209,7 +1277,8 @@ export function EnhancedRegisterForm({
                         Verification
                       </h4>
                       <p className="text-sm text-slate-500">
-                        Agree to the terms and privacy policy to complete your registration.
+                        Agree to the terms and privacy policy to complete your
+                        registration.
                       </p>
                     </div>
                     <div className="space-y-4">
@@ -1320,6 +1389,8 @@ function getStepTitle(step: number) {
     case 4:
       return "Location";
     case 5:
+      return "Documents";
+    case 6:
       return "Verification";
     default:
       return "";

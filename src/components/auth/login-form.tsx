@@ -167,6 +167,14 @@ export const LoginForm = ({
           ) {
             setStep("2fa");
             toast.info("Please enter the code from your Google Authenticator.");
+          } else if (
+            result.error === "CredentialsSignin" &&
+            result.code === "pending_approval"
+          ) {
+            toast.warning("Verification Pending", {
+              description: "Your account is currently being reviewed by your cooperative admin. You'll be notified via email once your access is granted.",
+              duration: 6000,
+            });
           } else {
             toast.error("Invalid credentials or access denied. Please check your username and password, or contact your cooperative admin if you've been locked out.");
             // If it failed at final login, maybe reset to step 1
@@ -231,6 +239,7 @@ export const LoginForm = ({
 
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+          <input type="hidden" {...form.register("tenantId")} />
           {step === "credentials" && (
             <div className="space-y-4 animate-in fade-in slide-in-from-bottom-2 duration-300">
               <FormField
