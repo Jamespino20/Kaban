@@ -87,6 +87,21 @@ export const LoginForm = ({
       if (res.tenants && res.tenants.length > 0) {
         const tenantsList = res.tenants;
         if (preselectedTenantId) {
+          // Check if any of the user's accounts is a superadmin (platform-level access)
+          const superadminEntry = tenantsList.find(
+            (t: any) => t.role === "superadmin",
+          );
+          if (superadminEntry) {
+            // Superadmin bypasses tenant scoping — log in at platform level
+            form.setValue("tenantId", "global");
+            setSelectedTenantSlug("");
+            setSelectedRole("superadmin");
+            performLogin(
+              { ...values, tenantId: "global" },
+              { role: "superadmin", slug: "" },
+            );
+            return;
+          }
           const matchedTenant =
             tenantsList.find(
               (t: any) => t.tenant_id?.toString() === preselectedTenantId,
@@ -97,17 +112,14 @@ export const LoginForm = ({
             );
             return;
           }
-          // Superadmin must not be scoped to a tenant — force platform-level login
-          const isSuperadmin = matchedTenant.role === "superadmin";
-          const effectiveTenantId = isSuperadmin ? "global" : preselectedTenantId;
-          form.setValue("tenantId", effectiveTenantId);
-          setSelectedTenantSlug(isSuperadmin ? "" : (matchedTenant.slug || currentTenant || ""));
+          form.setValue("tenantId", preselectedTenantId);
+          setSelectedTenantSlug(matchedTenant.slug || currentTenant || "");
           setSelectedRole(matchedTenant.role || "");
           performLogin(
-            { ...values, tenantId: effectiveTenantId },
+            { ...values, tenantId: preselectedTenantId },
             {
               role: matchedTenant.role || "",
-              slug: isSuperadmin ? "" : (matchedTenant.slug || currentTenant || ""),
+              slug: matchedTenant.slug || currentTenant || "",
             },
           );
           return;

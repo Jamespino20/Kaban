@@ -71,7 +71,7 @@ export async function postLedgerEntry(
     const createData: Record<string, unknown> = {
       transaction_id: linkId,
       tenant: { connect: { tenant_id: tenantId } },
-      account_id: account.id,
+      account: { connect: { id: account.id } },
       debit: new Prisma.Decimal(entry.debit),
       credit: new Prisma.Decimal(entry.credit),
       description: description,
@@ -79,7 +79,7 @@ export async function postLedgerEntry(
       created_by: createdBy,
     };
     if (loanId !== undefined) {
-      createData.loan_id = loanId;
+      createData.loan = { connect: { loan_id: loanId } };
     }
     return (tx as any).businessLedger.create({ data: createData });
   });
