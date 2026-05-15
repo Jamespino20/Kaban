@@ -103,12 +103,6 @@ const getNextAuth = () => {
                 }
               }
 
-              // Force superadmin to always be tenant-unscoped
-              const forcedTenantId =
-                user.role === "superadmin" ? null : user.tenant_id;
-              const forcedTenantSlug =
-                user.role === "superadmin" ? null : user.tenant_slug;
-
               // Check 2FA
               const twoFaRows = await sql(
                 "SELECT is_enabled, totp_secret FROM two_factor_auth WHERE user_id = ?",
@@ -162,8 +156,8 @@ const getNextAuth = () => {
                 name: user.username,
                 email: user.email,
                 role: user.role,
-                tenantId: forcedTenantId,
-                tenantSlug: forcedTenantSlug,
+                tenantId: user.tenant_id,
+                tenantSlug: user.tenant_slug,
                 accessibleTenantIds,
               };
             }

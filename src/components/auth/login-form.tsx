@@ -94,11 +94,14 @@ export const LoginForm = ({
           if (superadminEntry) {
             // Superadmin bypasses tenant scoping — log in at platform level
             form.setValue("tenantId", "global");
-            setSelectedTenantSlug("");
+            setSelectedTenantSlug(superadminEntry.slug || currentTenant || "");
             setSelectedRole("superadmin");
             performLogin(
               { ...values, tenantId: "global" },
-              { role: "superadmin", slug: "" },
+              {
+                role: "superadmin",
+                slug: superadminEntry.slug || currentTenant || "",
+              },
             );
             return;
           }
@@ -177,7 +180,7 @@ export const LoginForm = ({
           const role = tenantContext?.role || selectedRole || "";
           const slug = tenantContext?.slug || selectedTenantSlug || currentTenant || "";
           if (role === "superadmin") {
-            window.location.href = "/agapay-tanaw";
+            window.location.href = `/${slug || "malolos"}/agapay-tanaw`;
           } else if (role === "member") {
             if (!slug) {
               toast.error("Tenant route is missing. Please select your tenant again.");

@@ -180,8 +180,17 @@ export function EnhancedRegisterForm({
       "member-registration",
       formDataAsRecord,
       (restored) => {
+        const restoredValues = {
+          ...(restored as unknown as z.infer<typeof EnhancedRegisterSchema>),
+        };
+        if (preselectedTenantId) {
+          restoredValues.tenantId = preselectedTenantId;
+        }
+        if (preselectedRegionId) {
+          restoredValues.regionId = preselectedRegionId;
+        }
         form.reset(
-          restored as unknown as z.infer<typeof EnhancedRegisterSchema>,
+          restoredValues as z.infer<typeof EnhancedRegisterSchema>,
         );
       },
       !successData,
@@ -311,6 +320,15 @@ export function EnhancedRegisterForm({
   if (!isMounted) return null;
 
   const nextStep = async () => {
+    if (step === 3 && preselectedTenantId) {
+      form.setValue("tenantId", preselectedTenantId);
+      if (preselectedRegionId) {
+        form.setValue("regionId", preselectedRegionId);
+      }
+      setStep((s) => s + 1);
+      return;
+    }
+
     const fields = getStepFields(step);
     const isValid = await form.trigger(fields as any);
     if (isValid) setStep((s) => s + 1);

@@ -387,9 +387,7 @@ export default async function AgapayTanawPage(props: {
   const navItems = isSuperAdmin ? superadminNav : operatorNav;
   const tanawSubtitle = isOperator
     ? "Tenant Operator dashboard for tenant health, queues, capital, members, treasury, content, support, and settings."
-    : isGlobalSuperadminView
-      ? "Global Superadmin view for system-wide infrastructure and monitoring."
-      : "Cooperative Superadmin view for managing this specific cooperative.";
+    : "Superadmin view for platform-wide tenant applications, active tenants, configuration, and system monitoring.";
 
   return (
     <DashboardTabsShell
@@ -466,7 +464,7 @@ export default async function AgapayTanawPage(props: {
           )}
           {/* Shared / Role-Specific TabsContent */}
           <TabsContent value="overview" className="space-y-6 outline-none">
-            {isGlobalSuperadminView ? (
+            {isSuperAdmin ? (
               <SuperadminOverviewTab />
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
@@ -500,7 +498,7 @@ export default async function AgapayTanawPage(props: {
               </div>
             )}
 
-            {!isGlobalSuperadminView && (
+            {!isSuperAdmin && (
               <>
                 {/* Member Growth & Metric Bars */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -534,14 +532,14 @@ export default async function AgapayTanawPage(props: {
               </>
             )}
 
-            {!isGlobalSuperadminView && (
+            {!isSuperAdmin && (
               <div className="mb-6">
                 <AiInsightCard compact />
               </div>
             )}
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
-              {!isGlobalSuperadminView && (
+              {!isSuperAdmin && (
                 <div className="dashboard-card lg:col-span-2 flex flex-col md:flex-row items-center gap-8 p-6">
                   <div className="flex-1 text-center md:text-left">
                     <h3 className="text-xl font-heading font-bold text-slate-900">
@@ -558,10 +556,10 @@ export default async function AgapayTanawPage(props: {
                     <TrustMeter data={trustData.aggregateTrust} />
                   </div>
                 </div>
-              )}
+                )}
 
               <div
-                className={`${isGlobalSuperadminView ? "lg:col-span-3" : ""} dashboard-card-strong flex flex-col justify-between overflow-hidden relative group min-h-[240px]`}
+                className={`${isSuperAdmin ? "lg:col-span-3" : ""} dashboard-card-strong flex flex-col justify-between overflow-hidden relative group min-h-[240px]`}
               >
                 <div className="relative z-10 space-y-4">
                   <div className="w-12 h-12 rounded-2xl bg-primary shadow-[0_0_20px_color-mix(in_srgb,var(--primary)_30%,transparent)] flex items-center justify-center mb-6">
