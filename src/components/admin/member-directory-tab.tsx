@@ -15,6 +15,12 @@ import {
   KeyRound,
   Activity,
   Bell,
+  Fingerprint,
+  Mail,
+  ShieldAlert,
+  UserMinus,
+  UserPlus,
+  UserX,
 } from "lucide-react";
 import {
   Select,
@@ -27,9 +33,22 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Button } from "@/components/ui/button";
 
 import { CreateStaffModal } from "./create-staff-modal";
 import { MemberProfileModal } from "./member-profile-modal";
@@ -104,6 +123,7 @@ export function MemberDirectoryTab({
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [isActivityOpen, setIsActivityOpen] = useState(false);
+  const [isDeactivateOpen, setIsDeactivateOpen] = useState(false);
   const pageSize = 8;
 
   const isSuperadmin = userRole === "superadmin";
@@ -413,21 +433,51 @@ export function MemberDirectoryTab({
                         </div>
                       </td>
                       <td className="px-6 py-4 text-right">
-                        <MemberRowActions 
-                          member={member} 
-                          onViewProfile={() => {
-                            setSelectedMember(member);
-                            setIsProfileOpen(true);
-                          }}
-                          onEditDetails={() => {
-                            setSelectedMember(member);
-                            setIsEditOpen(true);
-                          }}
-                          onViewActivity={() => {
-                            setSelectedMember(member);
-                            setIsActivityOpen(true);
-                          }}
-                        />
+                        <div className="flex items-center justify-end gap-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="rounded-xl border-slate-200 text-[11px] font-bold h-8 px-3"
+                            onClick={() => {
+                              setSelectedMember(member);
+                              setIsProfileOpen(true);
+                            }}
+                          >
+                            Manage
+                          </Button>
+                          
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" size="icon" className="h-8 w-8 rounded-xl text-slate-400 hover:text-slate-600">
+                                <MoreVertical className="h-4 w-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end" className="w-56 rounded-xl border-slate-100 shadow-xl">
+                              <DropdownMenuLabel className="text-[10px] font-bold uppercase tracking-widest text-slate-400">
+                                Member Actions
+                              </DropdownMenuLabel>
+                              <DropdownMenuItem className="rounded-lg gap-2 cursor-pointer" onClick={() => {
+                                  setSelectedMember(member);
+                                  setIsEditOpen(true);
+                              }}>
+                                <UserCog className="h-4 w-4 text-indigo-500" />
+                                <span>Update Role / Status</span>
+                              </DropdownMenuItem>
+                              <DropdownMenuItem className="rounded-lg gap-2 cursor-pointer">
+                                <Mail className="h-4 w-4 text-emerald-500" />
+                                <span>Send Notification</span>
+                              </DropdownMenuItem>
+                              <DropdownMenuSeparator className="bg-slate-50" />
+                              <DropdownMenuItem className="rounded-lg gap-2 cursor-pointer text-rose-600 focus:text-rose-700 focus:bg-rose-50" onClick={() => {
+                                  setSelectedMember(member);
+                                  setIsDeactivateOpen(true);
+                              }}>
+                                <UserX className="h-4 w-4" />
+                                <span>Deactivate Account</span>
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </div>
                       </td>
                     </tr>
                   );
@@ -445,6 +495,38 @@ export function MemberDirectoryTab({
           onPageChange={setCurrentPage}
         />
       </div>
+
+      {/* Deactivation Confirmation Dialog */}
+      <Dialog open={isDeactivateOpen} onOpenChange={setIsDeactivateOpen}>
+        <DialogContent className="rounded-2xl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <UserX className="h-5 w-5 text-rose-600" />
+              Confirm Deactivation
+            </DialogTitle>
+            <DialogDescription>
+              Are you sure you want to deactivate <strong>{selectedMember?.profile ? `${selectedMember.profile.first_name} ${selectedMember.profile.last_name}` : selectedMember?.username}</strong>? This will restrict their access to the platform.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="gap-2 sm:gap-0 mt-4">
+            <Button variant="outline" onClick={() => setIsDeactivateOpen(false)} className="rounded-xl">Cancel</Button>
+            <Button 
+                variant="destructive" 
+                className="rounded-xl"
+                onClick={async () => {
+                   const res = await updateMemberStatus(selectedMember.user_id, "deactivated") as any;
+                   if (res.error) toast.error(res.error);
+                   else {
+                     toast.success("Member deactivated successfully.");
+                     setIsDeactivateOpen(false);
+                   }
+                }}
+            >
+              Deactivate Member
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       <MemberProfileModal
         member={selectedMember}
@@ -479,6 +561,12 @@ function MemberRowActions({
   onViewActivity: () => void;
 }) {
   const [isPending, startTransition] = useTransition();
+  const [notifOpen, setNotifOpen] = useState(false);
+  const [notifTitle, setNotifTitle] = useState("");
+  const [notifBody, setNotifBody] = useState("");
+  
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [confirmType, setConfirmType] = useState<"suspend" | "activate" | "deactivate" | null>(null);
 
   const handleResetPassword = () => {
     startTransition(async () => {
@@ -489,43 +577,99 @@ function MemberRowActions({
   };
 
   const handleSendNotification = () => {
-    const title = prompt("Notification title:");
-    if (!title) return;
-    const body = prompt("Notification body:");
-    if (!body) return;
+    if (!notifTitle.trim() || !notifBody.trim()) {
+      toast.error("Please fill in both title and body");
+      return;
+    }
     startTransition(async () => {
-      const res = await sendMemberNotification(member.user_id, title, body);
+      const res = await sendMemberNotification(member.user_id, notifTitle, notifBody);
       if (res.error) toast.error(res.error);
-      else toast.success(res.success);
+      else {
+        toast.success(res.success);
+        setNotifOpen(false);
+        setNotifTitle("");
+        setNotifBody("");
+      }
     });
   };
 
-  const handleSuspend = () => {
-    if (!confirm("Suspend this member?")) return;
+  const executeStatusChange = () => {
+    if (!confirmType) return;
+    const newStatus = confirmType === "suspend" ? "suspended" : confirmType === "activate" ? "active" : "deactivated";
+    
     startTransition(async () => {
-      const res = await updateMemberStatus(member.user_id, "suspended");
+      const res = await updateMemberStatus(member.user_id, newStatus);
       if (res.error) toast.error(res.error);
-      else toast.success(res.success);
+      else {
+        toast.success(res.success);
+        setConfirmOpen(false);
+        setConfirmType(null);
+      }
     });
   };
 
-  const handleActivate = () => {
-    if (!confirm("Activate this member?")) return;
-    startTransition(async () => {
-      const res = await updateMemberStatus(member.user_id, "active");
-      if (res.error) toast.error(res.error);
-      else toast.success(res.success);
-    });
-  };
+  return (
+    <>
+      <Dialog open={notifOpen} onOpenChange={setNotifOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Send Notification</DialogTitle>
+            <DialogDescription>
+              This will be sent to {member.profile?.first_name || member.username}'s dashboard.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-2">
+            <div className="space-y-2">
+              <label className="text-xs font-bold uppercase tracking-widest text-slate-400">Subject</label>
+              <Input 
+                value={notifTitle} 
+                onChange={(e) => setNotifTitle(e.target.value)}
+                placeholder="e.g. Identity Verified"
+                className="rounded-xl"
+              />
+            </div>
+            <div className="space-y-2">
+              <label className="text-xs font-bold uppercase tracking-widest text-slate-400">Message</label>
+              <Textarea 
+                value={notifBody} 
+                onChange={(e) => setNotifBody(e.target.value)}
+                placeholder="Write your message here..."
+                className="rounded-xl min-h-[100px]"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setNotifOpen(false)} className="rounded-xl">Cancel</Button>
+            <Button onClick={handleSendNotification} disabled={isPending} className="rounded-xl">
+              {isPending ? "Sending..." : "Send Notification"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
-  const handleDeactivate = () => {
-    if (!confirm("Deactivate this member? This action cannot be undone.")) return;
-    startTransition(async () => {
-      const res = await updateMemberStatus(member.user_id, "deactivated");
-      if (res.error) toast.error(res.error);
-      else toast.success(res.success);
-    });
-  };
+      <Dialog open={confirmOpen} onOpenChange={setConfirmOpen}>
+        <DialogContent className="sm:max-w-[400px]">
+          <DialogHeader>
+            <DialogTitle className="capitalize">{confirmType} Member</DialogTitle>
+            <DialogDescription>
+              {confirmType === "deactivate" 
+                ? "Sigurado ka ba? Hindi na ito mababalik kapag tinuloy mo." 
+                : `Sigurado ka bang gusto mong i-${confirmType} ang miyembrong ito?`}
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="gap-2 sm:gap-0">
+            <Button variant="outline" onClick={() => setConfirmOpen(false)} className="rounded-xl">Cancel</Button>
+            <Button 
+              variant={confirmType === "deactivate" || confirmType === "suspend" ? "destructive" : "default"}
+              onClick={executeStatusChange} 
+              disabled={isPending}
+              className="rounded-xl"
+            >
+              {isPending ? "Processing..." : `Confirm ${confirmType}`}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
   return (
     <DropdownMenu>
@@ -569,7 +713,7 @@ function MemberRowActions({
         </DropdownMenuItem>
         <DropdownMenuItem
           className="rounded-xl py-2.5 text-sm cursor-pointer"
-          onClick={handleSendNotification}
+          onClick={() => setNotifOpen(true)}
           disabled={isPending}
         >
           <Bell className="mr-2.5 h-4 w-4 text-slate-400" />
@@ -579,7 +723,7 @@ function MemberRowActions({
         {member.status === "active" ? (
           <DropdownMenuItem
             className="rounded-xl py-2.5 text-sm cursor-pointer text-amber-600"
-            onClick={handleSuspend}
+            onClick={() => { setConfirmType("suspend"); setConfirmOpen(true); }}
             disabled={isPending}
           >
             <Ban className="mr-2.5 h-4 w-4" />
@@ -588,7 +732,7 @@ function MemberRowActions({
         ) : (
           <DropdownMenuItem
             className="rounded-xl py-2.5 text-sm cursor-pointer text-emerald-600"
-            onClick={handleActivate}
+            onClick={() => { setConfirmType("activate"); setConfirmOpen(true); }}
             disabled={isPending}
           >
             <CheckCircle2 className="mr-2.5 h-4 w-4" />
@@ -598,7 +742,7 @@ function MemberRowActions({
         <DropdownMenuSeparator className="my-1 bg-slate-100" />
         <DropdownMenuItem
           className="rounded-xl py-2.5 text-sm cursor-pointer text-rose-600"
-          onClick={handleDeactivate}
+          onClick={() => { setConfirmType("deactivate"); setConfirmOpen(true); }}
           disabled={isPending}
         >
           <Trash2 className="mr-2.5 h-4 w-4" />
@@ -606,6 +750,7 @@ function MemberRowActions({
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
+    </>
   );
 }
 

@@ -40,6 +40,7 @@ import {
 import { useEffect, useRef, useState } from "react";
 import { cn } from "@/lib/utils";
 import { TenantSelector } from "@/components/layout/tenant-selector";
+import { IdleSessionTimer } from "@/components/shared/idle-session-timer";
 
 function normalizeHexColor(color?: string | null) {
   if (!color) {
@@ -271,7 +272,7 @@ export function AuthenticatedShell({
         className={`h-1 w-full ${isBrandColorLight ? 'bg-black/10' : 'bg-white/10'}`}
       />
       <div
-        className={cn("flex flex-col border-b px-4 py-5 space-y-4", sidebarBorderClass)}
+        className={cn("flex flex-col border-b px-6 py-5 space-y-4", sidebarBorderClass)}
       >
         <div className="flex items-center justify-between">
           <div
@@ -353,7 +354,7 @@ export function AuthenticatedShell({
 
       <div
         ref={navScrollRef}
-        className={`flex-1 px-4 pt-4 pb-3 ${navReady ? "overflow-y-auto" : "overflow-y-hidden"}`}
+        className={`flex-1 px-6 pt-4 pb-3 ${navReady ? "overflow-y-auto" : "overflow-y-hidden"}`}
       >
         <TabsList className="flex h-auto w-full flex-col justify-start gap-1 bg-transparent p-0">
           {(() => {
@@ -369,7 +370,7 @@ export function AuthenticatedShell({
                 {!collapsed && (
                   <h3
                     className={cn(
-                      "px-4 mb-2 text-[10px] font-black uppercase tracking-[0.2em] font-accent",
+                      "px-4 mb-3 text-[10px] font-black uppercase tracking-[0.2em] font-accent opacity-60",
                       sidebarMutedClass,
                     )}
                   >
@@ -393,7 +394,7 @@ export function AuthenticatedShell({
                         window.dispatchEvent(event);
                       }}
                       className={cn(
-                        "group h-auto w-full justify-start rounded-2xl border border-transparent px-4 py-2.5 text-left transition-all cursor-pointer",
+                        "group h-auto w-full justify-start rounded-2xl border border-transparent px-4 py-3 text-left transition-all cursor-pointer mb-0.5",
                         sidebarMutedClass,
                         sidebarHoverTextClass,
                         sidebarActiveClass,
@@ -437,8 +438,8 @@ export function AuthenticatedShell({
         </TabsList>
       </div>
 
-      <div className={cn("border-t p-3", sidebarBorderClass)}>
-        <div className="flex items-center justify-center gap-2 px-4 py-2">
+      <div className={cn("border-t p-4", sidebarBorderClass)}>
+        <div className="flex items-center justify-center gap-2 px-6 py-2">
           <p
             className={cn(
               "text-[10px] font-bold uppercase tracking-[0.2em]",
@@ -457,6 +458,7 @@ export function AuthenticatedShell({
       className="min-h-screen text-slate-900 bg-slate-50 lg:flex lg:h-screen lg:overflow-hidden"
       style={{ ...cssVars }}
     >
+      <IdleSessionTimer />
       <div
         className={`fixed inset-0 z-40 bg-slate-950/55 backdrop-blur-sm transition-opacity duration-200 lg:hidden ${
           mobileOpen

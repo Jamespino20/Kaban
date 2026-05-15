@@ -50,8 +50,7 @@ import {
   getCommunityDashboardData,
 } from "@/actions/community-actions";
 import { SuperadminCommunityTab } from "@/components/admin/superadmin-community-tab";
-import { CommunityOperationsTab } from "@/components/admin/community-operations-tab";
-import { CommunityTab } from "@/components/member/community-tab";
+import { OperatorCommunityTab } from "@/components/admin/operator-community-tab";
 import { OperatorVaultTab } from "@/components/admin/operator-vault-tab";
 import { AiInsightCard } from "@/components/admin/ai-insight-card";
 import { TanawPollingWrapper } from "@/components/admin/tanaw-polling-wrapper";
@@ -703,13 +702,13 @@ export default async function AgapayTanawPage(props: {
           )}
 
           {/* Shared Management Modules */}
-          <TabsContent value="community" className="outline-none">
+          <TabsContent value="community" className="outline-none h-full">
             {isFeatureEnabled("community") ? (
               isOperator ? (
-                <div className="grid grid-cols-1 gap-5 xl:grid-cols-[1.5fr_1fr]">
-                  <CommunityTab initialData={operatorCommunityData} />
-                  <CommunityOperationsTab summary={communitySummary} />
-                </div>
+                <OperatorCommunityTab 
+                  summary={communitySummary} 
+                  initialData={operatorCommunityData!} 
+                />
               ) : (
                 <SuperadminCommunityTab />
               )

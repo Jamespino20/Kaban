@@ -380,7 +380,8 @@ export async function createTenant(
   slug: string,
   groupId: number,
   branding?: {
-    logoUrl?: string;
+    squareLogoUrl?: string;
+    homepageLogoUrl?: string;
     brandColor?: string;
     accentColor?: string;
     heroHeadline?: string;
@@ -400,7 +401,7 @@ export async function createTenant(
         slug,
         tenant_group_id: groupId,
         entitlement_status: "prospect",
-        logo_url: branding?.logoUrl || null,
+        logo_url: branding?.squareLogoUrl || null,
         brand_color: branding?.brandColor || null,
         accent_color: branding?.accentColor || null,
         metadata: {
@@ -413,6 +414,7 @@ export async function createTenant(
             "wallet",
             "community",
           ],
+          homepageLogoUrl: branding?.homepageLogoUrl,
         },
       },
     });
@@ -463,7 +465,8 @@ const UpdateTenantBrandingSchema = z.object({
     .optional()
     .or(z.literal("")),
   fontPairing: z.string().max(50).optional(),
-  logoUrl: z.string().max(2000000).optional().or(z.literal("")), // Allow large strings for Base64
+  logoUrl: z.string().max(20000000).optional().or(z.literal("")), // Allow large strings for Base64
+  homepageLogoUrl: z.string().max(20000000).optional().or(z.literal("")),
 });
 
 export async function updateTenantBranding(
@@ -494,6 +497,23 @@ export async function updateTenantBranding(
   }
 
   try {
+    const existingTenant = await prisma.tenant.findUnique({
+      where: { tenant_id: targetTenantId },
+      select: { metadata: true },
+    });
+
+    const existingMetadata = (existingTenant?.metadata || {}) as Record<
+      string,
+      unknown
+    >;
+
+    const nextMetadata = {
+      ...existingMetadata,
+      ...(parsed.data.homepageLogoUrl
+        ? { homepageLogoUrl: parsed.data.homepageLogoUrl }
+        : {}),
+    };
+
     const updated = await prisma.tenant.update({
       where: { tenant_id: targetTenantId },
       data: {
@@ -501,6 +521,7 @@ export async function updateTenantBranding(
         accent_color: parsed.data.accentColor || null,
         font_pairing: parsed.data.fontPairing || null,
         logo_url: parsed.data.logoUrl || null,
+        metadata: Object.keys(nextMetadata).length ? nextMetadata : null,
       },
     });
 

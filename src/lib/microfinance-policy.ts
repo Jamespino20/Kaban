@@ -479,6 +479,46 @@ export function calculateMaxMonthlyRepayment({
   return roundMoney(monthlyIncome * MICROFINANCE_POLICY.debtServiceRatioCap);
 }
 
+/**
+ * Determines the best initial interest tier for a new member based on their income average.
+ * This replaces the legacy "everyone starts at T1" logic.
+ */
+export function calculateInitialTier({
+  minIncome,
+  maxIncome,
+  incomeRange,
+}: {
+  minIncome?: number | null;
+  maxIncome?: number | null;
+  incomeRange?: string | null;
+}): InterestTier {
+  const maxMonthlyRepayment = calculateMaxMonthlyRepayment({
+    minIncome,
+    maxIncome,
+    incomeRange,
+  });
+
+  if (maxMonthlyRepayment <= 0) return InterestTier.T1_5_PERCENT;
+
+  // Assume a standard 6-month term for initial capacity assessment
+  const capacity = maxMonthlyRepayment * 6;
+
+  if (capacity >= TIER_POLICIES[InterestTier.T5_3_PERCENT].capAmount) {
+    return InterestTier.T5_3_PERCENT;
+  }
+  if (capacity >= TIER_POLICIES[InterestTier.T4_3_5_PERCENT].capAmount) {
+    return InterestTier.T4_3_5_PERCENT;
+  }
+  if (capacity >= TIER_POLICIES[InterestTier.T3_4_PERCENT].capAmount) {
+    return InterestTier.T3_4_PERCENT;
+  }
+  if (capacity >= TIER_POLICIES[InterestTier.T2_4_5_PERCENT].capAmount) {
+    return InterestTier.T2_4_5_PERCENT;
+  }
+
+  return InterestTier.T1_5_PERCENT;
+}
+
 export function validateTenantMembershipLimit(membershipCount: number) {
   if (membershipCount > MICROFINANCE_POLICY.maxTenantMembershipsPerUser) {
     return `A non-superadmin account may hold at most ${MICROFINANCE_POLICY.maxTenantMembershipsPerUser} tenant memberships.`;

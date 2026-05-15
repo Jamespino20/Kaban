@@ -54,6 +54,7 @@ export function CreateTenantForm({
   const [pendingApplications, setPendingApplications] = useState<any[]>([]);
   const [selectedApplicantId, setSelectedApplicantId] = useState<string>("");
   const [logoDataUrl, setLogoDataUrl] = useState<string>("");
+  const [landscapeLogoDataUrl, setLandscapeLogoDataUrl] = useState<string>("");
   const [brandColor, setBrandColor] = useState("#10b981");
   const [accentColor, setAccentColor] = useState("#3b82f6");
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -95,6 +96,7 @@ export function CreateTenantForm({
     if (app.brand_color) setBrandColor(app.brand_color);
     if (app.accent_color) setAccentColor(app.accent_color);
     if (app.logo_url) setLogoDataUrl(app.logo_url);
+    if (app.homepage_logo_url) setLandscapeLogoDataUrl(app.homepage_logo_url);
     toast.info(`Pre-filled from "${app.tenant_name}" application`);
   }, [pendingApplications, form]);
 
@@ -107,6 +109,8 @@ export function CreateTenantForm({
         const parsed = JSON.parse(saved);
         form.reset(parsed.formValues);
         if (parsed.logoDataUrl) setLogoDataUrl(parsed.logoDataUrl);
+        if (parsed.landscapeLogoDataUrl)
+          setLandscapeLogoDataUrl(parsed.landscapeLogoDataUrl);
         if (parsed.brandColor) setBrandColor(parsed.brandColor);
         if (parsed.accentColor) setAccentColor(parsed.accentColor);
       } catch (e) {
@@ -124,6 +128,7 @@ export function CreateTenantForm({
         JSON.stringify({
           formValues: values,
           logoDataUrl,
+          landscapeLogoDataUrl,
           brandColor,
           accentColor,
         }),
@@ -164,6 +169,19 @@ export function CreateTenantForm({
     reader.readAsDataURL(file);
   };
 
+  const handleLandscapeFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > MAX_FILE_BYTES) {
+      toast.error("File too large. Max allowed: 5MB");
+      e.target.value = "";
+      return;
+    }
+    const reader = new FileReader();
+    reader.onloadend = () => setLandscapeLogoDataUrl(reader.result as string);
+    reader.readAsDataURL(file);
+  };
+
   const clearLogo = () => {
     setLogoDataUrl("");
     if (fileInputRef.current) fileInputRef.current.value = "";
@@ -176,7 +194,8 @@ export function CreateTenantForm({
         values.slug,
         parseInt(values.groupId),
         {
-          logoUrl: logoDataUrl || undefined,
+          squareLogoUrl: logoDataUrl || undefined,
+          homepageLogoUrl: landscapeLogoDataUrl || undefined,
           brandColor,
           accentColor,
           heroHeadline: values.heroHeadline,
@@ -339,7 +358,7 @@ export function CreateTenantForm({
                 {/* Logo Upload */}
                 <div className="space-y-2">
                   <Label className="text-slate-700 font-semibold text-sm">
-                    Tenant Logo
+                    Dashboard Logo (Square)
                   </Label>
                   <div className="flex items-center gap-2">
                     <div className="h-9 w-9 rounded-md border border-dashed border-slate-200 bg-slate-50 flex items-center justify-center overflow-hidden">
@@ -360,6 +379,35 @@ export function CreateTenantForm({
                       className="flex-1 text-[10px]"
                     />
                   </div>
+                  <p className="text-[10px] text-slate-400">
+                    Recommended for dashboards and tenant member portals.
+                  </p>
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-slate-700 font-semibold text-sm">
+                    Homepage Logo (Landscape)
+                  </Label>
+                  <div className="flex items-center gap-2">
+                    <div className="h-9 w-full rounded-md border border-dashed border-slate-200 bg-slate-50 flex items-center justify-center overflow-hidden">
+                      {landscapeLogoDataUrl ? (
+                        <img
+                          src={landscapeLogoDataUrl}
+                          className="h-full w-full object-contain"
+                        />
+                      ) : (
+                        <UploadCloud className="h-4 h-4 text-slate-300" />
+                      )}
+                    </div>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleLandscapeFileChange}
+                      className="flex-1 text-[10px]"
+                    />
+                  </div>
+                  <p className="text-[10px] text-slate-400">
+                    Recommended for tenant homepage headers and banner-style logos.
+                  </p>
                 </div>
               </div>
             </div>
@@ -506,7 +554,7 @@ export function CreateTenantForm({
           <div className="h-[600px] w-full">
             <MockHomepagePreview
               branding={{
-                logoUrl: logoDataUrl || undefined,
+                logoUrl: landscapeLogoDataUrl || logoDataUrl || undefined,
                 primaryColor: brandColor,
                 displayName: watchedName || "New Tenant",
               }}

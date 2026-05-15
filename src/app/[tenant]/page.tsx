@@ -127,7 +127,7 @@ export default async function TenantIndexPage(props: {
         tenants={activeTenants}
         forceSolid
         brandColor={brandColor}
-        tenantLogo={tenantData.logo_url}
+        tenantLogo={metadata?.homepageLogoUrl || tenantData.logo_url}
         tenantId={tenantData.tenant_id}
         tenantFallbackName={tenantData.name}
       />

@@ -9,7 +9,23 @@ import {
   ShieldAlert,
   UserCheck,
   Wallet,
+  ShieldCheck,
+  MoreVertical,
+  UserCog,
+  Mail,
+  UserMinus,
+  Ban,
+  Slash,
+  Eye,
 } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { format } from "date-fns";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -21,6 +37,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
+  DialogFooter,
 } from "@/components/ui/dialog";
 import {
   Select,
@@ -268,6 +285,7 @@ function PendingLoansSection({ loans }: { loans: any[] }) {
               firstName={loan.user?.profile?.first_name}
               lastName={loan.user?.profile?.last_name}
               subtitle={loan.product?.name}
+              photoUrl={loan.user?.profile?.photo_url}
             />
           }
           amount={
@@ -276,14 +294,35 @@ function PendingLoansSection({ loans }: { loans: any[] }) {
               caption={`${loan.term_months} buwan`}
             />
           }
+          sideAction={
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="icon" className="h-8 w-8 rounded-xl text-slate-400">
+                  <MoreVertical className="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-56 rounded-xl border-slate-100 shadow-xl">
+                <DropdownMenuLabel className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Options</DropdownMenuLabel>
+                <DropdownMenuItem className="rounded-lg gap-2 cursor-pointer">
+                  <Eye className="h-4 w-4 text-indigo-500" />
+                  <span>View Full Details</span>
+                </DropdownMenuItem>
+                <DropdownMenuItem className="rounded-lg gap-2 cursor-pointer">
+                  <Fingerprint className="h-4 w-4 text-sky-500" />
+                  <span>Check Verification Status</span>
+                </DropdownMenuItem>
+                <DropdownMenuSeparator className="bg-slate-50" />
+                <DropdownMenuItem className="rounded-lg gap-2 cursor-pointer text-rose-600 focus:text-rose-700 focus:bg-rose-50" onClick={() => setRejectingId(loan.loan_id)}>
+                  <Ban className="h-4 w-4" />
+                  <span>Reject Application</span>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          }
           meta={[
             {
               label: "Trust Score",
               value: String(loan.user?.trust_score ?? "Pending"),
-            },
-            {
-              label: "Trust Score",
-              value: String(loan.user?.trust_score ?? "N/A"),
             },
             {
               label: "Cadence / Term",
@@ -402,6 +441,7 @@ function RecoveryLoansSection({ loans }: { loans: any[] }) {
               firstName={loan.user?.profile?.first_name}
               lastName={loan.user?.profile?.last_name}
               subtitle={loan.product?.name}
+              photoUrl={loan.user?.profile?.photo_url}
             />
           }
           amount={
@@ -477,6 +517,7 @@ function IdentityCard({ user }: { user: any }) {
           firstName={user.profile?.first_name}
           lastName={user.profile?.last_name}
           subtitle={user.member_code || "Membership code pending"}
+          photoUrl={user.profile?.photo_url}
         />
       }
       meta={[
@@ -525,7 +566,7 @@ function IdentityCard({ user }: { user: any }) {
                 Reject
               </Button>
             </DialogTrigger>
-            <DialogContent className="sm:max-w-md">
+            <DialogContent className="sm:max-w-md rounded-2xl">
               <DialogHeader>
                 <DialogTitle>Reject Identity Verification</DialogTitle>
                 <DialogDescription>
@@ -597,6 +638,7 @@ function ReleaseLoanCard({ loan }: { loan: any }) {
           firstName={loan.user?.profile?.first_name}
           lastName={loan.user?.profile?.last_name}
           subtitle={loan.product?.name}
+          photoUrl={loan.user?.profile?.photo_url}
         />
       }
       amount={
@@ -626,7 +668,7 @@ function ReleaseLoanCard({ loan }: { loan: any }) {
               I-release ang Mock Funds
             </Button>
           </DialogTrigger>
-          <DialogContent className="sm:max-w-lg">
+          <DialogContent className="sm:max-w-lg rounded-2xl">
             <DialogHeader>
               <DialogTitle>Mock Fund Release</DialogTitle>
               <DialogDescription>
@@ -745,6 +787,7 @@ function ReviewPaymentCard({ payment }: { payment: any }) {
           firstName={payment.loan?.user?.profile?.first_name}
           lastName={payment.loan?.user?.profile?.last_name}
           subtitle={payment.loan?.product?.name}
+          photoUrl={payment.loan?.user?.profile?.photo_url}
         />
       }
       amount={
@@ -811,25 +854,26 @@ function OverdueLoansSection({ loans }: { loans: any[] }) {
   const router = useRouter();
   const [processingId, setProcessingId] = useState<number | null>(null);
   const [isPending, startTransition] = useTransition();
+  const [isEnforceOpen, setIsEnforceOpen] = useState(false);
+  const [enforceId, setEnforceId] = useState<number | null>(null);
 
   const handleEnforceDefault = (loanId: number) => {
-    if (
-      typeof window !== "undefined" &&
-      !window.confirm(
-        "Are you sure you want to enforce default? Guarantors will be penalized.",
-      )
-    ) {
-      return;
-    }
+    setEnforceId(loanId);
+    setIsEnforceOpen(true);
+  };
 
-    setProcessingId(loanId);
+  const handleEnforceConfirm = () => {
+    if (!enforceId) return;
+    setProcessingId(enforceId);
     startTransition(async () => {
       try {
-        const res = await manuallyDeclareDefault(loanId) as any;
+        const res = await manuallyDeclareDefault(enforceId) as any;
         if (res.error) {
           toast.error(res.error);
         } else {
           toast.success(res.success);
+          setIsEnforceOpen(false);
+          setEnforceId(null);
           router.refresh();
         }
       } finally {
@@ -856,6 +900,7 @@ function OverdueLoansSection({ loans }: { loans: any[] }) {
               firstName={loan.user?.profile?.first_name}
               lastName={loan.user?.profile?.last_name}
               subtitle={loan.product?.name}
+              photoUrl={loan.user?.profile?.photo_url}
             />
           }
           amount={
@@ -880,13 +925,39 @@ function OverdueLoansSection({ loans }: { loans: any[] }) {
             <Button
               disabled={isPending && processingId === loan.loan_id}
               onClick={() => handleEnforceDefault(loan.loan_id)}
-              className="w-full rounded-xl bg-rose-600 text-white hover:bg-rose-700"
+              className="w-full rounded-xl bg-primary italic font-black hover:bg-rose-700 transition-colors"
             >
               {isPending && processingId === loan.loan_id ? "Processing..." : "Enforce Default Protocol"}
             </Button>
           }
         />
       ))}
+      
+      {/* Enforce Default Confirmation Dialog */}
+      <Dialog open={isEnforceOpen} onOpenChange={setIsEnforceOpen}>
+        <DialogContent className="rounded-2xl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <ShieldAlert className="h-5 w-5 text-rose-600" />
+              Enforce Default Protocol
+            </DialogTitle>
+            <DialogDescription>
+              Are you sure you want to enforce default for this loan? This will penalize both the borrower and their guarantors. This action is irreversible.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="gap-2 sm:gap-0 mt-4">
+            <Button variant="outline" onClick={() => setIsEnforceOpen(false)} className="rounded-xl">Cancel</Button>
+            <Button 
+                variant="destructive" 
+                className="rounded-xl"
+                disabled={isPending}
+                onClick={handleEnforceConfirm}
+            >
+              {isPending ? "Processing..." : "Confirm Default Enforcement"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </QueueSection>
   );
 }
@@ -1057,17 +1128,27 @@ function ApplicantSummary({
   firstName,
   lastName,
   subtitle,
+  photoUrl,
 }: {
   firstName?: string;
   lastName?: string;
   subtitle?: string;
+  photoUrl?: string;
 }) {
   return (
     <div className="flex items-center gap-3">
-      <div className="flex h-11 w-11 items-center justify-center rounded-full bg-slate-50 text-xs font-bold uppercase text-slate-500">
-        {firstName?.[0]}
-        {lastName?.[0]}
-      </div>
+      {photoUrl ? (
+        <img 
+          src={photoUrl} 
+          alt={firstName} 
+          className="h-11 w-11 rounded-full object-cover border border-slate-100 shadow-sm" 
+        />
+      ) : (
+        <div className="flex h-11 w-11 items-center justify-center rounded-full bg-slate-50 text-xs font-bold uppercase text-slate-500">
+          {firstName?.[0]}
+          {lastName?.[0]}
+        </div>
+      )}
       <div className="min-w-0">
         <p className="line-clamp-1 text-sm font-bold text-slate-900">
           {firstName} {lastName}

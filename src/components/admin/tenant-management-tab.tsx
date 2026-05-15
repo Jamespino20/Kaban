@@ -54,6 +54,19 @@ export function TenantManagementTab({
     tenantName: string;
     features: string[];
   } | null>(null);
+  const [renamingTenant, setRenamingTenant] = useState<{
+    id: number;
+    name: string;
+  } | null>(null);
+  const [updatingEntitlement, setUpdatingEntitlement] = useState<{
+    id: number;
+    status: "prospect" | "active" | "suspended";
+    name: string;
+  } | null>(null);
+  const [entitlementForm, setEntitlementForm] = useState({
+    reference: "",
+    notes: "",
+  });
 
   const filteredTenants = tenants.filter((t: any) => {
     const searchString =
@@ -130,29 +143,32 @@ export function TenantManagementTab({
   };
 
   const handleRename = (tenantId: number, currentName: string) => {
-    const nextName = window.prompt(
-      "Ilagay ang bagong company o tenant name:",
-      currentName,
-    );
+    setRenamingTenant({ id: tenantId, name: currentName });
+  };
 
-    if (!nextName || nextName.trim() === currentName.trim()) return;
+  const executeRename = (newName: string) => {
+    if (!renamingTenant || !newName || newName.trim() === renamingTenant.name.trim()) {
+      setRenamingTenant(null);
+      return;
+    }
 
     startTransition(async () => {
       setError(null);
       const res = await renameTenant({
-        tenantId,
-        name: nextName.trim(),
+        tenantId: renamingTenant.id,
+        name: newName.trim(),
       });
 
       if (res.success && res.data) {
         toast.success(`Tenant renamed to "${res.data.name}".`);
         setTenants((prev) =>
           prev.map((tenant: any) =>
-            tenant.tenant_id === tenantId
+            tenant.tenant_id === renamingTenant.id
               ? { ...tenant, name: res.data.name }
               : tenant,
           ),
         );
+        setRenamingTenant(null);
       } else {
         setError(res.error || "Failed to rename tenant.");
       }
@@ -162,32 +178,34 @@ export function TenantManagementTab({
   const handleEntitlementUpdate = (
     tenantId: number,
     currentStatus: "prospect" | "active" | "suspended",
+    tenantName: string,
   ) => {
+    setUpdatingEntitlement({ id: tenantId, status: currentStatus, name: tenantName });
+    setEntitlementForm({ reference: "", notes: "" });
+  };
+
+  const executeEntitlementUpdate = () => {
+    if (!updatingEntitlement) return;
+
     const nextStatus =
-      currentStatus === "active"
+      updatingEntitlement.status === "active"
         ? "suspended"
-        : currentStatus === "suspended"
-          ? "active"
-          : "active";
-    const reference = window.prompt(
-      "Payment reference / manual receipt reference (optional):",
-      "",
-    );
-    const notes = window.prompt("Access notes (optional):", "");
+        : "active";
 
     startTransition(async () => {
       setError(null);
       const res = await updateTenantEntitlement({
-        tenantId,
+        tenantId: updatingEntitlement.id,
         entitlementStatus: nextStatus,
-        entitlementReference: reference || "",
-        entitlementNotes: notes || "",
+        entitlementReference: entitlementForm.reference || "",
+        entitlementNotes: entitlementForm.notes || "",
       });
 
       if (res.success && res.data) {
+        toast.success(`Access updated for ${updatingEntitlement.name}`);
         setTenants((prev) =>
           prev.map((tenant: any) =>
-            tenant.tenant_id === tenantId
+            tenant.tenant_id === updatingEntitlement.id
               ? {
                   ...tenant,
                   entitlement_status: res.data.entitlement_status,
@@ -198,6 +216,7 @@ export function TenantManagementTab({
               : tenant,
           ),
         );
+        setUpdatingEntitlement(null);
       } else {
         setError(res.error || "Failed to update tenant access.");
       }
@@ -524,6 +543,7 @@ export function TenantManagementTab({
                                 handleEntitlementUpdate(
                                   t.tenant_id,
                                   t.entitlement_status,
+                                  t.name,
                                 )
                               }
                               disabled={isPending}
@@ -674,6 +694,95 @@ export function TenantManagementTab({
                 className="bg-emerald-600 text-white hover:bg-emerald-700 font-bold"
               >
                 {isPending ? "Saving..." : "Save Features"}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Rename Tenant Dialog */}
+      <Dialog
+        open={!!renamingTenant}
+        onOpenChange={(open) => !open && setRenamingTenant(null)}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Rename Tenant</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 pt-4">
+            <div className="space-y-2">
+              <label className="text-sm font-bold text-slate-700">New Company Name</label>
+              <input
+                type="text"
+                defaultValue={renamingTenant?.name}
+                id="new-tenant-name"
+                className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500 font-medium"
+                autoFocus
+              />
+            </div>
+            <div className="flex justify-end gap-3 pt-4 border-t border-slate-100">
+              <Button variant="outline" onClick={() => setRenamingTenant(null)} className="rounded-xl font-bold">
+                Cancel
+              </Button>
+              <Button
+                onClick={() => {
+                  const input = document.getElementById("new-tenant-name") as HTMLInputElement;
+                  executeRename(input.value);
+                }}
+                disabled={isPending}
+                className="bg-emerald-600 text-white hover:bg-emerald-700 rounded-xl font-bold"
+              >
+                {isPending ? "Renaming..." : "Update Name"}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Entitlement Update Dialog */}
+      <Dialog
+        open={!!updatingEntitlement}
+        onOpenChange={(open) => !open && setUpdatingEntitlement(null)}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>
+              {updatingEntitlement?.status === "active" ? "Suspend Access" : "Activate Access"} for {updatingEntitlement?.name}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 pt-4">
+            <div className="space-y-2">
+              <label className="text-sm font-bold text-slate-700">Payment / Reference Code (Optional)</label>
+              <input
+                type="text"
+                value={entitlementForm.reference}
+                onChange={(e) => setEntitlementForm({ ...entitlementForm, reference: e.target.value })}
+                placeholder="e.g. GCash-123456"
+                className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500 font-medium"
+              />
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-bold text-slate-700">Internal Notes (Optional)</label>
+              <textarea
+                value={entitlementForm.notes}
+                onChange={(e) => setEntitlementForm({ ...entitlementForm, notes: e.target.value })}
+                placeholder="Notes about this access update..."
+                className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500 font-medium min-h-[100px]"
+              />
+            </div>
+            <div className="flex justify-end gap-3 pt-4 border-t border-slate-100">
+              <Button variant="outline" onClick={() => setUpdatingEntitlement(null)} className="rounded-xl font-bold">
+                Cancel
+              </Button>
+              <Button
+                onClick={executeEntitlementUpdate}
+                disabled={isPending}
+                className={cn(
+                  "rounded-xl font-bold text-white",
+                  updatingEntitlement?.status === "active" ? "bg-red-600 hover:bg-red-700" : "bg-emerald-600 hover:bg-emerald-700"
+                )}
+              >
+                {isPending ? "Updating..." : updatingEntitlement?.status === "active" ? "Suspend Access Now" : "Activate Access Now"}
               </Button>
             </div>
           </div>

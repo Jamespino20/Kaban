@@ -3,7 +3,7 @@
 import bcrypt from "bcryptjs";
 import { sql } from "@/lib/db";
 import { requireAuthenticatedSession } from "@/lib/authorization";
-import { validateTenantMembershipLimit } from "@/lib/microfinance-policy";
+import { validateTenantMembershipLimit, calculateInitialTier } from "@/lib/microfinance-policy";
 import { shouldUseApiClient } from "@/lib/api-config";
 import { api } from "@/lib/api-client";
 
@@ -194,9 +194,22 @@ export async function approveIdentityVerification(userId: number) {
 
   try {
     await prisma.$withTenant(tenantId, async (tx: any) => {
+      const profile = await tx.userProfile.findUnique({
+        where: { user_id: userId },
+      });
+
+      const initialTier = calculateInitialTier({
+        minIncome: profile?.income_min ? Number(profile.income_min) : null,
+        maxIncome: profile?.income_max ? Number(profile.income_max) : null,
+        incomeRange: profile?.income_range,
+      });
+
       await tx.user.update({
         where: { user_id: userId },
-        data: { status: "active" },
+        data: { 
+          status: "active",
+          interest_tier: initialTier,
+        },
       });
 
       await tx.userDocument.updateMany({

@@ -43,4 +43,5 @@ next-env.d.ts
 
 /src/generated/prisma
 
-/scripts/dump-tidb.cjs
+# TiDB dumper
+dump-tidb.cjs

@@ -118,7 +118,17 @@ const getNextAuth = () => {
                 }
               }
 
-              if (user.role !== "superadmin") {
+              if (user.role === "superadmin") {
+                // Superadmins must ONLY login through the main tenant (malolos)
+                // If they are logging into a specific tenant, it must be malolos.
+                if (user.tenant_slug !== "malolos") {
+                  return null;
+                }
+                
+                if (validatedTenantId !== null && user.tenant_id !== validatedTenantId) {
+                  return null;
+                }
+              } else if (user.role !== "superadmin") {
                 const tenantMembershipError = validateTenantMembershipLimit(
                   accessibleTenantIds.length,
                 );

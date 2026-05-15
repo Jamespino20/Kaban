@@ -77,6 +77,12 @@ The previous issue-derived matrix has been replaced. All entries below are sourc
    - Restored `CreateTenantForm` draft/applicant prefill hook order.
    - Added homepage metadata save support for hero tagline, hero subtitle, mission, vision, nav icon, and section visibility.
    - Verified production build succeeds with `npm run build`.
+5. **Member Approval Workflow (Deadline Stabilization Part 2):**
+   - Implemented a "Pending Approval" state for all new member registrations.
+   - Updated `authorize` function in `src/lib/auth.ts` to block `pending` users with a dedicated `pending_approval` error.
+   - Enhanced `LoginForm` to handle the `pending_approval` error and display a guidance toast to users.
+   - Updated registration logic to capture numeric `minIncome` and `maxIncome` values.
+   - Injected income range data into the Admin `VerificationQueueTab` for informed approval decisions.
 
 ---
 

@@ -4,8 +4,8 @@ export async function uploadIdPicture(formData: FormData) {
   const file = formData.get("file") as File;
   if (!file) return { error: "No file provided" };
 
-  const maxSize = 2 * 1024 * 1024; // 2MB
-  if (file.size > maxSize) return { error: "File too large. Max 2MB." };
+  const maxSize = 5 * 1024 * 1024; // 5MB
+  if (file.size > maxSize) return { error: "File too large. Max 5MB." };
 
   try {
     const bytes = await file.arrayBuffer();
@@ -14,7 +14,12 @@ export async function uploadIdPicture(formData: FormData) {
     const base64Data = buffer.toString("base64");
     const dataUri = `data:${mimeType};base64,${base64Data}`;
 
-    if (dataUri.length > 60000) return { error: "Image too large. Please use a smaller file (under ~50KB)." };
+    if (dataUri.length > 25000000) {
+      return {
+        error:
+          "Image too large. Please use a smaller file or reduce the image dimensions.",
+      };
+    }
 
     return { success: true, url: dataUri };
   } catch (error) {

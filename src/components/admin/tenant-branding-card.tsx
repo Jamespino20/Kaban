@@ -42,6 +42,7 @@ export function TenantBrandingCard({
     accent_color: string | null;
     font_pairing: string | null;
     logo_url: string | null;
+    homepage_logo_url?: string | null;
   };
 }) {
   const [branding, setBranding] = useState({
@@ -49,6 +50,7 @@ export function TenantBrandingCard({
     accentColor: initialBranding.accent_color || "#3b82f6",
     fontPairing: initialBranding.font_pairing || "inter_outfit",
     logoUrl: initialBranding.logo_url || "",
+    homepageLogoUrl: initialBranding.homepage_logo_url || "",
   });
 
   const [isPending, startTransition] = useTransition();
@@ -57,7 +59,11 @@ export function TenantBrandingCard({
     startTransition(async () => {
       const result = await updateTenantBranding({
         tenantId,
-        ...branding,
+        brandColor: branding.brandColor,
+        accentColor: branding.accentColor,
+        fontPairing: branding.fontPairing,
+        logoUrl: branding.logoUrl,
+        homepageLogoUrl: branding.homepageLogoUrl,
       });
 
       if (result.success) {
@@ -135,49 +141,98 @@ export function TenantBrandingCard({
         </div>
       </div>
 
-      <div className="space-y-3">
-        <Label htmlFor="logo-upload" className="text-slate-700 font-bold">
-          Co-op Logo (Base64)
-        </Label>
-        <div className="flex items-center gap-4">
-          <div className="h-20 w-20 rounded-2xl border-2 border-dashed border-slate-200 bg-slate-50 flex items-center justify-center overflow-hidden shrink-0">
-            {branding.logoUrl ? (
-              <img
-                src={branding.logoUrl}
-                alt="Logo Preview"
-                className="h-full w-full object-contain"
-              />
-            ) : (
-              <UploadCloud className="h-8 w-8 text-slate-300" />
-            )}
-          </div>
-          <div className="flex-1 space-y-2">
-            <Input
-              id="logo-upload"
-              type="file"
-              accept="image/png,image/webp,image/svg+xml"
-              onChange={(e) => {
-                const file = e.target.files?.[0];
-                if (file) {
-                  if (file.size > 5 * 1024 * 1024) {
-                    toast.error("File too large. Max allowed: 5MB");
-                    return;
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="space-y-3">
+          <Label htmlFor="logo-upload" className="text-slate-700 font-bold">
+            Dashboard Square Logo
+          </Label>
+          <div className="flex items-center gap-4">
+            <div className="h-20 w-20 rounded-2xl border-2 border-dashed border-slate-200 bg-slate-50 flex items-center justify-center overflow-hidden shrink-0">
+              {branding.logoUrl ? (
+                <img
+                  src={branding.logoUrl}
+                  alt="Dashboard logo preview"
+                  className="h-full w-full object-contain"
+                />
+              ) : (
+                <UploadCloud className="h-8 w-8 text-slate-300" />
+              )}
+            </div>
+            <div className="flex-1 space-y-2">
+              <Input
+                id="logo-upload"
+                type="file"
+                accept="image/png,image/webp,image/svg+xml"
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (file) {
+                    if (file.size > 5 * 1024 * 1024) {
+                      toast.error("File too large. Max allowed: 5MB");
+                      return;
+                    }
+                    const reader = new FileReader();
+                    reader.onloadend = () => {
+                      setBranding((prev) => ({
+                        ...prev,
+                        logoUrl: reader.result as string,
+                      }));
+                    };
+                    reader.readAsDataURL(file);
                   }
-                  const reader = new FileReader();
-                  reader.onloadend = () => {
-                    setBranding((prev) => ({
-                      ...prev,
-                      logoUrl: reader.result as string,
-                    }));
-                  };
-                  reader.readAsDataURL(file);
-                }
-              }}
-              className="h-11 rounded-xl cursor-pointer"
-            />
-            <p className="text-[11px] text-slate-400 italic">
-              Transparent PNG, WebP, or SVG recommended (Max 5MB).
-            </p>
+                }}
+                className="h-11 rounded-xl cursor-pointer"
+              />
+              <p className="text-[11px] text-slate-400 italic">
+                Square logo for tenant dashboard and member portal.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div className="space-y-3">
+          <Label htmlFor="homepage-logo-upload" className="text-slate-700 font-bold">
+            Homepage Landscape Logo
+          </Label>
+          <div className="flex items-center gap-4">
+            <div className="h-20 w-full rounded-2xl border-2 border-dashed border-slate-200 bg-slate-50 flex items-center justify-center overflow-hidden shrink-0">
+              {branding.homepageLogoUrl ? (
+                <img
+                  src={branding.homepageLogoUrl}
+                  alt="Homepage logo preview"
+                  className="h-full w-full object-contain"
+                />
+              ) : (
+                <UploadCloud className="h-8 w-8 text-slate-300" />
+              )}
+            </div>
+            <div className="flex-1 space-y-2">
+              <Input
+                id="homepage-logo-upload"
+                type="file"
+                accept="image/png,image/webp,image/svg+xml"
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (file) {
+                    if (file.size > 5 * 1024 * 1024) {
+                      toast.error("File too large. Max allowed: 5MB");
+                      return;
+                    }
+                    const reader = new FileReader();
+                    reader.onloadend = () => {
+                      setBranding((prev) => ({
+                        ...prev,
+                        homepageLogoUrl: reader.result as string,
+                      }));
+                    };
+                    reader.readAsDataURL(file);
+                  }
+                }}
+                className="h-11 rounded-xl cursor-pointer"
+              />
+              <p className="text-[11px] text-slate-400 italic">
+                Landscape logo for tenant homepage and public site header.
+              </p>
+            </div>
           </div>
         </div>
       </div>
@@ -269,7 +324,8 @@ export function BrandingTabWrapper({
           <div className="h-[500px] w-full">
             <MockHomepagePreview
               branding={{
-                logoUrl: initialBranding.logo_url,
+                logoUrl:
+                  initialBranding.homepage_logo_url || initialBranding.logo_url,
                 primaryColor: initialBranding.brand_color,
                 displayName: displayName,
               }}

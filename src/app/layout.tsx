@@ -4,6 +4,21 @@ import { Toaster } from "@/components/ui/sonner";
 import { AuthProvider } from "@/components/providers/session-provider";
 import { Analytics } from "@vercel/analytics/react";
 import { SpeedInsights } from "@vercel/speed-insights/next";
+import { Fraunces, Plus_Jakarta_Sans } from "next/font/google";
+import { IdleSessionTimer } from "@/components/auth/idle-session-timer";
+import { ThemeProvider } from "next-themes";
+
+const fraunces = Fraunces({
+  subsets: ["latin"],
+  display: "swap",
+  variable: "--font-fraunces",
+});
+
+const plusJakartaSans = Plus_Jakarta_Sans({
+  subsets: ["latin"],
+  display: "swap",
+  variable: "--font-plus-jakarta",
+});
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://agapay-iatk.vercel.app"),
@@ -50,16 +65,13 @@ export const metadata: Metadata = {
   },
 };
 
-import { IdleSessionTimer } from "@/components/auth/idle-session-timer";
-import { ThemeProvider } from "next-themes";
-
 export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className="antialiased" suppressHydrationWarning>
+    <html lang="en" className={`${fraunces.variable} ${plusJakartaSans.variable} antialiased`} suppressHydrationWarning>
       <body
         className="font-sans selection:bg-emerald-100 selection:text-emerald-900 transition-colors duration-300"
       >
@@ -76,6 +88,8 @@ export default function RootLayout({
               <Toaster position="top-right" richColors expand visibleToasts={1} />
             </div>
           </AuthProvider>
+          <Analytics />
+          <SpeedInsights />
         </ThemeProvider>
       </body>
     </html>

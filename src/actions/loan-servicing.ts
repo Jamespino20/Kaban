@@ -455,6 +455,8 @@ export async function submitMockRepayment(
         },
       });
 
+      revalidatePath("/agapay-tanaw");
+      revalidatePath("/agapay-pintig");
       return serializeDecimal({
         success: "Repayment submitted successfully.",
         payment,
@@ -605,6 +607,8 @@ export async function processFullPayment(
         ],
       });
 
+      revalidatePath("/agapay-tanaw");
+      revalidatePath("/agapay-pintig");
       return {
         success: `Full payment processed successfully. You paid ₱${remainingPrincipal.toLocaleString()} (remaining interest waived as full-payment discount).`,
       };
@@ -810,6 +814,8 @@ export async function verifySubmittedPayment(
         );
       }
 
+      revalidatePath("/agapay-tanaw");
+      revalidatePath("/agapay-pintig");
       return { success: "Payment verified successfully." };
     });
   } catch (error) {
@@ -850,6 +856,8 @@ export async function rejectSubmittedPayment(
         },
       });
 
+      revalidatePath("/agapay-tanaw");
+      revalidatePath("/agapay-pintig");
       return { success: "Payment rejected successfully." };
     });
   } catch (error) {

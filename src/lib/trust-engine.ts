@@ -37,7 +37,6 @@ export async function calculateTrustScore(
           payments: true,
         },
       },
-      // social_vouches_received: true, // REMOVED: vouch system dropped
       guarantees: {
         where: tenantId ? { loan: { tenant_id: tenantId } } : undefined,
         include: {

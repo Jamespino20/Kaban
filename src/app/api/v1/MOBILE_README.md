@@ -3,11 +3,13 @@
 > Secure, multi-tenant REST endpoints for the **Agapay Pintig** native Android/iOS client.
 
 Base URL (production):
+
 ```
 https://agapay-saas.vercel.app/api/v1/mobile
 ```
 
 Base URL (local dev):
+
 ```
 http://10.0.2.2:3000/api/v1/mobile
 ```
@@ -36,14 +38,14 @@ http://10.0.2.2:3000/api/v1/mobile
 
 ### Public Endpoints (no token required)
 
-| Endpoint | Method | Description |
-|---|---|---|
-| `/auth/login` | POST | Authenticate with email/username + password |
-| `/auth/register` | POST | Create a new member account |
-| `/auth/forgot-password` | POST | Request password reset email |
-| `/auth/reset-password` | POST | Reset password with token |
-| `/tenants` | GET | List active cooperatives |
-| `/tenants/regions` | GET | List regions/groups |
+| Endpoint                | Method | Description                                 |
+| ----------------------- | ------ | ------------------------------------------- |
+| `/auth/login`           | POST   | Authenticate with email/username + password |
+| `/auth/register`        | POST   | Create a new member account                 |
+| `/auth/forgot-password` | POST   | Request password reset email                |
+| `/auth/reset-password`  | POST   | Reset password with token                   |
+| `/tenants`              | GET    | List active cooperatives                    |
+| `/tenants/regions`      | GET    | List regions/groups                         |
 
 ### Authenticated Endpoints (Bearer token required)
 
@@ -63,11 +65,11 @@ Authenticate a member within their cooperative.
 
 **Request body:**
 
-| Field | Type | Required | Description |
-|---|---|---|---|
-| `tenantId` | `number` | ✅ | Cooperative's numeric ID |
-| `username` | `string` | ✅ | Username **or** email address |
-| `password` | `string` | ✅ | Account password |
+| Field      | Type     | Required | Description                   |
+| ---------- | -------- | -------- | ----------------------------- |
+| `tenantId` | `number` | ✅       | Cooperative's numeric ID      |
+| `username` | `string` | ✅       | Username **or** email address |
+| `password` | `string` | ✅       | Account password              |
 
 **200 — Success:**
 
@@ -93,7 +95,12 @@ Authenticate a member within their cooperative.
 {
   "status": "success",
   "requires_2fa": true,
-  "user": { "user_id": 60118, "username": "mariasantos", "role": "member", "tenant_id": 60001 }
+  "user": {
+    "user_id": 60118,
+    "username": "mariasantos",
+    "role": "member",
+    "tenant_id": 60001
+  }
 }
 ```
 
@@ -107,24 +114,24 @@ Register a new member within a specific tenant.
 
 **Request body:**
 
-| Field | Type | Required | Description |
-|---|---|---|---|
-| `tenantId` | `number` | ✅ | Cooperative's numeric ID |
-| `email` | `string` | ✅ | Valid email |
-| `username` | `string` | ✅ | Min 3 characters |
-| `password` | `string` | ✅ | Min 6 characters |
-| `firstName` | `string` | ✅ | Legal first name |
-| `lastName` | `string` | ✅ | Legal last name |
-| `phone` | `string` | ✅ | Min 10 digits |
-| `maritalStatus` | `string` | ✅ | `single`, `married`, etc. |
-| `birthdate` | `string` | ✅ | `YYYY-MM-DD` |
-| `gender` | `string` | ✅ | `male`, `female` |
-| `region` | `string` | ✅ | PSGC region |
-| `province` | `string` | ✅ | Province name |
-| `city` | `string` | ✅ | City/Municipality |
-| `barangay` | `string` | ✅ | Barangay |
-| `streetAddress` | `string` | ✅ | Full address |
-| `idPicture` | `string` | ✅ | URL of uploaded valid ID |
+| Field           | Type     | Required | Description               |
+| --------------- | -------- | -------- | ------------------------- |
+| `tenantId`      | `number` | ✅       | Cooperative's numeric ID  |
+| `email`         | `string` | ✅       | Valid email               |
+| `username`      | `string` | ✅       | Min 3 characters          |
+| `password`      | `string` | ✅       | Min 6 characters          |
+| `firstName`     | `string` | ✅       | Legal first name          |
+| `lastName`      | `string` | ✅       | Legal last name           |
+| `phone`         | `string` | ✅       | Min 10 digits             |
+| `maritalStatus` | `string` | ✅       | `single`, `married`, etc. |
+| `birthdate`     | `string` | ✅       | `YYYY-MM-DD`              |
+| `gender`        | `string` | ✅       | `male`, `female`          |
+| `region`        | `string` | ✅       | PSGC region               |
+| `province`      | `string` | ✅       | Province name             |
+| `city`          | `string` | ✅       | City/Municipality         |
+| `barangay`      | `string` | ✅       | Barangay                  |
+| `streetAddress` | `string` | ✅       | Full address              |
+| `idPicture`     | `string` | ✅       | URL of uploaded valid ID  |
 
 **201 — Success:**
 
@@ -132,7 +139,12 @@ Register a new member within a specific tenant.
 {
   "status": "success",
   "message": "Registration successful. Please verify your email.",
-  "user": { "user_id": 60118, "username": "mariasantos", "member_code": "MALOLOS-M-060118", "tenant_id": 60001 },
+  "user": {
+    "user_id": 60118,
+    "username": "mariasantos",
+    "member_code": "MALOLOS-M-060118",
+    "tenant_id": 60001
+  },
   "token": "uuid-auth-token"
 }
 ```
@@ -388,16 +400,16 @@ Validation errors (400) may include field-level breakdown:
 }
 ```
 
-| HTTP Status | Meaning |
-|---|---|
-| 200 | Success |
-| 201 | Created (registration) |
-| 400 | Invalid input / validation failure |
-| 401 | Unauthorized — missing or invalid token |
-| 403 | Forbidden — account suspended |
-| 404 | Resource not found |
-| 409 | Conflict — duplicate email/username |
-| 500 | Internal server error |
+| HTTP Status | Meaning                                 |
+| ----------- | --------------------------------------- |
+| 200         | Success                                 |
+| 201         | Created (registration)                  |
+| 400         | Invalid input / validation failure      |
+| 401         | Unauthorized — missing or invalid token |
+| 403         | Forbidden — account suspended           |
+| 404         | Resource not found                      |
+| 409         | Conflict — duplicate email/username     |
+| 500         | Internal server error                   |
 
 ---
 
@@ -447,6 +459,59 @@ public class ApiClient {
 
         if (payload != null) {
             byte[] body = payload.toString().getBytes(StandardCharsets.UTF_8);
+            try (OutputStream os = conn.getOutputStream()) { os.write(body); }
+        }
+
+        int code = conn.getResponseCode();
+        InputStream stream = (code >= 400) ? conn.getErrorStream() : conn.getInputStream();
+        StringBuilder sb = new StringBuilder();
+        try (BufferedReader br = new BufferedReader(new InputStreamReader(stream, StandardCharsets.UTF_8))) {
+            String line; while ((line = br.readLine()) != null) sb.append(line);
+        }
+        JSONObject response = new JSONObject(sb.toString());
+        response.put("_httpStatus", code);
+        return response;
+    }
+
+    public static JSONObject get(String endpoint, String token) throws Exception {
+        return request("GET", endpoint, null, token);
+    }
+    public static JSONObject post(String endpoint, JSONObject payload, String token) throws Exception {
+        return request("POST", endpoint, payload, token);
+    }
+    public static JSONObject put(String endpoint, JSONObject payload, String token) throws Exception {
+        return request("PUT", endpoint, payload, token);
+    }
+}
+```
+
+---
+
+### Step 3 — Build Models
+
+```java
+// AgapayUser.java
+public class AgapayUser {
+    public int userId;
+    public String username;
+    public String email;
+    public String role;
+    public int tenantId;
+    public String tenantSlug;
+    public String memberCode;
+    public String token;
+
+    public static AgapayUser fromJson(JSONObject json) {
+        AgapayUser u = new AgapayUser();
+        u.userId     = json.getInt("user_id");
+        u.username   = json.optString("username");
+        u.email      = json.optString("email");
+        u.role       = json.optString("role");
+        u.tenantId   = json.optInt("tenant_id");
+        u.tenantSlug = json.optString("tenant_slug");
+        u.memberCode = json.optString("member_code");
+        return u;
+    }
             try (OutputStream os = conn.getOutputStream()) { os.write(body); }
         }
 
@@ -605,6 +670,7 @@ protected void onCreate(Bundle savedInstanceState) {
 ## Changelog
 
 ### v1.1 — 2026-05-15
+
 - Added token-based auth (`POST /auth/login` now returns `token`)
 - `POST /auth/2fa/verify` — 2FA challenge flow
 - `POST /auth/forgot-password`, `/auth/reset-password`
@@ -618,5 +684,6 @@ protected void onCreate(Bundle savedInstanceState) {
 - `GET /notifications`, `POST /notifications/mark-read`
 
 ### v1.0 — 2026-05-14
+
 - `POST /mobile/auth/login` — Password auth with 2FA detection
 - `POST /mobile/auth/register` — Member registration
