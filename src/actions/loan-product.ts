@@ -141,20 +141,10 @@ export const getLoanProducts = async () => {
   }
 
   try {
-    const queryFn = async (db: any) => {
-      return await db.loanProduct.findMany({
-        orderBy: {
-          product_id: "desc",
-        },
-      });
-    };
-
-    const products = await prisma.$withTenant(
-      session.user.tenantId,
-      async (tx: Prisma.TransactionClient) => {
-        return await queryFn(tx);
-      },
-    );
+    const products = await prisma.loanProduct.findMany({
+      where: { tenant_id: session.user.tenantId },
+      orderBy: { product_id: "desc" },
+    });
 
     return products.map((product: any) => ({
       product_id: product.product_id,

@@ -187,6 +187,7 @@ export async function getMemberWallets() {
   return await prisma.$withTenant(tenantId, async (tx: any) => {
     return serializeDecimal(await tx.savingsAccount.findMany({
       where: {
+        tenant_id: tenantId,
         user_id: userId,
       },
       orderBy: {

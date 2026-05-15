@@ -31,6 +31,7 @@ export async function createAuthToken(userId: number, tenantId: number): Promise
       token,
       type: "VERIFICATION",
       expires: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+      user_id: userId,
       tenant_id: tenantId,
     },
   });

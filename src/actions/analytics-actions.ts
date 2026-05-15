@@ -56,6 +56,7 @@ export async function getTenantAnalytics(
       // 1. Traffic Trends
       const traffic = await db.auditLog.findMany({
         where: {
+          tenant_id: tenantId,
           log_type: "TRAFFIC",
           created_at: { gte: startDate },
         },
@@ -75,6 +76,7 @@ export async function getTenantAnalytics(
       const interactionsRaw = await db.auditLog.groupBy({
         by: ["event_type"],
         where: {
+          tenant_id: tenantId,
           log_type: "INTERACTION",
           created_at: { gte: startDate },
         },
@@ -88,6 +90,7 @@ export async function getTenantAnalytics(
       const geoRaw = await db.auditLog.groupBy({
         by: ["region", "city"],
         where: {
+          tenant_id: tenantId,
           log_type: "TRAFFIC",
           created_at: { gte: startDate },
         },
@@ -101,6 +104,7 @@ export async function getTenantAnalytics(
       const activeUsersRaw = await db.auditLog.groupBy({
         by: ["user_id"],
         where: {
+          tenant_id: tenantId,
           log_type: "INTERACTION",
           user_id: { not: null },
           created_at: { gte: startDate },
@@ -168,6 +172,7 @@ export async function getOperationalInsights(
       // 1. Repayment Velocity
       const payments = await db.payment.findMany({
         where: {
+          tenant_id: tenantId,
           status: "verified",
           verified_at: { gte: startDate },
         },
@@ -187,6 +192,7 @@ export async function getOperationalInsights(
       const migration = await db.user.groupBy({
         by: ["interest_tier"],
         where: {
+          tenant_id: tenantId,
           role: "member",
         },
         _count: { user_id: true },
@@ -202,6 +208,7 @@ export async function getOperationalInsights(
       const concentration = await db.loan.groupBy({
         by: ["product_id"],
         where: {
+          tenant_id: tenantId,
           status: { in: ["active", "defaulted"] },
         },
         _sum: { balance_remaining: true },
@@ -209,6 +216,7 @@ export async function getOperationalInsights(
       });
 
       const productNames = await db.loanProduct.findMany({
+        where: { tenant_id: tenantId },
         select: { product_id: true, name: true },
       });
 
@@ -273,6 +281,7 @@ export async function getFinancialIntegrityCheck(): Promise<FinancialIntegrity |
       // 1. Treasury Ledger Balance (Asset)
       const treasuryLedger = await db.businessLedger.aggregate({
         where: {
+          tenant_id: tenantId,
           account: {
             code: "TREASURY_VAULT",
           },
@@ -290,7 +299,7 @@ export async function getFinancialIntegrityCheck(): Promise<FinancialIntegrity |
       // 2. Member Savings Pool (Liability)
       const savingsPool = await db.$queryRaw<
         { total: number }[]
-      >`SELECT COALESCE(SUM(balance), 0) as total FROM savings_accounts`;
+      >`SELECT COALESCE(SUM(balance), 0) as total FROM savings_accounts WHERE tenant_id = ${tenantId}`;
 
       const poolTotal = Number(savingsPool[0]?.total || 0);
       const variance = treasuryBalance - poolTotal;

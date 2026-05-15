@@ -54,6 +54,7 @@ import {
   verifySubmittedPayment,
 } from "@/actions/loan-servicing";
 import { manuallyDeclareDefault } from "@/actions/admin-actions";
+import { FilePreviewDialog } from "@/components/admin/file-preview-dialog";
 import { useRouter } from "next/navigation";
 
 interface VerificationQueueTabProps {
@@ -535,14 +536,11 @@ function IdentityCard({ user }: { user: any }) {
         user.documents.length > 0 ? (
           <div className="flex flex-wrap gap-2 pt-1">
             {user.documents.map((doc: any) => (
-              <a
+              <FilePreviewDialog
                 key={doc.document_id}
-                href={doc.file_url}
-                target="_blank"
-                className="text-xs text-sky-600 underline hover:text-sky-800"
-              >
-                {doc.document_type?.replaceAll("_", " ") || "Document"}
-              </a>
+                url={doc.file_url}
+                label={doc.document_type?.replaceAll("_", " ") || "Document"}
+              />
             ))}
           </div>
         ) : null
@@ -816,13 +814,10 @@ function ReviewPaymentCard({ payment }: { payment: any }) {
       extra={
         <div className="space-y-1 text-xs text-slate-500">
           {payment.receipt_url ? (
-            <a
-              href={payment.receipt_url}
-              target="_blank"
-              className="font-medium text-emerald-600 underline"
-            >
-              Tingnan ang proof / receipt
-            </a>
+            <FilePreviewDialog
+              url={payment.receipt_url}
+              label="Tingnan ang proof / receipt"
+            />
           ) : null}
           {payment.notes ? <p>Notes: {payment.notes}</p> : null}
         </div>

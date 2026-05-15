@@ -48,16 +48,12 @@ export async function sql<T = Record<string, unknown>>(
   strings: TemplateStringsArray | string,
   ...values: unknown[]
 ): Promise<T[]> {
-  console.log(`[SQL] → Calling utility (API Client Mode: ${shouldUseApiClient()})`);
   // Return empty in API client mode — data comes from PHP API
   if (shouldUseApiClient()) {
     return [] as T[];
   }
 
   const url = getMysqlConfig();
-  if (true) { // Force logging for now
-    console.log(`[SQL Query] → Initializing connection`);
-  }
   const connection = await mysql.createConnection(url as any);
 
   try {
@@ -65,24 +61,20 @@ export async function sql<T = Record<string, unknown>>(
     let params: unknown[];
 
     if (typeof strings === "string") {
-      query = strings;
+      query = strings.trim();
       params = (values[0] as unknown[]) || [];
     } else {
       query = strings.reduce(
         (acc, part, i) => acc + part + (i < values.length ? "?" : ""),
         "",
-      );
+      ).trim();
       params = values;
     }
 
-    if (true) {
-      console.log(`[SQL Query] → ${query.replace(/\s+/g, ' ').trim()}`);
-      console.log(`[SQL Params] → ${JSON.stringify(params)}`);
-    }
 
     const [rows] = await connection.execute(query, params as any);
 
-    if (true) {
+    if (process.env.DEBUG_SQL === "true") {
       console.log(`[SQL Result] → Found ${(rows as any[]).length} rows`);
     }
 

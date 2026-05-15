@@ -142,9 +142,10 @@ export async function POST(req: Request) {
       });
 
       const roleInitial = "M";
-      const serial = user.user_id.toString().padStart(6, "0");
-      const tenant_slug = tenant.slug.toUpperCase();
-      const memberCode = `${tenant_slug} ${roleInitial} ${serial}`;
+      const tenantPrefix = tenant.slug.toUpperCase().replace(/_/g, "-");
+      const randomTag = Math.random().toString(36).substring(2, 6).toUpperCase();
+      const seqNum = user.user_id.toString().padStart(4, "0");
+      const memberCode = `${tenantPrefix}-${roleInitial}-${randomTag}-${seqNum}`;
 
       await tx.user.update({
         where: { user_id: user.user_id },
@@ -152,7 +153,7 @@ export async function POST(req: Request) {
       });
 
       const verificationToken = await generateVerificationToken(email, tenantId);
-      await sendVerificationEmail(verificationToken.email, verificationToken.token);
+      await sendVerificationEmail(verificationToken.email, verificationToken.token, tenant.slug);
 
       return {
         status: "success",

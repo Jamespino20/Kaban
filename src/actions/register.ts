@@ -176,10 +176,11 @@ export const register = async (values: z.infer<typeof RegisterSchema>) => {
         },
       });
 
-      const roleInitial = "M"; // Defaults to Member
-      const serial = user.user_id.toString().padStart(6, "0");
-      const tenant_slug = tenant.slug.toUpperCase();
-      const memberCode = `${tenant_slug} ${roleInitial} ${serial}`;
+      const roleInitial = "M";
+      const tenantPrefix = tenant.slug.toUpperCase().replace(/_/g, "-");
+      const randomTag = Math.random().toString(36).substring(2, 6).toUpperCase();
+      const seqNum = user.user_id.toString().padStart(4, "0");
+      const memberCode = `${tenantPrefix}-${roleInitial}-${randomTag}-${seqNum}`;
 
       await db.user.update({
         where: { user_id: user.user_id },
@@ -196,6 +197,7 @@ export const register = async (values: z.infer<typeof RegisterSchema>) => {
       await sendVerificationEmail(
         verificationToken.email,
         verificationToken.token,
+        tenant.slug,
       );
 
       return {

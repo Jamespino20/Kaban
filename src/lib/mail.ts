@@ -84,12 +84,12 @@ export const sendTwoFactorTokenEmail = async (email: string, token: string) => {
           <h1 style="color: white; margin: 0; font-style: italic;">Agapay</h1>
         </div>
         <div style="padding: 40px; color: #1e293b;">
-          <h2 style="margin-top: 0;">Ang Inyong 2FA Code</h2>
-          <p>Gamitin ang code sa ibaba upang makapasok sa iyong Agapay account.</p>
+          <h2 style="margin-top: 0;">Your 2FA Code</h2>
+          <p>Use the code below to sign in to your Agapay account.</p>
           <div style="background-color: #f1f5f9; padding: 20px; border-radius: 8px; text-align: center; font-size: 32px; font-weight: bold; letter-spacing: 8px; margin: 30px 0;">
             ${token}
           </div>
-          <p style="font-size: 14px; color: #64748b;">Kung hindi mo ito hiningi, maaari mo itong balewalain.</p>
+          <p style="font-size: 14px; color: #64748b;">If you did not request this, you can safely ignore it.</p>
         </div>
       </div>
     `,
@@ -115,23 +115,28 @@ export const verifyEmailExists = async (email: string): Promise<boolean> => {
   return true;
 };
 
-export const sendVerificationEmail = async (email: string, token: string) => {
-  const confirmLink = `${process.env.NEXT_PUBLIC_APP_URL}/auth/new-verification?token=${token}`;
+export const sendVerificationEmail = async (email: string, token: string, tenantSlug?: string) => {
+  const baseUrl =
+    process.env.NEXT_PUBLIC_APP_URL ||
+    process.env.NEXTAUTH_URL ||
+    "https://agapay-saas.vercel.app";
+  const slugPath = tenantSlug ? `/${tenantSlug}` : "";
+  const confirmLink = `${baseUrl}${slugPath}/auth/new-verification?token=${token}`;
 
   return guardedSendMail({
     from: process.env.SMTP_FROM,
     to: email,
-    subject: "I-verify ang iyong Agapay Account",
+    subject: "Verify your Agapay account",
     html: `
       <div style="font-family: sans-serif; max-width: 600px; margin: auto; border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden;">
         <div style="background-color: #059669; padding: 40px; text-align: center;">
           <h1 style="color: white; margin: 0; font-style: italic;">Agapay</h1>
         </div>
         <div style="padding: 40px; color: #1e293b;">
-          <h2>Handa na ang iyong Agapay!</h2>
-          <p>Salamat sa pagrehistro. I-click ang button sa ibaba upang i-verify ang iyong account.</p>
-          <a href="${confirmLink}" style="display: block; width: 200px; margin: 30px auto; padding: 15px; background-color: #059669; color: white; text-decoration: none; text-align: center; border-radius: 30px; font-weight: bold;">I-verify ang Account</a>
-          <p style="font-size: 14px; color: #64748b;">O i-copy itong link sa iyong browser: ${confirmLink}</p>
+          <h2>You Are Now Ready for Agapay!</h2>
+          <p>Thank you for registering. Click the button below to verify your account.</p>
+          <a href="${confirmLink}" style="display: block; width: 200px; margin: 30px auto; padding: 15px; background-color: #059669; color: white; text-decoration: none; text-align: center; border-radius: 30px; font-weight: bold;">Verify Account</a>
+          <p style="font-size: 14px; color: #64748b;">Or copy this link to your browser: ${confirmLink}</p>
         </div>
       </div>
     `,
@@ -139,22 +144,22 @@ export const sendVerificationEmail = async (email: string, token: string) => {
 };
 
 export const sendPasswordResetEmail = async (email: string, token: string) => {
-  const resetLink = `${process.env.NEXT_PUBLIC_APP_URL}/auth/new-password?token=${token}`;
+  const resetLink = `\${baseUrl}/auth/new-password?token=\${token}`;
   return guardedSendMail({
     from: process.env.SMTP_FROM,
     to: email,
-    subject: "I-reset ang iyong Password - Agapay",
+    subject: "Reset Your Password - Agapay",
     html: `
       <div style="font-family: sans-serif; max-width: 600px; margin: auto; border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden;">
         <div style="background-color: #059669; padding: 40px; text-align: center;">
           <h1 style="color: white; margin: 0; font-style: italic;">Agapay</h1>
         </div>
         <div style="padding: 40px; color: #1e293b;">
-          <h2>Nakalimutan ang Password?</h2>
-          <p>I-click ang button sa ibaba upang i-reset ang iyong password para sa Agapay. Ang link na ito ay valid lamang sa loob ng isang oras.</p>
-          <a href="${resetLink}" style="display: block; width: 200px; margin: 30px auto; padding: 15px; background-color: #059669; color: white; text-decoration: none; text-align: center; border-radius: 30px; font-weight: bold;">I-reset ang Password</a>
-          <p style="font-size: 14px; color: #64748b;">O i-copy itong link sa iyong browser: ${resetLink}</p>
-          <p style="font-size: 14px; color: #64748b; margin-top: 20px;">Kung hindi mo ito hiningi, maaari mo itong balewalain nang ligtas.</p>
+          <h2>Forgot Your Password?</h2>
+          <p>Click the button below to reset your password for Agapay. This link is valid for one hour only.</p>
+          <a href="${resetLink}" style="display: block; width: 200px; margin: 30px auto; padding: 15px; background-color: #059669; color: white; text-decoration: none; text-align: center; border-radius: 30px; font-weight: bold;">Reset Password</a>
+          <p style="font-size: 14px; color: #64748b;">Or copy this link to your browser: ${resetLink}</p>
+          <p style="font-size: 14px; color: #64748b; margin-top: 20px;">If you did not request this, you can safely ignore it.</p>
         </div>
       </div>
     `,
@@ -170,24 +175,28 @@ export const sendTenantScopedPasswordResetEmail = async ({
   token: string;
   tenantName?: string | null;
 }) => {
-  const resetLink = `${process.env.NEXT_PUBLIC_APP_URL}/auth/new-password?token=${token}`;
+  const baseUrl =
+    process.env.NEXT_PUBLIC_APP_URL ||
+    process.env.NEXTAUTH_URL ||
+    "https://agapay-saas.vercel.app";
+  const resetLink = `${baseUrl}/auth/new-password?token=${token}`;
   const tenantLabel = tenantName?.trim() || "iyong cooperative account";
 
   return guardedSendMail({
     from: process.env.SMTP_FROM,
     to: email,
-    subject: `I-reset ang iyong Password - ${tenantLabel}`,
+    subject: `Reset your Password - ${tenantLabel}`,
     html: `
       <div style="font-family: sans-serif; max-width: 600px; margin: auto; border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden;">
         <div style="background-color: #059669; padding: 40px; text-align: center;">
           <h1 style="color: white; margin: 0; font-style: italic;">Agapay</h1>
         </div>
         <div style="padding: 40px; color: #1e293b;">
-          <h2>Nakalimutan ang Password?</h2>
-          <p>I-click ang button sa ibaba upang i-reset ang iyong password para sa <strong>${tenantLabel}</strong>. Ang link na ito ay valid lamang sa loob ng isang oras.</p>
-          <a href="${resetLink}" style="display: block; width: 200px; margin: 30px auto; padding: 15px; background-color: #059669; color: white; text-decoration: none; text-align: center; border-radius: 30px; font-weight: bold;">I-reset ang Password</a>
-          <p style="font-size: 14px; color: #64748b;">O i-copy itong link sa iyong browser: ${resetLink}</p>
-          <p style="font-size: 14px; color: #64748b; margin-top: 20px;">Kung hindi mo ito hiningi, maaari mo itong balewalain nang ligtas.</p>
+          <h2>Forgot Your Password?</h2>
+          <p>Click the button below to reset your password for <strong>${tenantLabel}</strong>. This link is valid for one hour only.</p>
+          <a href="${resetLink}" style="display: block; width: 200px; margin: 30px auto; padding: 15px; background-color: #059669; color: white; text-decoration: none; text-align: center; border-radius: 30px; font-weight: bold;">Reset Password</a>
+          <p style="font-size: 14px; color: #64748b;">Or copy this link to your browser: ${resetLink}</p>
+          <p style="font-size: 14px; color: #64748b; margin-top: 20px;">If you did not request this, you can safely ignore it.</p>
         </div>
       </div>
     `,
@@ -210,7 +219,7 @@ export const sendFeedbackNotificationEmail = async ({
   message: string;
 }) => {
   const normalizedSubject =
-    subject?.trim() || `Bagong ${category} feedback mula sa ${name}`;
+    subject?.trim() || `New ${category} feedback from ${name}`;
 
   return guardedSendMail({
     from: `"${name} via Agapay" <${process.env.SMTP_USER}>`,
@@ -223,16 +232,16 @@ export const sendFeedbackNotificationEmail = async ({
           <h1 style="color: white; margin: 0; font-style: italic;">Agapay Feedback Inbox</h1>
         </div>
         <div style="padding: 32px; color: #1e293b;">
-          <h2 style="margin-top: 0;">May bagong feedback submission</h2>
+          <h2 style="margin-top: 0;">There is a new feedback submission</h2>
           <table style="width: 100%; border-collapse: collapse; margin: 24px 0;">
             <tbody>
               <tr>
-                <td style="padding: 8px 0; color: #64748b; width: 160px;">Pangalan</td>
+                <td style="padding: 8px 0; color: #64748b; width: 160px;">Name</td>
                 <td style="padding: 8px 0; font-weight: 600;">${name}</td>
               </tr>
               <tr>
                 <td style="padding: 8px 0; color: #64748b;">Email</td>
-                <td style="padding: 8px 0; font-weight: 600;">${email || "Walang ibinigay"}</td>
+                <td style="padding: 8px 0; font-weight: 600;">${email || "None given"}</td>
               </tr>
               <tr>
                 <td style="padding: 8px 0; color: #64748b;">Category</td>
@@ -240,11 +249,11 @@ export const sendFeedbackNotificationEmail = async ({
               </tr>
               <tr>
                 <td style="padding: 8px 0; color: #64748b;">Page</td>
-                <td style="padding: 8px 0; font-weight: 600;">${pagePath || "Hindi tinukoy"}</td>
+                <td style="padding: 8px 0; font-weight: 600;">${pagePath || "None stated"}</td>
               </tr>
               <tr>
                 <td style="padding: 8px 0; color: #64748b;">Subject</td>
-                <td style="padding: 8px 0; font-weight: 600;">${subject || "Walang subject"}</td>
+                <td style="padding: 8px 0; font-weight: 600;">${subject || "No subject"}</td>
               </tr>
             </tbody>
           </table>
@@ -284,7 +293,7 @@ export const sendSystemNotificationEmail = async ({
           <div style="white-space: pre-line; line-height: 1.65;">${body}</div>
           ${
             actionUrl
-              ? `<a href="${actionUrl}" style="display:inline-block; margin-top:24px; padding:12px 20px; background-color:#059669; color:white; text-decoration:none; border-radius:999px; font-weight:700;">Buksan sa Agapay</a>`
+              ? `<a href="${actionUrl}" style="display:inline-block; margin-top:24px; padding:12px 20px; background-color:#059669; color:white; text-decoration:none; border-radius:999px; font-weight:700;">Access in Agapay</a>`
               : ""
           }
         </div>

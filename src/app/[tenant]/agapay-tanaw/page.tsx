@@ -4,6 +4,8 @@ import { TenantNameSettingsCard } from "@/components/admin/tenant-name-settings-
 import { BrandingTabWrapper } from "@/components/admin/tenant-branding-card";
 import { getEndOfDayReconciliation } from "@/actions/reconciliation";
 
+export const dynamic = "force-dynamic";
+
 import {
   FileText,
   BarChart3,

@@ -218,6 +218,7 @@ export async function getPendingApprovals() {
     // Fetch pending loans
     const loans = await db.loan.findMany({
       where: {
+        tenant_id: tenantId,
         status: "pending",
       },
       include: {
@@ -236,6 +237,7 @@ export async function getPendingApprovals() {
     // Fetch users with pending verification documents
     const verifications = await db.user.findMany({
       where: {
+        tenant_id: tenantId,
         status: UserStatus.pending,
         documents: {
           some: {
@@ -251,6 +253,7 @@ export async function getPendingApprovals() {
 
     const approvedLoans = await db.loan.findMany({
       where: {
+        tenant_id: tenantId,
         status: "approved",
       },
       include: {

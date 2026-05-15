@@ -204,7 +204,7 @@ model UserDocument {
   document_type       DocumentType
 
   id_type_name        String?            @db.VarChar(100)
-  file_url            String             @db.Text
+  file_url            String             @db.LongText
   verification_status VerificationStatus @default(pending)
   uploaded_at         DateTime           @default(now())
   user                User               @relation(fields: [user_id], references: [user_id], onDelete: Cascade)
@@ -645,6 +645,7 @@ model AuthToken {
   token     String            @unique
   expires   DateTime
   type      SecurityTokenType
+  user_id   Int?
   tenant_id Int?
 
   @@unique([tenant_id, email, token, type])
@@ -738,7 +739,7 @@ model MessageAttachment {
   tenant_id  Int // Mandatory for RLS
   file_name  String   @db.VarChar(255)
 
-  file_url   String   @db.VarChar(255)
+  file_url   String   @db.LongText
   mime_type  String   @db.VarChar(100)
   size_bytes Int
   created_at DateTime @default(now())
@@ -792,7 +793,7 @@ model Notification {
 model DecommissionedBackup {
   id               String   @id @default(cuid())
   tenant_id        Int
-  file_url         String   @db.VarChar(255)
+  file_url         String   @db.LongText
   snapshot_date    DateTime @default(now())
   created_at       DateTime @default(now())
   snapshot_content String

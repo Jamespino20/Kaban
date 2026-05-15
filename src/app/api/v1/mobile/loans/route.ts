@@ -7,7 +7,7 @@ export async function GET(req: Request) {
     const auth = await getAuthUser(req);
 
     const loans = await prisma.loan.findMany({
-      where: { user_id: auth.user_id },
+      where: { tenant_id: auth.tenant_id, user_id: auth.user_id },
       orderBy: { applied_at: "desc" },
       select: {
         loan_id: true,

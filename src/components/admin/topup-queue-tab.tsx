@@ -10,6 +10,7 @@ import {
   rejectWalletTopUp,
 } from "@/actions/wallet-actions";
 import { format } from "date-fns";
+import { FilePreviewDialog } from "@/components/admin/file-preview-dialog";
 
 interface TopUpRequest {
   id: number;
@@ -152,14 +153,10 @@ export function TopUpQueueTab({ requests }: TopUpQueueTabProps) {
                       {format(new Date(req.created_at), "MMM d, yyyy · h:mm a")}
                     </p>
                     {req.receipt_url && (
-                      <a
-                        href={req.receipt_url}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="text-xs font-medium text-emerald-600 underline"
-                      >
-                        Tingnan ang Receipt
-                      </a>
+                      <FilePreviewDialog
+                        url={req.receipt_url}
+                        label="Tingnan ang Receipt"
+                      />
                     )}
                   </div>
 

@@ -32,6 +32,7 @@ export async function getEndOfDayReconciliation(
     // 1. Gather all Disbursed Loans today
     const loansDisbursed = await db.loan.findMany({
       where: {
+        tenant_id: tenantId,
         status: "active",
         approved_at: {
           gte: startOfDay,
@@ -49,6 +50,7 @@ export async function getEndOfDayReconciliation(
     // 2. Gather all Verified Payments today
     const paymentsVerified = await db.payment.findMany({
       where: {
+        tenant_id: tenantId,
         status: "verified",
         verified_at: {
           gte: startOfDay,
@@ -66,6 +68,7 @@ export async function getEndOfDayReconciliation(
     // 3. Ledger Sanity Check (Debits vs Credits today for the tenant)
     const ledgerEntries = await db.businessLedger.findMany({
       where: {
+        tenant_id: tenantId,
         created_at: {
           gte: startOfDay,
           lte: endOfDay,
@@ -88,6 +91,7 @@ export async function getEndOfDayReconciliation(
 
     // 4. Tenant Wallet Checks (Total Active Savings Accounts)
     const tenantSavings = await db.savingsAccount.findMany({
+      where: { tenant_id: tenantId },
       select: { balance: true },
     });
 
@@ -98,12 +102,12 @@ export async function getEndOfDayReconciliation(
 
     // 5. Master Pulse Check: Treasury (Asset) vs. User Wallets (Liability)
     const treasuryAccount = await db.ledgerAccount.findFirst({
-      where: { code: "CASH_EQUIVALENTS" },
+      where: { tenant_id: tenantId, code: "CASH_EQUIVALENTS" },
     });
 
     const treasuryEntries = treasuryAccount
       ? await db.businessLedger.findMany({
-          where: { account_id: treasuryAccount.id },
+          where: { tenant_id: tenantId, account_id: treasuryAccount.id },
           select: { debit: true, credit: true },
         })
       : [];
@@ -177,13 +181,13 @@ export async function resolveAndSignEndOfDay(reason?: string) {
 
     if (!eodData.holdings.isTreasuryHealthy) {
       const treasuryAccount = await tx.ledgerAccount.findFirst({
-        where: { code: "CASH_EQUIVALENTS" },
+        where: { tenant_id: tenantId, code: "CASH_EQUIVALENTS" },
       });
 
       if (!treasuryAccount) throw new Error("Missing treasury account.");
 
       let discrepancyAccount = await tx.ledgerAccount.findFirst({
-        where: { code: "RECONC_DISCREPANCY" },
+        where: { tenant_id: tenantId, code: "RECONC_DISCREPANCY" },
       });
 
       if (!discrepancyAccount) {

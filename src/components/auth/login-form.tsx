@@ -72,10 +72,10 @@ export const LoginForm = ({
   });
 
   const onIdentify = (values: z.infer<typeof LoginSchema>) => {
-    console.log("[LOGIN] Identifying user:", values.username);
+    const trimmedUsername = values.username.trim();
     startTransition(async () => {
       const res = (await getAvailableTenants(
-        values.username,
+        trimmedUsername,
         values.password,
         currentTenant,
       )) as any;
