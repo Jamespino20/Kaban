@@ -11,6 +11,7 @@ import {
   ConversationType,
   MentorshipStatus,
   NotificationChannel,
+  NotificationType,
   Role,
   UserStatus,
 } from "@prisma/client";
@@ -293,9 +294,13 @@ export async function getCommunityDashboardData() {
       }),
     ]);
 
+    const dedupedOperatorRooms = operatorRooms.filter((conv: any, i: number, arr: any[]) => arr.findIndex((c: any) => c.id === conv.id) === i);
+    const dedupedDirectConversations = directConversations.filter((conv: any, i: number, arr: any[]) => arr.findIndex((c: any) => c.id === conv.id) === i);
+    const dedupedGroupChats = groupChats.filter((conv: any, i: number, arr: any[]) => arr.findIndex((c: any) => c.id === conv.id) === i);
+
     return {
       requiresTenantContext: false,
-      operatorRooms: operatorRooms.map((room: any) => {
+      operatorRooms: dedupedOperatorRooms.map((room: any) => {
         const lastReadAt = room.participants[0]?.last_read_at;
         const lastMessage = room.messages[0];
 
@@ -1002,6 +1007,41 @@ export async function markConversationRead(conversationId: string) {
   });
 
   return { success: true };
+}
+
+export async function sendTenantAnnouncement(data: {
+  title: string;
+  content: string;
+}) {
+  const { session, tenantId } = await requireCommunityTenantContext();
+
+  if (!tenantId) {
+    return { error: "Tenant context required." };
+  }
+
+  try {
+    const members = await (prisma.$queryRaw`
+      SELECT user_id FROM users WHERE tenant_id = ${tenantId} AND role = 'member' AND status = 'active'
+    ` as Promise<{ user_id: number }[]>);
+
+    for (const member of members) {
+      await createNotification({
+        userId: member.user_id,
+        tenantId,
+        type: NotificationType.tenant_announcement,
+        title: data.title,
+        body: data.content.substring(0, 200),
+        actionUrl: "/agapay-pintig",
+        channel: NotificationChannel.in_app,
+      });
+    }
+
+    revalidatePath("/agapay-pintig");
+    return { success: true, recipientCount: members.length };
+  } catch (error) {
+    console.error("Failed to send tenant announcement:", error);
+    return { error: "Failed to send announcement" };
+  }
 }
 
 export async function toggleMessageReaction(input: {

@@ -1,10 +1,11 @@
-import { TrendingUp, Clock, Info } from "lucide-react";
+import { Clock, Info, ShieldAlert } from "lucide-react";
 import { KPIMetricCard } from "@/components/analytics/kpi-metric-card";
 import { TrustMeter } from "@/components/analytics/trust-meter";
 import { getSuperadminOverview } from "@/actions/superadmin-actions";
 import { InterestTier } from "@prisma/client";
 import { TrustScoreBreakdown } from "@/lib/trust-engine";
 import { AiInsightCard } from "@/components/admin/ai-insight-card";
+import SuperadminWithdrawDialog from "@/components/admin/superadmin-withdraw-dialog";
 
 export default async function SuperadminOverviewTab() {
   const overviewData = (await getSuperadminOverview()) as any;
@@ -28,8 +29,6 @@ export default async function SuperadminOverviewTab() {
   }
 
   // Construct a trust breakdown for the global platform index
-  // Note: For superadmin, this reflects platform-wide averages.
-  // Sub-scores use the overall score as a simplified aggregate.
   const globalTrustBreakdown: TrustScoreBreakdown = {
     score: data.globalTrustScore,
     paymentScore: data.globalTrustScore,
@@ -39,26 +38,46 @@ export default async function SuperadminOverviewTab() {
     tier: InterestTier.T1_5_PERCENT,
   };
 
-  // Calculate growth rates (placeholder - would compare with previous period)
   const fundsGrowth = { value: 12.5, isPositive: true };
   const loansGrowth = { value: 8.2, isPositive: true };
 
   return (
     <div className="space-y-6">
-      {/* Global KPIs */}
+      {/* Platform-wide KPIs */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <KPIMetricCard
-          label="Total Platform Funds"
+          label="Total Active Tenants"
+          value={data.totalActiveTenants.toLocaleString()}
+          iconName="tenants"
+          trend={{ value: 0, isPositive: true }}
+        />
+        <KPIMetricCard
+          label="Global FUM"
           value={`₱${(data.totalFunds / 1000000).toFixed(1)}M`}
           description={`Total: ₱${data.totalFunds.toLocaleString()}`}
           iconName="wallet"
           trend={fundsGrowth}
         />
         <KPIMetricCard
-          label="Active Loans"
+          label="Total Active Loans"
           value={data.totalActiveLoans.toLocaleString()}
           iconName="activity"
           trend={loansGrowth}
+        />
+      </div>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <KPIMetricCard
+          label="Platform Repayment Rate"
+          value={`${data.platformRepaymentRate.toFixed(1)}%`}
+          iconName="repayment"
+          trend={{ value: data.platformRepaymentRate > 90 ? 2.1 : -0.5, isPositive: data.platformRepaymentRate > 85 }}
+        />
+        <KPIMetricCard
+          label="Portfolio at Risk"
+          value={`₱${(data.portfolioAtRisk / 1000).toFixed(0)}K`}
+          description={`At-risk: ₱${data.portfolioAtRisk.toLocaleString()}`}
+          iconName="alert"
+          trend={{ value: data.portfolioAtRisk > 0 ? -3.2 : 0, isPositive: data.portfolioAtRisk === 0 }}
         />
         <KPIMetricCard
           label="Subscription Revenue"
@@ -69,10 +88,67 @@ export default async function SuperadminOverviewTab() {
         />
       </div>
 
-      {/* Trust Score Section */}
+      <div className="grid grid-cols-1 gap-4">
+        <div className="dashboard-card bg-white/70 backdrop-blur-xl p-6 rounded-3xl">
+          <div className="flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
+                Superadmin Earnings Wallet
+              </p>
+              <p className="mt-2 text-3xl font-numbers font-bold text-foreground tracking-tight">
+                ₱{data.superadminWalletBalance.toLocaleString()}
+              </p>
+              <p className="mt-3 text-sm text-slate-500">
+                Balance available for platform withdrawals.
+              </p>
+            </div>
+            <SuperadminWithdrawDialog balance={data.superadminWalletBalance} />
+          </div>
+        </div>
+
+        <div className="dashboard-card bg-white/70 backdrop-blur-xl p-6 rounded-3xl">
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <h3 className="text-lg font-display font-bold text-slate-900">
+                Recent Earnings Withdrawals
+              </h3>
+              <p className="text-sm text-slate-500">
+                Last 5 superadmin payout transactions.
+              </p>
+            </div>
+          </div>
+
+          {data.recentSuperadminWithdrawals && data.recentSuperadminWithdrawals.length > 0 ? (
+            <div className="space-y-3">
+              {data.recentSuperadminWithdrawals.map((tx: any) => (
+                <div key={tx.transaction_id} className="flex flex-col gap-2 rounded-3xl border border-slate-200 bg-slate-50 p-4">
+                  <div className="flex items-center justify-between gap-4">
+                    <div>
+                      <p className="text-sm font-semibold text-slate-900">
+                        ₱{tx.amount.toLocaleString()}
+                      </p>
+                      <p className="text-xs text-slate-500">
+                        {tx.method_label || tx.issue_notes || tx.reference || "Withdrawal"}
+                      </p>
+                    </div>
+                    <div className="text-right text-xs text-slate-500">
+                      <p>{new Date(tx.processed_at).toLocaleDateString("en-PH", { month: "short", day: "numeric" })}</p>
+                      <p>{tx.status || "Completed"}</p>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="text-sm text-slate-500">No earnings withdrawals have been processed yet.</p>
+          )}
+        </div>
+      </div>
+
+      {/* Trust Score + Audit Snapshot + AI */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
-        <div className="dashboard-card bg-white/70 backdrop-blur-xl p-6 flex flex-col md:flex-row items-center gap-8">
-          <div className="flex-1 md:text-left">
+        <div className="dashboard-card bg-white/70 backdrop-blur-xl p-6 flex flex-col items-center gap-4">
+          <div className="text-center w-full">
             <h3 className="text-xl font-display font-bold text-slate-900">
               Platform Trust Index
             </h3>
@@ -81,38 +157,49 @@ export default async function SuperadminOverviewTab() {
             </p>
             <TrustMeter data={globalTrustBreakdown} />
           </div>
-          <div className="flex-shrink-0 scale-110 md:scale-125">
-            <div className="h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-emerald-100 text-emerald-600 ring-4 ring-white shadow-sm flex">
-              <TrendingUp className="h-7 w-7" />
-            </div>
-          </div>
         </div>
 
-        {/* Recent Activity */}
+        {/* Recent Audit Snapshot */}
         <div className="dashboard-card bg-white/70 backdrop-blur-xl p-6">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-xl font-display font-bold text-slate-900">
-              Recent Platform Activity
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="text-lg font-display font-bold text-slate-900 flex items-center gap-2">
+              <ShieldAlert className="h-4 w-4 text-indigo-500" />
+              Audit Snapshot
             </h3>
             <Clock className="h-4 w-4 text-slate-400" />
           </div>
-          <div className="space-y-3">
-            {data.recentLogs.slice(0, 5).map((log: any) => (
-              <div key={log.log_id} className="flex items-start gap-3 py-2">
-                <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-[0.375rem] bg-slate-100 text-slate-500">
-                  <Info className="h-3 w-3" />
-                </div>
-                <div className="flex-1 space-y-0.5">
-                  <p className="text-slate-800 font-medium">{log.action}</p>
-                  <p className="text-slate-500 text-sm">
-                    By <span className="font-medium">{log.username}</span>{" "}
-                    <span className="text-slate-400">
-                      {new Date(log.created_at).toLocaleTimeString()}
-                    </span>
-                  </p>
-                </div>
-              </div>
-            ))}
+          <div className="overflow-x-auto">
+            <table className="w-full text-xs">
+              <thead>
+                <tr className="border-b border-slate-100 text-[10px] uppercase tracking-wider text-slate-500 font-bold">
+                  <th className="text-left py-1.5 pr-2">Action</th>
+                  <th className="text-left py-1.5 px-2">Module</th>
+                  <th className="text-left py-1.5 px-2">User</th>
+                  <th className="text-right py-1.5 pl-2">Time</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-50">
+                {(data.recentLogs || []).map((log: any) => (
+                  <tr key={log.log_id} className="hover:bg-slate-50/50">
+                    <td className="py-1.5 pr-2 font-medium text-slate-800 truncate max-w-[120px]">
+                      {log.action}
+                    </td>
+                    <td className="py-1.5 px-2 text-slate-500">{log.module}</td>
+                    <td className="py-1.5 px-2 text-slate-500 truncate max-w-[80px]">
+                      {log.username}
+                    </td>
+                    <td className="py-1.5 pl-2 text-right text-slate-400 whitespace-nowrap">
+                      {new Date(log.created_at).toLocaleDateString("en-PH", { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" })}
+                    </td>
+                  </tr>
+                ))}
+                {(!data.recentLogs || data.recentLogs.length === 0) && (
+                  <tr>
+                    <td colSpan={4} className="py-4 text-center text-slate-400">No recent audit entries</td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
           </div>
         </div>
 

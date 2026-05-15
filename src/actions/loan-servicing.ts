@@ -238,11 +238,20 @@ export async function rejectLoanApplication(
             entity_type: "Loan",
             entity_id: loanId,
             new_values: { rejection_reason: notes } as any,
-            module: "loans",
-            action_category: "update",
-            severity: "warning",
-          },
-        });
+          module: "loan",
+          action_category: "update",
+          severity: "warning",
+        } as any,
+      });
+
+      // Mark loan as failed/invalid, keep the loan record but add rejection reason
+      await tx.loan.update({
+        where: { loan_id: loanId },
+        data: {
+          status: "rejected",
+          rejection_reason: notes,
+        },
+      });
       }
     });
 
@@ -290,53 +299,33 @@ export async function releaseLoanFunds(
     const targetTenantId = tenantId || loan.tenant_id;
 
     const result = await prisma.$withTenant(targetTenantId, async (tx: any) => {
-      // 1. Verify Operator wallet sufficiency (STRICT REQUIREMENT)
-      const operatorId = loan.approved_by;
-      if (!operatorId) {
-        return {
-          error:
-            "This loan has not been approved by an operator. Approval is required before release.",
-        };
-      }
-
-      const operatorWallet = await tx.savingsAccount.findFirst({
-        where: {
-          user_id: operatorId,
-          account_type: AccountType.personal_wallet,
-        },
-      });
-
       const principalAmount = Number(loan.principal_amount);
+      const transId = `DISB-${loan.loan_id}-${Date.now()}`;
 
-      if (!operatorWallet || Number(operatorWallet.balance) < principalAmount) {
-        return {
-          error:
-            `Insufficient operator wallet balance (Available: ₱${Number(operatorWallet?.balance || 0).toLocaleString()}). ` +
-            `A ₱${principalAmount.toLocaleString()} loan cannot be released until the approving operator tops up their wallet.`,
-        };
+      // Credit the member's wallet with the loan amount
+      const memberWallet = await tx.savingsAccount.findFirst({
+        where: { user_id: loan.user_id, account_type: AccountType.personal_wallet },
+      });
+
+      if (memberWallet) {
+        await tx.savingsAccount.update({
+          where: { account_id: memberWallet.account_id },
+          data: { balance: { increment: principalAmount } },
+        });
+        await tx.savingsTransaction.create({
+          data: {
+            account_id: memberWallet.account_id,
+            tenant_id: targetTenantId,
+            transaction_type: TransactionType.deposit,
+            amount: principalAmount,
+            reference: transId,
+            processed_by: session.user.user_id,
+            notes: `Loan disbursement for #${loan.loan_reference}`,
+          },
+        });
       }
 
-      // 2. Deduct from operator wallet
-      await tx.savingsAccount.update({
-        where: { account_id: operatorWallet.account_id },
-        data: { balance: { decrement: loan.principal_amount } },
-      });
-
-      // 3. Record savings transaction for the operator
-      const transId = `DISB-${loan.loan_id}-${Date.now()}`;
-      const savingsTrans = await tx.savingsTransaction.create({
-        data: {
-          account_id: operatorWallet.account_id,
-          tenant_id: targetTenantId,
-          transaction_type: TransactionType.withdrawal,
-          amount: loan.principal_amount,
-          reference: transId,
-          processed_by: session.user.user_id,
-          notes: `Loan disbursement for #${loan.loan_reference}`,
-        },
-      });
-
-      // 4. Update loan status to active
+      // Update loan status to active
       await tx.loan.update({
         where: { loan_id: loanId },
         data: {
@@ -359,18 +348,12 @@ export async function releaseLoanFunds(
       });
 
       // 5. Post Ledger Entries (Double Entry)
-      // DR Loan Receivables (Asset increase)
-      // CR Member Savings/Wallet (Liability decrease to operator)
       await postLedgerEntry(tx, {
         tenantId: targetTenantId,
         loanId,
-        description: `Loan Released: #${loan.loan_reference}. Funded from Operator Wallet.`,
+        description: `Loan Released: #${loan.loan_reference}. Funded from member wallet credit.`,
         createdBy: session.user.user_id,
-        metadata: {
-          source: "loan_release",
-          operatorId,
-          savingsTransactionId: savingsTrans.transaction_id,
-        },
+        metadata: { source: "loan_release", transactionId: transId },
         entries: [
           {
             accountCode: "LOAN_RECEIVABLES",
@@ -1009,6 +992,84 @@ export async function markLoanAsPaid(loanId: number) {
   } catch (error) {
     console.error("markLoanAsPaid failed:", error);
     return { error: "Failed to mark loan as paid. Please try again." };
+  }
+}
+
+const UpdateScheduleSchema = z.object({
+  scheduleId: z.number().int().positive(),
+  dueDate: z.string().optional(),
+  totalDue: z.number().positive().optional(),
+  status: z.enum(["pending", "paid", "overdue", "forgiven", "restructured"]).optional(),
+  principalAmount: z.number().positive().optional(),
+  interestAmount: z.number().min(0).optional(),
+});
+
+export async function updateLoanSchedule(
+  input: z.infer<typeof UpdateScheduleSchema>,
+) {
+  try {
+    const data = UpdateScheduleSchema.parse(input);
+    const session = await requireAdminSession();
+    const tenantId = session.user.tenantId;
+
+    if (!tenantId) return { error: "Tenant context required." };
+
+    return await prisma.$withTenant(tenantId, async (tx: any) => {
+      const schedule = await tx.loanSchedule.findUnique({
+        where: { schedule_id: data.scheduleId },
+        include: { loan: { select: { loan_id: true, loan_reference: true } } },
+      });
+
+      if (!schedule) return { error: "Schedule not found." };
+
+      const updateData: Record<string, any> = {};
+      if (data.dueDate !== undefined) updateData.due_date = new Date(data.dueDate);
+      if (data.totalDue !== undefined) updateData.total_due = data.totalDue;
+      if (data.status !== undefined) updateData.status = data.status;
+      if (data.principalAmount !== undefined) updateData.principal_amount = data.principalAmount;
+      if (data.interestAmount !== undefined) updateData.interest_amount = data.interestAmount;
+
+      if (Object.keys(updateData).length === 0) {
+        return { error: "No fields to update." };
+      }
+
+      await tx.loanSchedule.update({
+        where: { schedule_id: data.scheduleId },
+        data: updateData,
+      });
+
+      // Recalculate loan balance_remaining from schedules
+      const schedules = await tx.loanSchedule.findMany({
+        where: { loan_id: schedule.loan_id },
+      });
+      const newBalance = schedules
+        .filter((s: any) => s.status === "pending" || s.status === "overdue")
+        .reduce((sum: number, s: any) => sum + Number(s.total_due), 0);
+
+      await tx.loan.update({
+        where: { loan_id: schedule.loan_id },
+        data: { balance_remaining: newBalance },
+      });
+
+      await tx.auditLog.create({
+        data: {
+          tenant_id: tenantId,
+          user_id: session.user.user_id,
+          action: "SCHEDULE_UPDATED",
+          entity_type: "LoanSchedule",
+          entity_id: data.scheduleId,
+          new_values: updateData,
+          module: "loan",
+        },
+      });
+
+      revalidatePath("/agapay-tanaw");
+      revalidatePath("/agapay-pintig");
+      return { success: `Installment #${schedule.installment_number} updated.` };
+    });
+  } catch (error) {
+    console.error("updateLoanSchedule failed:", error);
+    return { error: "Failed to update schedule. Please check the values and try again." };
   }
 }
 

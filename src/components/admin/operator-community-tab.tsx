@@ -2,13 +2,11 @@
 
 import { useState, useTransition, useMemo, useEffect, useRef } from "react";
 import {
-  Users,
   MessageSquareText,
   Handshake,
   Megaphone,
   Search,
-  Plus,
-  Clock3,
+  MoreVertical,
   ShieldCheck,
   Send,
   Paperclip,
@@ -19,8 +17,6 @@ import {
   Headphones,
   Reply,
   Loader2,
-  Trash2,
-  MoreVertical,
   CheckCircle2,
   AlertCircle,
 } from "lucide-react";
@@ -33,17 +29,12 @@ import {
   sendConversationMessage,
   toggleMessageReaction,
   reviewMentorshipConnection,
+  sendTenantAnnouncement,
 } from "@/actions/community-actions";
-import {
-  getPlatformAnnouncements,
-  createPlatformAnnouncement,
-  publishPlatformAnnouncement,
-} from "@/actions/superadmin-actions";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import EmojiPicker from "emoji-picker-react";
-import { TrustScoreCard } from "@/components/member/trust-score-card";
 
 type CommunitySummary = Awaited<
   ReturnType<
@@ -87,13 +78,10 @@ export function OperatorCommunityTab({
   const [replyToMessage, setReplyToMessage] = useState<any>(null);
 
   // Announcements State
-  const [announcements, setAnnouncements] = useState<any[]>([]);
   const [isPostingAnnouncement, setIsPostingAnnouncement] = useState(false);
   const [newAnnouncement, setNewAnnouncement] = useState({
     title: "",
     content: "",
-    targetAudience: "all" as "all" | "admins" | "lenders" | "members",
-    priority: "normal" as "low" | "normal" | "high" | "urgent",
   });
 
   // Mentorship State
@@ -102,15 +90,31 @@ export function OperatorCommunityTab({
   // Search
   const [searchQuery, setSearchQuery] = useState("");
 
-  useEffect(() => {
-    if (viewMode === "announcements") {
-      loadAnnouncements();
+  const handleSendAnnouncement = async () => {
+    if (!newAnnouncement.title.trim() || !newAnnouncement.content.trim()) {
+      toast.error("Please fill in both title and content");
+      return;
     }
-  }, [viewMode]);
 
-  const loadAnnouncements = async () => {
-    const result = await getPlatformAnnouncements();
-    if (result.success) setAnnouncements(result.data || []);
+    setIsPostingAnnouncement(true);
+    try {
+      const result = await sendTenantAnnouncement({
+        title: newAnnouncement.title,
+        content: newAnnouncement.content,
+      });
+
+      if (result.error) {
+        toast.error(result.error);
+        return;
+      }
+
+      toast.success(`Announcement sent to ${result.recipientCount || 0} members`);
+      setNewAnnouncement({ title: "", content: "" });
+      setIsPostingAnnouncement(false);
+    } catch {
+      toast.error("Failed to send announcement");
+      setIsPostingAnnouncement(false);
+    }
   };
 
   useEffect(() => {
@@ -163,18 +167,6 @@ export function OperatorCommunityTab({
       setMessageDraft("");
       setReplyToMessage(null);
       router.refresh();
-    });
-  };
-
-  const handlePublish = (announcementId: number) => {
-    startTransition(async () => {
-      const result = await publishPlatformAnnouncement(announcementId);
-      if (result.success) {
-        toast.success("Broadcast published!");
-        loadAnnouncements();
-      } else {
-        toast.error(result.error || "Failed to publish");
-      }
     });
   };
 
@@ -258,6 +250,44 @@ export function OperatorCommunityTab({
               <Megaphone className="h-4 w-4" />
               <span>Announcements</span>
             </button>
+          </div>
+
+          {/* Support Channels */}
+          <div className="pt-2">
+            <h3 className="mb-1 px-3 text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">
+              <Headphones className="h-3 w-3 inline mr-1" /> Support
+            </h3>
+            <div className="space-y-0.5 ml-1 border-l-2 border-slate-100 pl-2">
+              {initialData.operatorRooms.map((room: any) => {
+                const isActive = room.id === selectedConversationId && viewMode === "chat";
+                return (
+                  <button
+                    key={room.id}
+                    onClick={() => {
+                      setSelectedConversationId(room.id);
+                      setViewMode("chat");
+                    }}
+                    className={`flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-left text-sm transition-colors ${
+                      isActive
+                        ? "bg-emerald-100 text-emerald-900 border-l-[3px] border-emerald-500 -ml-[1px]"
+                        : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
+                    }`}
+                  >
+                    <Headphones className="h-4 w-4 shrink-0" />
+                    <span className="flex-1 truncate text-xs font-semibold">{room.title}</span>
+                    {room.hasUnread && (
+                      <span className="relative flex h-2.5 w-2.5">
+                        <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
+                        <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-emerald-500" />
+                      </span>
+                    )}
+                  </button>
+                );
+              })}
+              {initialData.operatorRooms.length === 0 && (
+                <p className="px-3 py-2 text-xs text-slate-400">No support channels</p>
+              )}
+            </div>
           </div>
 
           <div className="pt-2">
@@ -530,85 +560,55 @@ export function OperatorCommunityTab({
                 </div>
                 <div>
                   <h2 className="text-sm font-bold text-slate-900">
-                    Announcement Studio
+                    Send Member Announcement
                   </h2>
                   <p className="text-[10px] uppercase font-bold tracking-widest text-slate-400">
-                    Global Broadcasts
+                    Broadcast to all members
                   </p>
                 </div>
               </div>
-              <Button
-                onClick={() => setIsPostingAnnouncement(true)}
-                className="rounded-xl h-9 bg-slate-900 text-white hover:bg-slate-800 text-xs font-bold px-4"
-              >
-                <Plus className="h-4 w-4 mr-2" /> New Broadcast
-              </Button>
             </header>
             <ScrollArea className="flex-1 p-6">
-              <div className="max-w-4xl mx-auto space-y-6">
-                {announcements.length === 0 ? (
-                  <div className="p-12 text-center opacity-30 italic text-sm">
-                    No announcements posted.
+              <div className="max-w-3xl mx-auto space-y-6">
+                <div className="p-6 rounded-3xl border border-slate-100 bg-white shadow-sm space-y-4">
+                  <div className="space-y-2">
+                    <label className="text-xs font-bold text-slate-500 uppercase">Title</label>
+                    <input
+                      value={newAnnouncement.title}
+                      onChange={(e) => setNewAnnouncement({ ...newAnnouncement, title: e.target.value })}
+                      placeholder="e.g., Important Update on Loan Applications"
+                      className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700 focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
+                    />
                   </div>
-                ) : (
-                  announcements.map((ann) => (
-                    <div
-                      key={ann.id}
-                      className="p-6 rounded-3xl border border-slate-100 bg-white shadow-sm hover:shadow-md transition-all space-y-4"
-                    >
-                      <div className="flex items-start justify-between">
-                        <div>
-                          <h4 className="font-bold text-slate-900 text-base">
-                            {ann.title}
-                          </h4>
-                          <div className="flex gap-2 mt-1">
-                            <Badge
-                              variant="outline"
-                              className="text-[9px] uppercase tracking-tighter"
-                            >
-                              Audience: {ann.target_audience}
-                            </Badge>
-                            <Badge
-                              variant="secondary"
-                              className="text-[9px] uppercase tracking-tighter"
-                            >
-                              {ann.priority}
-                            </Badge>
-                          </div>
-                        </div>
-                        {ann.is_published ? (
-                          <Badge className="bg-emerald-100 text-emerald-700 hover:bg-emerald-100 border-none">
-                            LIVE
-                          </Badge>
-                        ) : (
-                          <Button
-                            size="sm"
-                            onClick={() => handlePublish(ann.id)}
-                            className="h-7 rounded-lg bg-emerald-600 text-white text-[10px] uppercase font-black tracking-widest"
-                          >
-                            Publish Now
-                          </Button>
-                        )}
-                      </div>
-                      <p className="text-sm text-slate-600 leading-relaxed">
-                        {ann.content}
-                      </p>
-                      <div className="pt-4 border-t border-slate-50 flex items-center justify-between">
-                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
-                          Created{" "}
-                          {new Date(ann.created_at).toLocaleDateString()}
-                        </p>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-8 w-8 text-rose-400 hover:text-rose-600"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </div>
-                  ))
-                )}
+                  <div className="space-y-2">
+                    <label className="text-xs font-bold text-slate-500 uppercase">Message</label>
+                    <textarea
+                      value={newAnnouncement.content}
+                      onChange={(e) => setNewAnnouncement({ ...newAnnouncement, content: e.target.value })}
+                      placeholder="Write your announcement message here..."
+                      rows={6}
+                      className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700 focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 resize-none"
+                    />
+                  </div>
+                  <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 text-xs text-amber-800 flex items-start gap-3">
+                    <AlertCircle className="h-5 w-5 shrink-0 mt-0.5" />
+                    <span>
+                      This announcement will be sent as an in-app notification to <strong>all active members</strong> of your cooperative. They cannot reply to this broadcast.
+                    </span>
+                  </div>
+                  <Button
+                    onClick={handleSendAnnouncement}
+                    disabled={isPostingAnnouncement || !newAnnouncement.title.trim() || !newAnnouncement.content.trim()}
+                    className="w-full rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold h-12 text-sm"
+                  >
+                    {isPostingAnnouncement ? (
+                      <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                    ) : (
+                      <Megaphone className="h-4 w-4 mr-2" />
+                    )}
+                    {isPostingAnnouncement ? "Sending..." : "Send Announcement to All Members"}
+                  </Button>
+                </div>
               </div>
             </ScrollArea>
           </div>
@@ -626,69 +626,79 @@ export function OperatorCommunityTab({
         <ScrollArea className="flex-1">
           <div className="p-6 space-y-8">
             {thread && viewMode === "chat" ? (
-              <>
-                <div className="text-center space-y-4">
-                  <div className="h-24 w-24 rounded-3xl bg-white shadow-xl shadow-slate-200/50 flex items-center justify-center text-3xl font-bold mx-auto border-4 border-emerald-50">
-                    {currentChatLabel.charAt(0)}
-                  </div>
-                  <div>
-                    <h4 className="font-bold text-slate-900 text-lg">
-                      {currentChatLabel}
-                    </h4>
-                    <p className="text-xs text-slate-500 font-medium">
-                      Verified Community Member
-                    </p>
-                  </div>
-                  <div className="flex justify-center gap-2">
-                    <Badge className="bg-emerald-50 text-emerald-700 hover:bg-emerald-50 border-none px-3 font-bold">
-                      ACTIVE
-                    </Badge>
-                    <Badge className="bg-slate-100 text-slate-600 hover:bg-slate-100 border-none px-3 font-bold">
-                      MEMBER
-                    </Badge>
-                  </div>
-                </div>
-
-                <div className="space-y-3">
-                  <h5 className="text-[10px] font-black uppercase text-slate-400 tracking-widest">
-                    Reputation Score
-                  </h5>
-                  {/* Mocking TrustScoreCard data for context */}
-                  <div className="p-4 rounded-2xl bg-white border border-slate-100 shadow-sm space-y-4">
-                    <div className="flex items-end justify-between">
-                      <p className="text-2xl font-bold text-slate-900 tracking-tight">
-                        842
-                      </p>
-                      <Badge className="bg-emerald-100 text-emerald-700 border-none font-black text-[9px]">
-                        TRUSTED
-                      </Badge>
+              (() => {
+                const otherParticipant = thread.participants?.find(
+                  (p: any) => p.name !== "Operator" && p.role !== "operator" && p.role !== "superadmin"
+                );
+                const displayName = otherParticipant?.name || currentChatLabel;
+                const displayRole = otherParticipant?.role || "member";
+                const firstMessage = thread.messages?.[thread.messages.length - 1];
+                return (
+                  <>
+                    <div className="text-center space-y-4">
+                      <div className="h-24 w-24 rounded-3xl bg-white shadow-xl shadow-slate-200/50 flex items-center justify-center text-3xl font-bold mx-auto border-4 border-emerald-50 overflow-hidden">
+                        {displayName.charAt(0).toUpperCase()}
+                      </div>
+                      <div>
+                        <h4 className="font-bold text-slate-900 text-lg">
+                          {displayName}
+                        </h4>
+                        <p className="text-xs text-slate-500 font-medium capitalize">
+                          {displayRole}
+                        </p>
+                      </div>
+                      <div className="flex justify-center gap-2">
+                        <Badge className="bg-emerald-50 text-emerald-700 hover:bg-emerald-50 border-none px-3 font-bold">
+                          ACTIVE
+                        </Badge>
+                        <Badge className="bg-slate-100 text-slate-600 hover:bg-slate-100 border-none px-3 font-bold">
+                          {displayRole === "member" ? "MEMBER" : displayRole.toUpperCase()}
+                        </Badge>
+                      </div>
                     </div>
-                    <div className="h-1.5 w-full bg-slate-100 rounded-full overflow-hidden">
-                      <div className="h-full bg-emerald-500 rounded-full w-[84%]" />
+
+                    <div className="space-y-3">
+                      <h5 className="text-[10px] font-black uppercase text-slate-400 tracking-widest">
+                        Conversation Info
+                      </h5>
+                      <div className="p-4 rounded-2xl bg-white border border-slate-100 shadow-sm space-y-3">
+                        <div className="flex justify-between">
+                          <span className="text-[10px] font-bold text-slate-500 uppercase">Type</span>
+                          <span className="text-[10px] font-bold text-slate-900 uppercase">
+                            {thread.type === "direct" ? "Direct Message" : thread.type === "operator_room" ? "Support Room" : "Group"}
+                          </span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-[10px] font-bold text-slate-500 uppercase">Messages</span>
+                          <span className="text-[10px] font-bold text-slate-900">{thread.messages?.length || 0}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-[10px] font-bold text-slate-500 uppercase">Participants</span>
+                          <span className="text-[10px] font-bold text-slate-900">{thread.participants?.length || 0}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-[10px] font-bold text-slate-500 uppercase">Last Active</span>
+                          <span className="text-[10px] font-bold text-slate-900">
+                            {firstMessage
+                              ? new Date(firstMessage.createdAt).toLocaleDateString("en-PH", { month: "short", day: "numeric" })
+                              : "—"}
+                          </span>
+                        </div>
+                      </div>
                     </div>
-                  </div>
-                </div>
 
-                <div className="space-y-3">
-                  <h5 className="text-[10px] font-black uppercase text-slate-400 tracking-widest">
-                    Administrative History
-                  </h5>
-                  <div className="space-y-2">
-                    <HistoryItem label="Last Withdrawal" date="May 04, 2026" />
-                    <HistoryItem label="Recent Support" date="Apr 12, 2026" />
-                    <HistoryItem label="Member Since" date="Jan 20, 2026" />
-                  </div>
-                </div>
-
-                <div className="pt-4">
-                  <Button
-                    variant="outline"
-                    className="w-full rounded-xl border-slate-200 text-xs font-bold text-slate-600 h-10 hover:bg-slate-100"
-                  >
-                    View Full Directory Profile
-                  </Button>
-                </div>
-              </>
+                    <div className="pt-4">
+                      <Button
+                        variant="outline"
+                        className="w-full rounded-xl border-slate-200 text-xs font-bold text-slate-600 h-10 hover:bg-slate-100"
+                        onClick={() => setViewMode("mentorship_queue")}
+                      >
+                        View Mentorship Queue
+                      </Button>
+                    </div>
+                  </>
+                );
+              })()
             ) : (
               <div className="h-full flex flex-col items-center justify-center text-center space-y-4 pt-12 grayscale opacity-40">
                 <ShieldCheck className="h-16 w-16 text-slate-200" />
@@ -701,17 +711,6 @@ export function OperatorCommunityTab({
           </div>
         </ScrollArea>
       </aside>
-    </div>
-  );
-}
-
-function HistoryItem({ label, date }: { label: string; date: string }) {
-  return (
-    <div className="flex items-center justify-between p-3 rounded-xl bg-white border border-slate-50 shadow-sm">
-      <span className="text-[10px] font-bold text-slate-500 uppercase">
-        {label}
-      </span>
-      <span className="text-[10px] font-bold text-slate-900">{date}</span>
     </div>
   );
 }

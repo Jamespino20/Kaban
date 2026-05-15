@@ -184,6 +184,7 @@ export default async function AgapayTanawPage(props: {
             accent_color: true,
             font_pairing: true,
             logo_url: true,
+            logo_square_url: true,
             entitlement_status: true,
             metadata: true,
             tenantSubscription: {
@@ -218,12 +219,6 @@ export default async function AgapayTanawPage(props: {
       value: "overview",
       label: "Overview",
       icon: "overview",
-      category: "Core Operations",
-    },
-    {
-      value: "community",
-      label: "Community",
-      icon: "community",
       category: "Core Operations",
     },
     {
@@ -271,25 +266,33 @@ export default async function AgapayTanawPage(props: {
       icon: "subscriptions",
       category: "Platform Strategy",
     },
-
-    // Category: System & Audits
     {
       value: "reports",
-      label: "Reports",
+      label: "Reports & Analytics",
       icon: "reconciliation",
-      category: "System & Audits",
+      category: "Platform Strategy",
     },
+
+    // Category: Storefront & Community
+    {
+      value: "community",
+      label: "Community",
+      icon: "community",
+      category: "Storefront",
+    },
+
+    // Category: System (always at bottom)
     {
       value: "audit",
       label: "Audit Logs",
       icon: "audit",
-      category: "System & Audits",
+      category: "System",
     },
     {
       value: "settings",
       label: "Settings",
       icon: "settings",
-      category: "System & Audits",
+      category: "System",
     },
   ];
 
@@ -401,6 +404,7 @@ export default async function AgapayTanawPage(props: {
       accountPhotoUrl={adminProfileData?.photo_url}
       tenantName={currentTenantIdentity?.name}
       tenantLogoUrl={currentTenantIdentity?.logo_url || undefined}
+      tenantLogoSquareUrl={currentTenantIdentity?.logo_square_url || undefined}
       tenantBrandColor={currentTenantIdentity?.brand_color}
       tenantAccentColor={currentTenantIdentity?.accent_color}
       tenantFontPairing={currentTenantIdentity?.font_pairing}
@@ -409,7 +413,7 @@ export default async function AgapayTanawPage(props: {
     >
       <TanawPollingWrapper>
         <div className="space-y-5">
-          {reconciliation && !reconciliation.holdings.isTreasuryHealthy && (
+          {isOperator && reconciliation && !reconciliation.holdings.isTreasuryHealthy && (
             <div className="dashboard-card border-red-200 bg-red-50 text-slate-900 animate-in fade-in slide-in-from-top-4 duration-500 flex flex-col md:flex-row items-center gap-6">
               <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-red-100 text-red-600 ring-4 ring-white shadow-sm">
                 <ShieldAlert className="h-7 w-7" />
@@ -511,23 +515,23 @@ export default async function AgapayTanawPage(props: {
                   />
                   <div className="dashboard-card p-5 flex flex-col justify-center">
                     <div className="flex items-center justify-between mb-2">
-                      <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Active Loans</span>
-                      <span className="text-sm font-bold text-slate-900">{metrics.activeLoans}</span>
+                      <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Active Loans</span>
+                      <span className="text-sm font-bold text-foreground">{metrics.activeLoans}</span>
                     </div>
-                    <div className="h-3 w-full bg-slate-100 rounded-full overflow-hidden">
-                      <div className="h-full bg-emerald-500 rounded-full transition-all" style={{ width: `${Math.min(100, (metrics.activeLoans / 200) * 100)}%` }} />
+                    <div className="h-3 w-full bg-muted rounded-full overflow-hidden">
+                      <div className="h-full bg-primary rounded-full transition-all" style={{ width: `${Math.min(100, (metrics.activeLoans / 200) * 100)}%` }} />
                     </div>
-                    <p className="text-[10px] text-slate-400 mt-1.5">{metrics.activeLoans > 0 ? `${metrics.activeLoans} loans currently active` : "No active loans"}</p>
+                    <p className="text-[10px] text-muted-foreground mt-1.5">{metrics.activeLoans > 0 ? `${metrics.activeLoans} loans currently active` : "No active loans"}</p>
                   </div>
                   <div className="dashboard-card p-5 flex flex-col justify-center">
                     <div className="flex items-center justify-between mb-2">
-                      <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Repayment Rate</span>
-                      <span className="text-sm font-bold text-emerald-600">{metrics.repaymentRate.toFixed(1)}%</span>
+                      <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Repayment Rate</span>
+                      <span className="text-sm font-bold text-primary">{metrics.repaymentRate.toFixed(1)}%</span>
                     </div>
-                    <div className="h-3 w-full bg-slate-100 rounded-full overflow-hidden">
-                      <div className="h-full bg-blue-500 rounded-full transition-all" style={{ width: `${metrics.repaymentRate}%` }} />
+                    <div className="h-3 w-full bg-muted rounded-full overflow-hidden">
+                      <div className="h-full bg-primary rounded-full transition-all" style={{ width: `${metrics.repaymentRate}%` }} />
                     </div>
-                    <p className="text-[10px] text-slate-400 mt-1.5">{metrics.repaymentRate >= 80 ? "Healthy repayment culture" : "Needs collection attention"}</p>
+                    <p className="text-[10px] text-muted-foreground mt-1.5">{metrics.repaymentRate >= 80 ? "Healthy repayment culture" : "Needs collection attention"}</p>
                   </div>
                 </div>
               </>
@@ -543,10 +547,10 @@ export default async function AgapayTanawPage(props: {
               {!isSuperAdmin && (
                 <div className="dashboard-card lg:col-span-2 flex flex-col md:flex-row items-center gap-8 p-6">
                   <div className="flex-1 text-center md:text-left">
-                    <h3 className="text-xl font-heading font-bold text-slate-900">
+                    <h3 className="text-xl font-heading font-bold text-foreground">
                       Cooperative Trust Index
                     </h3>
-                    <p className="text-slate-500 text-sm mt-1 mb-6">
+                    <p className="text-muted-foreground text-sm mt-1 mb-6">
                       Current status of the trust network
                     </p>
                     <TrustDistributionChart
@@ -570,17 +574,17 @@ export default async function AgapayTanawPage(props: {
                     Portfolio <br />
                     Status
                   </h3>
-                  <p className="text-slate-400 text-xs leading-relaxed font-sans">
+                  <p className="text-primary-foreground/60 text-xs leading-relaxed font-sans">
                     Your portfolio and collection dashboard for tenant
                     operations.
                   </p>
                 </div>
 
-                <div className="relative z-10 pt-8 border-t border-white/10 mt-8">
-                  <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2">
+                <div className="relative z-10 pt-8 border-t border-primary-foreground/20 mt-8">
+                  <p className="text-[10px] font-bold text-primary-foreground/60 uppercase tracking-widest mb-2">
                     Platform Health
                   </p>
-                  <div className="h-1.5 w-full bg-white/10 rounded-full overflow-hidden">
+                  <div className="h-1.5 w-full bg-primary-foreground/20 rounded-full overflow-hidden">
                     <div
                       className="h-full bg-primary rounded-full shadow-[0_0_10px_color-mix(in_srgb,var(--primary)_50%,transparent)] transition-all duration-1000"
                       style={{ width: "88%" }}

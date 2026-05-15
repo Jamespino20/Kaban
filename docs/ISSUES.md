@@ -41,7 +41,7 @@
 
 - [x] Navbar width remains constrained despite widening adjustments (`max-w-[100rem]`)
 - [x] “Get Started” flow still partially routes through the Agapay Platform Contact Page instead of the Tenant Onboarding flow
-- [ ] Live Map is not properly zoomable, causing nearby tenant pins to clip and overlap due to inaccurate proximity mapping
+- [/] Live Map is not properly zoomable, causing nearby tenant pins to clip and overlap due to inaccurate proximity mapping
 - [~] SaaS pricing values are inconsistent between the Pricing page and Tenant Onboarding flow, and payment processing is still missing
 - [ ] Platform testimonies are not dynamically sourced from tenant testimonies
 - [ ] Lacks an editable vision and mission section from the homepage content
@@ -61,12 +61,12 @@
 ## Tenant Homepage
 
 - [ ] Tenant homepage structure has diverged from the platform homepage instead of reusing the same file with branding overrides
-- [x] Custom green circle scrollbar is not yet implemented (`globals.css`)
+- [x] Custom green circle scrollbar is now implemented (`globals.css`)
 - [ ] Tenant brand colors are inconsistently applied across the homepage
-- [ ] Tenant homepage still contains "Iyong Agapay, Ating Tagumpay" and other Agapay-related branding and content.
+- [x] Tenant homepage still contains "Iyong Agapay, Ating Tagumpay" and other Agapay-related branding and content.
 - [ ] Navbar logo does not change depending on the cooperative's logo. It also does not have a fallback, which will be the initials of the cooperative.
 - [ ] Lacking in media like the platform homepage [hero section video, pictures, testimony section, FAQs]
-- [ ] Login/Register modal should reflect the tenant's branding, not Agapay's.
+- [ ] Login/Register modal from the tenant navbar button should reflect the tenant's branding, not Agapay's.
 - [~] When registering, new users should input how much money they have, how much their income is (Implemented). New users are now put on a "Pending Approval" hold and blocked from login (Implemented). Remaining: Automated credit line calculation based on income and operator-configurable acceptance thresholds.
 
 ---
@@ -75,23 +75,23 @@
 
 - [x] Custom green circle scrollbar is still missing
 - [x] Sidebar indentation/alignment issues persist (`px-4`) (Fixed: standardized to `px-6`)
-- [ ] Sidebar text is not consistently contrast-aware against tenant branding
+- [x] Sidebar text is not consistently contrast-aware against tenant branding
 - [x] Three-dot action menus are missing in modules that should support them (Added to Members and Verification Queue)
 - [ ] Several module contents remain untranslated from Tagalog
 - [ ] Hardcoded slate colors still appear in many elements; should use dynamic tenant branding
-- [ ] Inactivity timeout/warning modal (`idle-session-timer.tsx`) is not implemented
-- [~] Form persistence is incomplete across registration, admin profile, member settngs, and loan application forms
+- [x] Inactivity timeout/warning modal (`idle-session-timer.tsx`) is not implemented
+- [x] Form persistence is incomplete across registration, admin profile, member settngs, and loan application forms
 - [ ] Real-time updates are missing; most data changes only appear after manual refresh
-- [ ] Error toasts remain too vague and do not clearly explain failures and a suggested course of action
-- [ ] Numerical inputs are not automatically formatted or auto-filled where expected
-- [ ] Superadmin can log in regardless of which tenant they are in [should only be in Malolos]
+- [~] Error toasts remain too vague and do not clearly explain failures and a suggested course of action
+- [x] Numerical inputs are not automatically formatted or auto-filled where expected
+- [x] Superadmin can log in regardless of which tenant they are in [should only be in Malolos]
 - [x] When logging in, the page leads to only /agapay-tanaw rather than agapay-saas.vercel.app[tenant_slug]/agapay-pintig or tanaw. This is fixed whenever I reload
-- [ ] Community Tab should function and look/feel a whole lot like Discord.
-- [ ] You can press someone's profile and a modal pops up showing the details of the user
-- [ ] Users should be able to edit their username and password
+- [ ] Community Tab should function and look/feel a whole lot like Discord. No mentorship and guarantorship application, the right pane shows the current user's information, not the person the user is talking to
+- [x] You can press someone's profile and a modal pops up showing the details of the user
+- [x] Users should be able to edit their username and password
 - [x] Profile pictures and username changes should appear in the Members list, the header profile part, and in the Community module.
 - [x] Destructive or irreversible actions should have "Are you sure?" modals
-- [ ] Enforce better module gating according to the plans.
+- [~] Enforce better module gating according to the plans.
 - [ ] The loan schedule should be able to be edited, and the changes should be reflected in the loan details.
 - [x] window.prompt are still being used rather than dedicated modals.
 

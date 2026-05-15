@@ -384,6 +384,12 @@ export async function getDashboardMetrics() {
       overduePaymentsCount,
       totalPayments,
       totalTenants,
+      activeTenantsCount,
+      totalMembersCount,
+      defaultedCount,
+      totalDefaultedAmount,
+      pendingApplicationsCount,
+      newSignupsThisMonth,
     ] = await Promise.all([
       prisma.savingsTransaction.count(),
       prisma.supportTicket.count({ where: { status: "open", ticket_type: "FEEDBACK" } }),
@@ -402,9 +408,26 @@ export async function getDashboardMetrics() {
         { total: number }[]
       >`SELECT COALESCE(SUM(amount_paid), 0) as total FROM payments WHERE status = 'verified'`,
       prisma.tenant.count(),
+      prisma.tenant.count({
+        where: { is_active: true, entitlement_status: "active" },
+      }),
+      prisma.user.count({ where: { role: "member", status: "active" } }),
+      prisma.loan.count({ where: { status: "defaulted" } }),
+      prisma.$queryRaw<{ total: number }[]>
+        `SELECT COALESCE(SUM(balance_remaining), 0) as total FROM loans WHERE status = 'defaulted'`,
+      prisma.tenantApplication.count({ where: { status: "pending" } }),
+      prisma.user.count({
+        where: {
+          created_at: { gte: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000) },
+          role: "member",
+        },
+      }),
     ]);
 
     const totalPaymentsRaw = totalPayments as { total: number }[];
+    const defaultedAmountRaw = totalDefaultedAmount as { total: number }[];
+    const totalLoanCount = await prisma.loan.count();
+    const defaultRate = totalLoanCount > 0 ? (defaultedCount / totalLoanCount) * 100 : 0;
 
     return {
       totalTransactions,
@@ -415,10 +438,15 @@ export async function getDashboardMetrics() {
       totalEarnings: Number(totalPaymentsRaw[0]?.total || 0),
       totalTenants,
       isGlobal: true,
-      // Provide defaults for tenant-specific fields to satisfy types
       totalLiquidity: 0,
       repaymentRate: 100,
-      riskExposure: 0,
+      riskExposure: Number(defaultedAmountRaw[0]?.total || 0),
+      // Extra fields for AI summary
+      activeTenants: activeTenantsCount,
+      totalMembers: totalMembersCount,
+      defaultRate,
+      newSignupsThisMonth,
+      pendingApplications: pendingApplicationsCount,
     };
   }
 

@@ -30,7 +30,7 @@ export function IdleSessionTimer() {
     if (showWarning) return;
 
     if (timerRef.current) clearTimeout(timerRef.current);
-    
+
     timerRef.current = setTimeout(() => {
       setShowWarning(true);
     }, MAX_IDLE_TIME - WARNING_TIME);
@@ -90,18 +90,21 @@ export function IdleSessionTimer() {
 
   return (
     <Dialog open={showWarning} onOpenChange={setShowWarning}>
-      <DialogContent showCloseButton={false} className="max-w-[400px] rounded-3xl border-none shadow-2xl">
+      <DialogContent
+        showCloseButton={false}
+        className="max-w-[400px] rounded-3xl border-none shadow-2xl"
+      >
         <DialogHeader>
           <div className="mx-auto h-12 w-12 rounded-full bg-amber-50 flex items-center justify-center mb-4">
             <ShieldAlert className="h-6 w-6 text-amber-600" />
           </div>
           <DialogTitle className="text-center font-bold text-xl">
-            Seryoso, andyan ka pa ba?
+            Hello? Are you still there, Ka-Agapay?
           </DialogTitle>
           <DialogDescription className="text-center text-slate-500 pt-2">
-            Mati-terminate ang iyong session sa loob ng{" "}
-            <span className="font-bold text-slate-900">{timeLeft} segundo</span>{" "}
-            dahil sa inactivity. Gusto mo bang manatiling naka-login?
+            Your session with Agapay will terminate in{" "}
+            <span className="font-bold text-slate-900">{timeLeft} seconds</span>{" "}
+            due to inactivity. Do you wish to stay logged in?
           </DialogDescription>
         </DialogHeader>
         <DialogFooter className="flex-col sm:flex-row gap-2 mt-4">
@@ -110,13 +113,13 @@ export function IdleSessionTimer() {
             onClick={handleLogout}
             className="rounded-xl border-slate-200 h-11 font-bold text-slate-600 hover:bg-slate-50 flex-1"
           >
-            I-logout Na
+            Logout Now
           </Button>
           <Button
             onClick={staySignedIn}
             className="rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white h-11 font-bold flex-1 border-none"
           >
-            Manatiling Naka-login
+            Remain Login
           </Button>
         </DialogFooter>
       </DialogContent>

@@ -98,13 +98,13 @@ export function IdleSessionTimer() {
             <Timer className="h-6 w-6 animate-pulse" />
           </div>
           <DialogTitle className="text-center text-xl font-bold text-slate-900">
-            Babala: Inactivity sa Session
+            Warning: Session Inactivity
           </DialogTitle>
           <DialogDescription className="text-center text-slate-500">
-            Ikaw ay naging inactive nang matagal. Para sa iyong seguridad, ikaw
-            ay awtomatikong mag-lo-logout sa loob ng{" "}
+            You were idle for a while. For your security, you will be
+            automatically logged out in{" "}
             <span className="font-bold text-emerald-600">
-              {timeLeft} segundo
+              {timeLeft} seconds
             </span>
             .
           </DialogDescription>
@@ -116,14 +116,14 @@ export function IdleSessionTimer() {
             className="rounded-xl border-slate-200"
             onClick={handleSignOut}
           >
-            Mag-sign Out Na
+            Sign Out
           </Button>
           <Button
             type="button"
             className="rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold"
             onClick={() => resetTimer()}
           >
-            Manatiling Naka-login
+            Remain Login
           </Button>
         </DialogFooter>
       </DialogContent>

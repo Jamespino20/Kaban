@@ -58,14 +58,14 @@ export function ReportsTab() {
         setHasError(false);
       } else {
         setHasError(true);
-        toast.error(overviewRes.error || "Failed to load reports");
+        toast.error((overviewRes.error || "Failed to load reports") + ". Please refresh the page and try again.");
       }
       if (financialRes.success && financialRes.data) {
         setFinancialData(financialRes.data);
       }
     } catch {
       setHasError(true);
-      toast.error("Failed to load reports");
+      toast.error("Failed to load reports. Please check your internet connection and refresh the page.");
     } finally {
       setIsLoading(false);
     }
@@ -87,10 +87,10 @@ export function ReportsTab() {
         URL.revokeObjectURL(url);
         toast.success(`${reportType} report exported successfully`);
       } else {
-        toast.error(res.error || "Failed to export report");
+        toast.error((res.error || "Failed to export report") + ". Please try again or download a different report format.");
       }
     } catch {
-      toast.error("Failed to export report");
+      toast.error("Failed to export report. Please try again or contact support if the issue persists.");
     } finally {
       setExportingReport(null);
     }

@@ -4,11 +4,21 @@ import { shouldUseApiClient } from "@/lib/api-config";
 import { api } from "@/lib/api-client";
 import prisma from "@/lib/prisma";
 import { requireSuperadminSession } from "@/lib/authorization";
+import { createNotification } from "@/lib/notifications";
+import {
+  AccountType,
+  NotificationType,
+  NotificationChannel,
+  Prisma,
+  TransactionType,
+} from "@prisma/client";
+import { postLedgerEntry } from "./ledger";
 import { unstable_cache } from "next/cache";
 
 // Superadmin Overview Data
 export async function getSuperadminOverview() {
   const session = await requireSuperadminSession();
+  const tenantId = session.user.tenantId;
 
   if (shouldUseApiClient()) {
     return api.admin.getOverview();
@@ -18,17 +28,33 @@ export async function getSuperadminOverview() {
     // Get global KPIs across all tenants
     const [
       totalFunds,
+      superadminWalletBalance,
       totalActiveLoans,
       globalTrustScore,
       subscriptionRevenue,
-      recentLogs,
+      activeTenantsResult,
+      repaymentRateResult,
+      portfolioAtRiskResult,
+      recentAuditLogs,
+      recentSuperadminWithdrawalsResult,
       aiSnapshot,
     ] = await prisma.$transaction([
-      // Total funds across all tenants (sum of wallet balances)
+      // Total funds across all tenants (sum of wallet balances, excluding platform/superadmin holdings)
       prisma.$queryRaw`
         SELECT COALESCE(SUM(balance), 0) as total
         FROM savings_accounts
+        WHERE owner_role IS NULL OR owner_role != 'superadmin'
       `,
+
+      // Superadmin earnings wallet balance
+      prisma.savingsAccount.aggregate({
+        _sum: { balance: true },
+        where: {
+          user_id: session.user.user_id,
+          account_type: "personal_wallet",
+          owner_role: "superadmin",
+        },
+      }),
 
       // Total active loans across all tenants
       prisma.$queryRaw`
@@ -50,24 +76,80 @@ export async function getSuperadminOverview() {
         WHERE ts.status = 'active'
       `,
 
-      // Recent logs across all tenants (last 50)
+      // Total active tenants
+      prisma.$queryRaw`
+        SELECT COUNT(*) as count
+        FROM tenants WHERE is_active = true AND entitlement_status = 'active'
+      `,
+
+      // Platform repayment rate
+      prisma.$queryRaw`
+        SELECT COALESCE(SUM(amount_paid), 0) as total_paid
+        FROM payments WHERE status = 'verified'
+      `,
+
+      // Portfolio at risk
+      prisma.$queryRaw`
+        SELECT COALESCE(SUM(balance_remaining), 0) as at_risk
+        FROM loans WHERE status IN ('delinquent', 'defaulted')
+      `,
+
+      // Recent audit logs across all tenants (last 10 with full context)
       prisma.auditLog.findMany({
         orderBy: { created_at: "desc" },
-        take: 50,
+        take: 10,
         include: {
           user: {
-            select: { username: true },
+            select: { username: true, email: true },
+          },
+          tenant: {
+            select: { name: true },
           },
         },
       }),
 
-      // AI-generated platform snapshot summary (placeholder - would integrate with AI service)
+      // Recent superadmin earnings withdrawals
+      prisma.savingsTransaction.findMany({
+        where: {
+          account: {
+            tenant_id: tenantId,
+            user_id: session.user.user_id,
+            account_type: AccountType.personal_wallet,
+            owner_role: "superadmin",
+          },
+          transaction_type: TransactionType.withdrawal,
+        },
+        orderBy: { processed_at: "desc" },
+        take: 5,
+        select: {
+          transaction_id: true,
+          amount: true,
+          method_label: true,
+          reference: true,
+          processed_at: true,
+          issue_notes: true,
+          status: true,
+        },
+      }),
+
+      // AI-generated platform snapshot summary
       (prisma as any).aiSnapshot
         ? (prisma as any).aiSnapshot.findFirst({
             orderBy: { created_at: "desc" },
           })
         : Promise.resolve(null),
     ]);
+
+    // Calculate repayment rate from raw aggregates
+    const paidRow = Array.isArray(repaymentRateResult) ? repaymentRateResult[0] : repaymentRateResult;
+    const totalPaid = Number(paidRow?.total_paid || 0);
+    const totalDueAgg = await prisma.$queryRaw`
+      SELECT COALESCE(SUM(total_due), 0) as total_due
+      FROM loan_schedules
+    `;
+    const dueRow = Array.isArray(totalDueAgg) ? totalDueAgg[0] : totalDueAgg;
+    const totalDue = Number(dueRow?.total_due || 0);
+    const platformRepaymentRate = totalDue > 0 ? Math.min(100, (totalPaid / totalDue) * 100) : 100;
 
     // Process raw query results
     const fundsResult = Array.isArray(totalFunds) ? totalFunds[0] : totalFunds;
@@ -81,18 +163,41 @@ export async function getSuperadminOverview() {
       ? subscriptionRevenue[0]
       : subscriptionRevenue;
 
+    const activeTenantsRow = Array.isArray(activeTenantsResult) ? activeTenantsResult[0] : activeTenantsResult;
+    const parRow = Array.isArray(portfolioAtRiskResult) ? portfolioAtRiskResult[0] : portfolioAtRiskResult;
+    const superadminBalanceResult = Array.isArray(superadminWalletBalance)
+      ? superadminWalletBalance[0]
+      : superadminWalletBalance;
+    const recentWithdrawals = Array.isArray(recentSuperadminWithdrawalsResult)
+      ? recentSuperadminWithdrawalsResult
+      : recentSuperadminWithdrawalsResult || [];
+
     return {
       success: true,
       data: {
         totalFunds: fundsResult?.total || 0,
+        superadminWalletBalance: Number(superadminBalanceResult?._sum?.balance || 0),
         totalActiveLoans: Number(loansResult?.count || 0),
         totalSubscriptionRevenue: Number(subRevenue?.total_revenue || 0),
         globalTrustScore: trustResult?.avg_score
           ? Number(trustResult.avg_score)
           : 0,
-        recentLogs: recentLogs.map((log: any) => ({
-          ...log,
+        totalActiveTenants: Number(activeTenantsRow?.count || 0),
+        platformRepaymentRate,
+        portfolioAtRisk: Number(parRow?.at_risk || 0),
+        recentSuperadminWithdrawals: recentWithdrawals,
+        recentLogs: recentAuditLogs.map((log: any) => ({
+          log_id: log.log_id,
+          action: log.action,
+          module: log.module,
+          severity: log.severity,
+          action_category: log.action_category,
+          entity_type: log.entity_type,
+          entity_id: log.entity_id,
+          created_at: log.created_at,
           username: log.user?.username || "System",
+          user_email: log.user?.email || null,
+          tenant_name: log.tenant?.name || "Platform",
         })),
         aiSnapshot: aiSnapshot || null,
       },
@@ -102,6 +207,84 @@ export async function getSuperadminOverview() {
     return {
       success: false,
       error: "Failed to load overview data",
+    };
+  }
+}
+
+export async function withdrawSuperadminEarnings(
+  amount: number,
+  methodLabel?: string,
+  externalReference?: string,
+) {
+  const session = await requireSuperadminSession();
+  const tenantId = session.user.tenantId;
+  const userId = session.user.user_id;
+
+  if (!tenantId) {
+    return { success: false, error: "Superadmin tenant context is required." };
+  }
+
+  if (amount <= 0) {
+    return { success: false, error: "Withdrawal amount must be greater than zero." };
+  }
+
+  try {
+    await prisma.$transaction(async (tx: any) => {
+      const wallet = await tx.savingsAccount.findFirst({
+        where: {
+          tenant_id: tenantId,
+          user_id: userId,
+          account_type: AccountType.personal_wallet,
+          owner_role: "superadmin",
+        },
+      });
+
+      if (!wallet || Number(wallet.balance) < amount) {
+        throw new Error("Insufficient superadmin earnings wallet balance.");
+      }
+
+      await tx.savingsAccount.update({
+        where: { account_id: wallet.account_id },
+        data: { balance: { decrement: new Prisma.Decimal(amount) } },
+      });
+
+      await tx.savingsTransaction.create({
+        data: {
+          account_id: wallet.account_id,
+          tenant_id: tenantId,
+          transaction_type: TransactionType.withdrawal,
+          amount: new Prisma.Decimal(amount),
+          reference: `SUPERADMIN-WITHDRAW-${Date.now()}`,
+          processed_by: userId,
+          issue_notes: methodLabel || "Superadmin earnings withdrawal",
+        },
+      });
+
+      await postLedgerEntry(tx, {
+        tenantId,
+        description: `Superadmin earnings withdrawal`,
+        createdBy: userId,
+        metadata: {
+          source: "superadmin_withdrawal",
+          methodLabel: methodLabel || null,
+          externalReference: externalReference || null,
+        },
+        entries: [
+          { accountCode: "MEMBER_SAVINGS", debit: amount, credit: 0 },
+          { accountCode: "CASH_EQUIVALENTS", debit: 0, credit: amount },
+        ],
+      });
+    });
+
+    return { success: true, message: "Superadmin earnings withdrawal completed." };
+  } catch (error) {
+    console.error("Failed to process superadmin withdrawal:", error);
+    return {
+      success: false,
+      error:
+        error instanceof Error
+          ? error.message
+          : "Failed to process superadmin withdrawal.",
     };
   }
 }
@@ -441,7 +624,7 @@ export async function getCrossTenantFinancialReports(params: {
     // Total disbursed vs repaid by region
     const disbursedVsRepaid = await prisma.$queryRaw`
       SELECT 
-        COALESCE(t.region, 'Unassigned') as region,
+        COALESCE(tg.name, 'Unassigned') as region,
         COUNT(l.loan_id) as total_loans,
         SUM(l.principal_amount) as total_disbursed,
         SUM(CASE WHEN l.status = 'paid' THEN l.total_payable ELSE 0 END) as total_repaid,
@@ -458,7 +641,7 @@ export async function getCrossTenantFinancialReports(params: {
     // Default rates per region
     const defaultRatesByRegion = await prisma.$queryRaw`
       SELECT 
-        COALESCE(t.region, 'Unassigned') as region,
+        COALESCE(tg.name, 'Unassigned') as region,
         COUNT(l.loan_id) as total_loans,
         SUM(CASE WHEN l.status = 'defaulted' THEN 1 ELSE 0 END) as defaulted_loans,
         ROUND(
@@ -477,7 +660,7 @@ export async function getCrossTenantFinancialReports(params: {
     // Portfolio at risk
     const portfolioAtRisk = await prisma.$queryRaw`
       SELECT 
-        COALESCE(t.region, 'Unassigned') as region,
+        COALESCE(tg.name, 'Unassigned') as region,
         SUM(CASE WHEN l.status IN ('delinquent', 'defaulted') THEN l.balance_remaining ELSE 0 END) as at_risk_amount,
         SUM(l.balance_remaining) as total_outstanding,
         ROUND(
@@ -628,7 +811,7 @@ export async function exportFinancialReportCSV(params: {
         query = `
           SELECT 
             t.name as tenant_name,
-            t.region as region,
+            COALESCE(tg.name, 'Unassigned') as region,
             COUNT(l.loan_id) as total_loans,
             SUM(l.principal_amount) as total_disbursed,
             SUM(CASE WHEN l.status = 'paid' THEN l.total_payable ELSE 0 END) as total_repaid,
@@ -850,7 +1033,7 @@ export async function getFraudRiskMonitoring() {
       SELECT 
         t.tenant_id,
         t.name as tenant_name,
-        t.region,
+        COALESCE(tg.name, 'Unassigned') as region,
         COUNT(l.loan_id) as total_loans,
         SUM(CASE WHEN l.status = 'defaulted' THEN 1 ELSE 0 END) as defaulted_loans,
         ROUND(
@@ -914,15 +1097,13 @@ export async function createPlatformAnnouncement(data: {
       try {
         const targetUsers = await getTargetUsersForAnnouncement(data.targetAudience);
         for (const user of targetUsers) {
-          await prisma.notification.create({
-            data: {
-              user_id: user.user_id,
-              type: "tenant_announcement",
-              title: data.title,
-              body: data.content.substring(0, 200),
-              action_url: "/agapay-pintig",
-              channel: "in_app",
-            },
+          await createNotification({
+            userId: user.user_id,
+            type: NotificationType.tenant_announcement,
+            title: data.title,
+            body: data.content.substring(0, 200),
+            actionUrl: "/agapay-pintig",
+            channel: NotificationChannel.in_app,
           });
         }
       } catch (notifyErr) {
@@ -1567,18 +1748,14 @@ export async function broadcastPlatformMessage(data: {
 
     if (userIds.length > 0) {
       for (const uid of userIds) {
-        await prisma.$executeRaw`
-          INSERT INTO notifications (id, user_id, type, title, body, is_read, created_at)
-          VALUES (
-            UUID(),
-            ${uid},
-            'tenant_announcement',
-            ${data.subject},
-            ${data.message},
-            false,
-            NOW()
-          )
-        `;
+        await createNotification({
+          userId: uid,
+          type: NotificationType.tenant_announcement,
+          title: data.subject,
+          body: data.message,
+          actionUrl: null,
+          channel: NotificationChannel.in_app,
+        });
       }
     }
 

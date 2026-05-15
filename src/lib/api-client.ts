@@ -331,6 +331,16 @@ export interface SuperadminMetrics {
   outstanding_balance: number;
   total_savings: number;
   pending_applications: number;
+  superadminWalletBalance?: number;
+  recentSuperadminWithdrawals?: {
+    transaction_id: number;
+    amount: number;
+    method_label?: string;
+    reference?: string;
+    issue_notes?: string;
+    processed_at: string;
+    status?: string;
+  }[];
 }
 
 export interface TenantApplication {
@@ -722,6 +732,18 @@ export const api = {
       apiFetch<{ status: string; overview: SuperadminMetrics }>('/admin/superadmin-overview'),
     superadminOverview: () =>
       apiFetch<{ status: string; overview: SuperadminMetrics }>('/admin/superadmin-overview'),
+    withdrawSuperadminEarnings: (
+      amount: number,
+      methodLabel?: string,
+      externalReference?: string,
+    ) =>
+      apiFetch<{ status: string; message: string }>(
+        '/admin/superadmin-withdraw',
+        {
+          method: 'POST',
+          body: JSON.stringify({ amount, methodLabel, externalReference }),
+        },
+      ),
     getTenantApplications: () =>
       apiFetch<{ status: string; applications: TenantApplication[] }>('/admin/pending-applications'),
     pendingApplications: () =>

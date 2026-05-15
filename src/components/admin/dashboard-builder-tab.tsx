@@ -46,10 +46,10 @@ export function DashboardBuilderTab({ initialPlans }: { initialPlans: Plan[] }) 
         );
         toast.success(`${featureId} module status updated for ${res.plan.tier_name}.`);
       } else {
-        toast.error(res.error || "Failed to update plan.");
+        toast.error((res.error || "Failed to update plan.") + " Please refresh and try again.");
       }
     } catch {
-      toast.error("System error updating plan.");
+      toast.error("System error updating plan. Please try again or contact support.");
     } finally {
       setSavingId(null);
     }

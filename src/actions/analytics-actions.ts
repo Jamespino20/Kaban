@@ -325,3 +325,89 @@ export async function getFinancialIntegrityCheck(): Promise<FinancialIntegrity |
     return null;
   }
 }
+
+export interface GrowthAnalytics {
+  fumTrend: { date: string; amount: number }[];
+  memberGrowth: { date: string; count: number }[];
+  defaultForecast: { label: string; value: number; trend: "up" | "down" | "stable" }[];
+}
+
+export async function getGrowthAnalytics(): Promise<GrowthAnalytics | null> {
+  if (shouldUseApiClient()) return null;
+  const session = await requireAuthenticatedSession();
+  const tenantId = session.user.tenantId;
+  if (!tenantId && session.user.role !== "superadmin") return null;
+
+  try {
+    const query = async (db: any) => {
+      const now = new Date();
+      const months = Array.from({ length: 6 }, (_, i) => {
+        const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+        return { label: d.toLocaleString("default", { month: "short", year: "2-digit" }), start: d };
+      }).reverse();
+
+      // FUM trend: approximate from treasury + savings over time (use weekly snapshots from ledger)
+      const ledger = await db.businessLedger.findMany({
+        where: { tenant_id: tenantId, account: { code: { in: ["TREASURY_VAULT", "MEMBER_SAVINGS"] } } },
+        orderBy: { created_at: "asc" },
+        select: { created_at: true, debit: true, credit: true, account: { select: { code: true } } },
+      });
+
+      const fumBuckets: Record<string, number> = {};
+      for (const row of ledger) {
+        const key = format(row.created_at, "MMM yy");
+        const net = Number(row.debit) - Number(row.credit);
+        fumBuckets[key] = (fumBuckets[key] || 0) + net;
+      }
+      const fumTrend: { date: string; amount: number }[] = months.map((m) => ({
+        date: m.label,
+        amount: fumBuckets[m.label] || 0,
+      }));
+
+      // Member growth
+      const users = await db.user.findMany({
+        where: { tenant_id: tenantId, role: "member" },
+        orderBy: { created_at: "asc" },
+        select: { created_at: true },
+      });
+      let running: number = 0;
+      const memberBuckets: Record<string, number> = {};
+      for (const u of users) {
+        const key = format(new Date(u.created_at), "MMM yy");
+        memberBuckets[key] = (memberBuckets[key] || 0) + 1;
+      }
+      const memberGrowth: { date: string; count: number }[] = months.map((m) => {
+        running += memberBuckets[m.label] || 0;
+        return { date: m.label, count: running };
+      });
+
+      // Default forecast: count overdue schedules and defaulted loans
+      const overdueSchedules: number = await db.loanSchedule.count({
+        where: { tenant_id: tenantId, status: "overdue" },
+      });
+      const defaultedLoans: number = await db.loan.count({
+        where: { tenant_id: tenantId, status: "defaulted" },
+      });
+      const activeLoans: number = await db.loan.count({
+        where: { tenant_id: tenantId, status: "active" },
+      });
+      const defaultRate: number = activeLoans > 0 ? (defaultedLoans / activeLoans) * 100 : 0;
+
+      const trendDir = (v: number, thresholdUp: number, thresholdStable: number): "up" | "down" | "stable" =>
+        v > thresholdUp ? "up" : v > thresholdStable ? "stable" : "down";
+      const defaultForecast: GrowthAnalytics["defaultForecast"] = [
+        { label: "Overdue Accounts", value: overdueSchedules, trend: trendDir(overdueSchedules, 5, 0) },
+        { label: "Defaulted Loans", value: defaultedLoans, trend: trendDir(defaultedLoans, 3, 0) },
+        { label: "Default Rate", value: Math.round(defaultRate), trend: trendDir(Math.round(defaultRate), 10, 3) },
+      ];
+
+      return { fumTrend, memberGrowth, defaultForecast };
+    };
+
+    if (!tenantId) return await query(prisma);
+    return await prisma.$withTenant(tenantId, async (tx: any) => await query(tx));
+  } catch (error) {
+    console.error("[ANALYTICS] Growth analytics failed:", error);
+    return null;
+  }
+}

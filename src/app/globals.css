@@ -133,7 +133,7 @@
   }
 
   .dashboard-card-strong {
-    @apply rounded-xl border border-slate-200 bg-slate-950 text-white p-6 shadow-sm transition-all duration-200;
+    @apply rounded-xl border border-primary/30 bg-primary text-primary-foreground p-6 shadow-sm transition-all duration-200;
   }
 
   .btn-primary {

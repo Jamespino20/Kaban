@@ -28,6 +28,7 @@ model Tenant {
   accent_color             String?                   @db.VarChar(20)
   font_pairing             String?                   @default("inter_outfit") @db.VarChar(50)
   logo_url                 String?                   @db.Text
+  logo_square_url          String?                   @db.Text
   is_active                Boolean                   @default(true)
   created_at               DateTime                  @default(now())
   updated_at               DateTime                  @updatedAt

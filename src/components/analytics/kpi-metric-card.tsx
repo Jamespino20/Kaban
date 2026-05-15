@@ -68,23 +68,23 @@ export function KPIMetricCard({
       className={cn(
         "group relative p-6 rounded-3xl border transition-all duration-300 hover:shadow-lg",
         variant === "glass" &&
-          "bg-white/70 backdrop-blur-xl border-slate-200/60 shadow-sm",
-        variant === "solid" && "bg-white border-slate-100 shadow-sm",
-        variant === "ghost" && "bg-transparent border-dashed border-slate-200",
+          "bg-white/70 backdrop-blur-xl border-border/60 shadow-sm",
+        variant === "solid" && "bg-white border-border shadow-sm",
+        variant === "ghost" && "bg-transparent border-dashed border-border",
         className,
       )}
     >
       <div className="flex justify-between items-start mb-4">
         <div className="space-y-1">
-          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+          <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
             {label}
           </p>
-          <p className="text-3xl font-numbers font-bold text-slate-900 tracking-tight">
+          <p className="text-3xl font-numbers font-bold text-foreground tracking-tight">
             {value}
           </p>
         </div>
         {Icon && (
-          <div className="w-12 h-12 rounded-2xl bg-slate-50 flex items-center justify-center text-slate-400 transition-colors group-hover:bg-slate-900 group-hover:text-white">
+          <div className="w-12 h-12 rounded-2xl bg-muted flex items-center justify-center text-muted-foreground transition-colors group-hover:bg-primary group-hover:text-primary-foreground">
             <Icon className="w-6 h-6" />
           </div>
         )}
@@ -103,14 +103,14 @@ export function KPIMetricCard({
             {trend.isPositive ? "+" : "-"}
             {Math.abs(trend.value)}%
           </div>
-          <span className="text-[10px] font-medium text-slate-400">
+          <span className="text-[10px] font-medium text-muted-foreground">
             vs. last month
           </span>
         </div>
       )}
 
       {description && (
-        <p className="mt-4 text-xs text-slate-500 leading-relaxed font-sans">
+        <p className="mt-4 text-xs text-muted-foreground leading-relaxed font-sans">
           {description}
         </p>
       )}

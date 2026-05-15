@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Plus, Settings2, ShieldCheck, Calendar, Users } from "lucide-react";
+import { Plus, Settings2, ShieldCheck, Calendar, Users, Pencil, Trash2, ToggleLeft, ToggleRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -10,8 +10,19 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { CreateProductForm } from "./create-product-form";
-import { getLoanProducts } from "@/actions/loan-product";
+import { EditProductForm } from "./edit-product-form";
+import { getLoanProducts, toggleLoanProduct, deleteLoanProduct } from "@/actions/loan-product";
 import { MICROFINANCE_POLICY } from "@/lib/microfinance-policy";
 import { toast } from "sonner";
 
@@ -37,6 +48,9 @@ export const LoanProductsTab = () => {
   const [products, setProducts] = useState<any[]>([]);
   const [isOpen, setIsOpen] = useState(false);
   const [expandedPolicyId, setExpandedPolicyId] = useState<string | null>(null);
+  const [editingProduct, setEditingProduct] = useState<any | null>(null);
+  const [deletingProduct, setDeletingProduct] = useState<any | null>(null);
+  const [togglingId, setTogglingId] = useState<number | null>(null);
 
   const fetchProducts = async () => {
     try {
@@ -91,6 +105,57 @@ export const LoanProductsTab = () => {
             />
           </DialogContent>
         </Dialog>
+
+        <Dialog open={!!editingProduct} onOpenChange={(open: boolean) => { if (!open) setEditingProduct(null); }}>
+          <DialogContent className="sm:max-w-[520px] rounded-3xl border-none shadow-2xl">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2 text-2xl font-display font-bold">
+                <Settings2 className="h-5 w-5 text-emerald-500" />
+                <span>Edit Loan Product</span>
+              </DialogTitle>
+            </DialogHeader>
+            {editingProduct && (
+              <EditProductForm
+                product={editingProduct}
+                onSuccess={() => {
+                  setEditingProduct(null);
+                  fetchProducts();
+                }}
+              />
+            )}
+          </DialogContent>
+        </Dialog>
+
+        <AlertDialog open={!!deletingProduct} onOpenChange={(open: boolean) => { if (!open) setDeletingProduct(null); }}>
+          <AlertDialogContent className="rounded-3xl">
+            <AlertDialogHeader>
+              <AlertDialogTitle>Delete Loan Product</AlertDialogTitle>
+              <AlertDialogDescription>
+                Are you sure you want to delete <strong>{deletingProduct?.name}</strong>?
+                This action cannot be undone. Products with active loans cannot be deleted.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction
+                className="bg-red-600 hover:bg-red-700 text-white"
+                onClick={async () => {
+                  if (!deletingProduct) return;
+                  const result = await deleteLoanProduct(deletingProduct.product_id);
+                  if (result?.error) {
+                    toast.error(result.error);
+                  } else {
+                    toast.success("Loan product deleted!");
+                    fetchProducts();
+                  }
+                  setDeletingProduct(null);
+                }}
+              >
+                Delete
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
         </div>
 
         <div className="mt-5 grid gap-3 md:grid-cols-4">
@@ -145,13 +210,16 @@ export const LoanProductsTab = () => {
                 <th className="p-5 text-xs font-bold uppercase tracking-widest text-slate-400">
                   Status
                 </th>
+                <th className="p-5 text-xs font-bold uppercase tracking-widest text-slate-400">
+                  Actions
+                </th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-50">
               {products.length === 0 ? (
                 <tr>
                   <td
-                    colSpan={9}
+                    colSpan={10}
                     className="p-20 text-center italic text-slate-400"
                   >
                     This tenant has no loan products yet. Products start empty
@@ -261,6 +329,49 @@ export const LoanProductsTab = () => {
                           Inactive
                         </span>
                       )}
+                    </td>
+                    <td className="p-5">
+                      <div className="flex items-center gap-2">
+                        <button
+                          type="button"
+                          title="Edit product"
+                          onClick={() => setEditingProduct(product)}
+                          className="rounded-lg border border-slate-200 bg-white p-2 text-slate-500 transition-colors hover:border-emerald-200 hover:bg-emerald-50 hover:text-emerald-600"
+                        >
+                          <Pencil className="h-4 w-4" />
+                        </button>
+                        <button
+                          type="button"
+                          title={product.is_active ? "Disable product" : "Enable product"}
+                          disabled={togglingId === product.product_id}
+                          onClick={async () => {
+                            setTogglingId(product.product_id);
+                            const result = await toggleLoanProduct(product.product_id, !product.is_active);
+                            if (result?.error) {
+                              toast.error(result.error);
+                            } else {
+                              toast.success(result.success);
+                              fetchProducts();
+                            }
+                            setTogglingId(null);
+                          }}
+                          className={`rounded-lg border p-2 transition-colors ${
+                            product.is_active
+                              ? "border-emerald-200 bg-emerald-50 text-emerald-600 hover:border-emerald-300 hover:bg-emerald-100"
+                              : "border-slate-200 bg-white text-slate-400 hover:border-slate-300 hover:bg-slate-50"
+                          }`}
+                        >
+                          {product.is_active ? <ToggleRight className="h-4 w-4" /> : <ToggleLeft className="h-4 w-4" />}
+                        </button>
+                        <button
+                          type="button"
+                          title="Delete product"
+                          onClick={() => setDeletingProduct(product)}
+                          className="rounded-lg border border-slate-200 bg-white p-2 text-slate-500 transition-colors hover:border-red-200 hover:bg-red-50 hover:text-red-600"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))

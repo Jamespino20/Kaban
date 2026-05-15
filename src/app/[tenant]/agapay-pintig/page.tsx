@@ -142,6 +142,7 @@ export default async function AgapayPintigPage(props: {
         accent_color: true,
         font_pairing: true,
         logo_url: true,
+        logo_square_url: true,
         metadata: true,
         tenantSubscription: {
           select: {
@@ -313,6 +314,7 @@ export default async function AgapayPintigPage(props: {
       accountPhotoUrl={member?.profile?.photo_url}
       tenantName={tenantIdentity?.name}
       tenantLogoUrl={tenantIdentity?.logo_url || undefined}
+      tenantLogoSquareUrl={tenantIdentity?.logo_url || undefined}
       tenantBrandColor={tenantIdentity?.brand_color}
       tenantAccentColor={tenantIdentity?.accent_color}
       tenantFontPairing={tenantIdentity?.font_pairing}

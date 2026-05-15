@@ -515,7 +515,7 @@ export function MemberDirectoryTab({
                 className="rounded-xl"
                 onClick={async () => {
                    const res = await updateMemberStatus(selectedMember.user_id, "deactivated") as any;
-                   if (res.error) toast.error(res.error);
+                   if (res.error) toast.error(String(res.error) + " Please refresh and try again.");
                    else {
                      toast.success("Member deactivated successfully.");
                      setIsDeactivateOpen(false);
@@ -571,7 +571,7 @@ function MemberRowActions({
   const handleResetPassword = () => {
     startTransition(async () => {
       const res = await resetMemberPassword(member.user_id);
-      if (res.error) toast.error(res.error);
+      if (res.error) toast.error(String(res.error) + " Please try again.");
       else toast.success(res.success);
     });
   };
@@ -583,7 +583,7 @@ function MemberRowActions({
     }
     startTransition(async () => {
       const res = await sendMemberNotification(member.user_id, notifTitle, notifBody);
-      if (res.error) toast.error(res.error);
+      if (res.error) toast.error(String(res.error) + " Please try again.");
       else {
         toast.success(res.success);
         setNotifOpen(false);
@@ -599,7 +599,7 @@ function MemberRowActions({
     
     startTransition(async () => {
       const res = await updateMemberStatus(member.user_id, newStatus);
-      if (res.error) toast.error(res.error);
+      if (res.error) toast.error(String(res.error) + " Please refresh and try again.");
       else {
         toast.success(res.success);
         setConfirmOpen(false);

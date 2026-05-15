@@ -84,7 +84,7 @@ export function PlatformConfigTab({ initialConfig }: { initialConfig: any }) {
         toast.error(result.error || "Failed to update configuration");
       }
     } catch (error) {
-      toast.error("An unexpected error occurred");
+      toast.error("An unexpected error occurred. Please try again or contact support if the issue persists.");
       console.error(error);
     } finally {
       setIsSubmitting(false);

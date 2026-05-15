@@ -83,7 +83,7 @@ export function AdminProfileSettings({
       };
       reader.readAsDataURL(file);
     } catch {
-      toast.error("Failed to read image file.");
+      toast.error("Failed to read image file. Please select a different image or try a JPG/PNG file under 5MB.");
       setIsUploadingAvatar(false);
     }
     if (fileInputRef.current) fileInputRef.current.value = "";
@@ -102,7 +102,7 @@ export function AdminProfileSettings({
           dismissDraftNotice();
           router.refresh();
         } else {
-          toast.error(res.error || "Failed to update profile.");
+          toast.error((res.error || "Failed to update profile.") + " Please check your form entries and try again.");
         }
       });
     },

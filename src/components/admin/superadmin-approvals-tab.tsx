@@ -121,11 +121,11 @@ export function SuperadminApprovalsTab({ initialApplications = [] }: ApprovalsTa
             setApplications(response.data as unknown as TenantApplication[]);
           }
         } else {
-          toast.error(result.error || "Failed to process application");
+          toast.error((result.error || "Failed to process application") + ". Please review the application details and try again.");
         }
       } catch (error) {
         console.error("Failed to process:", error);
-        toast.error("An unexpected error occurred");
+        toast.error("An unexpected error occurred. Please try again or contact support if the issue persists.");
       }
     });
   }

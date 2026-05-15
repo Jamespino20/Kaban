@@ -251,7 +251,7 @@ export function TenantManagementTab({
         toast.success("Features updated successfully");
       } else {
         setError(res.error || "Failed to update tenant features.");
-        toast.error("Failed to update features");
+        toast.error("Failed to update features. Please check your permissions and try again.");
       }
     });
   };

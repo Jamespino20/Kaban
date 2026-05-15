@@ -86,11 +86,11 @@ export function SubscriptionSettingsClient({
           "Your subscription upgrade request has been sent to Superadmins.",
         );
       } else {
-        toast.error("Error: " + (res.error || "Failed to submit request."));
+        toast.error("Error: " + (res.error || "Failed to submit request.") + " Please refresh the page and try again, or contact support if the issue persists.");
       }
     } catch {
       toast.error(
-        "System Error: Unable to process your request. Please try again.",
+        "System Error: Unable to process your request. Please try again or contact your Superadmin.",
       );
     } finally {
       setIsLoading(null);
@@ -172,9 +172,9 @@ export function SubscriptionSettingsClient({
                     toast.success("Subscription renewed! Your access has been restored.");
                     window.location.reload();
                   } else {
-                    toast.error(res.error || "Renewal failed");
+                    toast.error((res.error || "Renewal failed") + ". Please check your payment method and try again.");
                   }
-                } catch { toast.error("System error during renewal"); }
+                } catch { toast.error("System error during renewal. Please try again or contact support."); }
                 setRenewing(false);
               }}
               disabled={renewing}

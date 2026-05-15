@@ -147,6 +147,7 @@ export function AuthenticatedShell({
   accent = "emerald",
   tenantName,
   tenantLogoUrl,
+  tenantLogoSquareUrl,
   tenantBrandColor,
   tenantAccentColor,
   tenantFontPairing,
@@ -163,6 +164,7 @@ export function AuthenticatedShell({
   accent?: "emerald" | "blue";
   tenantName?: string;
   tenantLogoUrl?: string;
+  tenantLogoSquareUrl?: string;
   tenantBrandColor?: string | null;
   tenantAccentColor?: string | null;
   tenantFontPairing?: string | null;
@@ -286,9 +288,9 @@ export function AuthenticatedShell({
                   tenantName ? "rounded-2xl" : "rounded-full"
                 } ${isBrandColorLight ? "bg-black/5" : "bg-white/10"}`}
               >
-                {tenantLogoUrl ? (
+                {(tenantLogoSquareUrl || tenantLogoUrl) ? (
                   <img
-                    src={tenantLogoUrl}
+                    src={tenantLogoSquareUrl || tenantLogoUrl || ""}
                     alt={tenantName || "Logo"}
                     className="h-full w-full object-cover"
                   />
@@ -455,12 +457,12 @@ export function AuthenticatedShell({
 
   return (
     <div
-      className="min-h-screen text-slate-900 bg-slate-50 lg:flex lg:h-screen lg:overflow-hidden"
+      className="min-h-screen text-foreground bg-background lg:flex lg:h-screen lg:overflow-hidden"
       style={{ ...cssVars }}
     >
       <IdleSessionTimer />
       <div
-        className={`fixed inset-0 z-40 bg-slate-950/55 backdrop-blur-sm transition-opacity duration-200 lg:hidden ${
+        className={`fixed inset-0 z-40 bg-foreground/55 backdrop-blur-sm transition-opacity duration-200 lg:hidden ${
           mobileOpen
             ? "pointer-events-auto opacity-100"
             : "pointer-events-none opacity-0"
@@ -484,10 +486,10 @@ export function AuthenticatedShell({
       </aside>
 
       <div
-        className="min-w-0 flex-1 text-slate-900 lg:h-screen lg:overflow-y-auto"
+        className="min-w-0 flex-1 text-foreground lg:h-screen lg:overflow-y-auto"
         style={mainPaneStyle}
       >
-        <div className="border-b border-slate-200/80 bg-white/95 px-5 py-4 backdrop-blur-xl md:px-8 lg:sticky lg:top-0 lg:z-20 shadow-sm">
+        <div className="border-b border-border/80 bg-white/95 px-5 py-4 backdrop-blur-xl md:px-8 lg:sticky lg:top-0 lg:z-20 shadow-sm">
           <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
             <div className="space-y-2">
               <div className="flex items-center gap-3 lg:hidden">
@@ -495,16 +497,16 @@ export function AuthenticatedShell({
                   variant="outline"
                   size="icon"
                   onClick={() => setMobileOpen(true)}
-                  className="rounded-xl border-slate-200 bg-white text-slate-700 shadow-sm hover:bg-slate-50"
+                  className="rounded-xl border-border bg-white text-muted-foreground shadow-sm hover:bg-muted"
                   title="Open navigation"
                 >
                   <Menu className="h-5 w-5" />
                 </Button>
                 <div className="min-w-0">
-                  <p className="text-sm font-bold italic tracking-tight text-slate-900" style={{ fontFamily: "var(--font-display)" }}>
+                  <p className="text-sm font-bold italic tracking-tight text-foreground" style={{ fontFamily: "var(--font-display)" }}>
                     Agapay
                   </p>
-                  <p className="text-[10px] uppercase tracking-[0.2em] text-slate-500">
+                  <p className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
                     Cooperative SaaS
                   </p>
                 </div>
@@ -512,15 +514,15 @@ export function AuthenticatedShell({
 
               <div className="space-y-1" style={{ fontFamily: "var(--font-display)" }}>
                 {portalLabel ? (
-                  <p className="text-xs uppercase tracking-[0.24em] text-slate-500 font-semibold font-accent">
+                  <p className="text-xs uppercase tracking-[0.24em] text-muted-foreground font-semibold font-accent">
                     {portalLabel}
                   </p>
                 ) : null}
-                <h1 className="text-2xl font-heading font-bold italic tracking-tight text-slate-950 md:text-3xl">
+                <h1 className="text-2xl font-heading font-bold italic tracking-tight text-foreground md:text-3xl">
                   {title}
                 </h1>
                 <p
-                  className="max-w-3xl text-sm text-slate-500 md:text-sm font-sans"
+                  className="max-w-3xl text-sm text-muted-foreground md:text-sm font-sans"
                 >
                   {subtitle}
                 </p>
@@ -561,7 +563,7 @@ export function AuthenticatedShell({
                     <Button
                       variant="ghost"
                       size="icon"
-                      className="rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100"
+                      className="rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted"
                       title="More actions"
                     >
                       <MoreVertical className="h-5 w-5" />

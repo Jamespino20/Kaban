@@ -24,6 +24,7 @@ export async function searchEligibleGuarantors(query: string) {
     const tenantId = session.user.tenantId;
     if (!tenantId) return { data: [] };
 
+    const normalizedQuery = query.trim();
     const users = await prisma.user.findMany({
       where: {
         tenant_id: tenantId,
@@ -31,16 +32,20 @@ export async function searchEligibleGuarantors(query: string) {
         role: Role.member,
         status: UserStatus.active,
         OR: [
-          { username: { contains: query } },
-          { email: { contains: query } },
+          { username: { contains: normalizedQuery, mode: "insensitive" } },
+          { email: { contains: normalizedQuery, mode: "insensitive" } },
           {
             profile: {
-              first_name: { contains: query },
+              is: {
+                first_name: { contains: normalizedQuery, mode: "insensitive" },
+              },
             },
           },
           {
             profile: {
-              last_name: { contains: query },
+              is: {
+                last_name: { contains: normalizedQuery, mode: "insensitive" },
+              },
             },
           },
         ],

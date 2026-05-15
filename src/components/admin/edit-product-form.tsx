@@ -1,0 +1,299 @@
+"use client";
+
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
+import { useTransition } from "react";
+import { toast } from "sonner";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { updateLoanProduct } from "@/actions/loan-product";
+import { MICROFINANCE_POLICY } from "@/lib/microfinance-policy";
+
+const FREQUENCY_OPTIONS = [
+  { value: "weekly", label: "Lingguhán (Weekly)" },
+  { value: "bi_weekly", label: "Dalawang Linggo (Bi-weekly)" },
+  { value: "monthly", label: "Buwanán (Monthly)" },
+];
+
+const LoanProductSchema = z.object({
+  name: z.string().min(1, "Name is required"),
+  description: z.string().optional(),
+  min_amount: z.number().min(0, "Min amount must be positive"),
+  max_amount: z.number().min(0, "Max amount must be positive"),
+  interest_rate_percent: z.number().min(0, "Interest rate must be positive"),
+  guarantor_liability_rate: z
+    .number()
+    .min(0, "Liability rate must be positive")
+    .max(100, "Liability rate cannot exceed 100%"),
+  allowed_frequencies: z
+    .array(z.string())
+    .min(1, "Select at least one frequency"),
+  max_term_months: z.number().min(1, "Term must be at least 1 month"),
+});
+
+interface EditProductFormProps {
+  product: any;
+  onSuccess: () => void;
+}
+
+export const EditProductForm = ({ product, onSuccess }: EditProductFormProps) => {
+  const [isPending, startTransition] = useTransition();
+
+  const form = useForm<z.infer<typeof LoanProductSchema>>({
+    resolver: zodResolver(LoanProductSchema),
+    defaultValues: {
+      name: product.name || "",
+      description: product.description || "",
+      min_amount: Number(product.min_amount) || MICROFINANCE_POLICY.minAmount,
+      max_amount: Number(product.max_amount) || 20_000,
+      interest_rate_percent: Number(product.interest_rate_percent) || 5,
+      guarantor_liability_rate: Number(product.guarantor_liability_rate ?? 25),
+      allowed_frequencies: (product.allowed_frequencies as string[]) || ["monthly"],
+      max_term_months: product.max_term_months || 6,
+    },
+  });
+
+  const selectedFrequencies = form.watch("allowed_frequencies");
+
+  const toggleFrequency = (value: string) => {
+    const current = form.getValues("allowed_frequencies");
+    if (current.includes(value)) {
+      form.setValue(
+        "allowed_frequencies",
+        current.filter((v) => v !== value),
+        { shouldValidate: true },
+      );
+    } else {
+      form.setValue("allowed_frequencies", [...current, value], {
+        shouldValidate: true,
+      });
+    }
+  };
+
+  const onSubmit = (values: z.infer<typeof LoanProductSchema>) => {
+    startTransition(async () => {
+      try {
+        const result = await updateLoanProduct(product.product_id, values as any);
+        if (result?.error) {
+          toast.error(result.error);
+        } else {
+          toast.success("Loan product updated!");
+          form.reset();
+          onSuccess();
+        }
+      } catch {
+        toast.error("Something went wrong!");
+      }
+    });
+  };
+
+  return (
+    <Form {...form}>
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+        <div className="rounded-2xl border border-emerald-100 bg-emerald-50/70 p-4 text-sm leading-7 text-slate-600">
+          Editing: <strong>{product.name}</strong>
+        </div>
+
+        <FormField
+          control={form.control}
+          name="name"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Product Name</FormLabel>
+              <FormControl>
+                <Input
+                  {...field}
+                  disabled={isPending}
+                  placeholder="Starter Puhunan Loan"
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="description"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Policies & Conditions</FormLabel>
+              <FormControl>
+                <textarea
+                  {...field}
+                  value={field.value ?? ""}
+                  disabled={isPending}
+                  placeholder="Eligibility requirements, late payment policies, special terms..."
+                  className="min-h-24 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 resize-y"
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <div className="grid grid-cols-2 gap-4">
+          <FormField
+            control={form.control}
+            name="min_amount"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Min Amount (PHP)</FormLabel>
+                <FormControl>
+                  <Input
+                    {...field}
+                    value={field.value ?? ""}
+                    onChange={(event) =>
+                      field.onChange(Number(event.target.value))
+                    }
+                    type="number"
+                    disabled={isPending}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="max_amount"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Max Amount (PHP)</FormLabel>
+                <FormControl>
+                  <Input
+                    {...field}
+                    value={field.value ?? ""}
+                    onChange={(event) =>
+                      field.onChange(Number(event.target.value))
+                    }
+                    type="number"
+                    disabled={isPending}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
+
+        <div className="grid grid-cols-2 gap-4">
+          <FormField
+            control={form.control}
+            name="interest_rate_percent"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Flat Monthly Interest Rate (%)</FormLabel>
+                <FormControl>
+                  <Input
+                    {...field}
+                    value={field.value ?? ""}
+                    onChange={(event) =>
+                      field.onChange(Number(event.target.value))
+                    }
+                    type="number"
+                    step="0.5"
+                    disabled={isPending}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="guarantor_liability_rate"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Guarantor Liability (%)</FormLabel>
+                <FormControl>
+                  <Input
+                    {...field}
+                    value={field.value ?? ""}
+                    onChange={(event) =>
+                      field.onChange(Number(event.target.value))
+                    }
+                    type="number"
+                    step="1"
+                    disabled={isPending}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
+
+        <FormField
+          control={form.control}
+          name="allowed_frequencies"
+          render={() => (
+            <FormItem>
+              <FormLabel>Payment Cadence (select one or more)</FormLabel>
+              <div className="flex flex-wrap gap-2 pt-1">
+                {FREQUENCY_OPTIONS.map((opt) => {
+                  const active = selectedFrequencies?.includes(opt.value);
+                  return (
+                    <button
+                      key={opt.value}
+                      type="button"
+                      disabled={isPending}
+                      onClick={() => toggleFrequency(opt.value)}
+                      className={`rounded-xl border px-4 py-2 text-xs font-bold transition-colors cursor-pointer ${
+                        active
+                          ? "border-indigo-300 bg-indigo-50 text-indigo-700"
+                          : "border-slate-200 bg-slate-50 text-slate-500 hover:border-indigo-200 hover:bg-indigo-50/50"
+                      }`}
+                    >
+                      {opt.label}
+                    </button>
+                  );
+                })}
+              </div>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="max_term_months"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Max Term (Months)</FormLabel>
+              <FormControl>
+                <Input
+                  {...field}
+                  value={field.value ?? ""}
+                  onChange={(event) =>
+                    field.onChange(Number(event.target.value))
+                  }
+                  type="number"
+                  disabled={isPending}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <Button
+          disabled={isPending}
+          type="submit"
+          className="w-full bg-emerald-600 font-bold text-white hover:bg-emerald-700"
+        >
+          {isPending ? "Saving..." : "Save Changes"}
+        </Button>
+      </form>
+    </Form>
+  );
+};

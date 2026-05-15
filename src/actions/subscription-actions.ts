@@ -1,6 +1,6 @@
 "use server";
 
-import { AccountType, Prisma, TransactionType } from "@prisma/client";
+import { AccountType, Prisma, Role, TransactionType } from "@prisma/client";
 import prisma from "@/lib/prisma";
 import { createNotification } from "@/lib/notifications";
 import { requireTanawSession } from "@/lib/authorization";
@@ -23,6 +23,63 @@ function getPlanCyclePrice(plan: any, cycle: BillingCycleValue) {
     default:
       return Number(plan.price_monthly || 0);
   }
+}
+
+async function creditSuperadminEarningsWallet(
+  tx: any,
+  amount: number,
+  processedBy: number,
+  superadminTenantId: number,
+  superadminUserId: number,
+) {
+  if (amount <= 0) return;
+
+  let superadminWallet = await tx.savingsAccount.findFirst({
+    where: {
+      tenant_id: superadminTenantId,
+      user_id: superadminUserId,
+      account_type: AccountType.personal_wallet,
+    },
+  });
+
+  if (!superadminWallet) {
+    superadminWallet = await tx.savingsAccount.create({
+      data: {
+        tenant_id: superadminTenantId,
+        user_id: superadminUserId,
+        account_type: AccountType.personal_wallet,
+        owner_role: Role.superadmin,
+        balance: new Prisma.Decimal(amount),
+      },
+    });
+  } else {
+    if (!superadminWallet.owner_role) {
+      superadminWallet = await tx.savingsAccount.update({
+        where: { account_id: superadminWallet.account_id },
+        data: {
+          owner_role: Role.superadmin,
+          balance: { increment: new Prisma.Decimal(amount) },
+        },
+      });
+    } else {
+      superadminWallet = await tx.savingsAccount.update({
+        where: { account_id: superadminWallet.account_id },
+        data: { balance: { increment: new Prisma.Decimal(amount) } },
+      });
+    }
+  }
+
+  await tx.savingsTransaction.create({
+    data: {
+      account_id: superadminWallet.account_id,
+      tenant_id: superadminTenantId,
+      transaction_type: TransactionType.deposit,
+      amount: new Prisma.Decimal(amount),
+      reference: `SUPERADMIN-REVENUE-${Date.now()}`,
+      processed_by: processedBy,
+      issue_notes: "Superadmin subscription revenue allocation",
+    },
+  });
 }
 
 export async function getAvailablePlans() {
@@ -432,6 +489,16 @@ export async function updateTenantSubscription(
               : { balance: { increment: new Prisma.Decimal(amount) } },
         });
 
+        if (delta > 0) {
+          await creditSuperadminEarningsWallet(
+            tx,
+            amount,
+            session.user.user_id,
+            session.user.tenantId!,
+            session.user.user_id,
+          );
+        }
+
         const settlementReference = `SUB-${tenantId}-${Date.now()}`;
         await tx.savingsTransaction.create({
           data: {
@@ -580,6 +647,16 @@ export async function approveSubscriptionUpgrade(tenantId: number) {
                 : { increment: new Prisma.Decimal(amount) },
           },
         });
+
+        if (billingDelta > 0) {
+          await creditSuperadminEarningsWallet(
+            tx,
+            amount,
+            session.user.user_id,
+            session.user.tenantId!,
+            session.user.user_id,
+          );
+        }
 
         const txType =
           billingDelta > 0 ? TransactionType.withdrawal : TransactionType.deposit;

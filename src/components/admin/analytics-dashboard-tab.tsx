@@ -8,19 +8,26 @@ import {
   PieChart,
   Zap,
   Calculator,
+  Users,
+  AlertTriangle,
+  ArrowUpRight,
+  ArrowDownRight,
+  Minus,
 } from "lucide-react";
 import {
   getTenantAnalytics,
   getOperationalInsights,
   getFinancialIntegrityCheck,
+  getGrowthAnalytics,
 } from "@/actions/analytics-actions";
 import { KPIMetricCard } from "../analytics/kpi-metric-card";
 
 export async function AnalyticsDashboardTab() {
-  const [analytics, operational, integrity] = await Promise.all([
+  const [analytics, operational, integrity, growth] = await Promise.all([
     getTenantAnalytics(30),
     getOperationalInsights(30),
     getFinancialIntegrityCheck(),
+    getGrowthAnalytics(),
   ]);
 
   const totalCapitalPool =
@@ -328,6 +335,110 @@ export async function AnalyticsDashboardTab() {
           </p>
         </div>
       </div>
+
+      {/* Growth Analytics: FUM Trend, Member Growth, Default Forecast */}
+      {growth && (
+        <>
+          {/* FUM Trend */}
+          <div className="dashboard-card p-6 space-y-4">
+            <div className="flex items-center gap-3">
+              <TrendingUp className="w-5 h-5 text-emerald-600" />
+              <h3 className="text-xl font-display font-bold italic text-foreground">
+                Total FUM Trend (6mo)
+              </h3>
+            </div>
+            <div className="h-48 w-full bg-slate-50/50 rounded-2xl flex items-end justify-between p-6 gap-2 border border-slate-100">
+              {growth.fumTrend.length ? (
+                growth.fumTrend.map((d, i) => {
+                  const max = Math.max(...growth.fumTrend.map((x) => x.amount), 1);
+                  return (
+                    <div key={i} className="w-full flex flex-col items-center gap-1">
+                      <div
+                        className="w-full bg-emerald-500 hover:bg-emerald-600 transition-all rounded-t-lg relative group shadow-[0_-4px_12px_rgba(16,185,129,0.2)]"
+                        style={{ height: `${Math.max(5, (d.amount / max) * 100)}%` }}
+                      >
+                        <div className="absolute -top-12 left-1/2 -translate-x-1/2 bg-slate-900 text-white text-[10px] px-3 py-1.5 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-20 shadow-xl">
+                          ₱{d.amount.toLocaleString()}
+                        </div>
+                      </div>
+                      <span className="text-[9px] text-slate-400 font-medium -rotate-45 origin-left">{d.date}</span>
+                    </div>
+                  );
+                })
+              ) : (
+                <div className="w-full h-full flex items-center justify-center text-muted-foreground text-xs italic">
+                  No FUM data yet
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Member Growth + Default Forecast */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <div className="dashboard-card p-6 space-y-4">
+              <div className="flex items-center gap-3">
+                <Users className="w-5 h-5 text-blue-600" />
+                <h3 className="text-xl font-display font-bold italic text-foreground">
+                  Member Growth
+                </h3>
+              </div>
+              <div className="h-40 w-full bg-slate-50/50 rounded-2xl flex items-end justify-between p-6 gap-2 border border-slate-100">
+                {growth.memberGrowth.length ? (
+                  growth.memberGrowth.map((d, i) => {
+                    const max = Math.max(...growth.memberGrowth.map((x) => x.count), 1);
+                    return (
+                      <div key={i} className="w-full flex flex-col items-center gap-1">
+                        <div
+                          className="w-full bg-blue-500 hover:bg-blue-600 transition-all rounded-t-lg relative group shadow-[0_-4px_12px_rgba(59,130,246,0.2)]"
+                          style={{ height: `${Math.max(5, (d.count / max) * 100)}%` }}
+                        >
+                          <div className="absolute -top-12 left-1/2 -translate-x-1/2 bg-slate-900 text-white text-[10px] px-3 py-1.5 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-20 shadow-xl">
+                            {d.count} members
+                          </div>
+                        </div>
+                        <span className="text-[9px] text-slate-400 font-medium -rotate-45 origin-left">{d.date}</span>
+                      </div>
+                    );
+                  })
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center text-muted-foreground text-xs italic">
+                    No member growth data
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <div className="dashboard-card p-6 space-y-4">
+              <div className="flex items-center gap-3">
+                <AlertTriangle className="w-5 h-5 text-rose-600" />
+                <h3 className="text-xl font-display font-bold italic text-foreground">
+                  Default Forecast
+                </h3>
+              </div>
+              <div className="space-y-3">
+                {growth.defaultForecast.map((item, i) => (
+                  <div key={i} className="flex items-center justify-between p-4 bg-slate-50 rounded-2xl border border-slate-100">
+                    <div>
+                      <p className="text-sm font-bold text-foreground">{item.label}</p>
+                      <p className="text-[10px] text-muted-foreground">{item.value}</p>
+                    </div>
+                    <div className={`flex items-center gap-1 text-xs font-bold ${
+                      item.trend === "up" ? "text-rose-600" :
+                      item.trend === "down" ? "text-emerald-600" :
+                      "text-amber-600"
+                    }`}>
+                      {item.trend === "up" ? <ArrowUpRight className="w-4 h-4" /> :
+                       item.trend === "down" ? <ArrowDownRight className="w-4 h-4" /> :
+                       <Minus className="w-4 h-4" />}
+                      {item.trend === "up" ? "Rising" : item.trend === "down" ? "Falling" : "Stable"}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </>
+      )}
     </div>
   );
 }

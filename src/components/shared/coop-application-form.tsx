@@ -34,6 +34,12 @@ import {
 
 type Step = "info" | "plan" | "docs" | "payment";
 
+const DOWNPAYMENT_RULES: Record<string, { pct: number; required: boolean }> = {
+  core: { pct: 0, required: false },
+  pro: { pct: 30, required: true },
+  enterprise: { pct: 50, required: true },
+};
+
 export function CoopApplicationForm() {
   const [isPending, startTransition] = useTransition();
   const [currentStep, setCurrentStep] = useState<Step>("info");
@@ -68,6 +74,7 @@ export function CoopApplicationForm() {
       city: "",
       zip: "",
       cardLast4: "",
+      downpaymentAcknowledged: false,
     },
   });
 
@@ -124,6 +131,7 @@ export function CoopApplicationForm() {
           city: "",
           zip: "",
           cardLast4: "",
+          downpaymentAcknowledged: false,
         },
       });
       setCurrentStep("info");
@@ -193,9 +201,21 @@ export function CoopApplicationForm() {
     };
   });
 
+  // Compute downpayment for the currently selected plan
+  const selectedPlanData = plans.find((p) => p.id === formData.selectedPlanId);
+  const dpRule = DOWNPAYMENT_RULES[formData.selectedPlanId];
+  const dpAmount = selectedPlanData && dpRule?.required
+    ? Math.round((Number(selectedPlanData.price.replace(/,/g, "")) * dpRule.pct) / 100)
+    : 0;
+
+  const isPaymentValid =
+    !!formData.billing.name &&
+    !!formData.billing.email &&
+    (!dpRule?.required || formData.billing.downpaymentAcknowledged);
+
   return (
     <div className="space-y-8 max-w-4xl mx-auto">
-      {/* Header section remains similar but updated for context */}
+      {/* Header */}
       <div className="space-y-3 text-center md:text-left">
         <div className="inline-flex items-center gap-2 px-3 py-1 bg-emerald-50 text-emerald-700 rounded-full text-xs font-bold uppercase tracking-wider">
           <Building2 className="w-3.5 h-3.5" />
@@ -205,44 +225,22 @@ export function CoopApplicationForm() {
           Register your Cooperative.
         </h3>
         <p className="text-slate-500 text-lg leading-relaxed">
-          {currentStep === "info" &&
-            "Start your application by providing basic details."}
-          {currentStep === "plan" &&
-            "Select a plan that fits the size and needs of your cooperative."}
-          {currentStep === "docs" &&
-            "Upload mandatory documents for verification."}
-          {currentStep === "payment" &&
-            "Review your plan and enter billing details."}
+          {currentStep === "info" && "Start your application by providing basic details."}
+          {currentStep === "plan" && "Select a plan that fits the size and needs of your cooperative."}
+          {currentStep === "docs" && "Upload mandatory documents for verification."}
+          {currentStep === "payment" && "Review your plan and enter billing details."}
         </p>
       </div>
 
       {/* Step Indicator */}
       <div className="flex items-center justify-between px-2 mb-4 bg-slate-50 p-4 rounded-[2rem] border border-slate-100">
-        <StepDot
-          label="Information"
-          isActive={currentStep === "info"}
-          isCompleted={currentStep !== "info"}
-        />
+        <StepDot label="Information" isActive={currentStep === "info"} isCompleted={currentStep !== "info"} />
         <div className="flex-1 h-px bg-slate-200 mx-4" />
-        <StepDot
-          label="Plan Selection"
-          isActive={currentStep === "plan"}
-          isCompleted={
-            currentStep === "docs" || currentStep === "payment"
-          }
-        />
+        <StepDot label="Plan Selection" isActive={currentStep === "plan"} isCompleted={currentStep === "docs" || currentStep === "payment"} />
         <div className="flex-1 h-px bg-slate-200 mx-4" />
-        <StepDot
-          label="Documents"
-          isActive={currentStep === "docs"}
-          isCompleted={currentStep === "payment"}
-        />
+        <StepDot label="Documents" isActive={currentStep === "docs"} isCompleted={currentStep === "payment"} />
         <div className="flex-1 h-px bg-slate-200 mx-4" />
-        <StepDot
-          label="Payment"
-          isActive={currentStep === "payment"}
-          isCompleted={false}
-        />
+        <StepDot label="Payment" isActive={currentStep === "payment"} isCompleted={false} />
       </div>
 
       <AnimatePresence mode="wait">
@@ -465,13 +463,10 @@ export function CoopApplicationForm() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-lg font-black text-slate-900">
-                    {plans.find((p) => p.id === formData.selectedPlanId)
-                      ?.name || "Pro"}{" "}
-                    Plan
+                    {selectedPlanData?.name || "Pro"} Plan
                   </p>
                   <p className="text-sm text-slate-500">
-                    {plans.find((p) => p.id === formData.selectedPlanId)
-                      ?.priceLabel || "₱6,500 / 6 months"}
+                    {selectedPlanData?.priceLabel || "₱6,500 / 6 months"}
                   </p>
                 </div>
                 <div className="bg-white rounded-2xl px-4 py-2 text-emerald-700 font-black text-sm border border-emerald-200">
@@ -479,6 +474,43 @@ export function CoopApplicationForm() {
                 </div>
               </div>
             </div>
+
+            {/* Downpayment Notice */}
+            {dpRule?.required && selectedPlanData && (
+              <div className="bg-amber-50 rounded-[2.5rem] p-6 border border-amber-200">
+                <label className="text-[10px] font-black text-amber-700 uppercase tracking-widest flex items-center gap-2 mb-3">
+                  <ArrowRight className="w-4 h-4" />
+                  Downpayment Required
+                </label>
+                <p className="text-slate-700 text-sm font-medium mb-4">
+                  The <strong>{selectedPlanData.name} Plan</strong> requires a{" "}
+                  <strong>{dpRule.pct}% downpayment</strong> at registration:
+                </p>
+                <div className="bg-white rounded-2xl px-5 py-3 border border-amber-200 flex items-center justify-between mb-4">
+                  <span className="text-slate-600 text-sm font-bold">Downpayment Amount</span>
+                  <span className="text-2xl font-black text-amber-700">₱{dpAmount.toLocaleString()}</span>
+                </div>
+                <label className="flex items-start gap-3 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={formData.billing.downpaymentAcknowledged}
+                    onChange={(e) =>
+                      setFormData((prev) => ({
+                        ...prev,
+                        billing: { ...prev.billing, downpaymentAcknowledged: e.target.checked },
+                      }))
+                    }
+                    className="mt-1 h-4 w-4 rounded accent-amber-600"
+                  />
+                  <span className="text-xs text-slate-600 leading-relaxed">
+                    I understand that a downpayment of{" "}
+                    <strong>₱{dpAmount.toLocaleString()}</strong> is required before
+                    my cooperative account is activated. This will be invoiced
+                    upon approval.
+                  </span>
+                </label>
+              </div>
+            )}
 
             {/* Billing Details */}
             <div className="bg-slate-50 p-8 rounded-[2.5rem] border border-slate-200">
@@ -597,7 +629,7 @@ export function CoopApplicationForm() {
               </Button>
               <Button
                 onClick={handleSubmit}
-                disabled={isPending || !formData.billing.name || !formData.billing.email}
+                disabled={isPending || !isPaymentValid}
                 className="flex-1 h-16 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-black italic text-lg shadow-xl shadow-emerald-500/20 group transition-all"
               >
                 {isPending ? (

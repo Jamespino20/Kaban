@@ -30,6 +30,7 @@ import {
   Headphones,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
 import EmojiPicker from "emoji-picker-react";
 import { MemberProfilePopup } from "@/components/member/member-profile-popup";
 
@@ -85,6 +86,8 @@ export function CommunityTab({
   initialData: CommunityOverview;
 }) {
   const router = useRouter();
+  const { data: session } = useSession();
+  const currentUserId = session?.user?.user_id;
   const fileInputRef = useRef<HTMLInputElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
 
@@ -182,14 +185,16 @@ export function CommunityTab({
   const activeConversationLabel = useMemo(() => {
     if (!thread) return "Conversation";
     if (thread.title) return thread.title;
-    const otherParticipants = thread.participants.filter(
-      (participant: any) => participant.role !== "member",
-    );
-    return (
-      otherParticipants
-        .map((participant: any) => participant.name)
-        .join(", ") || "Conversation"
-    );
+    if (thread.participants.length <= 2) {
+      // DM - show the other participant's name (skip first, typically the session user)
+      const other = thread.participants.find(
+        (p: any) => p.userId !== currentUserId
+      );
+      return other?.name || thread.participants.map((p: any) => p.name).join(", ");
+    }
+    return thread.participants
+      .map((participant: any) => participant.name)
+      .join(", ") || "Conversation";
   }, [thread]);
 
   const handleStartConversation = (targetUserId: number) => {

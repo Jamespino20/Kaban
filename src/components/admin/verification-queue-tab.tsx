@@ -228,7 +228,7 @@ function PendingLoansSection({ loans }: { loans: any[] }) {
     setProcessingId(loanId);
     startTransition(async () => {
       try {
-        const res = await approveLoanApplication({ loanId }) as any;
+        const res = (await approveLoanApplication({ loanId })) as any;
         if (res.error) {
           toast.error(res.error);
         } else {
@@ -249,10 +249,10 @@ function PendingLoansSection({ loans }: { loans: any[] }) {
     setProcessingId(loanId);
     startTransition(async () => {
       try {
-        const res = await rejectLoanApplication({
+        const res = (await rejectLoanApplication({
           loanId,
           notes: rejectReason.trim(),
-        }) as any;
+        })) as any;
 
         if (res.error) {
           toast.error(res.error);
@@ -298,12 +298,21 @@ function PendingLoansSection({ loans }: { loans: any[] }) {
           sideAction={
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon" className="h-8 w-8 rounded-xl text-slate-400">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8 rounded-xl text-slate-400"
+                >
                   <MoreVertical className="h-4 w-4" />
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-56 rounded-xl border-slate-100 shadow-xl">
-                <DropdownMenuLabel className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Options</DropdownMenuLabel>
+              <DropdownMenuContent
+                align="end"
+                className="w-56 rounded-xl border-slate-100 shadow-xl"
+              >
+                <DropdownMenuLabel className="text-[10px] font-bold uppercase tracking-widest text-slate-400">
+                  Options
+                </DropdownMenuLabel>
                 <DropdownMenuItem className="rounded-lg gap-2 cursor-pointer">
                   <Eye className="h-4 w-4 text-indigo-500" />
                   <span>View Full Details</span>
@@ -313,7 +322,10 @@ function PendingLoansSection({ loans }: { loans: any[] }) {
                   <span>Check Verification Status</span>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator className="bg-slate-50" />
-                <DropdownMenuItem className="rounded-lg gap-2 cursor-pointer text-rose-600 focus:text-rose-700 focus:bg-rose-50" onClick={() => setRejectingId(loan.loan_id)}>
+                <DropdownMenuItem
+                  className="rounded-lg gap-2 cursor-pointer text-rose-600 focus:text-rose-700 focus:bg-rose-50"
+                  onClick={() => setRejectingId(loan.loan_id)}
+                >
                   <Ban className="h-4 w-4" />
                   <span>Reject Application</span>
                 </DropdownMenuItem>
@@ -343,7 +355,9 @@ function PendingLoansSection({ loans }: { loans: any[] }) {
                 onClick={() => handleApprove(loan.loan_id)}
                 className="flex-1 rounded-xl bg-primary text-primary-foreground hover:bg-primary/90"
               >
-                {isPending && processingId === loan.loan_id ? "Approving..." : "Approve"}
+                {isPending && processingId === loan.loan_id
+                  ? "Approving..."
+                  : "Approve"}
               </Button>
               {rejectingId === loan.loan_id ? (
                 <div className="flex flex-col gap-2 w-full">
@@ -359,12 +373,17 @@ function PendingLoansSection({ loans }: { loans: any[] }) {
                       onClick={() => handleReject(loan.loan_id)}
                       className="flex-1 rounded-xl bg-rose-600 text-white hover:bg-rose-700"
                     >
-                      {isPending && processingId === loan.loan_id ? "Rejecting..." : "Confirm Reject"}
+                      {isPending && processingId === loan.loan_id
+                        ? "Rejecting..."
+                        : "Confirm Reject"}
                     </Button>
                     <Button
                       variant="outline"
                       disabled={isPending}
-                      onClick={() => { setRejectingId(null); setRejectReason(""); }}
+                      onClick={() => {
+                        setRejectingId(null);
+                        setRejectReason("");
+                      }}
                       className="rounded-xl"
                     >
                       Cancel
@@ -494,19 +513,31 @@ function IdentityCard({ user }: { user: any }) {
 
   const handleApprove = () => {
     startTransition(async () => {
-      const { approveIdentityVerification } = await import("@/actions/identity");
-      const res = await approveIdentityVerification(user.user_id) as any;
-      if (res.error) toast.error(res.error);
-      else { toast.success(res.success); router.refresh(); }
+      const { approveIdentityVerification } =
+        await import("@/actions/identity");
+      const res = (await approveIdentityVerification(user.user_id)) as any;
+      if (res.error) toast.error(String(res.error) + " Please refresh and try again, or contact support.");
+      else {
+        toast.success(res.success);
+        router.refresh();
+      }
     });
   };
 
   const handleReject = () => {
     startTransition(async () => {
       const { rejectIdentityVerification } = await import("@/actions/identity");
-      const res = await rejectIdentityVerification(user.user_id, rejectReason.trim()) as any;
-      if (res.error) toast.error(res.error);
-      else { toast.success(res.success); setRejectOpen(false); setRejectReason(""); router.refresh(); }
+      const res = (await rejectIdentityVerification(
+        user.user_id,
+        rejectReason.trim(),
+      )) as any;
+      if (res.error) toast.error(String(res.error) + " Please refresh and try again.");
+      else {
+        toast.success(res.success);
+        setRejectOpen(false);
+        setRejectReason("");
+        router.refresh();
+      }
     });
   };
 
@@ -523,12 +554,16 @@ function IdentityCard({ user }: { user: any }) {
       }
       meta={[
         { label: "Uploaded IDs", value: `${user.documents.length} file(s)` },
-        { label: "Status", value: user.status?.replaceAll("_", " ") || "pending" },
+        {
+          label: "Status",
+          value: user.status?.replaceAll("_", " ") || "pending",
+        },
         {
           label: "Monthly Income",
-          value: user.profile?.income_min && user.profile?.income_max 
-            ? `₱${Number(user.profile.income_min).toLocaleString()} - ₱${Number(user.profile.income_max).toLocaleString()}`
-            : "N/A"
+          value:
+            user.profile?.income_min && user.profile?.income_max
+              ? `₱${Number(user.profile.income_min).toLocaleString()} - ₱${Number(user.profile.income_max).toLocaleString()}`
+              : "N/A",
         },
         { label: "Tenant", value: user.tenant?.name || "Current tenant" },
       ]}
@@ -568,7 +603,8 @@ function IdentityCard({ user }: { user: any }) {
               <DialogHeader>
                 <DialogTitle>Reject Identity Verification</DialogTitle>
                 <DialogDescription>
-                  Provide a reason — this will be sent to the member so they can resubmit.
+                  Provide a reason — this will be sent to the member so they can
+                  resubmit.
                 </DialogDescription>
               </DialogHeader>
               <div className="space-y-4">
@@ -586,7 +622,11 @@ function IdentityCard({ user }: { user: any }) {
                   >
                     {isPending ? "Rejecting..." : "Confirm Reject"}
                   </Button>
-                  <Button variant="outline" onClick={() => setRejectOpen(false)} className="rounded-xl">
+                  <Button
+                    variant="outline"
+                    onClick={() => setRejectOpen(false)}
+                    className="rounded-xl"
+                  >
                     Cancel
                   </Button>
                 </div>
@@ -599,7 +639,6 @@ function IdentityCard({ user }: { user: any }) {
   );
 }
 
-
 function ReleaseLoanCard({ loan }: { loan: any }) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
@@ -610,15 +649,15 @@ function ReleaseLoanCard({ loan }: { loan: any }) {
 
   const handleRelease = () => {
     startTransition(async () => {
-      const res = await releaseLoanFunds({
+      const res = (await releaseLoanFunds({
         loanId: loan.loan_id,
         methodId: Number(methodId),
         releaseReference: reference,
         notes,
-      }) as any;
+      })) as any;
 
       if (res.error) {
-        toast.error(res.error);
+        toast.error(String(res.error) + " Please verify the release details and try again.");
         return;
       }
 
@@ -663,15 +702,14 @@ function ReleaseLoanCard({ loan }: { loan: any }) {
         <Dialog open={open} onOpenChange={setOpen}>
           <DialogTrigger asChild>
             <Button className="w-full rounded-xl bg-primary text-primary-foreground hover:bg-primary/90">
-              I-release ang Mock Funds
+              Release Funds
             </Button>
           </DialogTrigger>
           <DialogContent className="sm:max-w-lg rounded-2xl">
             <DialogHeader>
               <DialogTitle>Mock Fund Release</DialogTitle>
               <DialogDescription>
-                Itala kung paano matatanggap ng miyembro ang pera sa tunay na
-                buhay.
+                Provide how the member will receive the money in real life.
               </DialogDescription>
             </DialogHeader>
             <div className="space-y-4">
@@ -741,12 +779,12 @@ function ReviewPaymentCard({ payment }: { payment: any }) {
     setProcessingId(payment.payment_id);
     startTransition(async () => {
       try {
-        const res = await verifySubmittedPayment({
+        const res = (await verifySubmittedPayment({
           paymentId: payment.payment_id,
           notes: "Verified by admin in mock flow.",
-        }) as any;
+        })) as any;
         if (res.error) {
-          toast.error(res.error);
+          toast.error(String(res.error) + " Please check the payment details and try again.");
         } else {
           toast.success(res.success);
           router.refresh();
@@ -761,12 +799,12 @@ function ReviewPaymentCard({ payment }: { payment: any }) {
     setProcessingId(payment.payment_id);
     startTransition(async () => {
       try {
-        const res = await rejectSubmittedPayment({
+        const res = (await rejectSubmittedPayment({
           paymentId: payment.payment_id,
           notes: "Reference mismatch. Please resubmit proof.",
-        }) as any;
+        })) as any;
         if (res.error) {
-          toast.error(res.error);
+          toast.error(String(res.error) + " Please try again or contact support.");
         } else {
           toast.success(res.success);
           router.refresh();
@@ -829,7 +867,9 @@ function ReviewPaymentCard({ payment }: { payment: any }) {
             onClick={handleVerify}
             className="flex-1 rounded-xl bg-primary text-primary-foreground hover:bg-primary/90"
           >
-            {isPending && processingId === payment.payment_id ? "Verifying..." : "Verify"}
+            {isPending && processingId === payment.payment_id
+              ? "Verifying..."
+              : "Verify"}
           </Button>
           <Button
             disabled={isPending && processingId === payment.payment_id}
@@ -837,7 +877,9 @@ function ReviewPaymentCard({ payment }: { payment: any }) {
             onClick={() => handleReject()}
             className="flex-1 rounded-xl border-rose-200 text-rose-600 hover:bg-rose-50"
           >
-            {isPending && processingId === payment.payment_id ? "Rejecting..." : "Reject"}
+            {isPending && processingId === payment.payment_id
+              ? "Rejecting..."
+              : "Reject"}
           </Button>
         </>
       }
@@ -862,9 +904,9 @@ function OverdueLoansSection({ loans }: { loans: any[] }) {
     setProcessingId(enforceId);
     startTransition(async () => {
       try {
-        const res = await manuallyDeclareDefault(enforceId) as any;
+        const res = (await manuallyDeclareDefault(enforceId)) as any;
         if (res.error) {
-          toast.error(res.error);
+          toast.error(String(res.error) + " Please refresh and try again, or contact support if this persists.");
         } else {
           toast.success(res.success);
           setIsEnforceOpen(false);
@@ -922,12 +964,14 @@ function OverdueLoansSection({ loans }: { loans: any[] }) {
               onClick={() => handleEnforceDefault(loan.loan_id)}
               className="w-full rounded-xl bg-primary italic font-black hover:bg-rose-700 transition-colors"
             >
-              {isPending && processingId === loan.loan_id ? "Processing..." : "Enforce Default Protocol"}
+              {isPending && processingId === loan.loan_id
+                ? "Processing..."
+                : "Enforce Default Protocol"}
             </Button>
           }
         />
       ))}
-      
+
       {/* Enforce Default Confirmation Dialog */}
       <Dialog open={isEnforceOpen} onOpenChange={setIsEnforceOpen}>
         <DialogContent className="rounded-2xl">
@@ -937,16 +981,24 @@ function OverdueLoansSection({ loans }: { loans: any[] }) {
               Enforce Default Protocol
             </DialogTitle>
             <DialogDescription>
-              Are you sure you want to enforce default for this loan? This will penalize both the borrower and their guarantors. This action is irreversible.
+              Are you sure you want to enforce default for this loan? This will
+              penalize both the borrower and their guarantors. This action is
+              irreversible.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter className="gap-2 sm:gap-0 mt-4">
-            <Button variant="outline" onClick={() => setIsEnforceOpen(false)} className="rounded-xl">Cancel</Button>
-            <Button 
-                variant="destructive" 
-                className="rounded-xl"
-                disabled={isPending}
-                onClick={handleEnforceConfirm}
+            <Button
+              variant="outline"
+              onClick={() => setIsEnforceOpen(false)}
+              className="rounded-xl"
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              className="rounded-xl"
+              disabled={isPending}
+              onClick={handleEnforceConfirm}
             >
               {isPending ? "Processing..." : "Confirm Default Enforcement"}
             </Button>
@@ -1133,10 +1185,10 @@ function ApplicantSummary({
   return (
     <div className="flex items-center gap-3">
       {photoUrl ? (
-        <img 
-          src={photoUrl} 
-          alt={firstName} 
-          className="h-11 w-11 rounded-full object-cover border border-slate-100 shadow-sm" 
+        <img
+          src={photoUrl}
+          alt={firstName}
+          className="h-11 w-11 rounded-full object-cover border border-slate-100 shadow-sm"
         />
       ) : (
         <div className="flex h-11 w-11 items-center justify-center rounded-full bg-slate-50 text-xs font-bold uppercase text-slate-500">

@@ -7,29 +7,24 @@ export const dynamic = "force-dynamic";
 import { BadgeCheck, CheckCircle2, Building, Zap, Shield } from "lucide-react";
 import Link from "next/link";
 
-const PLAN_CONFIG: Record<string, { icon: any; interval: string; description: string; buttonText: string; highlight: boolean }> = {
-  "Agapay Core": {
-    icon: Building,
-    interval: "3 months",
-    description: "For cooperatives just getting started and small lending teams.",
-    buttonText: "Start with Core",
-    highlight: false,
-  },
-  "Agapay Pro": {
-    icon: Zap,
-    interval: "6 months",
-    description: "For growing cooperatives that need advanced analytics.",
-    buttonText: "Upgrade to Pro",
-    highlight: true,
-  },
-  "Agapay Enterprise": {
-    icon: Shield,
-    interval: "12 months",
-    description: "For larger institutions. Limitless capacity.",
-    buttonText: "Get Started",
-    highlight: false,
-  },
+const PLAN_ICON_MAP: Record<string, { icon: any; highlight: boolean }> = {
+  "Agapay Core": { icon: Building, highlight: false },
+  "Agapay Pro": { icon: Zap, highlight: true },
+  "Agapay Enterprise": { icon: Shield, highlight: false },
 };
+
+const PLAN_CTA_MAP: Record<string, string> = {
+  "Agapay Core": "Start with Core",
+  "Agapay Pro": "Upgrade to Pro",
+  "Agapay Enterprise": "Get Started",
+};
+
+function getPlanInterval(plan: any, tierName: string): string {
+  if (tierName === "Agapay Core") return "3 months";
+  if (tierName === "Agapay Pro") return "6 months";
+  return "12 months";
+}
+
 
 const RATE_GUIDE = [
   {
@@ -106,10 +101,18 @@ export default async function PricingPage() {
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {plans.map((plan: any) => {
-              const cfg = PLAN_CONFIG[plan.tier_name] || PLAN_CONFIG["Agapay Enterprise"];
+              const cfg = PLAN_ICON_MAP[plan.tier_name] || { icon: Shield, highlight: false };
               const price = getPlanPrice(plan, plan.tier_name);
+              const interval = getPlanInterval(plan, plan.tier_name);
               const Icon = cfg.icon;
               const features = Array.isArray(plan.features) ? plan.features : [];
+              const buttonText = PLAN_CTA_MAP[plan.tier_name] || "Get Started";
+              const description = plan.description ||
+                (plan.tier_name === "Agapay Core"
+                  ? "For cooperatives just getting started and small lending teams."
+                  : plan.tier_name === "Agapay Pro"
+                  ? "For growing cooperatives that need advanced analytics."
+                  : "For larger institutions. Limitless capacity.");
               return (
               <div
                 key={plan.tier_name}
@@ -137,13 +140,13 @@ export default async function PricingPage() {
                   <span
                     className={`text-sm font-bold ${cfg.highlight ? "text-slate-400" : "text-slate-500"}`}
                   >
-                    / {cfg.interval}
+                    / {interval}
                   </span>
                 </div>
                 <p
                   className={`font-medium leading-relaxed mb-2 h-auto ${cfg.highlight ? "text-slate-300" : "text-slate-600"}`}
                 >
-                  {cfg.description}
+                  {description}
                 </p>
                 <p className={`text-xs font-bold mb-8 ${cfg.highlight ? "text-slate-400" : "text-slate-500"}`}>
                   {getMemberLimit(plan)}
@@ -170,7 +173,7 @@ export default async function PricingPage() {
                       : "bg-slate-100 text-slate-900 hover:bg-slate-200"
                   }`}
                 >
-                  {cfg.buttonText}
+                  {buttonText}
                 </Link>
               </div>
             )})}

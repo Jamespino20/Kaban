@@ -17,6 +17,7 @@ type DashboardTabsShellProps = {
   accountPhotoUrl?: string;
   tenantName?: string;
   tenantLogoUrl?: string;
+  tenantLogoSquareUrl?: string;
   tenantBrandColor?: string | null;
   tenantAccentColor?: string | null;
   tenantFontPairing?: string | null;

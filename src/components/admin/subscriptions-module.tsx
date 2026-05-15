@@ -14,6 +14,8 @@ type Plan = {
   id: number;
   tier_name: string;
   price_monthly: any;
+  price_quarterly: any;
+  price_semi_annually: any;
   price_annually: any;
   max_members: number;
   max_storage_mb: number;
@@ -21,6 +23,21 @@ type Plan = {
   is_active: boolean;
   is_addon: boolean;
 };
+
+const DOWNPAYMENT_RULES: Record<string, { pct: number; label: string }> = {
+  "Agapay Core": { pct: 0, label: "None" },
+  "Agapay Pro": { pct: 30, label: "30%" },
+  "Agapay Enterprise": { pct: 50, label: "50%" },
+};
+
+function getDownpaymentInfo(plan: Plan) {
+  const rule = DOWNPAYMENT_RULES[plan.tier_name];
+  if (!rule || rule.pct === 0) return null;
+  const basePrice =
+    Number(plan.price_semi_annually || plan.price_quarterly || plan.price_monthly || 0);
+  const amount = Math.round((basePrice * rule.pct) / 100);
+  return { pct: rule.pct, label: rule.label, amount };
+}
 
 type TenantSub = {
   tenant_id: number;
@@ -78,10 +95,10 @@ export function SubscriptionsModule({ initialPlans, initialTenants }: Props) {
         setEditingTenantId(null);
         setEditingTenantForm(null);
       } else {
-        toast.error(res.error || "Failed to update subscription.");
+        toast.error((res.error || "Failed to update subscription.") + " Please refresh and try again.");
       }
     } catch {
-      toast.error("System error updating subscription.");
+      toast.error("System error updating subscription. Please try again or contact support.");
     } finally {
       setSavingTenantId(null);
     }
@@ -91,6 +108,8 @@ export function SubscriptionsModule({ initialPlans, initialTenants }: Props) {
     setEditingId(plan.id);
     setEditForm({
       price_monthly: Number(plan.price_monthly),
+      price_quarterly: Number(plan.price_quarterly || 0),
+      price_semi_annually: Number(plan.price_semi_annually || 0),
       price_annually: Number(plan.price_annually),
       max_members: plan.max_members,
       max_storage_mb: plan.max_storage_mb,
@@ -110,6 +129,8 @@ export function SubscriptionsModule({ initialPlans, initialTenants }: Props) {
     try {
       const res = await updateSubscriptionPlan(planId, {
         price_monthly: Number(editForm.price_monthly),
+        price_quarterly: Number(editForm.price_quarterly ?? 0),
+        price_semi_annually: Number(editForm.price_semi_annually ?? 0),
         price_annually: Number(editForm.price_annually),
         max_members: Number(editForm.max_members),
         max_storage_mb: Number(editForm.max_storage_mb),
@@ -118,7 +139,18 @@ export function SubscriptionsModule({ initialPlans, initialTenants }: Props) {
       });
       if (res.success && res.plan) {
         setPlans((prev) =>
-          prev.map((p) => (p.id === planId ? { ...p, ...res.plan, price_monthly: Number(res.plan.price_monthly), price_annually: Number(res.plan.price_annually) } : p)),
+          prev.map((p) =>
+            p.id === planId
+              ? {
+                  ...p,
+                  ...res.plan,
+                  price_monthly: Number(res.plan.price_monthly),
+                  price_quarterly: Number(res.plan.price_quarterly || 0),
+                  price_semi_annually: Number(res.plan.price_semi_annually || 0),
+                  price_annually: Number(res.plan.price_annually),
+                }
+              : p,
+          ),
         );
         toast.success("Plan updated successfully.");
         setEditingId(null);
@@ -186,10 +218,13 @@ export function SubscriptionsModule({ initialPlans, initialTenants }: Props) {
               <thead>
                 <tr className="bg-slate-50 border-b border-slate-200">
                   <th className="text-left px-4 py-3 font-semibold text-slate-700">Plan Name</th>
-                  <th className="text-left px-4 py-3 font-semibold text-slate-700">Monthly Price</th>
-                  <th className="text-left px-4 py-3 font-semibold text-slate-700">Annual Price</th>
+                  <th className="text-left px-4 py-3 font-semibold text-slate-700">Monthly</th>
+                  <th className="text-left px-4 py-3 font-semibold text-slate-700">Quarterly</th>
+                  <th className="text-left px-4 py-3 font-semibold text-slate-700">Semi-Annual</th>
+                  <th className="text-left px-4 py-3 font-semibold text-slate-700">Annual</th>
                   <th className="text-left px-4 py-3 font-semibold text-slate-700">Max Members</th>
                   <th className="text-left px-4 py-3 font-semibold text-slate-700">Storage (MB)</th>
+                  <th className="text-left px-4 py-3 font-semibold text-slate-700">Downpayment</th>
                   <th className="text-left px-4 py-3 font-semibold text-slate-700">Features</th>
                   <th className="text-left px-4 py-3 font-semibold text-slate-700">Active</th>
                   <th className="text-left px-4 py-3 font-semibold text-slate-700">Actions</th>
@@ -222,6 +257,38 @@ export function SubscriptionsModule({ initialPlans, initialTenants }: Props) {
                           />
                         ) : (
                           <span>₱{Number(plan.price_monthly).toLocaleString()}</span>
+                        )}
+                      </td>
+                      <td className="px-4 py-3">
+                        {isEditing ? (
+                          <Input
+                            type="number"
+                            className="h-8 w-24 text-sm"
+                            value={editForm?.price_quarterly ?? ""}
+                            onChange={(e) =>
+                              setEditForm((prev) =>
+                                prev ? { ...prev, price_quarterly: Number(e.target.value) } : prev,
+                              )
+                            }
+                          />
+                        ) : (
+                          <span>₱{Number(plan.price_quarterly || 0).toLocaleString()}</span>
+                        )}
+                      </td>
+                      <td className="px-4 py-3">
+                        {isEditing ? (
+                          <Input
+                            type="number"
+                            className="h-8 w-24 text-sm"
+                            value={editForm?.price_semi_annually ?? ""}
+                            onChange={(e) =>
+                              setEditForm((prev) =>
+                                prev ? { ...prev, price_semi_annually: Number(e.target.value) } : prev,
+                              )
+                            }
+                          />
+                        ) : (
+                          <span>₱{Number(plan.price_semi_annually || 0).toLocaleString()}</span>
                         )}
                       </td>
                       <td className="px-4 py-3">
@@ -271,6 +338,19 @@ export function SubscriptionsModule({ initialPlans, initialTenants }: Props) {
                         ) : (
                           <span>{plan.max_storage_mb.toLocaleString()}</span>
                         )}
+                      </td>
+                      <td className="px-4 py-3 text-sm">
+                        {(() => {
+                          const dp = getDownpaymentInfo(plan);
+                          return dp ? (
+                            <div className="flex flex-col">
+                              <span className="font-semibold text-emerald-700">{dp.label}</span>
+                              <span className="text-xs text-slate-500">₱{dp.amount.toLocaleString()}</span>
+                            </div>
+                          ) : (
+                            <span className="text-slate-400 text-xs italic">None</span>
+                          );
+                        })()}
                       </td>
                       <td className="px-4 py-3 max-w-xs">
                         {isEditing ? (

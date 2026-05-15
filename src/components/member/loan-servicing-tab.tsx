@@ -21,7 +21,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { submitMockRepayment, processFullPayment } from "@/actions/loan-servicing";
+import { submitMockRepayment, processFullPayment, updateLoanSchedule } from "@/actions/loan-servicing";
 import { payLoanWithWallet } from "@/actions/wallet-actions";
 import { createIssueTicket } from "@/actions/support-tickets";
 import { requestCompassionAction } from "@/actions/compassion-actions";
@@ -42,6 +42,9 @@ import {
   AlertTriangle,
   XCircle,
   Flag,
+  Edit3,
+  Calendar,
+  DollarSign,
 } from "lucide-react";
 import {
   getCompassionPolicyCopy,
@@ -60,6 +63,7 @@ type LoanScheduleItem = {
   installment_number: number;
   status: "pending" | "overdue" | "paid";
   total_due: MoneyLike;
+  due_date?: string;
 };
 
 type LoanPaymentItem = {
@@ -142,10 +146,12 @@ export function LoanServicingTab({
   loans,
   paymentMethods,
   tenant,
+  userRole,
 }: {
   loans: ServicingLoan[];
   paymentMethods: PaymentMethodOption[];
   tenant: string;
+  userRole?: string;
 }) {
   const [expandedId, setExpandedId] = useState<number | null>(null);
 
@@ -188,16 +194,17 @@ export function LoanServicingTab({
                   <p className="text-xs text-slate-400 italic">No loans</p>
                 ) : (
                   catLoans.map((loan) => (
-                    <LoanSummaryCard
-                      key={loan.loan_id}
-                      loan={loan}
-                      isExpanded={expandedId === loan.loan_id}
-                      onToggle={() =>
-                        setExpandedId(expandedId === loan.loan_id ? null : loan.loan_id)
-                      }
-                      paymentMethods={paymentMethods}
-                      tenant={tenant}
-                    />
+                  <LoanSummaryCard
+                    key={loan.loan_id}
+                    loan={loan}
+                    isExpanded={expandedId === loan.loan_id}
+                    onToggle={() =>
+                      setExpandedId(expandedId === loan.loan_id ? null : loan.loan_id)
+                    }
+                    paymentMethods={paymentMethods}
+                    tenant={tenant}
+                    userRole={userRole}
+                  />
                   ))
                 )}
               </div>
@@ -215,12 +222,14 @@ function LoanSummaryCard({
   onToggle,
   paymentMethods,
   tenant,
+  userRole,
 }: {
   loan: ServicingLoan;
   isExpanded: boolean;
   onToggle: () => void;
   paymentMethods: PaymentMethodOption[];
   tenant: string;
+  userRole?: string;
 }) {
   const category = categorizeLoan(loan);
   const cfg = categoryConfig[category];
@@ -233,8 +242,13 @@ function LoanSummaryCard({
     [loan.schedules],
   );
 
+  const router = useRouter();
   const paidSchedules = loan.schedules.filter((s) => s.status === "paid").length;
   const totalSchedules = loan.schedules.length;
+  const [editScheduleId, setEditScheduleId] = useState<number | null>(null);
+  const [editDueDate, setEditDueDate] = useState("");
+  const [editTotalDue, setEditTotalDue] = useState("");
+  const [isPending, startTransition] = useTransition();
 
   return (
     <div className={`rounded-xl border ${cfg.border} bg-white overflow-hidden transition-shadow hover:shadow-md`}>
@@ -287,10 +301,17 @@ function LoanSummaryCard({
           <div>
             <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-1">Schedule</p>
             {loan.schedules.length > 0 ? (
-              <div className="max-h-32 overflow-y-auto space-y-1 pr-1">
-                {loan.schedules.map((s) => (
-                  <div key={s.schedule_id} className="flex items-center justify-between rounded-lg bg-slate-50 px-3 py-1.5 text-xs">
-                    <span className="text-slate-600">Installment #{s.installment_number}</span>
+              <div className="max-h-48 overflow-y-auto space-y-1 pr-1">
+                {loan.schedules.map((s) => {
+                  const isEditable = userRole === "operator" && (s.status === "pending" || s.status === "overdue");
+                  return (
+                  <div key={s.schedule_id} className="flex items-center justify-between rounded-lg bg-slate-50 px-3 py-1.5 text-xs group">
+                    <div className="flex items-center gap-2 min-w-0">
+                      <span className="text-slate-600 shrink-0">#{s.installment_number}</span>
+                      {s.due_date && (
+                        <span className="text-[10px] text-slate-400 font-mono">{new Date(s.due_date).toLocaleDateString()}</span>
+                      )}
+                    </div>
                     <div className="flex items-center gap-2">
                       <span className="font-mono text-slate-900">
                         ₱{Number(s.total_due).toLocaleString()}
@@ -302,9 +323,23 @@ function LoanSummaryCard({
                       }`}>
                         {s.status}
                       </span>
+                      {isEditable && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setEditScheduleId(s.schedule_id);
+                            setEditDueDate(s.due_date ? new Date(s.due_date).toISOString().split("T")[0] : "");
+                            setEditTotalDue(String(Number(s.total_due)));
+                          }}
+                          className="opacity-0 group-hover:opacity-100 transition-opacity p-1 rounded hover:bg-slate-200 text-slate-400 hover:text-slate-700"
+                        >
+                          <Edit3 className="w-3 h-3" />
+                        </button>
+                      )}
                     </div>
                   </div>
-                ))}
+                  );
+                })}
               </div>
             ) : (
               <p className="rounded-lg bg-slate-50 px-3 py-3 text-xs text-slate-400 text-center">
@@ -358,6 +393,66 @@ function LoanSummaryCard({
           <div className="pt-1">
             <ReportIssueButton loan={loan} />
           </div>
+
+          {/* Edit Schedule Dialog */}
+          <Dialog open={editScheduleId !== null} onOpenChange={(o) => { if (!o) setEditScheduleId(null); }}>
+            <DialogContent className="sm:max-w-sm">
+              <DialogHeader>
+                <DialogTitle>Edit Installment</DialogTitle>
+                <DialogDescription>Update due date or amount for this schedule item.</DialogDescription>
+              </DialogHeader>
+              <div className="space-y-4 py-2">
+                <div className="space-y-2">
+                  <label className="text-sm font-bold text-slate-700 flex items-center gap-2">
+                    <Calendar className="w-3.5 h-3.5 text-slate-400" />
+                    Due Date
+                  </label>
+                  <Input
+                    type="date"
+                    value={editDueDate}
+                    onChange={(e) => setEditDueDate(e.target.value)}
+                    className="rounded-xl"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-bold text-slate-700 flex items-center gap-2">
+                    <DollarSign className="w-3.5 h-3.5 text-slate-400" />
+                    Total Due (PHP)
+                  </label>
+                  <Input
+                    type="number"
+                    value={editTotalDue}
+                    onChange={(e) => setEditTotalDue(e.target.value)}
+                    className="rounded-xl"
+                    min="1"
+                  />
+                </div>
+                <Button
+                  disabled={isPending || !editDueDate || !editTotalDue}
+                  onClick={() => {
+                    startTransition(async () => {
+                      if (editScheduleId === null) return;
+                      const res = await updateLoanSchedule({
+                        scheduleId: editScheduleId,
+                        dueDate: editDueDate,
+                        totalDue: Number(editTotalDue),
+                      });
+                      if (res.error) {
+                        toast.error(res.error);
+                      } else {
+                        toast.success(res.success || "Installment updated");
+                        setEditScheduleId(null);
+                        router.refresh();
+                      }
+                    });
+                  }}
+                  className="w-full rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white"
+                >
+                  {isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : "Save Changes"}
+                </Button>
+              </div>
+            </DialogContent>
+          </Dialog>
         </div>
       )}
     </div>

@@ -127,7 +127,7 @@ export default async function TenantIndexPage(props: {
         tenants={activeTenants}
         forceSolid
         brandColor={brandColor}
-        tenantLogo={metadata?.homepageLogoUrl || tenantData.logo_url}
+        tenantLogo={metadata?.homepageLogoUrl || tenantData.logo_url || null}
         tenantId={tenantData.tenant_id}
         tenantFallbackName={tenantData.name}
       />
@@ -183,7 +183,7 @@ export default async function TenantIndexPage(props: {
               )}
             </h1>
             <p className="text-xl md:text-2xl font-medium mb-12 leading-relaxed max-w-3xl text-slate-700">
-              Welcome to your cooperative&apos;s official portal. Manage applications, releases, repayments, and more — all in one transparent system.
+              {heroSubtitle}
             </p>
             <div className="flex flex-wrap gap-4">
               <AuthModal

@@ -42,7 +42,7 @@ export const ConsentDashboard = ({
         toast.error(res.error || "An error occurred.");
       }
     } catch (error) {
-      toast.error("An unexpected error occurred.");
+      toast.error("An unexpected error occurred. Please refresh the page and try again.");
     } finally {
       setIsPending(false);
     }
