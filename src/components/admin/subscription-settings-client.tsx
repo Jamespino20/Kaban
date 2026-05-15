@@ -2,8 +2,10 @@
 
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { requestSubscriptionUpgrade } from "@/actions/subscription-actions";
-import { renewSubscription } from "@/lib/subscription-enforcement";
+import {
+  requestSubscriptionUpgrade,
+  renewSubscription,
+} from "@/actions/subscription-actions";
 import { Badge } from "@/components/ui/badge";
 import { ShieldCheck, Loader2, AlertTriangle } from "lucide-react";
 import { toast } from "sonner";

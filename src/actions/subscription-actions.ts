@@ -2,6 +2,7 @@
 
 import { AccountType, Prisma, TransactionType } from "@prisma/client";
 import prisma from "@/lib/prisma";
+import { createNotification } from "@/lib/notifications";
 import { requireTanawSession } from "@/lib/authorization";
 import { revalidatePath } from "next/cache";
 import { serializeDecimal } from "@/lib/utils";
@@ -134,6 +135,88 @@ export async function requestSubscriptionUpgrade(
       success: false,
       error: "Naantala ang inyong kahilingan. Pakisubukan muli.",
     };
+  }
+}
+
+export async function renewSubscription(
+  tenantId: number,
+  paymentReference: string,
+  billingCycle: BillingCycleValue,
+) {
+  if (shouldUseApiClient()) {
+    return { success: true, message: "Subscription renewed." };
+  }
+
+  try {
+    const session = await requireTanawSession();
+    const isOperator = session.user.role === "operator";
+    if (!isOperator && session.user.role !== "superadmin") {
+      return { success: false, error: "Only tenant operators can renew subscriptions." };
+    }
+
+    const currentSub = await prisma.tenantSubscription.findFirst({
+      where: { tenant_id: tenantId },
+      orderBy: { created_at: "desc" },
+    });
+
+    if (!currentSub) {
+      return { success: false, error: "No current subscription found." };
+    }
+
+    const now = new Date();
+    const baseDate = currentSub.end_date > now ? currentSub.end_date : now;
+    const newStart = new Date(baseDate);
+    const newEnd = new Date(baseDate);
+
+    switch (billingCycle) {
+      case "monthly":
+        newEnd.setMonth(newEnd.getMonth() + 1);
+        break;
+      case "quarterly":
+        newEnd.setMonth(newEnd.getMonth() + 3);
+        break;
+      case "semi_annually":
+        newEnd.setMonth(newEnd.getMonth() + 6);
+        break;
+      case "annually":
+        newEnd.setMonth(newEnd.getMonth() + 12);
+        break;
+    }
+
+    await prisma.tenantSubscription.create({
+      data: {
+        tenant_id: tenantId,
+        plan_id: currentSub.plan_id,
+        billing_cycle: billingCycle,
+        status: "active",
+        start_date: newStart,
+        end_date: newEnd,
+      },
+    });
+
+    await prisma.tenant.update({
+      where: { tenant_id: tenantId },
+      data: { entitlement_status: "active" },
+    });
+
+    const operators = await prisma.user.findMany({
+      where: { tenant_id: tenantId, role: "operator", status: "active" },
+    });
+    for (const op of operators) {
+      await createNotification({
+        userId: op.user_id,
+        tenantId,
+        type: "tenant_approved",
+        title: "Subscription Renewed",
+        body: `Your subscription has been renewed until ${newEnd.toLocaleDateString()}.`,
+      });
+    }
+
+    revalidatePath(`/`);
+    return { success: true, startDate: newStart, endDate: newEnd };
+  } catch (error) {
+    console.error("Failed to renew subscription:", error);
+    return { success: false, error: "Subscription renewal failed." };
   }
 }
 
