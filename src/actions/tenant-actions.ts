@@ -62,7 +62,7 @@ export async function getTenantOverview() {
         // Total funds (sum of wallet balances)
         tx.$queryRaw`
           SELECT COALESCE(SUM(balance), 0) as total
-          FROM wallets
+          FROM savings_accounts
         `,
 
         // Total active loans

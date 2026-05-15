@@ -27,7 +27,7 @@ export async function getSuperadminOverview() {
       // Total funds across all tenants (sum of wallet balances)
       prisma.$queryRaw`
         SELECT COALESCE(SUM(balance), 0) as total
-        FROM wallets
+        FROM savings_accounts
       `,
 
       // Total active loans across all tenants
