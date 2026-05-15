@@ -427,6 +427,12 @@ export function EnhancedRegisterForm({
       (b) => b.code === values.barangay,
     );
 
+    const effectiveTenantId = parseInt(values.tenantId) || (preselectedTenantId ? parseInt(preselectedTenantId) : 0);
+    if (!effectiveTenantId) {
+      toast.error("Please select a cooperative before registering.");
+      return;
+    }
+
     startTransition(async () => {
       const res = (await register({
         email: values.email,
@@ -445,7 +451,7 @@ export function EnhancedRegisterForm({
         city: selectedCity?.name || values.city,
         barangay: selectedBarangay?.name || values.barangay,
         streetAddress: values.streetAddress,
-        tenantId: parseInt(values.tenantId),
+        tenantId: effectiveTenantId,
         idPicture: idUrl,
         brgyCertUrl,
         businessPermitUrl,
