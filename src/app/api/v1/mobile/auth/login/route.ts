@@ -71,6 +71,7 @@ export async function POST(req: Request) {
         status: "success",
         requires_2fa: true,
         user: {
+          id: user.user_id,
           user_id: user.user_id,
           username: user.username,
           email: user.email,
@@ -87,6 +88,7 @@ export async function POST(req: Request) {
       status: "success",
       token,
       user: {
+        id: user.user_id,
         user_id: user.user_id,
         username: user.username,
         email: user.email,

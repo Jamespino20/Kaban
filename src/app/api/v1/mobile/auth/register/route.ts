@@ -159,6 +159,7 @@ export async function POST(req: Request) {
         status: "success",
         message: "Registration successful. Please verify your email.",
         user: {
+          id: user.user_id,
           user_id: user.user_id,
           username: user.username,
           email: user.email,

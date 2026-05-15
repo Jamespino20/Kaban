@@ -320,7 +320,7 @@ export async function releaseLoanFunds(
             amount: principalAmount,
             reference: transId,
             processed_by: session.user.user_id,
-            notes: `Loan disbursement for #${loan.loan_reference}`,
+            issue_notes: `Loan disbursement for #${loan.loan_reference}`,
           },
         });
       }
@@ -549,7 +549,7 @@ export async function processFullPayment(
               amount: remainingPrincipal,
               reference: creditTransRef,
               processed_by: session.user.user_id,
-              notes: `Loan full-payment credit from #${loan.loan_reference}`,
+              issue_notes: `Loan full-payment credit from #${loan.loan_reference}`,
             },
           });
         }
@@ -723,7 +723,7 @@ export async function verifySubmittedPayment(
               amount: payment.amount_paid,
               reference: creditTransRef,
               processed_by: session.user.user_id,
-              notes: `Loan repayment credit from #${payment.loan.loan_reference}`,
+              issue_notes: `Loan repayment credit from #${payment.loan.loan_reference}`,
             },
           });
         }

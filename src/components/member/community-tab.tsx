@@ -18,6 +18,7 @@ import {
   Loader2,
   MessageSquareText,
   Send,
+  Search,
   Users,
   Paperclip,
   X,
@@ -142,10 +143,23 @@ export function CommunityTab({
     (initialData.groupChats?.filter((group: any) => group.hasUnread).length ||
       0);
 
+  const [discoverSearchTerm, setDiscoverSearchTerm] = useState("");
+
   const discoverableDirectory = useMemo(
     () => initialData.discoverableUsers || [],
     [initialData.discoverableUsers],
   );
+
+  const filteredDiscoverableUsers = useMemo(() => {
+    const term = discoverSearchTerm.trim().toLowerCase();
+    if (!term) return discoverableDirectory;
+    return discoverableDirectory.filter((user: any) => {
+      return (
+        user.name.toLowerCase().includes(term) ||
+        user.subtitle?.toLowerCase().includes(term)
+      );
+    });
+  }, [discoverSearchTerm, discoverableDirectory]);
 
   useEffect(() => {
     if (!selectedConversationId) {
@@ -527,24 +541,42 @@ export function CommunityTab({
             <h3 className="mb-1 flex items-center gap-1.5 px-3 text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">
               <Handshake className="h-3 w-3" /> Discover
             </h3>
-            <div className="space-y-0.5 ml-1 border-l-2 border-slate-100 pl-2">
-              {discoverableDirectory.slice(0, 8).map((user: any) => (
-                <button
-                  key={user.userId}
-                  onClick={() => handleStartConversation(user.userId)}
-                  className="flex w-full items-center gap-2.5 rounded-lg px-3 py-1.5 text-left text-xs text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-700"
-                >
-                  <div className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-amber-100 text-[8px] font-bold text-amber-700 overflow-hidden">
-                    {user.photoUrl ? (
-                      <img src={user.photoUrl} alt={user.name} className="h-full w-full object-cover" />
-                    ) : (
-                      user.name.charAt(0)
-                    )}
-                  </div>
-                  <span className="truncate">{user.name}</span>
-                </button>
-              ))}
+            <div className="space-y-3 px-3 pb-3">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-slate-400" />
+              <Input
+                placeholder="Search members to chat..."
+                value={discoverSearchTerm}
+                onChange={(e) => setDiscoverSearchTerm(e.target.value)}
+                className="pl-9 h-9 rounded-xl bg-white border-slate-200 text-xs focus:ring-emerald-500/20 focus:border-emerald-500"
+              />
             </div>
+            <div className="space-y-0.5 ml-1 border-l-2 border-slate-100 pl-2">
+              {(discoverSearchTerm ? filteredDiscoverableUsers : discoverableDirectory)
+                .slice(0, 8)
+                .map((user: any) => (
+                  <button
+                    key={user.userId}
+                    onClick={() => handleStartConversation(user.userId)}
+                    className="flex w-full items-center gap-2.5 rounded-lg px-3 py-1.5 text-left text-xs text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-700"
+                  >
+                    <div className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-amber-100 text-[8px] font-bold text-amber-700 overflow-hidden">
+                      {user.photoUrl ? (
+                        <img src={user.photoUrl} alt={user.name} className="h-full w-full object-cover" />
+                      ) : (
+                        user.name.charAt(0)
+                      )}
+                    </div>
+                    <span className="truncate">{user.name}</span>
+                  </button>
+                ))}
+              {discoverSearchTerm && filteredDiscoverableUsers.length === 0 && (
+                <p className="px-3 py-2 text-xs text-slate-400">
+                  No community members matched your search.
+                </p>
+              )}
+            </div>
+          </div>
           </div>
         </div>
       </aside>

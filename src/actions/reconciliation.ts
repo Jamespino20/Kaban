@@ -102,7 +102,8 @@ export async function getEndOfDayReconciliation(
 
     // 5. Master Pulse Check: Treasury (Asset) vs. User Wallets (Liability)
     const treasuryAccount = await db.ledgerAccount.findFirst({
-      where: { tenant_id: tenantId, code: "CASH_EQUIVALENTS" },
+      where: { code: "CASH_EQUIVALENTS", tenant_id: { in: [tenantId, null] } },
+      orderBy: { tenant_id: "desc" },  // prefer tenant-specific, fall back to platform
     });
 
     const treasuryEntries = treasuryAccount
@@ -181,10 +182,10 @@ export async function resolveAndSignEndOfDay(reason?: string) {
 
     if (!eodData.holdings.isTreasuryHealthy) {
       const treasuryAccount = await tx.ledgerAccount.findFirst({
-        where: { tenant_id: tenantId, code: "CASH_EQUIVALENTS" },
+        where: { code: "CASH_EQUIVALENTS", tenant_id: { in: [tenantId, null] } },
+        orderBy: { tenant_id: "desc" },
       });
-
-      if (!treasuryAccount) throw new Error("Missing treasury account.");
+      if (!treasuryAccount) throw new Error("Missing treasury account. Please run the database seed to create ledger accounts.");
 
       let discrepancyAccount = await tx.ledgerAccount.findFirst({
         where: { tenant_id: tenantId, code: "RECONC_DISCREPANCY" },
