@@ -165,7 +165,7 @@ export const LoginForm = ({
             setStep("2fa");
             toast.info("Please enter the code from your Google Authenticator.");
           } else {
-            toast.error("Invalid credentials or access denied.");
+            toast.error("Invalid credentials or access denied. Please check your username and password, or contact your cooperative admin if you've been locked out.");
             // If it failed at final login, maybe reset to step 1
             if (step === "tenant" || step === "2fa") {
               // Stay here, but clear code
@@ -195,7 +195,7 @@ export const LoginForm = ({
           }
         }
       } catch (error) {
-        toast.error("An error occurred during login.");
+        toast.error("An error occurred during login. Please try refreshing the page or contact support if the problem persists.");
       }
     });
   };

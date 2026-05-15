@@ -139,7 +139,7 @@ export async function approveLoanApplication(
     const { session, loan, tenantId } = await requireLoanAdminAccess(loanId);
 
     if (loan.status !== "pending") {
-      return { error: "Loan application is no longer pending." };
+      return { error: "Loan application is no longer pending. It may have already been approved or rejected. Check the My Loans section for current status." };
     }
 
     if (shouldUseApiClient()) {
@@ -337,7 +337,7 @@ export async function submitMockRepayment(
     const session = await requireAuthenticatedSession();
     const tenantId = session.user.tenantId;
 
-    if (!tenantId) return { error: "Tenant context required." };
+    if (!tenantId) return { error: "Tenant context required. Please select or switch to your cooperative tenant first." };
 
     return await prisma.$withTenant(tenantId, async (tx: any) => {
       const loan = await tx.loan.findUnique({
@@ -345,11 +345,11 @@ export async function submitMockRepayment(
       });
 
       if (!loan || loan.user_id !== session.user.user_id) {
-        return { error: "This action is only available for members." };
+        return { error: "This action is only available for members. Please log in with a member account to submit repayments." };
       }
 
       if (loan.status !== "active") {
-        return { error: "No active loan found for this transaction." };
+        return { error: "No active loan found for this transaction. Check your loan status in My Loans to verify." };
       }
 
       const payment = await tx.payment.create({
@@ -840,4 +840,8 @@ export async function markLoanAsPaid(loanId: number) {
     console.error("markLoanAsPaid failed:", error);
     return { error: "Failed to mark loan as paid. Please try again." };
   }
+}
+
+export async function closeLoan(loanId: number) {
+  return markLoanAsPaid(loanId);
 }

@@ -136,7 +136,7 @@ export function WalletTab({ savings, transactions }: WalletTabProps) {
       setIsDialogOpen(false);
       router.refresh();
     } else {
-      toast.error(result.error || "Error during deposit.");
+      toast.error(result.error || "Error during deposit. Please check the amount, payment method, and reference number, then try again.");
     }
   };
 
@@ -478,7 +478,7 @@ export function WalletTab({ savings, transactions }: WalletTabProps) {
                             {getTransactionLabel(tx.transaction_type)}
                           </span>
                           <span className="rounded-full bg-white px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.16em] text-slate-500">
-                            {getAccountLabel(tx.account.account_type)}
+                            {getAccountLabel(tx.account?.account_type || "personal_wallet")}
                           </span>
                         </div>
                         <div>

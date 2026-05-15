@@ -257,8 +257,8 @@ export async function resolveAndSignEndOfDay(reason?: string) {
           await tx.businessLedger.create({
             data: {
               transaction_id: entry.transaction_id,
-              account_id: entry.accountId,
-              tenant_id: entry.tenant_id,
+              account: { connect: { id: entry.accountId } },
+              tenant: { connect: { tenant_id: entry.tenant_id } },
               debit: entry.debit,
               credit: entry.credit,
               description: entry.description,

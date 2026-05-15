@@ -163,7 +163,7 @@ export function CommunityTab({
         await markConversationRead(selectedConversationId);
       } catch {
         if (!cancelled) {
-          toast.error("Failed to load this conversation.");
+          toast.error("Failed to load this conversation. Please try refreshing or selecting a different conversation.");
         }
       }
     });

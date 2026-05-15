@@ -269,7 +269,7 @@ export function AuthenticatedShell({
         className={`h-1 w-full ${isBrandColorLight ? 'bg-black/10' : 'bg-white/10'}`}
       />
       <div
-        className={cn("flex flex-col border-b p-4 space-y-4", sidebarBorderClass)}
+        className={cn("flex flex-col border-b px-4 py-5 space-y-4", sidebarBorderClass)}
       >
         <div className="flex items-center justify-between">
           <div
@@ -351,7 +351,7 @@ export function AuthenticatedShell({
 
       <div
         ref={navScrollRef}
-        className={`flex-1 px-3 pt-4 pb-3 ${navReady ? "overflow-y-auto" : "overflow-y-hidden"}`}
+        className={`flex-1 px-4 pt-4 pb-3 ${navReady ? "overflow-y-auto" : "overflow-y-hidden"}`}
       >
         <TabsList className="flex h-auto w-full flex-col justify-start gap-1 bg-transparent p-0">
           {(() => {
@@ -367,7 +367,7 @@ export function AuthenticatedShell({
                 {!collapsed && (
                   <h3
                     className={cn(
-                      "px-3 mb-2 text-[10px] font-black uppercase tracking-[0.2em] font-accent",
+                      "px-4 mb-2 text-[10px] font-black uppercase tracking-[0.2em] font-accent",
                       sidebarMutedClass,
                     )}
                   >
@@ -391,7 +391,7 @@ export function AuthenticatedShell({
                         window.dispatchEvent(event);
                       }}
                       className={cn(
-                        "group h-auto w-full justify-start rounded-2xl border border-transparent px-3 py-2.5 text-left transition-all cursor-pointer",
+                        "group h-auto w-full justify-start rounded-2xl border border-transparent px-4 py-2.5 text-left transition-all cursor-pointer",
                         sidebarMutedClass,
                         sidebarHoverTextClass,
                         sidebarActiveClass,

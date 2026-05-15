@@ -131,8 +131,8 @@ export async function recordCapitalTransaction(data: {
 
       await tx.businessLedger.create({
         data: {
-          tenant_id: tenantId,
-          account_id: ledgerAccount.id,
+          tenant: { connect: { tenant_id: tenantId } },
+          account: { connect: { id: ledgerAccount.id } },
           debit: data.direction === "invest" ? 0 : amount,
           credit: data.direction === "invest" ? amount : 0,
           description: `Vault ${data.direction}: ${data.description}`,

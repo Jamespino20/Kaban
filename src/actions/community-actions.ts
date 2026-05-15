@@ -708,12 +708,12 @@ export async function sendConversationMessage(input: {
       where: { id: input.conversationId },
       select: { tenant_id: true },
     });
-    if (!conv) return { error: "Conversation not found." };
+    if (!conv) return { error: "Conversation not found. It may have been deleted or you may not have access." };
     resolvedTenantId = conv.tenant_id;
   }
 
   if (!resolvedTenantId) {
-    return { error: "Please select a tenant before sending a message." };
+    return { error: "Please select a tenant before sending a message. Use the tenant selector in the header to switch to your cooperative." };
   }
 
   const result = await prisma.$withTenant(resolvedTenantId, async (tx: any) => {

@@ -307,10 +307,6 @@ export function EnhancedRegisterForm({
         return [
           "regionId",
           "tenantId",
-          "psgcRegion",
-          "province",
-          "city",
-          "barangay",
         ];
       case 4:
         return ["termsAccepted", "privacyAccepted"];
@@ -334,7 +330,7 @@ export function EnhancedRegisterForm({
         if (type === "business") setBusinessPermitUrl(res.url!);
         toast.success(`${type.toUpperCase()} Picture uploaded`);
       } else {
-        toast.error(res.error || "Upload failed");
+        toast.error(res.error || "Upload failed. Please check the file size (max 5MB) and format, then try again.");
       }
     }
   };

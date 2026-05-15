@@ -33,9 +33,6 @@ export async function getAvailableTenants(
   password?: string,
   tenantSlug?: string,
 ) {
-  if (shouldUseApiClient()) {
-    return { success: true, tenants: [] };
-  }
   try {
     let authenticatedSession = null;
     if (!password) {
@@ -108,12 +105,12 @@ export async function getAvailableTenants(
     return processUsers(combinedUsers, sql, password);
   } catch (error) {
     console.error("Identity lookup failed:", error);
-    return { error: "Something went wrong" };
+    return { error: "Something went wrong. Please try again or contact support if the issue persists." };
   }
 }
 
 async function processUsers(users: User[], sql: any, password?: string) {
-  if (users.length === 0) return { error: "User not found" };
+  if (users.length === 0) return { error: "User not found. Please check the username/email you entered and try again." };
 
   const validTenants: Tenant[] = [];
 
@@ -159,7 +156,7 @@ async function processUsers(users: User[], sql: any, password?: string) {
     });
   }
 
-  if (validTenants.length === 0) return { error: "Invalid credentials" };
+  if (validTenants.length === 0) return { error: "Invalid credentials. Please check your username and password, or reset your password if you've forgotten it." };
 
   const dedupedTenants = validTenants.filter((tenant, index, self) => {
     return (

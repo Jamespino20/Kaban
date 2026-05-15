@@ -1,25 +1,9 @@
 import type { Metadata } from "next";
-import { Plus_Jakarta_Sans, Fraunces, Outfit } from "next/font/google";
 import "./globals.css";
 import { Toaster } from "@/components/ui/sonner";
 import { AuthProvider } from "@/components/providers/session-provider";
 import { Analytics } from "@vercel/analytics/react";
 import { SpeedInsights } from "@vercel/speed-insights/next";
-
-const plusJakartaSans = Plus_Jakarta_Sans({
-  variable: "--font-sans",
-  subsets: ["latin"],
-});
-
-const fraunces = Fraunces({
-  variable: "--font-fraunces",
-  subsets: ["latin"],
-});
-
-const outfit = Outfit({
-  variable: "--font-outfit",
-  subsets: ["latin"],
-});
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://agapay-iatk.vercel.app"),
@@ -77,7 +61,7 @@ export default function RootLayout({
   return (
     <html lang="en" className="antialiased" suppressHydrationWarning>
       <body
-        className={`${plusJakartaSans.variable} ${fraunces.variable} ${outfit.variable} font-sans selection:bg-emerald-100 selection:text-emerald-900 transition-colors duration-300`}
+        className="font-sans selection:bg-emerald-100 selection:text-emerald-900 transition-colors duration-300"
       >
         <ThemeProvider
           attribute="class"

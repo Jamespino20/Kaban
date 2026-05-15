@@ -23,7 +23,7 @@ export async function approveWalletTopUp(requestId: number) {
   const adminId = session.user.user_id;
   const tenantId = session.user.tenantId;
 
-  if (!tenantId) return { error: "Tenant context required." };
+  if (!tenantId) return { error: "Tenant context required. Please select a cooperative tenant before managing your wallet." };
 
   try {
     const result = await prisma.$withTenant(tenantId, async (tx: any) => {
@@ -32,7 +32,7 @@ export async function approveWalletTopUp(requestId: number) {
         where: { id: requestId },
       });
 
-      if (!request) return { error: "Request not found." };
+      if (!request) return { error: "Top-up request not found. It may have been already processed or cancelled." };
       if (request.status === "verified")
         return { error: "This top-up has already been processed automatically." };
       if (request.status !== "pending")
@@ -426,6 +426,13 @@ export async function getWalletTransactions() {
       },
       include: {
         transactions: {
+          include: {
+            account: {
+              select: {
+                account_type: true,
+              },
+            },
+          },
           orderBy: { processed_at: "desc" },
           take: 50,
         },
@@ -439,10 +446,14 @@ export async function getWalletTransactions() {
 
   return savingsAccount.transactions.map((tx: any) => ({
     id: tx.transaction_id,
+    transaction_id: tx.transaction_id,
     type: tx.transaction_type,
+    transaction_type: tx.transaction_type,
     amount: tx.amount.toNumber(),
     reference: tx.reference,
     date: tx.processed_at,
+    processed_at: tx.processed_at,
+    account: tx.account ? { account_type: tx.account.account_type } : null,
   }));
 }
 export async function processPosTransaction(data: {

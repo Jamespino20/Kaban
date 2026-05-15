@@ -929,10 +929,6 @@ model LedgerAccount {
   @@map("ledger_accounts")
 }
 
-// REMOVED: SocialVouch & VouchScoreSnapshot — vouch system dropped per PRD
-// model VouchScoreSnapshot {
-//   ...
-// }
 
 model TenantTrustPolicy {
   id                       Int      @id @default(autoincrement())

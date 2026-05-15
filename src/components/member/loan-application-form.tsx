@@ -191,7 +191,7 @@ export const LoanApplicationForm = ({
           onSuccess();
         }
       } catch (error) {
-        toast.error("An error occurred!");
+          toast.error("An error occurred while submitting your application. Please review the form and try again. If the issue persists, contact your cooperative admin.");
       }
     });
   };

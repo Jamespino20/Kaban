@@ -498,6 +498,30 @@ async function main() {
       endDate.setMonth(endDate.getMonth() + 6);
     else endDate.setFullYear(endDate.getFullYear() + 1);
 
+    const coreModules = [
+      AppModule.wallet,
+      AppModule.loans,
+      AppModule.community,
+    ];
+    const proModules = [
+      ...coreModules,
+      AppModule.audit,
+      AppModule.compassion,
+    ];
+    const enterpriseModules = [
+      ...proModules,
+      AppModule.reports,
+      AppModule.analytics,
+      AppModule.system_config,
+    ];
+
+    const activatedModules =
+      plan.tier_name === "Agapay Enterprise"
+        ? enterpriseModules
+        : plan.tier_name === "Agapay Pro"
+          ? proModules
+          : coreModules;
+
     await prisma.tenantSubscription.create({
       data: {
         tenant_id: tenant.tenant_id,
@@ -506,12 +530,7 @@ async function main() {
         status: "active",
         start_date: startDate,
         end_date: endDate,
-        activated_modules: [
-          AppModule.wallet,
-          AppModule.loans,
-          AppModule.community,
-          AppModule.audit,
-        ],
+        activated_modules: activatedModules,
       },
     });
 
