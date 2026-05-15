@@ -364,6 +364,8 @@ export function EnhancedRegisterForm({
           "barangay",
         ];
       case 5:
+        return [];
+      case 6:
         return ["termsAccepted", "privacyAccepted"];
       default:
         return [];
