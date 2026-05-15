@@ -44,37 +44,7 @@ const getNextAuth = () => {
             // Resolve Target Schema
             const validatedTenantId = parsedTenantId;
 
-            if (process.env.NEXT_PUBLIC_API_URL) {
-              const apiUrl = process.env.NEXT_PUBLIC_API_URL;
-              const res = await fetch(`${apiUrl}/auth/login`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ email: username, password }),
-              });
-              const data = await res.json();
-
-              if (!data.status || data.status !== "success") {
-                if (data.user?.requires_2fa) {
-                  throw new TwoFactorRequiredError();
-                }
-                return null;
-              }
-
-              return {
-                id: String(data.user.user_id),
-                user_id: data.user.user_id,
-                username: data.user.username,
-                name: data.user.username,
-                email: data.user.email,
-                role: data.user.role,
-                tenantId: data.user.role === "superadmin" ? null : data.user.tenant_id,
-                tenantSlug: null,
-                accessibleTenantIds: [],
-                apiToken: data.token,
-              };
-            }
-
-            // LOCAL DEV: Fall through to existing sql() logic
+            // LOCAL DEV: Use existing sql() logic (PHP API path removed — we use Prisma/TiDB directly)
             // Fetch user
             let users: any[] = [];
 
