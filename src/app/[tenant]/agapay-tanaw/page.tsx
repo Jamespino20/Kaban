@@ -89,6 +89,7 @@ function SystemFileManagementSkeleton() {
 }
 
 import { requireTanawSession } from "@/lib/authorization";
+import { checkSubscriptionStatus } from "@/lib/subscription-enforcement";
 
 function getTanawRoleLabel(role: string) {
   if (role === "superadmin") return "Superadmin";
@@ -192,6 +193,12 @@ export default async function AgapayTanawPage(props: {
           },
         })
       : null;
+
+  // Check subscription expiry for operator tenants (non-superadmin)
+  let subscriptionAlert: { status: string; daysUntilExpiry?: number; daysOverdue?: number } | null = null;
+  if (isOperator && tenantContextId) {
+    subscriptionAlert = await checkSubscriptionStatus(tenantContextId);
+  }
 
   const enabledFeatures = currentTenantIdentity?.tenantSubscription
     ?.activated_modules || ["loans", "wallet", "community"];
@@ -392,6 +399,7 @@ export default async function AgapayTanawPage(props: {
       portalLabel={`${roleLabel} Portal`}
       accountName={userName}
       accountRole={roleLabel}
+      accountPhotoUrl={adminProfileData?.photo_url}
       tenantName={currentTenantIdentity?.name}
       tenantLogoUrl={currentTenantIdentity?.logo_url || undefined}
       tenantBrandColor={currentTenantIdentity?.brand_color}
@@ -741,7 +749,11 @@ export default async function AgapayTanawPage(props: {
                     lastName: adminProfileData?.last_name || "",
                     email: session?.user?.email || "",
                     phone: "",
+                    username: userName,
                     photoUrl: adminProfileData?.photo_url,
+                  }}
+                  security={{
+                    is2FAEnabled,
                   }}
                 />
 

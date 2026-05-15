@@ -51,7 +51,12 @@ const getNextAuth = () => {
             try {
               users = await sql(
                 "SELECT u.user_id, u.tenant_id, u.username, u.email, u.password_hash, u.role, u.status, u.member_code, t.slug as tenant_slug FROM users u LEFT JOIN tenants t ON u.tenant_id = t.tenant_id WHERE (u.tenant_id = ? OR (u.tenant_id IS NULL AND ?)) AND (u.email = ? OR u.username = ?) LIMIT 1",
-                [validatedTenantId, validatedTenantId === null, username, username],
+                [
+                  validatedTenantId,
+                  validatedTenantId === null,
+                  username,
+                  username,
+                ],
               );
             } catch (err) {
               console.error(`Auth lookup failed:`, err);
@@ -97,8 +102,10 @@ const getNextAuth = () => {
               }
 
               // Force superadmin to always be tenant-unscoped
-              const forcedTenantId = user.role === "superadmin" ? null : user.tenant_id;
-              const forcedTenantSlug = user.role === "superadmin" ? null : user.tenant_slug;
+              const forcedTenantId =
+                user.role === "superadmin" ? null : user.tenant_id;
+              const forcedTenantSlug =
+                user.role === "superadmin" ? null : user.tenant_slug;
 
               // Check 2FA
               const twoFaRows = await sql(
@@ -140,10 +147,9 @@ const getNextAuth = () => {
                   if (hasExpired) return null;
 
                   // Delete used token
-                  await sql(
-                    "DELETE FROM two_factor_tokens WHERE id = ?",
-                    [twoFactorToken.id],
-                  );
+                  await sql("DELETE FROM two_factor_tokens WHERE id = ?", [
+                    twoFactorToken.id,
+                  ]);
                 }
               }
 

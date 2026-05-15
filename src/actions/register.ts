@@ -43,6 +43,8 @@ const RegisterSchema = z.object({
   businessPermitUrl: z.string().optional(),
   placeOfBirth: z.string().max(150).optional(),
   tin: z.string().max(20).optional(),
+  incomeRange: z.string().min(1, "Income range is required.").optional(),
+  personalSavings: z.string().optional(),
   tenantId: z.number().int().positive("Please select a tenant (Cooperative)."),
 });
 
@@ -77,6 +79,8 @@ export const register = async (values: z.infer<typeof RegisterSchema>) => {
     businessPermitUrl,
     placeOfBirth,
     tin,
+    incomeRange,
+    personalSavings,
   } = validatedFields.data;
 
   if (shouldUseApiClient()) {
@@ -133,6 +137,8 @@ export const register = async (values: z.infer<typeof RegisterSchema>) => {
               barangay,
               place_of_birth: placeOfBirth,
               tin,
+              income_range: incomeRange,
+              personal_savings: personalSavings ? new Prisma.Decimal(personalSavings) : null,
               photo_url: idPicture,
               tenant_id: tenantId,
             },

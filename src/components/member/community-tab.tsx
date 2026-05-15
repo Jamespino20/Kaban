@@ -529,8 +529,12 @@ export function CommunityTab({
                   onClick={() => handleStartConversation(user.userId)}
                   className="flex w-full items-center gap-2.5 rounded-lg px-3 py-1.5 text-left text-xs text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-700"
                 >
-                  <div className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-amber-100 text-[8px] font-bold text-amber-700">
-                    {user.name.charAt(0)}
+                  <div className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-amber-100 text-[8px] font-bold text-amber-700 overflow-hidden">
+                    {user.photoUrl ? (
+                      <img src={user.photoUrl} alt={user.name} className="h-full w-full object-cover" />
+                    ) : (
+                      user.name.charAt(0)
+                    )}
                   </div>
                   <span className="truncate">{user.name}</span>
                 </button>
@@ -642,6 +646,7 @@ export function CommunityTab({
                                         userId: message.senderId,
                                         name: message.senderName,
                                         role: message.senderRole || "member",
+                                        photoUrl: message.senderProfile?.photoUrl,
                                         subtitle:
                                           message.senderProfile?.subtitle ||
                                           "Ka-Agapay",

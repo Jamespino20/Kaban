@@ -488,8 +488,9 @@ async function main() {
             ? "semi_annually"
             : "annually";
 
-    const startDate = new Date();
-    startDate.setMonth(startDate.getMonth() - rand(2, 6));
+    // All leases start from April 2026
+    const startDate = new Date(2026, 3, 1); // April 1, 2026
+    startDate.setDate(startDate.getDate() + rand(0, 14)); // stagger by 0-14 days
     const endDate = new Date(startDate);
 
     if (cycle === "monthly") endDate.setMonth(endDate.getMonth() + 1);

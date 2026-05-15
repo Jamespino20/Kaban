@@ -142,6 +142,7 @@ export function AuthenticatedShell({
   portalLabel,
   accountName,
   accountRole,
+  accountPhotoUrl,
   accent = "emerald",
   tenantName,
   tenantLogoUrl,
@@ -157,6 +158,7 @@ export function AuthenticatedShell({
   portalLabel: string;
   accountName: string;
   accountRole: string;
+  accountPhotoUrl?: string;
   accent?: "emerald" | "blue";
   tenantName?: string;
   tenantLogoUrl?: string;
@@ -533,10 +535,14 @@ export function AuthenticatedShell({
                 style={portalBadgeStyle}
               >
                 <div
-                  className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg font-bold bg-white/90 shadow-sm text-sm"
+                  className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg font-bold bg-white/90 shadow-sm text-sm overflow-hidden"
                   style={{ color: normalizedTenantColor || "#0f172a" }}
                 >
-                  {accountName.slice(0, 2).toUpperCase()}
+                  {accountPhotoUrl ? (
+                    <img src={accountPhotoUrl} alt={accountName} className="h-full w-full object-cover" />
+                  ) : (
+                    accountName.slice(0, 2).toUpperCase()
+                  )}
                 </div>
                 <div className="hidden lg:block text-left text-current">
                   <p className="text-sm font-semibold leading-none font-accent">

@@ -33,6 +33,32 @@ interface Props {
   tenantSlug: string;
 }
 
+function getCyclePrice(plan: Plan, cycle: string) {
+  switch (cycle) {
+    case "quarterly":
+      return Number(plan.price_quarterly || plan.price_monthly);
+    case "semi_annually":
+      return Number(plan.price_semi_annually || plan.price_monthly);
+    case "annually":
+      return Number(plan.price_annually || plan.price_monthly);
+    default:
+      return Number(plan.price_monthly);
+  }
+}
+
+function getCycleLabel(cycle: string) {
+  switch (cycle) {
+    case "quarterly":
+      return " / 3 mos";
+    case "semi_annually":
+      return " / 6 mos";
+    case "annually":
+      return " / year";
+    default:
+      return " / mo";
+  }
+}
+
 export function SubscriptionSettingsClient({
   tenantId,
   availablePlans,
@@ -41,20 +67,14 @@ export function SubscriptionSettingsClient({
   tenantSlug,
 }: Props) {
   const [isLoading, setIsLoading] = useState<number | null>(null);
+  const activeCycle = currentSubscription?.billing_cycle || "monthly";
 
   const handleRequestUpgrade = async (planId: number) => {
     setIsLoading(planId);
     try {
-      let cycle: "monthly" | "quarterly" | "semi_annually" | "annually" = "monthly";
-      const plan = availablePlans.find(p => p.id === planId);
-      
-      if (plan?.tier_name.toLowerCase().includes("core")) cycle = "quarterly";
-      else if (plan?.tier_name.toLowerCase().includes("pro")) cycle = "semi_annually";
-      else if (plan?.tier_name.toLowerCase().includes("enterprise")) cycle = "annually";
-
       const res = await requestSubscriptionUpgrade(
         planId,
-        cycle,
+        activeCycle as "monthly" | "quarterly" | "semi_annually" | "annually",
         tenantSlug,
       );
       if (res.success) {
@@ -64,7 +84,7 @@ export function SubscriptionSettingsClient({
       } else {
         toast.error("Error: " + (res.error || "Failed to submit request."));
       }
-    } catch (err) {
+    } catch {
       toast.error(
         "System Error: Unable to process your request. Please try again.",
       );
@@ -125,9 +145,7 @@ export function SubscriptionSettingsClient({
           </div>
         ) : (
           <div>
-            <p className="text-slate-700 font-medium font-sans">
-              No Active Plan
-            </p>
+            <p className="text-slate-700 font-medium font-sans">No Active Plan</p>
             <p className="text-xs text-slate-500 mt-1">
               Nasa Seed / Prospect level pa lamang ang iyong cooperative.
             </p>
@@ -138,9 +156,7 @@ export function SubscriptionSettingsClient({
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {availablePlans.map((plan) => {
           const isCurrentPlan = currentSubscription?.plan?.id === plan.id;
-          const isPendingThisPlan =
-            currentSubscription?.status === "pending" &&
-            currentSubscription?.plan?.id === plan.id;
+          const price = getCyclePrice(plan, activeCycle);
           return (
             <div
               key={plan.id}
@@ -156,18 +172,10 @@ export function SubscriptionSettingsClient({
                 </h4>
                 <div className="my-4">
                   <span className="text-3xl font-black text-emerald-600">
-                    ₱{plan.tier_name.toLowerCase().includes("core") 
-                      ? Number(plan.price_quarterly).toLocaleString() 
-                      : plan.tier_name.toLowerCase().includes("pro")
-                      ? Number(plan.price_semi_annually).toLocaleString()
-                      : Number(plan.price_annually).toLocaleString()}
+                    ₱{price.toLocaleString()}
                   </span>
                   <span className="text-sm text-slate-500">
-                    {plan.tier_name.toLowerCase().includes("core") 
-                      ? " / 3 mos" 
-                      : plan.tier_name.toLowerCase().includes("pro")
-                      ? " / 6 mos"
-                      : " / year"}
+                    {getCycleLabel(activeCycle)}
                   </span>
                 </div>
                 <ul className="mb-6 space-y-3">

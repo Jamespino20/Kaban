@@ -36,7 +36,7 @@ export async function getTenantApplicationsFiltered(filters?: {
     
     if (filters?.region) {
       where.tenant_group = {
-        name: { contains: filters.region, mode: "insensitive" }
+        name: { contains: filters.region }
       };
     }
     

@@ -1,11 +1,28 @@
 "use server";
 
+import { AccountType, Prisma, TransactionType } from "@prisma/client";
 import prisma from "@/lib/prisma";
 import { requireTanawSession } from "@/lib/authorization";
 import { revalidatePath } from "next/cache";
 import { serializeDecimal } from "@/lib/utils";
 import { shouldUseApiClient } from "@/lib/api-config";
 import { api } from "@/lib/api-client";
+import { postLedgerEntry } from "./ledger";
+
+type BillingCycleValue = "monthly" | "quarterly" | "semi_annually" | "annually";
+
+function getPlanCyclePrice(plan: any, cycle: BillingCycleValue) {
+  switch (cycle) {
+    case "quarterly":
+      return Number(plan.price_quarterly || plan.price_monthly || 0);
+    case "semi_annually":
+      return Number(plan.price_semi_annually || plan.price_monthly || 0);
+    case "annually":
+      return Number(plan.price_annually || plan.price_monthly || 0);
+    default:
+      return Number(plan.price_monthly || 0);
+  }
+}
 
 export async function getAvailablePlans() {
   if (shouldUseApiClient()) {
@@ -43,7 +60,7 @@ export async function getCurrentSubscription(tenantId: number) {
 
 export async function requestSubscriptionUpgrade(
   planId: number,
-  billingCycle: "monthly" | "quarterly" | "semi_annually" | "annually",
+  billingCycle: BillingCycleValue,
   tenantSlug: string,
 ) {
   if (shouldUseApiClient()) {
@@ -65,6 +82,11 @@ export async function requestSubscriptionUpgrade(
       return { success: false, error: "No active tenant context." };
     }
 
+    const currentSubscription = await prisma.tenantSubscription.findUnique({
+      where: { tenant_id: tenantId },
+      include: { plan: true },
+    });
+
     const plan = await prisma.subscriptionPlan.findUnique({
       where: { id: planId },
     });
@@ -73,19 +95,30 @@ export async function requestSubscriptionUpgrade(
       return { success: false, error: "Invalid or inactive plan selected." };
     }
 
-    const sub = await prisma.tenantSubscription.upsert({
-      where: { tenant_id: tenantId },
-      update: {
-        plan_id: planId,
-        billing_cycle: billingCycle,
-        status: "pending",
-      },
-      create: {
-        tenant_id: tenantId,
-        plan_id: planId,
-        billing_cycle: billingCycle,
-        status: "pending",
-      },
+    const currentCycle = (currentSubscription?.billing_cycle || billingCycle) as BillingCycleValue;
+    const currentPrice = currentSubscription?.plan
+      ? getPlanCyclePrice(currentSubscription.plan, currentCycle)
+      : 0;
+    const nextPrice = getPlanCyclePrice(plan, billingCycle);
+    const delta = Number((nextPrice - currentPrice).toFixed(2));
+
+    const sub = await prisma.$transaction(async (tx: any) => {
+      const savedSub = await tx.tenantSubscription.upsert({
+        where: { tenant_id: tenantId },
+        update: {
+          plan_id: planId,
+          billing_cycle: billingCycle,
+          status: "pending",
+        },
+        create: {
+          tenant_id: tenantId,
+          plan_id: planId,
+          billing_cycle: billingCycle,
+          status: "pending",
+        },
+      });
+
+      return savedSub;
     });
 
     revalidatePath(`/${tenantSlug}/agapay-tanaw`);
@@ -248,9 +281,143 @@ export async function updateTenantSubscription(
     if (data.billing_cycle) updateData.billing_cycle = data.billing_cycle;
     if (data.plan_id) updateData.plan_id = data.plan_id;
 
-    const sub = await prisma.tenantSubscription.update({
-      where: { tenant_id: tenantId },
-      data: updateData,
+    const sub = await prisma.$transaction(async (tx: any) => {
+      const currentSub = await tx.tenantSubscription.findUnique({
+        where: { tenant_id: tenantId },
+        include: { plan: true },
+      });
+
+      const nextPlanId = Number(data.plan_id || currentSub?.plan_id || 0);
+      const nextPlan = nextPlanId
+        ? await tx.subscriptionPlan.findUnique({ where: { id: nextPlanId } })
+        : currentSub?.plan || null;
+      const nextCycle = (data.billing_cycle ||
+        currentSub?.billing_cycle ||
+        "monthly") as BillingCycleValue;
+      const shouldSettle = (data.status || currentSub?.status || "active") === "active";
+      const currentPrice = currentSub?.plan
+        ? getPlanCyclePrice(currentSub.plan, currentSub.billing_cycle as BillingCycleValue)
+        : 0;
+      const nextPrice = nextPlan ? getPlanCyclePrice(nextPlan, nextCycle) : currentPrice;
+      const delta = Number((nextPrice - currentPrice).toFixed(2));
+
+      const updatedSub = await tx.tenantSubscription.update({
+        where: { tenant_id: tenantId },
+        data: updateData,
+      });
+
+      if (shouldSettle && delta !== 0) {
+        const operator = await tx.user.findFirst({
+          where: { tenant_id: tenantId, role: "operator" },
+          orderBy: { user_id: "asc" },
+          select: { user_id: true },
+        });
+        const walletOwnerUserId = operator?.user_id || session.user.user_id;
+        let wallet = await tx.savingsAccount.findFirst({
+          where: {
+            tenant_id: tenantId,
+            user_id: walletOwnerUserId,
+            account_type: AccountType.personal_wallet,
+          },
+        });
+
+        if (!wallet) {
+          wallet = await tx.savingsAccount.create({
+            data: {
+              tenant_id: tenantId,
+              user_id: walletOwnerUserId,
+              account_type: AccountType.personal_wallet,
+              balance: 0,
+            },
+          });
+        }
+
+        const amount = Math.abs(delta);
+        if (delta > 0 && Number(wallet.balance) < amount) {
+          throw new Error("Insufficient wallet balance for subscription charge.");
+        }
+
+        wallet = await tx.savingsAccount.update({
+          where: { account_id: wallet.account_id },
+          data:
+            delta > 0
+              ? { balance: { decrement: new Prisma.Decimal(amount) } }
+              : { balance: { increment: new Prisma.Decimal(amount) } },
+        });
+
+        const settlementReference = `SUB-${tenantId}-${Date.now()}`;
+        await tx.savingsTransaction.create({
+          data: {
+            account_id: wallet.account_id,
+            tenant_id: tenantId,
+            transaction_type:
+              delta > 0 ? TransactionType.withdrawal : TransactionType.deposit,
+            amount: new Prisma.Decimal(amount),
+            reference: settlementReference,
+            processed_by: session.user.user_id,
+            issue_notes:
+              delta > 0
+                ? "Subscription upgrade settlement"
+                : "Subscription downgrade credit",
+          },
+        });
+
+        await postLedgerEntry(tx, {
+          tenantId,
+          description:
+            delta > 0
+              ? `Subscription Upgrade Settlement: Tenant #${tenantId}`
+              : `Subscription Downgrade Credit: Tenant #${tenantId}`,
+          createdBy: session.user.user_id,
+          metadata: {
+            source: "subscription_update",
+            previousPlanId: currentSub?.plan_id || null,
+            nextPlanId: nextPlanId || null,
+            previousPrice: currentPrice,
+            nextPrice,
+            delta,
+            billingCycle: nextCycle,
+          },
+          entries:
+            delta > 0
+              ? [
+                  { accountCode: "CASH_EQUIVALENTS", debit: amount, credit: 0 },
+                  { accountCode: "MEMBER_SAVINGS", debit: 0, credit: amount },
+                ]
+              : [
+                  { accountCode: "MEMBER_SAVINGS", debit: amount, credit: 0 },
+                  { accountCode: "CASH_EQUIVALENTS", debit: 0, credit: amount },
+                ],
+        });
+
+        await tx.billingInvoice.create({
+          data: {
+            tenant_id: tenantId,
+            invoice_number: `SUB-${tenantId}-${Date.now()}`,
+            amount: new Prisma.Decimal(amount),
+            status: "paid",
+            due_date: new Date(),
+            paid_at: new Date(),
+            payment_method: "wallet",
+            reference: settlementReference,
+            items: [
+              {
+                source: "subscription_update",
+                requestor_user_id: session.user.user_id,
+                previous_plan_id: currentSub?.plan_id || null,
+                next_plan_id: nextPlanId || null,
+                previous_price: currentPrice,
+                next_price: nextPrice,
+                delta,
+                wallet_effect: delta > 0 ? "deduction" : "credit",
+                billing_cycle: nextCycle,
+              },
+            ] as any,
+          },
+        });
+      }
+
+      return updatedSub;
     });
 
     revalidatePath("/agapay-tanaw");
@@ -272,6 +439,110 @@ export async function approveSubscriptionUpgrade(tenantId: number) {
     }
 
     const result = await prisma.$transaction(async (tx: any) => {
+      const pendingInvoice = await tx.billingInvoice.findFirst({
+        where: {
+          tenant_id: tenantId,
+          status: "pending",
+        },
+        orderBy: { created_at: "desc" },
+      });
+
+      const invoiceItems = Array.isArray(pendingInvoice?.items)
+        ? (pendingInvoice?.items as any[])
+        : [];
+      const billingDelta = Number(invoiceItems[0]?.delta || 0);
+      const walletOwnerUserId = Number(
+        invoiceItems[0]?.requestor_user_id || session.user.user_id,
+      );
+
+      if (billingDelta !== 0) {
+        let wallet = await tx.savingsAccount.findFirst({
+          where: {
+            tenant_id: tenantId,
+            user_id: walletOwnerUserId,
+            account_type: AccountType.personal_wallet,
+          },
+        });
+
+        if (!wallet) {
+          wallet = await tx.savingsAccount.create({
+            data: {
+              tenant_id: tenantId,
+              user_id: walletOwnerUserId,
+              account_type: AccountType.personal_wallet,
+              balance: 0,
+            },
+          });
+        }
+
+        const amount = Math.abs(billingDelta);
+        if (billingDelta > 0 && Number(wallet.balance) < amount) {
+          throw new Error("Insufficient wallet balance for subscription charge.");
+        }
+
+        wallet = await tx.savingsAccount.update({
+          where: { account_id: wallet.account_id },
+          data: {
+            balance:
+              billingDelta > 0
+                ? { decrement: new Prisma.Decimal(amount) }
+                : { increment: new Prisma.Decimal(amount) },
+          },
+        });
+
+        const txType =
+          billingDelta > 0 ? TransactionType.withdrawal : TransactionType.deposit;
+        const reference = pendingInvoice?.reference || `SUB-${tenantId}-${Date.now()}`;
+
+        await tx.savingsTransaction.create({
+          data: {
+            account_id: wallet.account_id,
+            tenant_id: tenantId,
+            transaction_type: txType,
+            amount: new Prisma.Decimal(amount),
+            reference,
+            processed_by: session.user.user_id,
+            issue_notes:
+              billingDelta > 0
+                ? "Subscription upgrade charge"
+                : "Subscription downgrade credit",
+          },
+        });
+
+        await postLedgerEntry(tx, {
+          tenantId,
+          description:
+            billingDelta > 0
+              ? `Subscription Charge: Tenant #${tenantId}`
+              : `Subscription Credit: Tenant #${tenantId}`,
+          createdBy: session.user.user_id,
+          metadata: {
+            source: "subscription_billing",
+            delta: billingDelta,
+            invoiceId: pendingInvoice?.id || null,
+          },
+          entries: billingDelta > 0
+            ? [
+                { accountCode: "CASH_EQUIVALENTS", debit: amount, credit: 0 },
+                { accountCode: "MEMBER_SAVINGS", debit: 0, credit: amount },
+              ]
+            : [
+                { accountCode: "MEMBER_SAVINGS", debit: amount, credit: 0 },
+                { accountCode: "CASH_EQUIVALENTS", debit: 0, credit: amount },
+              ],
+        });
+
+        if (pendingInvoice) {
+          await tx.billingInvoice.update({
+            where: { id: pendingInvoice.id },
+            data: {
+              status: "paid",
+              paid_at: new Date(),
+            },
+          });
+        }
+      }
+
       // 1. Update subscription status
       const sub = await tx.tenantSubscription.update({
         where: { tenant_id: tenantId },

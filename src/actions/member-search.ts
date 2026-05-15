@@ -21,48 +21,43 @@ export async function searchEligibleGuarantors(query: string) {
   }
 
   try {
-    const queryFn = async (db: any) => {
-      return await db.user.findMany({
-        where: {
-          user_id: { not: session.user.user_id },
-          role: Role.member,
-          status: UserStatus.active,
-          OR: [
-            { username: { contains: query, mode: "insensitive" } },
-            { email: { contains: query, mode: "insensitive" } },
-            {
-              profile: {
-                first_name: { contains: query, mode: "insensitive" },
-              },
-            },
-            {
-              profile: {
-                last_name: { contains: query, mode: "insensitive" },
-              },
-            },
-          ],
-        },
-        select: {
-          user_id: true,
-          username: true,
-          email: true,
-          profile: {
-            select: {
-              first_name: true,
-              last_name: true,
+    const tenantId = session.user.tenantId;
+    if (!tenantId) return { data: [] };
+
+    const users = await prisma.user.findMany({
+      where: {
+        tenant_id: tenantId,
+        user_id: { not: session.user.user_id },
+        role: Role.member,
+        status: UserStatus.active,
+        OR: [
+          { username: { contains: query } },
+          { email: { contains: query } },
+          {
+            profile: {
+              first_name: { contains: query },
             },
           },
-        },
-        take: 5, // Limit results
-      });
-    };
-
-    const users = await prisma.$withTenant(
-      session.user.tenantId,
-      async (tx: any) => {
-        return await queryFn(tx);
+          {
+            profile: {
+              last_name: { contains: query },
+            },
+          },
+        ],
       },
-    );
+      select: {
+        user_id: true,
+        username: true,
+        email: true,
+        profile: {
+          select: {
+            first_name: true,
+            last_name: true,
+          },
+        },
+      },
+      take: 5,
+    });
 
     return { data: users };
   } catch (error) {

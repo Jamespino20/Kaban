@@ -66,11 +66,12 @@ const EnhancedRegisterSchema = z
       "widowed",
       "separated",
       "annulled",
+      "prefer_not_to_say",
     ]),
     password: z.string().min(6, "Min 6 characters"),
     confirmPassword: z.string(),
     birthdate: z.string().min(1, "Birthdate is required"),
-    gender: z.enum(["male", "female", "other"]),
+    gender: z.enum(["male", "female", "other", "prefer_not_to_say"]),
     regionId: z.string().min(1, "Region is required"),
     tenantId: z.string().min(1, "Tenant is required"),
     psgcRegion: z.string().min(1, "PSGC Region is required"),
@@ -80,6 +81,8 @@ const EnhancedRegisterSchema = z
     streetAddress: z.string().min(1, "Street address is required"),
     placeOfBirth: z.string().min(1, "Place of birth is required"),
     tin: z.string().optional(),
+    incomeRange: z.string().min(1, "Income range is required"),
+    personalSavings: z.string().optional(),
     termsAccepted: z.boolean().refine((v) => v === true, "Must accept terms"),
     privacyAccepted: z
       .boolean()
@@ -302,6 +305,8 @@ export function EnhancedRegisterForm({
           "maritalStatus",
           "placeOfBirth",
           "businessName",
+          "incomeRange",
+          "personalSavings",
         ];
       case 3:
         return [
@@ -365,6 +370,8 @@ export function EnhancedRegisterForm({
         businessPermitUrl,
         placeOfBirth: values.placeOfBirth,
         tin: values.tin,
+      incomeRange: values.incomeRange,
+      personalSavings: values.personalSavings,
       })) as any;
 
       if (res.error) toast.error(res.error);

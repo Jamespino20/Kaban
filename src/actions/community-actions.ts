@@ -376,6 +376,7 @@ export async function getCommunityDashboardData() {
           user.profile?.first_name && user.profile?.last_name
             ? `${user.profile.first_name} ${user.profile.last_name}`
             : user.username,
+        photoUrl: user.profile?.photo_url || null,
         subtitle:
           user.profile?.business_name ||
           user.profile?.occupation ||
@@ -588,6 +589,7 @@ export async function getConversationThread(
           ? {
               firstName: message.sender.profile.first_name || null,
               lastName: message.sender.profile.last_name || null,
+              photoUrl: message.sender.profile.photo_url || null,
               subtitle:
                 message.sender.profile.business_name ||
                 message.sender.profile.occupation ||

@@ -8,6 +8,7 @@ type ProfileData = {
   userId: number;
   name: string;
   role: string;
+  photoUrl?: string | null;
   subtitle?: string;
   joinedAt?: string;
   loanCount?: number;
@@ -31,8 +32,12 @@ export function MemberProfilePopup({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-sm rounded-3xl border-0 p-0 gap-0 overflow-hidden shadow-2xl">
         <div className="bg-gradient-to-br from-slate-800 to-slate-900 p-8 text-center">
-          <div className="mx-auto mb-3 flex h-20 w-20 items-center justify-center rounded-3xl bg-white/15 text-3xl font-black text-white backdrop-blur ring-4 ring-white/10">
-            {profile.name.substring(0, 2).toUpperCase()}
+          <div className="mx-auto mb-3 flex h-20 w-20 items-center justify-center rounded-3xl bg-white/15 text-3xl font-black text-white backdrop-blur ring-4 ring-white/10 overflow-hidden">
+            {profile.photoUrl ? (
+              <img src={profile.photoUrl} alt={profile.name} className="h-full w-full object-cover" />
+            ) : (
+              profile.name.substring(0, 2).toUpperCase()
+            )}
           </div>
           <DialogTitle className="text-xl font-bold text-white">
             {profile.name}

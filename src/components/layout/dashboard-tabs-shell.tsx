@@ -14,6 +14,7 @@ type DashboardTabsShellProps = {
   portalLabel: string;
   accountName: string;
   accountRole: string;
+  accountPhotoUrl?: string;
   tenantName?: string;
   tenantLogoUrl?: string;
   tenantBrandColor?: string | null;

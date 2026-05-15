@@ -32,6 +32,7 @@ import {
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { updatePersonalInfo } from "@/actions/member-profile";
+import { updateUsername } from "@/actions/update-profile";
 import { uploadIdPicture } from "@/actions/upload";
 import {
   Form,
@@ -162,6 +163,11 @@ export function MemberSettingsTab({
     },
     true,
   );
+
+  // Username editing
+  const [editingUsername, setEditingUsername] = useState(false);
+  const [usernameValue, setUsernameValue] = useState(profile.username);
+  const [savingUsername, setSavingUsername] = useState(false);
 
   // Avatar
   const [avatarPreview, setAvatarPreview] = useState<string | null>(profile.avatarUrl || null);
@@ -430,7 +436,64 @@ function ReadOnlyField({ label, value }: ReadOnlyFieldProps) {
             <Form {...form}>
               <form onSubmit={form.handleSubmit(handleSubmitProfile)} className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                 <ReadOnlyField label="Full Name" value={profile.fullName} />
-                <ReadOnlyField label="Username" value={profile.username} />
+                <div className="rounded-xl border border-slate-100 bg-slate-50 px-4 py-3">
+                  <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-slate-400">Username</p>
+                  <div className="mt-1 flex items-center gap-2">
+                    {editingUsername ? (
+                      <>
+                        <Input
+                          value={usernameValue}
+                          onChange={(e) => setUsernameValue(e.target.value)}
+                          className="h-8 text-sm rounded-lg flex-1"
+                        />
+                        <Button
+                          size="sm"
+                          className="h-8 rounded-lg"
+                          disabled={savingUsername}
+                          onClick={async () => {
+                            if (!usernameValue.trim()) return;
+                            setSavingUsername(true);
+                            const res = await updateUsername(usernameValue.trim());
+                            setSavingUsername(false);
+                            if (res.error) {
+                              toast.error(res.error);
+                              setUsernameValue(profile.username);
+                            } else {
+                              toast.success("Username updated");
+                              router.refresh();
+                            }
+                            setEditingUsername(false);
+                          }}
+                        >
+                          Save
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          className="h-8 rounded-lg"
+                          onClick={() => {
+                            setUsernameValue(profile.username);
+                            setEditingUsername(false);
+                          }}
+                        >
+                          Cancel
+                        </Button>
+                      </>
+                    ) : (
+                      <>
+                        <p className="text-sm font-semibold text-slate-900 flex-1">@{profile.username}</p>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          className="h-6 text-xs rounded-lg"
+                          onClick={() => setEditingUsername(true)}
+                        >
+                          Edit
+                        </Button>
+                      </>
+                    )}
+                  </div>
+                </div>
                 <FormField
                   control={form.control}
                   name="email"

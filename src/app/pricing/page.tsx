@@ -82,15 +82,13 @@ const RATE_GUIDE = [
   {
     label: "Tier 3",
     rate: "4%",
-    description:
-      "For consistent payers with growing credit history.",
+    description: "For consistent payers with growing credit history.",
     features: ["Higher credit limit", "Flexible payment terms"],
   },
   {
     label: "Tier 4",
     rate: "3.5%",
-    description:
-      "For well-established members with strong Trust Scores.",
+    description: "For well-established members with strong Trust Scores.",
     features: ["Declining balance mode", "Extended term options"],
   },
   {
@@ -177,7 +175,7 @@ export default async function PricingPage() {
                   ))}
                 </div>
                 <Link
-                  href="/contact"
+                  href="/onboarding"
                   className={`block text-center py-4 rounded-2xl font-black italic transition-all ${
                     plan.highlight
                       ? "bg-emerald-500 text-white hover:bg-emerald-400"

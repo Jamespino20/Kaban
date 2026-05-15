@@ -139,7 +139,10 @@ export async function approveLoanApplication(
     const { session, loan, tenantId } = await requireLoanAdminAccess(loanId);
 
     if (loan.status !== "pending") {
-      return { error: "Loan application is no longer pending. It may have already been approved or rejected. Check the My Loans section for current status." };
+      return {
+        error:
+          "Loan application is no longer pending. It may have already been approved or rejected. Check the My Loans section for current status.",
+      };
     }
 
     if (shouldUseApiClient()) {
@@ -286,7 +289,54 @@ export async function releaseLoanFunds(
 
     const targetTenantId = tenantId || loan.tenant_id;
 
-    await prisma.$withTenant(targetTenantId, async (tx: any) => {
+    const result = await prisma.$withTenant(targetTenantId, async (tx: any) => {
+      // 1. Verify Operator wallet sufficiency (STRICT REQUIREMENT)
+      const operatorId = loan.approved_by;
+      if (!operatorId) {
+        return {
+          error:
+            "This loan has not been approved by an operator. Approval is required before release.",
+        };
+      }
+
+      const operatorWallet = await tx.savingsAccount.findFirst({
+        where: {
+          user_id: operatorId,
+          account_type: AccountType.personal_wallet,
+        },
+      });
+
+      const principalAmount = Number(loan.principal_amount);
+
+      if (!operatorWallet || Number(operatorWallet.balance) < principalAmount) {
+        return {
+          error:
+            `Insufficient operator wallet balance (Available: ₱${Number(operatorWallet?.balance || 0).toLocaleString()}). ` +
+            `A ₱${principalAmount.toLocaleString()} loan cannot be released until the approving operator tops up their wallet.`,
+        };
+      }
+
+      // 2. Deduct from operator wallet
+      await tx.savingsAccount.update({
+        where: { account_id: operatorWallet.account_id },
+        data: { balance: { decrement: loan.principal_amount } },
+      });
+
+      // 3. Record savings transaction for the operator
+      const transId = `DISB-${loan.loan_id}-${Date.now()}`;
+      const savingsTrans = await tx.savingsTransaction.create({
+        data: {
+          account_id: operatorWallet.account_id,
+          tenant_id: targetTenantId,
+          transaction_type: TransactionType.withdrawal,
+          amount: loan.principal_amount,
+          reference: transId,
+          processed_by: session.user.user_id,
+          notes: `Loan disbursement for #${loan.loan_reference}`,
+        },
+      });
+
+      // 4. Update loan status to active
       await tx.loan.update({
         where: { loan_id: loanId },
         data: {
@@ -298,7 +348,7 @@ export async function releaseLoanFunds(
         loanId,
         approvedAt: loan.approved_at || new Date(),
         termMonths: loan.term_months,
-        principalAmount: Number(loan.principal_amount),
+        principalAmount: principalAmount,
         totalInterest: Number(loan.interest_applied),
         processingFee: Number(loan.fees_applied),
         frequency: loan.repayment_frequency,
@@ -307,7 +357,38 @@ export async function releaseLoanFunds(
       await tx.loanSchedule.createMany({
         data: schedules.map((s) => ({ ...s, tenant_id: targetTenantId })),
       });
+
+      // 5. Post Ledger Entries (Double Entry)
+      // DR Loan Receivables (Asset increase)
+      // CR Member Savings/Wallet (Liability decrease to operator)
+      await postLedgerEntry(tx, {
+        tenantId: targetTenantId,
+        loanId,
+        description: `Loan Released: #${loan.loan_reference}. Funded from Operator Wallet.`,
+        createdBy: session.user.user_id,
+        metadata: {
+          source: "loan_release",
+          operatorId,
+          savingsTransactionId: savingsTrans.transaction_id,
+        },
+        entries: [
+          {
+            accountCode: "LOAN_RECEIVABLES",
+            debit: principalAmount,
+            credit: 0,
+          },
+          {
+            accountCode: "MEMBER_SAVINGS", // This is the general liability account for all wallets
+            debit: 0,
+            credit: principalAmount,
+          },
+        ],
+      });
+
+      return { success: "Loan funds released successfully." };
     });
+
+    if (result.error) return result;
 
     await createNotification({
       userId: loan.user_id,
@@ -337,7 +418,11 @@ export async function submitMockRepayment(
     const session = await requireAuthenticatedSession();
     const tenantId = session.user.tenantId;
 
-    if (!tenantId) return { error: "Tenant context required. Please select or switch to your cooperative tenant first." };
+    if (!tenantId)
+      return {
+        error:
+          "Tenant context required. Please select or switch to your cooperative tenant first.",
+      };
 
     return await prisma.$withTenant(tenantId, async (tx: any) => {
       const loan = await tx.loan.findUnique({
@@ -345,11 +430,17 @@ export async function submitMockRepayment(
       });
 
       if (!loan || loan.user_id !== session.user.user_id) {
-        return { error: "This action is only available for members. Please log in with a member account to submit repayments." };
+        return {
+          error:
+            "This action is only available for members. Please log in with a member account to submit repayments.",
+        };
       }
 
       if (loan.status !== "active") {
-        return { error: "No active loan found for this transaction. Check your loan status in My Loans to verify." };
+        return {
+          error:
+            "No active loan found for this transaction. Check your loan status in My Loans to verify.",
+        };
       }
 
       const payment = await tx.payment.create({
@@ -391,7 +482,10 @@ export async function processFullPayment(
     return await prisma.$withTenant(tenantId, async (tx: any) => {
       const loan = await tx.loan.findUnique({
         where: { loan_id: loanId },
-        include: { schedules: { orderBy: { installment_number: "asc" } } },
+        include: {
+          schedules: { orderBy: { installment_number: "asc" } },
+          approver: { select: { user_id: true } },
+        },
       });
 
       if (!loan || loan.user_id !== session.user.user_id) {
@@ -445,6 +539,36 @@ export async function processFullPayment(
           status: "paid",
         },
       });
+
+      // 6. Credit operator wallet (The user who funded the loan)
+      if (loan.approved_by) {
+        const operatorWallet = await tx.savingsAccount.findFirst({
+          where: {
+            user_id: loan.approved_by,
+            account_type: AccountType.personal_wallet,
+          },
+        });
+
+        if (operatorWallet) {
+          await tx.savingsAccount.update({
+            where: { account_id: operatorWallet.account_id },
+            data: { balance: { increment: remainingPrincipal } },
+          });
+
+          const creditTransRef = `FULL-CREDIT-${fullPayment.payment_id}-${Date.now()}`;
+          await tx.savingsTransaction.create({
+            data: {
+              account_id: operatorWallet.account_id,
+              tenant_id: tenantId,
+              transaction_type: TransactionType.deposit,
+              amount: remainingPrincipal,
+              reference: creditTransRef,
+              processed_by: session.user.user_id,
+              notes: `Loan full-payment credit from #${loan.loan_reference}`,
+            },
+          });
+        }
+      }
 
       // Post ledger entries for financial integrity
       const totalFaceValue = unpaidSchedules.reduce(
@@ -508,7 +632,15 @@ export async function verifySubmittedPayment(
       const payment = await tx.payment.findUnique({
         where: { payment_id: paymentId },
         include: {
-          loan: { select: { user_id: true, tenant_id: true } },
+          loan: {
+            select: {
+              user_id: true,
+              tenant_id: true,
+              approved_by: true,
+              loan_reference: true,
+              loan_id: true,
+            },
+          },
         },
       });
 
@@ -578,6 +710,36 @@ export async function verifySubmittedPayment(
           where: { loan_id: payment.loan_id },
           data: { status: "paid", paid_at: new Date() },
         });
+      }
+
+      // 6. Credit operator wallet (The user who funded the loan)
+      if (payment.loan.approved_by) {
+        const operatorWallet = await tx.savingsAccount.findFirst({
+          where: {
+            user_id: payment.loan.approved_by,
+            account_type: AccountType.personal_wallet,
+          },
+        });
+
+        if (operatorWallet) {
+          await tx.savingsAccount.update({
+            where: { account_id: operatorWallet.account_id },
+            data: { balance: { increment: payment.amount_paid } },
+          });
+
+          const creditTransRef = `REPAY-CREDIT-${payment.payment_id}-${Date.now()}`;
+          await tx.savingsTransaction.create({
+            data: {
+              account_id: operatorWallet.account_id,
+              tenant_id: tenantId,
+              transaction_type: TransactionType.deposit,
+              amount: payment.amount_paid,
+              reference: creditTransRef,
+              processed_by: session.user.user_id,
+              notes: `Loan repayment credit from #${payment.loan.loan_reference}`,
+            },
+          });
+        }
       }
 
       // Post ledger entries

@@ -46,7 +46,17 @@ export const MICROFINANCE_POLICY = {
   overindebtedExposureRate: 0.8,
   maxConcurrentLoansAcrossTenants: 1,
   fullPaymentDiscountRate: 1.0, // 100% interest waiver on early full payment
+  debtServiceRatioCap: 0.4,    // 40% DSR policy
 } as const;
+
+export const INCOME_RANGE_MAPPING: Record<string, number> = {
+  "below_10k": 8000,
+  "10k_20k": 15000,
+  "20k_30k": 25000,
+  "30k_50k": 40000,
+  "50k_100k": 75000,
+  "above_100k": 120000,
+};
 
 export interface TierPolicy {
   tier: InterestTier;
@@ -418,6 +428,16 @@ export function validateLoanRequestAgainstPolicy({
   }
 
   return null;
+}
+
+/**
+ * Calculates the maximum monthly repayment capability based on DSR policy.
+ * DSR = (Monthly Installments) / (Monthly Gross Income)
+ */
+export function calculateMaxMonthlyRepayment(incomeRange: string | null | undefined): number {
+  if (!incomeRange) return 0;
+  const monthlyIncome = INCOME_RANGE_MAPPING[incomeRange] || 0;
+  return roundMoney(monthlyIncome * MICROFINANCE_POLICY.debtServiceRatioCap);
 }
 
 export function validateTenantMembershipLimit(membershipCount: number) {

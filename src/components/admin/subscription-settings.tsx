@@ -25,6 +25,8 @@ export async function SubscriptionSettings({
   const serializedPlans = availablePlans.map((plan: any) => ({
     ...plan,
     price_monthly: Number(plan.price_monthly),
+    price_quarterly: Number(plan.price_quarterly),
+    price_semi_annually: Number(plan.price_semi_annually),
     price_annually: Number(plan.price_annually),
   }));
 
@@ -34,10 +36,16 @@ export async function SubscriptionSettings({
           status: currentSubRes.subscription.status,
           billing_cycle: currentSubRes.subscription.billing_cycle,
           plan: currentSubRes.subscription.plan
-            ? {
+              ? {
                 ...currentSubRes.subscription.plan,
                 price_monthly: Number(
                   currentSubRes.subscription.plan.price_monthly,
+                ),
+                price_quarterly: Number(
+                  currentSubRes.subscription.plan.price_quarterly,
+                ),
+                price_semi_annually: Number(
+                  currentSubRes.subscription.plan.price_semi_annually,
                 ),
                 price_annually: Number(
                   currentSubRes.subscription.plan.price_annually,

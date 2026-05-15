@@ -310,6 +310,7 @@ export default async function AgapayPintigPage(props: {
       portalLabel="member portal"
       accountName={userName}
       accountRole="member"
+      accountPhotoUrl={member?.profile?.photo_url}
       tenantName={tenantIdentity?.name}
       tenantLogoUrl={tenantIdentity?.logo_url || undefined}
       tenantBrandColor={tenantIdentity?.brand_color}

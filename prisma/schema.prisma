@@ -176,15 +176,17 @@ model UserProfile {
   birthdate      DateTime?      @db.Date
   address        String?
   business_name  String?        @db.VarChar(150)
-  marital_status MaritalStatus? @default(single)
-  occupation     String?        @db.VarChar(150)
-  place_of_birth String?        @db.VarChar(150)
-  tin            String?        @db.VarChar(20)
-  region         String?        @db.VarChar(255)
-  province       String?        @db.VarChar(255)
-  city           String?        @db.VarChar(255)
-  barangay       String?        @db.VarChar(255)
-  photo_url      String?        @db.Text
+  marital_status   MaritalStatus? @default(single)
+  occupation       String?        @db.VarChar(150)
+  place_of_birth   String?        @db.VarChar(150)
+  tin              String?        @db.VarChar(20)
+  region           String?        @db.VarChar(255)
+  province         String?        @db.VarChar(255)
+  city             String?        @db.VarChar(255)
+  barangay         String?        @db.VarChar(255)
+  income_range     String?        @db.VarChar(50)
+  personal_savings Decimal?       @db.Decimal(15, 2) @map("savings")
+  photo_url        String?        @db.Text
   user           User           @relation(fields: [user_id], references: [user_id], onDelete: Cascade)
   tenant         Tenant         @relation(fields: [tenant_id], references: [tenant_id])
 
