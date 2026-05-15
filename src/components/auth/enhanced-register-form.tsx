@@ -352,11 +352,18 @@ export function EnhancedRegisterForm({
           "businessName",
         ];
       case 3:
+        return ["incomeRange", "personalSavings"];
+      case 4:
         return [
           "regionId",
           "tenantId",
+          "streetAddress",
+          "psgcRegion",
+          "province",
+          "city",
+          "barangay",
         ];
-      case 4:
+      case 5:
         return ["termsAccepted", "privacyAccepted"];
       default:
         return [];
@@ -807,6 +814,61 @@ export function EnhancedRegisterForm({
 
                 {step === 3 && (
                   <div className="space-y-4 animate-in fade-in slide-in-from-right-4 duration-300">
+                    <div className="space-y-4">
+                      <h4 className="text-sm font-semibold text-slate-500 uppercase tracking-wider">
+                        Financial Capability
+                      </h4>
+                      <p className="text-sm text-slate-500">
+                        Help us understand your ability to repay loans by sharing your typical income range and savings.
+                      </p>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <FormField
+                        control={form.control}
+                        name="incomeRange"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Monthly Income Range</FormLabel>
+                            <FormControl>
+                              <select
+                                {...field}
+                                className="w-full rounded-xl h-12 border border-slate-200 px-4 bg-white outline-none"
+                              >
+                                <option value="">Select income range</option>
+                                <option value="under_10k">Below ₱10,000</option>
+                                <option value="10k_20k">₱10,000 - ₱20,000</option>
+                                <option value="20k_50k">₱20,000 - ₱50,000</option>
+                                <option value="50k_100k">₱50,000 - ₱100,000</option>
+                                <option value="above_100k">Above ₱100,000</option>
+                              </select>
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={form.control}
+                        name="personalSavings"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Available Savings (Optional)</FormLabel>
+                            <FormControl>
+                              <Input
+                                {...field}
+                                placeholder="Ex: ₱5,000"
+                                className="rounded-xl h-12"
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+                  </div>
+                )}
+                {step === 4 && (
+                  <div className="space-y-4 animate-in fade-in slide-in-from-right-4 duration-300">
                     {!preselectedTenantId && (
                       <>
                         <h4 className="text-sm font-semibold text-slate-500 uppercase tracking-wider">
@@ -1010,8 +1072,8 @@ export function EnhancedRegisterForm({
                   </div>
                 )}
 
-                {step === 4 && (
-                  <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-300">
+                {step === 5 && (
+                  <div className="space-y-4 animate-in fade-in slide-in-from-right-4 duration-300">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div className="space-y-4">
                         <FormLabel>ID Picture</FormLabel>
@@ -1194,7 +1256,7 @@ export function EnhancedRegisterForm({
                       Back
                     </Button>
                   )}
-                  {step < 4 ? (
+                  {step < 5 ? (
                     <Button
                       type="button"
                       onClick={nextStep}
@@ -1231,8 +1293,10 @@ function getStepTitle(step: number) {
     case 2:
       return "Personal Details";
     case 3:
-      return "Location";
+      return "Financial Capability";
     case 4:
+      return "Location";
+    case 5:
       return "Verification";
     default:
       return "";
