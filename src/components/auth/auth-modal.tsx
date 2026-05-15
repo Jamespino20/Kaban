@@ -17,9 +17,19 @@ interface AuthModalProps {
   initialTab?: "login" | "register";
   Trigger: React.ReactNode;
   tenantId?: string;
+  tenantName?: string;
+  currentTenant?: string;
+  brandColor?: string;
 }
 
-export function AuthModal({ initialTab = "login", Trigger, tenantId }: AuthModalProps) {
+export function AuthModal({
+  initialTab = "login",
+  Trigger,
+  tenantId,
+  tenantName,
+  currentTenant,
+  brandColor,
+}: AuthModalProps) {
   const [open, setOpen] = useState(false);
 
   return (
@@ -38,13 +48,13 @@ export function AuthModal({ initialTab = "login", Trigger, tenantId }: AuthModal
             <TabsList className="grid w-full grid-cols-2 mb-8 bg-slate-100 p-1 rounded-xl">
               <TabsTrigger
                 value="login"
-                className="rounded-lg data-[state=active]:bg-white data-[state=active]:text-emerald-700 data-[state=active]:shadow-sm py-2"
+                className="rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm py-2"
               >
                 Sign In
               </TabsTrigger>
               <TabsTrigger
                 value="register"
-                className="rounded-lg data-[state=active]:bg-white data-[state=active]:text-emerald-700 data-[state=active]:shadow-sm py-2"
+                className="rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm py-2"
               >
                 Register
               </TabsTrigger>
@@ -55,13 +65,18 @@ export function AuthModal({ initialTab = "login", Trigger, tenantId }: AuthModal
             value="login"
             className="focus-visible:outline-none focus-visible:ring-0 outline-none px-8 pb-8"
           >
-            <LoginForm />
+            <LoginForm
+              preselectedTenantId={tenantId}
+              tenantName={tenantName}
+              currentTenant={currentTenant}
+              brandColor={brandColor}
+            />
           </TabsContent>
           <TabsContent
             value="register"
             className="focus-visible:outline-none focus-visible:ring-0 outline-none"
           >
-            <EnhancedRegisterForm preselectedTenantId={tenantId} />
+            <EnhancedRegisterForm preselectedTenantId={tenantId} brandColor={brandColor} />
           </TabsContent>
         </Tabs>
       </DialogContent>

@@ -108,20 +108,21 @@ export function TenantManagementTab({
       if (res.success && res.data) {
         toast.success(`${tenantName} decommissioned. Snapshot saved.`);
         // Refresh local state
-        setTenants((prev) =>
-          prev.map((t: any) =>
-            t.tenant_id === tenantId
-              ? {
-                  ...t,
-                  is_active: false,
-                  decommissioned_backups: [
-                    res.data.backup,
-                    ...t.decommissioned_backups,
-                  ],
-                }
-              : t,
-          ),
-        );
+          setTenants((prev) =>
+            prev.map((t: any) =>
+              t.tenant_id === tenantId
+                ? {
+                    ...t,
+                    is_active: false,
+                    entitlement_status: "suspended",
+                    decommissioned_backups: [
+                      res.data.backup,
+                      ...t.decommissioned_backups,
+                    ],
+                  }
+                : t,
+            ),
+          );
       } else {
         setError(res.error || "Failed to decommission.");
       }
@@ -246,7 +247,9 @@ export function TenantManagementTab({
       if (res.success && res.data) {
         setTenants((prev) =>
           prev.map((t: any) =>
-            t.tenant_id === tenantId ? { ...t, is_active: true } : t,
+            t.tenant_id === tenantId
+              ? { ...t, is_active: true, entitlement_status: "active" }
+              : t,
           ),
         );
       } else {
@@ -623,10 +626,13 @@ export function TenantManagementTab({
               {[
                 { id: "loans", label: "Loaning Node", icon: "💰" },
                 { id: "wallet", label: "E-Wallet", icon: "💳" },
-                { id: "audit", label: "Audit Logs", icon: "📋" },
-                { id: "branding", label: "Content/Branding", icon: "🎨" },
                 { id: "community", label: "Community", icon: "🤝" },
-                { id: "reports", label: "Analytics", icon: "📊" },
+                { id: "branding", label: "Content/Branding", icon: "🎨" },
+                { id: "reports", label: "Reports", icon: "📊" },
+                { id: "audit", label: "Audit Logs", icon: "📋" },
+                { id: "analytics", label: "Analytics", icon: "📈" },
+                { id: "system_config", label: "System Config", icon: "⚙️" },
+                { id: "compassion", label: "Compassion", icon: "❤️" },
               ].map((feat) => (
                 <label
                   key={feat.id}

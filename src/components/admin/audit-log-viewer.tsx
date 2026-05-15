@@ -212,7 +212,12 @@ export function AuditLogViewer({
             placeholder="Search actions, entities, users..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            onKeyDown={(e) => e.key === "Enter" && loadLogs()}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                setCurrentPage(1);
+                loadLogs();
+              }
+            }}
             className="pl-10"
           />
         </div>
@@ -245,7 +250,7 @@ export function AuditLogViewer({
           <option value="warning">Warning</option>
           <option value="info">Info</option>
         </select>
-        <Button variant="outline" onClick={loadLogs}>
+        <Button variant="outline" onClick={() => { setCurrentPage(1); loadLogs(); }}>
           <Search className="w-4 h-4 mr-2" />
           Apply Filters
         </Button>

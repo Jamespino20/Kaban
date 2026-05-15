@@ -23,6 +23,7 @@ import {
 } from "@/components/ui/select";
 import { submitMockRepayment, processFullPayment } from "@/actions/loan-servicing";
 import { payLoanWithWallet } from "@/actions/wallet-actions";
+import { createIssueTicket } from "@/actions/support-tickets";
 import { requestCompassionAction } from "@/actions/compassion-actions";
 import { submitContextualFeedback } from "@/actions/transactional-feedback";
 import {
@@ -40,6 +41,7 @@ import {
   CheckCircle2,
   AlertTriangle,
   XCircle,
+  Flag,
 } from "lucide-react";
 import {
   getCompassionPolicyCopy,
@@ -79,6 +81,7 @@ type ServicingLoan = {
   loan_reference: string;
   balance_remaining: MoneyLike;
   status?: string;
+  rejection_reason?: string | null;
   is_recovery_loan?: boolean | null;
   product?: LoanProductInfo | null;
   compassion_actions: {
@@ -94,9 +97,10 @@ type ServicingLoan = {
   payments: LoanPaymentItem[];
 };
 
-type LoanCategory = "on_track" | "overdue" | "defaulted";
+type LoanCategory = "on_track" | "overdue" | "defaulted" | "rejected";
 
 function categorizeLoan(loan: ServicingLoan): LoanCategory {
+  if (loan.status === "rejected") return "rejected";
   if (loan.status === "defaulted" || loan.is_recovery_loan) return "defaulted";
   const hasOverdue = loan.schedules.some((s) => s.status === "overdue");
   if (hasOverdue) return "overdue";
@@ -125,6 +129,13 @@ const categoryConfig: Record<LoanCategory, { label: string; icon: ReactNode; col
     bg: "bg-rose-50",
     border: "border-rose-200",
   },
+  rejected: {
+    label: "Rejected",
+    icon: <XCircle className="w-4 h-4" />,
+    color: "text-slate-500",
+    bg: "bg-slate-50",
+    border: "border-slate-200",
+  },
 };
 
 export function LoanServicingTab({
@@ -143,6 +154,7 @@ export function LoanServicingTab({
       on_track: [],
       overdue: [],
       defaulted: [],
+      rejected: [],
     };
     for (const loan of loans) {
       const cat = categorizeLoan(loan);
@@ -244,7 +256,7 @@ function LoanSummaryCard({
             ₱{Number(loan.balance_remaining).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
           </p>
           <span className={`inline-block rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider ${cfg.bg} ${cfg.color}`}>
-            {category === "on_track" ? "Active" : category === "overdue" ? "Overdue" : "Defaulted"}
+            {category === "on_track" ? "Active" : category === "overdue" ? "Overdue" : category === "rejected" ? "Rejected" : "Defaulted"}
           </span>
         </div>
         <div className="text-slate-400">
@@ -328,16 +340,61 @@ function LoanSummaryCard({
             </div>
           )}
 
-          {category !== "defaulted" && (
+          {loan.rejection_reason && (
+            <div className="rounded-xl border border-slate-200 bg-slate-50 p-3">
+              <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-1">Rejection Reason</p>
+              <p className="text-sm text-slate-700">{loan.rejection_reason}</p>
+            </div>
+          )}
+
+          {category !== "defaulted" && category !== "rejected" && (
             <LoanActions loan={loan} paymentMethods={paymentMethods} />
           )}
 
           {loan.compassion_actions.length > 0 && (
             <CompassionStatus loan={loan} />
           )}
+
+          <div className="pt-1">
+            <ReportIssueButton loan={loan} />
+          </div>
         </div>
       )}
     </div>
+  );
+}
+
+function ReportIssueButton({ loan }: { loan: ServicingLoan }) {
+  const [isReporting, setIsReporting] = useState(false);
+
+  const handleReport = async () => {
+    setIsReporting(true);
+    const res = await createIssueTicket({
+      subject: `Loan Issue: ${loan.loan_reference}`,
+      description: `I am reporting an issue with loan ${loan.loan_reference}.`,
+      category: "loan_issue",
+      relatedEntityType: "loan",
+      relatedEntityId: String(loan.loan_id),
+    });
+    setIsReporting(false);
+    if (res.success) {
+      toast.success(res.success);
+    } else {
+      toast.error(res.error || "Failed to report issue.");
+    }
+  };
+
+  return (
+    <Button
+      variant="ghost"
+      size="sm"
+      disabled={isReporting}
+      onClick={handleReport}
+      className="rounded-xl text-[10px] text-rose-500 hover:text-rose-700 hover:bg-rose-50 border border-rose-200"
+    >
+      <Flag className="w-3 h-3 mr-1" />
+      Report Issue
+    </Button>
   );
 }
 

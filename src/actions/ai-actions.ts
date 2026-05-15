@@ -13,7 +13,7 @@ export async function getAISnapshot() {
   const [metrics, overdueLoans, recentPayments] = await Promise.all([
     prisma.loan.aggregate({
       where: { tenant_id: tenantId },
-      _sum: { amount_approved: true },
+      _sum: { principal_amount: true },
       _count: true,
     }),
     prisma.loanSchedule.count({

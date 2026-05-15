@@ -13,8 +13,12 @@ import {
   ScheduleStatus,
   Prisma,
   NotificationChannel,
+  NotificationType,
+  AccountType,
+  TransactionType,
 } from "@prisma/client";
 import { createNotification } from "@/lib/notifications";
+import { refreshUserReputation } from "@/actions/reputation";
 import { revalidatePath } from "next/cache";
 import { serializeDecimal } from "@/lib/utils";
 import {
@@ -168,13 +172,22 @@ export async function approveLoanApplication(
       });
     });
 
+    await createNotification({
+      userId: loan.user_id,
+      tenantId: targetTenantId,
+      type: "loan_approved",
+      title: "Loan Application Approved",
+      body: `Your loan application #${loanId} has been approved.`,
+      actionUrl: `/member/loans/${loanId}`,
+    });
+
     revalidatePath("/agapay-tanaw");
     return { success: "Loan application approved successfully." };
   } catch (error) {
     console.error("approveLoanApplication failed:", error);
     return {
       error:
-        "Unable to approve this loan application. It may have already been processed.",
+        "Unable to approve this loan application. The loan may have already been approved or the tenant context changed. Please refresh the page and try again, or contact support if the issue persists.",
     };
   }
 }
@@ -228,6 +241,17 @@ export async function rejectLoanApplication(
           },
         });
       }
+    });
+
+    await createNotification({
+      userId: loan.user_id,
+      tenantId: targetTenantId,
+      type: "loan_rejected",
+      title: "Loan Application Rejected",
+      body: notes
+        ? `Your loan application #${loanId} was rejected. Reason: ${notes}`
+        : `Your loan application #${loanId} was rejected.`,
+      actionUrl: `/member/loans/${loanId}`,
     });
 
     revalidatePath("/agapay-tanaw");
@@ -285,11 +309,23 @@ export async function releaseLoanFunds(
       });
     });
 
+    await createNotification({
+      userId: loan.user_id,
+      tenantId: targetTenantId,
+      type: "loan_disbursed",
+      title: "Loan Funds Released",
+      body: `Your loan #${loanId} funds of ₱${Number(loan.principal_amount).toLocaleString()} have been released.`,
+      actionUrl: `/member/loans/${loanId}`,
+    });
+
     revalidatePath("/agapay-tanaw");
     return { success: "Loan funds released successfully." };
   } catch (error) {
     console.error("releaseLoanFunds failed:", error);
-    return { error: "Failed to release the loan. Please try again." };
+    return {
+      error:
+        "Failed to release the loan. The ledger entry may have failed — please verify that all ledger accounts are configured and the tenant is active. If the problem continues, contact support.",
+    };
   }
 }
 
@@ -335,7 +371,10 @@ export async function submitMockRepayment(
     });
   } catch (error) {
     console.error("submitMockRepayment failed:", error);
-    return { error: "Failed to process repayment. Please try again." };
+    return {
+      error:
+        "Failed to process repayment. The payment method may be invalid or the loan is not active. Please check the payment method and loan status, then try again.",
+    };
   }
 }
 
@@ -448,7 +487,10 @@ export async function processFullPayment(
     });
   } catch (error) {
     console.error("processFullPayment failed:", error);
-    return { error: "Failed to process full payment. Please try again." };
+    return {
+      error:
+        "Failed to process full payment. The loan balance or schedules may have changed. Please refresh the page and verify the remaining balance before retrying.",
+    };
   }
 }
 
@@ -465,11 +507,17 @@ export async function verifySubmittedPayment(
     return await prisma.$withTenant(tenantId, async (tx: any) => {
       const payment = await tx.payment.findUnique({
         where: { payment_id: paymentId },
+        include: {
+          loan: { select: { user_id: true, tenant_id: true } },
+        },
       });
 
       if (!payment) {
         return { error: "Payment record not found." };
       }
+
+      const loanOwnerId = payment.loan.user_id;
+      const loanTenantId = payment.loan.tenant_id;
 
       await tx.payment.update({
         where: { payment_id: paymentId },
@@ -493,13 +541,7 @@ export async function verifySubmittedPayment(
       for (const schedule of schedules) {
         const scheduleDue = Number(schedule.total_due);
         if (remaining + 0.01 < scheduleDue) {
-          // Partial payment: apply to this schedule but don't mark fully paid
-          await tx.loanSchedule.update({
-            where: { schedule_id: schedule.schedule_id },
-            data: {
-              amount_paid: { increment: new Prisma.Decimal(remaining) },
-            },
-          });
+          // Partial payment: amount is insufficient for this installment, stop here
           break;
         }
 
@@ -508,7 +550,6 @@ export async function verifySubmittedPayment(
           data: {
             status: ScheduleStatus.paid,
             paid_at: new Date(),
-            amount_paid: scheduleDue,
           },
         });
         remaining -= scheduleDue;
@@ -535,7 +576,7 @@ export async function verifySubmittedPayment(
       if (updatedLoan && Number(updatedLoan.balance_remaining) <= 0) {
         await tx.loan.update({
           where: { loan_id: payment.loan_id },
-          data: { status: "paid" },
+          data: { status: "paid", paid_at: new Date() },
         });
       }
 
@@ -563,11 +604,58 @@ export async function verifySubmittedPayment(
         ],
       });
 
+      // After full payment: recalculate trust score and notify the member
+      if (updatedLoan && Number(updatedLoan.balance_remaining) <= 0) {
+        // Recalculate trust score (non-blocking)
+        try {
+          await refreshUserReputation(loanOwnerId);
+        } catch (reputationError) {
+          console.error(
+            "Failed to refresh reputation after loan closure:",
+            reputationError,
+          );
+        }
+
+        // Notify the member
+        try {
+          await createNotification({
+            userId: loanOwnerId,
+            tenantId: loanTenantId,
+            type: NotificationType.loan_paid,
+            title: "Loan Fully Paid",
+            body: "Congratulations! Your loan has been fully paid. Your trust score has been updated.",
+            actionUrl: "/agapay-pintig?tab=loans",
+          });
+        } catch (notifyError) {
+          console.error("Failed to send loan paid notification:", notifyError);
+        }
+      }
+
+      // Notify member that payment was verified
+      try {
+        await createNotification({
+          userId: loanOwnerId,
+          tenantId: loanTenantId,
+          type: NotificationType.repayment_received,
+          title: "Payment Verified",
+          body: `Your payment of ₱${Number(payment.amount_paid).toLocaleString()} has been verified.`,
+          actionUrl: "/agapay-pintig?tab=loans",
+        });
+      } catch (notifyError) {
+        console.error(
+          "Failed to send payment verification notification:",
+          notifyError,
+        );
+      }
+
       return { success: "Payment verified successfully." };
     });
   } catch (error) {
     console.error("verifySubmittedPayment failed:", error);
-    return { error: "Failed to verify this repayment. Please try again." };
+    return {
+      error:
+        "Failed to verify this repayment. The payment record or loan schedules may be in an unexpected state. Please check that the payment is still pending and the loan is active, then try again.",
+    };
   }
 }
 
@@ -664,4 +752,92 @@ export async function recalculateLoanBalanceFromLedger(loanId: number) {
 
     return Math.max(0, balance);
   });
+}
+
+export async function markLoanAsPaid(loanId: number) {
+  try {
+    const session = await requireAdminSession();
+    const tenantId = session.user.tenantId;
+
+    if (!tenantId) return { error: "Tenant context required." };
+
+    return await prisma.$withTenant(tenantId, async (tx: any) => {
+      const loan = await tx.loan.findUnique({ where: { loan_id: loanId } });
+
+      if (!loan) return { error: "Loan not found." };
+      if (loan.status === "paid")
+        return { error: "Loan is already marked as paid." };
+
+      // Mark all unpaid schedules as paid
+      await tx.loanSchedule.updateMany({
+        where: { loan_id: loanId, status: { in: ["pending", "overdue"] } },
+        data: { status: ScheduleStatus.paid, paid_at: new Date() },
+      });
+
+      // Update loan
+      await tx.loan.update({
+        where: { loan_id: loanId },
+        data: {
+          status: "paid",
+          paid_at: new Date(),
+          balance_remaining: 0,
+        },
+      });
+
+      // Post ledger entry for zero-sum closure
+      const totalOutstanding = Number(loan.balance_remaining);
+      if (totalOutstanding > 0) {
+        await postLedgerEntry(tx, {
+          tenantId,
+          description: `Manual Loan Closure: LOAN-${loanId}`,
+          createdBy: session.user.user_id,
+          loanId,
+          metadata: { source: "manual_closure" },
+          entries: [
+            {
+              accountCode: "CASH_EQUIVALENTS",
+              debit: totalOutstanding,
+              credit: 0,
+            },
+            {
+              accountCode: "LOAN_RECEIVABLES",
+              debit: 0,
+              credit: totalOutstanding,
+            },
+          ],
+        });
+      }
+
+      // Recalculate trust score
+      try {
+        await refreshUserReputation(loan.user_id);
+      } catch (reputationError) {
+        console.error(
+          "Failed to refresh reputation after manual loan closure:",
+          reputationError,
+        );
+      }
+
+      // Notify member
+      try {
+        await createNotification({
+          userId: loan.user_id,
+          tenantId: loan.tenant_id,
+          type: NotificationType.loan_paid,
+          title: "Loan Marked as Paid",
+          body: "Your loan has been marked as fully paid by the cooperative. Your trust score has been updated.",
+          actionUrl: "/agapay-pintig?tab=loans",
+        });
+      } catch (notifyError) {
+        console.error("Failed to send loan closure notification:", notifyError);
+      }
+
+      revalidatePath("/agapay-tanaw");
+      revalidatePath("/agapay-pintig");
+      return { success: "Loan marked as paid successfully." };
+    });
+  } catch (error) {
+    console.error("markLoanAsPaid failed:", error);
+    return { error: "Failed to mark loan as paid. Please try again." };
+  }
 }

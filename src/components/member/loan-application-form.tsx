@@ -16,7 +16,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { applyForLoan } from "@/actions/loan-application";
-import { Calculator, ArrowRightCircle, CheckCircle2, Save } from "lucide-react";
+import { Calculator, ArrowRightCircle, CheckCircle2, Save, FileText, AlertTriangle } from "lucide-react";
 import { GuaranteeRequestPanel } from "./guarantee-request-panel";
 import {
   Select,
@@ -63,6 +63,7 @@ const LoanApplicationSchema = z.object({
       "A maximum of two guarantors are allowed under current policy.",
     ),
   repayment_frequency: z.enum(["weekly", "bi_weekly", "monthly"]),
+  termsAccepted: z.boolean().refine((v) => v === true, "You must accept the loan terms to proceed"),
 });
 
 interface LoanProduct {
@@ -112,6 +113,7 @@ export const LoanApplicationForm = ({
           | "weekly"
           | "bi_weekly"
           | "monthly") || "monthly",
+      termsAccepted: false,
     },
   });
 
@@ -469,6 +471,47 @@ export const LoanApplicationForm = ({
                 </div>
               </div>
             </div>
+
+            {/* Terms & Conditions Checkbox */}
+            <FormField
+              control={form.control}
+              name="termsAccepted"
+              render={({ field }) => (
+                <FormItem>
+                  <div className="rounded-2xl border border-amber-200 bg-amber-50/50 p-4 space-y-3">
+                    <div className="flex items-start gap-3">
+                      <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-amber-100 text-amber-600">
+                        <AlertTriangle className="h-3.5 w-3.5" />
+                      </div>
+                      <div>
+                        <p className="text-xs font-bold text-amber-800">Terms & Conditions</p>
+                        <p className="text-[11px] text-amber-700 mt-0.5">
+                          By proceeding, you agree to the loan terms including the <strong>penalty schedule</strong> and <strong>compassion policy</strong>.
+                        </p>
+                      </div>
+                    </div>
+                    <div className="space-y-1.5 text-[11px] text-amber-700 border-t border-amber-100 pt-3">
+                      <p className="flex items-center gap-2"><FileText className="h-3 w-3 shrink-0" /> <strong>Penalty Schedule:</strong> {getPenaltyPolicyCopy()}</p>
+                      <p className="flex items-center gap-2"><FileText className="h-3 w-3 shrink-0" /> <strong>Compassion Policy:</strong> {getCompassionPolicyCopy()}</p>
+                      <p className="flex items-center gap-2"><FileText className="h-3 w-3 shrink-0" /> <strong>Full Early Payment:</strong> 100% interest waiver on remaining term.</p>
+                      <p className="flex items-center gap-2"><FileText className="h-3 w-3 shrink-0" /> <strong>Default:</strong> May result in guarantor enforcement, credit score downgrade, and collection referral.</p>
+                    </div>
+                    <label className="flex items-start gap-3 cursor-pointer pt-2 border-t border-amber-100">
+                      <input
+                        type="checkbox"
+                        checked={field.value}
+                        onChange={field.onChange}
+                        className="mt-0.5 w-4 h-4 rounded border-amber-300 text-amber-600 focus:ring-amber-500"
+                      />
+                      <span className="text-xs font-medium text-amber-900">
+                        I have read and agree to the loan terms, penalty schedule, compassion policy, and data privacy terms above.
+                      </span>
+                    </label>
+                  </div>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
             <Button
               disabled={isPending}

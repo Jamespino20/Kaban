@@ -8,6 +8,7 @@ import { requireAuthenticatedSession } from "@/lib/authorization";
 import { Role, UserStatus, RepaymentFrequency } from "@prisma/client";
 import { revalidatePath } from "next/cache";
 import { logInteraction } from "@/lib/analytics-logger";
+import { createNotification } from "@/lib/notifications";
 import {
   computeLoanQuote,
   evaluateOverindebtedness,
@@ -101,6 +102,32 @@ export const applyForLoan = async (
     if (result.success) {
       revalidatePath("/agapay-tanaw");
       revalidatePath("/agapay-pintig");
+
+      // Notify operators about the new application
+      try {
+        const operators = await prisma.$withTenant(
+          session.user.tenantId!,
+          async (tx: any) => {
+            return await tx.user.findMany({
+              where: { role: "operator", tenant_id: session.user.tenantId },
+              select: { user_id: true },
+            });
+          },
+        );
+
+        for (const op of operators) {
+          await createNotification({
+            userId: op.user_id,
+            tenantId: session.user.tenantId,
+            type: "loan_application_received",
+            title: "New Loan Application",
+            body: `A new loan application for ₱${Number(validatedFields.data.amount).toLocaleString()} has been submitted.`,
+            actionUrl: "/agapay-tanaw",
+          });
+        }
+      } catch (notifyError) {
+        console.error("Failed to notify operators:", notifyError);
+      }
     }
 
     return result;

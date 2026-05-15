@@ -68,19 +68,20 @@ export async function postLedgerEntry(
     const account = (accounts as { id: number; code: string }[]).find(
       (a) => a.code === entry.accountCode,
     )!;
-    return (tx as any).businessLedger.create({
-      data: {
-        transaction_id: linkId,
-        tenant_id: tenantId,
-        account: { connect: { id: account.id } },
-        loan_id: loanId,
-        debit: new Prisma.Decimal(entry.debit),
-        credit: new Prisma.Decimal(entry.credit),
-        description: description,
-        metadata: metadata || undefined,
-        created_by: createdBy,
-      },
-    });
+    const createData: Record<string, unknown> = {
+      transaction_id: linkId,
+      tenant: { connect: { tenant_id: tenantId } },
+      account_id: account.id,
+      debit: new Prisma.Decimal(entry.debit),
+      credit: new Prisma.Decimal(entry.credit),
+      description: description,
+      metadata: metadata || undefined,
+      created_by: createdBy,
+    };
+    if (loanId !== undefined) {
+      createData.loan_id = loanId;
+    }
+    return (tx as any).businessLedger.create({ data: createData });
   });
 
   await Promise.all(ledgerPromises);

@@ -9,15 +9,21 @@ import {
   History,
   TrendingUp,
   Wallet,
-  CheckCircle2,
-  AlertTriangle,
-  Activity,
+  Server,
+  BrainCircuit,
+  LayoutDashboard,
 } from "lucide-react";
+
+import { PlatformConfigTab } from "@/components/admin/platform-config-tab";
+import { AIConfigTab } from "@/components/admin/ai-config-tab";
+import { getPlatformConfig, getAIConfig } from "@/actions/superadmin-actions";
 
 import { LoanProductsTab } from "@/components/admin/loan-products-tab";
 import { TenantManagementTab } from "@/components/admin/tenant-management-tab";
 import { AuditLogViewer } from "@/components/admin/audit-log-viewer";
+import { DashboardBuilderTab } from "@/components/admin/dashboard-builder-tab";
 import { getTenants } from "@/actions/tenant-management";
+import { getAllSubscriptionPlans, getCurrentSubscription } from "@/actions/subscription-actions";
 import { auth } from "@/lib/auth";
 import { UserAccountNav } from "@/components/layout/user-account-nav";
 import { TwoFactorSetup } from "@/components/auth/two-factor-setup";
@@ -64,6 +70,33 @@ export default async function AgapayTanawPage() {
   const isSuperAdmin = userRole === "superadmin";
   const isAdmin = userRole === "admin" || isSuperAdmin;
   const isStaff = userRole === "staff";
+
+  let platformConfig = null;
+  let aiConfig = null;
+  let allPlans = [];
+  
+  let allowedModules: string[] = [];
+
+  if (isSuperAdmin) {
+    const [configRes, aiRes, plansRes] = await Promise.all([
+      getPlatformConfig(),
+      getAIConfig(),
+      getAllSubscriptionPlans()
+    ]);
+    platformConfig = configRes.data;
+    aiConfig = aiRes.data;
+    allPlans = plansRes.plans || [];
+    allowedModules = ["overview", "approvals", "members", "products", "branches", "settings", "audit"];
+  } else if (isAdmin) {
+    const subRes = await getCurrentSubscription(Number(session?.user?.tenantId || 0));
+    const features = subRes.subscription?.plan?.features || [];
+    allowedModules = Array.isArray(features) ? features : [];
+    // Force overview and settings to always exist for everyone
+    if (!allowedModules.includes("overview")) allowedModules.push("overview");
+    if (!allowedModules.includes("settings")) allowedModules.push("settings");
+  } else {
+    allowedModules = ["overview", "members"]; // Standard staff minimums
+  }
 
   return (
     <div className="min-h-screen bg-slate-50/50 p-6 md:p-10">
@@ -115,15 +148,17 @@ export default async function AgapayTanawPage() {
                 )}
               </TabsTrigger>
 
-              <TabsTrigger
-                value="members"
-                className="rounded-xl data-[state=active]:bg-slate-900 data-[state=active]:text-white transition-all px-6 py-2.5 flex items-center gap-2"
-              >
-                <Users2 className="w-4 h-4" />
-                <span>Mga Miyembro</span>
-              </TabsTrigger>
+              {allowedModules.includes('members') && (
+                <TabsTrigger
+                  value="members"
+                  className="rounded-xl data-[state=active]:bg-slate-900 data-[state=active]:text-white transition-all px-6 py-2.5 flex items-center gap-2"
+                >
+                  <Users2 className="w-4 h-4" />
+                  <span>Mga Miyembro</span>
+                </TabsTrigger>
+              )}
 
-              {isAdmin && (
+              {isAdmin && allowedModules.includes('products') && (
                 <>
                   <TabsTrigger
                     value="products"
@@ -132,7 +167,11 @@ export default async function AgapayTanawPage() {
                     <Settings2 className="w-4 h-4" />
                     <span>Produkto ng Loan</span>
                   </TabsTrigger>
-                  <TabsTrigger
+                </>
+              )}
+              
+              {isAdmin && allowedModules.includes('branches') && (
+                 <TabsTrigger
                     value="branches"
                     className="rounded-xl data-[state=active]:bg-red-600 data-[state=active]:text-white transition-all px-6 py-2.5 flex items-center gap-2 text-red-600 hover:bg-red-50"
                   >
@@ -141,7 +180,6 @@ export default async function AgapayTanawPage() {
                       {isSuperAdmin ? "Global Tenant Mgmt" : "Branch Ops"}
                     </span>
                   </TabsTrigger>
-                </>
               )}
 
               <TabsTrigger
@@ -152,7 +190,33 @@ export default async function AgapayTanawPage() {
                 <span>Settings</span>
               </TabsTrigger>
 
-              {isAdmin && (
+              {isSuperAdmin && (
+                <>
+                  <TabsTrigger
+                    value="platform-config"
+                    className="rounded-xl data-[state=active]:bg-slate-900 data-[state=active]:text-white transition-all px-6 py-2.5 flex items-center gap-2"
+                  >
+                    <Server className="w-4 h-4" />
+                    <span>Config</span>
+                  </TabsTrigger>
+                  <TabsTrigger
+                    value="ai-config"
+                    className="rounded-xl data-[state=active]:bg-slate-900 data-[state=active]:text-white transition-all px-6 py-2.5 flex items-center gap-2"
+                  >
+                    <BrainCircuit className="w-4 h-4" />
+                    <span>AI Engine</span>
+                  </TabsTrigger>
+                  <TabsTrigger
+                    value="builder"
+                    className="rounded-xl data-[state=active]:bg-slate-900 data-[state=active]:text-white transition-all px-6 py-2.5 flex items-center gap-2"
+                  >
+                    <LayoutDashboard className="w-4 h-4" />
+                    <span>Builder</span>
+                  </TabsTrigger>
+                </>
+              )}
+
+              {isAdmin && allowedModules.includes('audit') && (
                 <TabsTrigger
                   value="audit"
                   className="rounded-xl data-[state=active]:bg-slate-900 data-[state=active]:text-white transition-all px-6 py-2.5 flex items-center gap-2"
@@ -271,24 +335,32 @@ export default async function AgapayTanawPage() {
             </div>
           </TabsContent>
 
-          <TabsContent value="approvals" className="outline-none">
-            <VerificationQueueTab data={pendingData} />
-          </TabsContent>
+          {allowedModules.includes('approvals') && (
+            <TabsContent value="approvals" className="outline-none">
+              <VerificationQueueTab data={pendingData} />
+            </TabsContent>
+          )}
 
-          <TabsContent value="members" className="outline-none">
-            <MemberDirectoryTab members={members} />
-          </TabsContent>
+          {allowedModules.includes('members') && (
+            <TabsContent value="members" className="outline-none">
+              <MemberDirectoryTab members={members} />
+            </TabsContent>
+          )}
 
-          <TabsContent value="products" className="outline-none">
-            <LoanProductsTab />
-          </TabsContent>
+          {isAdmin && allowedModules.includes('products') && (
+            <TabsContent value="products" className="outline-none">
+              <LoanProductsTab />
+            </TabsContent>
+          )}
 
-          <TabsContent value="branches" className="outline-none">
-            <TenantManagementTab
-              initialTenants={tenants}
-              role={session?.user?.role as string}
-            />
-          </TabsContent>
+          {isAdmin && allowedModules.includes('branches') && (
+            <TabsContent value="branches" className="outline-none">
+              <TenantManagementTab
+                initialTenants={tenants}
+                role={session?.user?.role as string}
+              />
+            </TabsContent>
+          )}
 
           <TabsContent value="settings" className="outline-none">
             <div className="flex flex-col items-center justify-center space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
@@ -304,15 +376,35 @@ export default async function AgapayTanawPage() {
             </div>
           </TabsContent>
 
-          <TabsContent value="audit" className="outline-none">
-            <AuditLogViewer
-              tenantId={
-                session?.user?.role === "superadmin"
-                  ? undefined
-                  : Number(session?.user?.tenantId || 0)
-              }
-            />
-          </TabsContent>
+          {isSuperAdmin && (
+            <TabsContent value="platform-config" className="outline-none">
+              <PlatformConfigTab initialConfig={platformConfig} />
+            </TabsContent>
+          )}
+
+          {isSuperAdmin && (
+            <TabsContent value="ai-config" className="outline-none">
+              <AIConfigTab initialConfig={aiConfig} />
+            </TabsContent>
+          )}
+
+          {isSuperAdmin && (
+            <TabsContent value="builder" className="outline-none mt-6">
+              <DashboardBuilderTab initialPlans={allPlans} />
+            </TabsContent>
+          )}
+
+          {allowedModules.includes('audit') && (
+            <TabsContent value="audit" className="outline-none">
+              <AuditLogViewer
+                tenantId={
+                  session?.user?.role === "superadmin"
+                    ? undefined
+                    : Number(session?.user?.tenantId || 0)
+                }
+              />
+            </TabsContent>
+          )}
         </Tabs>
       </div>
     </div>

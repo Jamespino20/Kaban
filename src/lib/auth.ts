@@ -67,7 +67,7 @@ const getNextAuth = () => {
                 name: data.user.username,
                 email: data.user.email,
                 role: data.user.role,
-                tenantId: data.user.tenant_id,
+                tenantId: data.user.role === "superadmin" ? null : data.user.tenant_id,
                 tenantSlug: null,
                 accessibleTenantIds: [],
                 apiToken: data.token,
@@ -126,6 +126,10 @@ const getNextAuth = () => {
                 }
               }
 
+              // Force superadmin to always be tenant-unscoped
+              const forcedTenantId = user.role === "superadmin" ? null : user.tenant_id;
+              const forcedTenantSlug = user.role === "superadmin" ? null : user.tenant_slug;
+
               // Check 2FA
               const twoFaRows = await sql(
                 "SELECT is_enabled, totp_secret FROM two_factor_auth WHERE user_id = ?",
@@ -180,8 +184,8 @@ const getNextAuth = () => {
                 name: user.username,
                 email: user.email,
                 role: user.role,
-                tenantId: user.tenant_id,
-                tenantSlug: user.tenant_slug,
+                tenantId: forcedTenantId,
+                tenantSlug: forcedTenantSlug,
                 accessibleTenantIds,
               };
             }

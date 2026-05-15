@@ -1,7 +1,7 @@
 "use client";
 
-import { MapPin,  ExternalLink, Plus, Minus } from "lucide-react";
-import { useState, useEffect, useRef } from "react";
+import { MapPin, ExternalLink, Plus, Minus } from "lucide-react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import Link from "next/link";
 
 export interface Tenant {
@@ -24,9 +24,32 @@ export function TenantNetworkMap({ tenants = [] }: { tenants?: Tenant[] }) {
   const [activeTenant, setActiveTenant] = useState<Tenant | null>(null);
   const [mounted, setMounted] = useState(false);
   const [zoom, setZoom] = useState(1);
+  const [pan, setPan] = useState({ x: 0, y: 0 });
+  const [isPanning, setIsPanning] = useState(false);
+  const [panStart, setPanStart] = useState({ x: 0, y: 0 });
   const svgRef = useRef<HTMLDivElement>(null);
 
-  const displayTenants = tenants.length > 0 ? tenants : [];
+  // Jitter nearby tenants to prevent pin overlap
+  const displayTenants = useMemo(() => {
+    if (tenants.length === 0) return [];
+    const clustered = [...tenants];
+    for (let i = 0; i < clustered.length; i++) {
+      for (let j = i + 1; j < clustered.length; j++) {
+        const dx = clustered[i].x - clustered[j].x;
+        const dy = clustered[i].y - clustered[j].y;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        if (dist < 6) {
+          const angle = Math.atan2(dy, dx) + (j * 1.5);
+          const push = (6 - dist) / 2;
+          clustered[j].x -= Math.cos(angle) * push;
+          clustered[j].y -= Math.sin(angle) * push;
+          clustered[i].x += Math.cos(angle) * push;
+          clustered[i].y += Math.sin(angle) * push;
+        }
+      }
+    }
+    return clustered;
+  }, [tenants]);
 
   useEffect(() => {
     setMounted(true);
@@ -64,15 +87,28 @@ export function TenantNetworkMap({ tenants = [] }: { tenants?: Tenant[] }) {
           </span>
         </div>
 
-        {/* SVG Map Wrapper for Zoom */}
+        {/* SVG Map Wrapper for Zoom & Pan */}
         <div
           ref={svgRef}
-          className="w-full h-full transition-transform duration-300 ease-out"
-          style={{ transform: `scale(${zoom})`, transformOrigin: "center center" }}
+          className="w-full h-full overflow-hidden"
+          onMouseDown={(e) => {
+            if (e.target === e.currentTarget || (e.target as HTMLElement).tagName === "svg") {
+              setIsPanning(true);
+              setPanStart({ x: e.clientX - pan.x, y: e.clientY - pan.y });
+            }
+          }}
+          onMouseMove={(e) => {
+            if (isPanning) {
+              setPan({ x: e.clientX - panStart.x, y: e.clientY - panStart.y });
+            }
+          }}
+          onMouseUp={() => setIsPanning(false)}
+          onMouseLeave={() => setIsPanning(false)}
         >
         <svg
-          viewBox="0 0 100 100"
-          className="w-full h-full text-slate-100 fill-current transition-all duration-700"
+          viewBox={`${-pan.x / zoom} ${-pan.y / zoom} ${100 / zoom} ${100 / zoom}`}
+          className="w-full h-full text-slate-100 fill-current transition-all duration-300"
+          style={{ cursor: isPanning ? "grabbing" : "grab" }}
         >
           <defs>
             <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
@@ -136,9 +172,9 @@ export function TenantNetworkMap({ tenants = [] }: { tenants?: Tenant[] }) {
                     key={`line-${b.id}`}
                     d={`M${activeTenant.x} ${activeTenant.y} Q${(activeTenant.x + b.x) / 2} ${Math.min(activeTenant.y, b.y) - 10} ${b.x} ${b.y}`}
                     stroke="url(#islandGrad)"
-                    strokeWidth={0.5 / zoom}
+                    strokeWidth={0.5}
                     fill="none"
-                    strokeDasharray={`${2 / zoom},${2 / zoom}`}
+                    strokeDasharray="2,2"
                     className="animate-pulse"
                   />
                 ))}
@@ -159,7 +195,7 @@ export function TenantNetworkMap({ tenants = [] }: { tenants?: Tenant[] }) {
               <circle
                 cx={tenant.x}
                 cy={tenant.y}
-                r={5 / zoom}
+                r={5}
                 className={`fill-emerald-400/20 transition-all duration-500 ${
                   activeTenant?.id === tenant.id
                     ? "scale-150 opacity-100"
@@ -170,7 +206,7 @@ export function TenantNetworkMap({ tenants = [] }: { tenants?: Tenant[] }) {
               <circle
                 cx={tenant.x}
                 cy={tenant.y}
-                r={(activeTenant?.id === tenant.id ? 3.5 : 2.5) / zoom}
+                r={activeTenant?.id === tenant.id ? 3.5 : 2.5}
                 className={`transition-all duration-300 ${
                   activeTenant?.id === tenant.id
                     ? "fill-emerald-600"
@@ -181,7 +217,7 @@ export function TenantNetworkMap({ tenants = [] }: { tenants?: Tenant[] }) {
               <circle
                 cx={tenant.x}
                 cy={tenant.y}
-                r={1 / zoom}
+                r={1}
                 className="fill-white shadow-sm"
               />
               {/* Ripple */}
@@ -189,9 +225,9 @@ export function TenantNetworkMap({ tenants = [] }: { tenants?: Tenant[] }) {
                 <circle
                   cx={tenant.x}
                   cy={tenant.y}
-                  r={8 / zoom}
-                  className="fill-none stroke-emerald-500/30 stroke-[0.5] animate-ping"
-                  style={{ strokeWidth: 1 / zoom }}
+                  r={8}
+                  className="fill-none stroke-emerald-500/30 animate-ping"
+                  style={{ strokeWidth: 1 }}
                 />
               )}
             </g>

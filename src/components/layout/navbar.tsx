@@ -14,6 +14,7 @@ interface NavbarProps {
   brandColor?: string | null;
   tenantLogo?: string | null;
   tenantId?: number | null;
+  tenantFallbackName?: string | null;
 }
 
 export function Navbar({
@@ -22,6 +23,7 @@ export function Navbar({
   brandColor,
   tenantLogo,
   tenantId,
+  tenantFallbackName,
 }: NavbarProps) {
   const { data: session, status } = useSession();
   const [isMounted, setIsMounted] = useState(false);
@@ -81,6 +83,19 @@ export function Navbar({
                 alt="Logo"
                 className="w-full h-full object-contain"
               />
+            ) : tenantFallbackName ? (
+              <div
+                className="w-10 h-10 rounded-xl flex items-center justify-center text-sm font-black text-white shadow-lg"
+                style={{ backgroundColor: brandColor || "#059669" }}
+              >
+                {tenantFallbackName
+                  .split(" ")
+                  .filter(Boolean)
+                  .map((w) => w[0])
+                  .slice(0, 2)
+                  .join("")
+                  .toUpperCase()}
+              </div>
             ) : (
               <img
                 src="/images/agapay_titled.png"

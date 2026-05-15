@@ -46,11 +46,14 @@ export const LoginForm = ({
   preselectedTenantId,
   tenantName,
   currentTenant,
+  brandColor,
 }: {
   preselectedTenantId?: string;
   tenantName?: string;
   currentTenant?: string;
+  brandColor?: string;
 }) => {
+  const bc = brandColor || "#059669";
   const [step, setStep] = useState<LoginStep>("credentials");
   const [showPassword, setShowPassword] = useState(false);
   const [isPending, startTransition] = useTransition();
@@ -94,14 +97,17 @@ export const LoginForm = ({
             );
             return;
           }
-          form.setValue("tenantId", preselectedTenantId);
-          setSelectedTenantSlug(matchedTenant.slug || currentTenant || "");
+          // Superadmin must not be scoped to a tenant — force platform-level login
+          const isSuperadmin = matchedTenant.role === "superadmin";
+          const effectiveTenantId = isSuperadmin ? "global" : preselectedTenantId;
+          form.setValue("tenantId", effectiveTenantId);
+          setSelectedTenantSlug(isSuperadmin ? "" : (matchedTenant.slug || currentTenant || ""));
           setSelectedRole(matchedTenant.role || "");
           performLogin(
-            { ...values, tenantId: preselectedTenantId },
+            { ...values, tenantId: effectiveTenantId },
             {
               role: matchedTenant.role || "",
-              slug: matchedTenant.slug || currentTenant || "",
+              slug: isSuperadmin ? "" : (matchedTenant.slug || currentTenant || ""),
             },
           );
           return;
@@ -197,7 +203,7 @@ export const LoginForm = ({
   return (
     <div className="w-full">
       <div className="flex flex-col space-y-2 text-center mb-8">
-        <h1 className="text-3xl font-display font-bold italic tracking-tight text-emerald-900">
+        <h1 className="text-3xl font-display font-bold italic tracking-tight" style={{ color: bc }}>
           Sign In to {tenantName || "Agapay"}
         </h1>
         <p className="text-sm text-slate-500">
@@ -225,7 +231,8 @@ export const LoginForm = ({
                           {...field}
                           disabled={isPending}
                           placeholder="juan.agapay"
-                          className="rounded-xl h-12 pl-11 bg-slate-50 border-slate-200 focus:bg-white focus:border-emerald-500"
+                          className="rounded-xl h-12 pl-11 bg-slate-50 border-slate-200 focus:bg-white"
+                          style={{ borderColor: form.watch("username") ? undefined : undefined, ["--focus-border" as string]: bc }}
                         />
                       </div>
                     </FormControl>
@@ -247,12 +254,14 @@ export const LoginForm = ({
                           disabled={isPending}
                           placeholder="******"
                           type={showPassword ? "text" : "password"}
-                          className="rounded-xl h-12 pl-11 pr-10 bg-slate-50 border-slate-200 focus:bg-white focus:border-emerald-500"
+                          className="rounded-xl h-12 pl-11 pr-10 bg-slate-50 border-slate-200 focus:bg-white"
+                          style={{ ["--focus-border" as string]: bc }}
                         />
                         <button
                           type="button"
                           onClick={() => setShowPassword(!showPassword)}
-                          className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-emerald-600 transition-colors"
+                          className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 transition-colors"
+                          style={{ color: bc }}
                         >
                           {showPassword ? (
                             <EyeOff className="w-4 h-4" />
@@ -265,7 +274,8 @@ export const LoginForm = ({
                     <div className="flex justify-end pt-1">
                       <Link
                         href="/auth/reset"
-                        className="text-xs text-emerald-600 font-medium hover:underline"
+                        className="text-xs font-medium hover:underline"
+                        style={{ color: bc }}
                       >
                         Forgot Password?
                       </Link>
@@ -378,7 +388,8 @@ export const LoginForm = ({
                         {...field}
                         disabled={isPending}
                         placeholder="123456"
-                        className="rounded-xl h-14 text-center text-2xl font-black tracking-[0.5em] border-emerald-200 focus:border-emerald-500 focus:ring-emerald-500/20"
+                        className="rounded-xl h-14 text-center text-2xl font-black tracking-[0.5em]"
+                        style={{ borderColor: bc }}
                       />
                     </FormControl>
                     <FormMessage />
@@ -392,7 +403,8 @@ export const LoginForm = ({
             <Button
               disabled={isPending}
               type="submit"
-              className="w-full rounded-xl h-14 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-lg shadow-lg shadow-emerald-500/20 transition-all mt-4 group"
+              className="w-full rounded-xl h-14 text-white font-bold text-lg shadow-lg transition-all mt-4 group"
+              style={{ backgroundColor: bc }}
             >
               {isPending ? (
                 "Connecting..."

@@ -256,6 +256,7 @@ export function LandingClient({ tenants }: { tenants: Tenant[] }) {
                     role_label: string;
                     photo_url?: string;
                     content: string;
+                    tenant?: { name: string; slug: string } | null;
                   },
                   index: number,
                 ) => ({
@@ -263,8 +264,11 @@ export function LandingClient({ tenants }: { tenants: Tenant[] }) {
                   role: testimonial.role_label,
                   photo:
                     testimonial.photo_url ||
-                    FALLBACK_TESTIMONIALS[index % FALLBACK_TESTIMONIALS.length]
-                      .photo,
+                    (testimonial.tenant
+                      ? `/images/tenant-${testimonial.tenant.slug}.png`
+                      : FALLBACK_TESTIMONIALS[
+                          index % FALLBACK_TESTIMONIALS.length
+                        ].photo),
                   content: testimonial.content,
                 }),
               ),

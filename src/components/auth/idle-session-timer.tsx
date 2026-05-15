@@ -13,7 +13,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Timer } from "lucide-react";
 
-const IDLE_TIMEOUT = 60 * 60 * 1000; // 1 hour
+const IDLE_TIMEOUT = 15 * 60 * 1000; // 15 minutes
 const WARNING_BEFORE = 60 * 1000; // 1 minute warning before timeout
 
 export function IdleSessionTimer() {

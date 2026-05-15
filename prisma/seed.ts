@@ -309,20 +309,7 @@ async function seedTenantData(client: any, tenant: any, ctx: any) {
     });
   }
 
-  // 4. Social Vouches
-  for (let i = 0; i < 10; i++) {
-    const voucher = pick(members);
-    const vouchee = pick(members.filter((m) => m.user_id !== voucher.user_id));
-    await client.socialVouch.create({
-      data: {
-        voucher_id: voucher.user_id,
-        vouchee_id: vouchee.user_id,
-        tenant_id: tenant.tenant_id,
-        score: rand(7, 10),
-        comment: "Maaasahan at matapat na miyembro.",
-      },
-    });
-  }
+  // REMOVED: Social Vouches — system dropped per PRD
 
   // 5. Payment Methods
   const defaultPaymentMethods = ["GCash", "Bank Transfer", "Cash", "Maya"];
@@ -352,7 +339,7 @@ async function main() {
     await prisma.receipt.deleteMany();
     await prisma.billingInvoice.deleteMany();
     await prisma.paymentMethod.deleteMany();
-    await prisma.socialVouch.deleteMany();
+    // await prisma.socialVouch.deleteMany(); // REMOVED: vouch system dropped
     await prisma.userProfile.deleteMany();
     await prisma.supportTicket.deleteMany();
     await prisma.auditLog.deleteMany();

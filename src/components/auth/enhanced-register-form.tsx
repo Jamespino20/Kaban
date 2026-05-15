@@ -94,11 +94,14 @@ export function EnhancedRegisterForm({
   preselectedTenantId,
   preselectedRegionId,
   tenantSlug,
+  brandColor,
 }: {
   preselectedTenantId?: string;
   preselectedRegionId?: string;
   tenantSlug?: string;
+  brandColor?: string;
 }) {
+  const bc = brandColor || "#059669";
   const router = useRouter();
   const [isMounted, setIsMounted] = useState(false);
   const [step, setStep] = useState(1);
@@ -381,12 +384,12 @@ export function EnhancedRegisterForm({
 
   return (
     <div className="w-full">
-      <div className="bg-emerald-600 p-8 text-white relative overflow-hidden">
+      <div className="p-8 text-white relative overflow-hidden" style={{ backgroundColor: bc }}>
         <div className="relative z-10">
           <h2 className="text-3xl font-display font-bold italic">
             Create Your Account
           </h2>
-          <p className="text-emerald-50 text-sm mt-1">
+          <p className="text-white/80 text-sm mt-1">
             Step {step} of 4: {getStepTitle(step)}
           </p>
         </div>
@@ -396,13 +399,14 @@ export function EnhancedRegisterForm({
       <div className="p-8">
         {successData ? (
           <div className="space-y-8 animate-in zoom-in duration-500 text-center py-8">
-            <div className="w-24 h-24 bg-emerald-100 rounded-full flex items-center justify-center mx-auto mb-6 shadow-xl shadow-emerald-500/10">
-              <CheckCircle2 className="w-12 h-12 text-emerald-600" />
-            </div>
-            <div className="space-y-2">
-              <h3 className="text-3xl font-display font-bold text-slate-900 leading-tight">
-                Welcome to Agapay!
-              </h3>
+              <div className="w-24 h-24 rounded-full flex items-center justify-center mx-auto mb-6 shadow-xl"
+                style={{ backgroundColor: `${bc}20` }}>
+                <CheckCircle2 className="w-12 h-12" style={{ color: bc }} />
+              </div>
+              <div className="space-y-2">
+                <h3 className="text-3xl font-display font-bold text-slate-900 leading-tight">
+                  Welcome to Agapay!
+                </h3>
               <p className="text-slate-500">
                 Your account has been successfully created.
               </p>
@@ -412,7 +416,7 @@ export function EnhancedRegisterForm({
               <p className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em]">
                 Your Member Code
               </p>
-              <p className="text-4xl font-display font-black text-emerald-600 tracking-tighter">
+              <p className="text-4xl font-display font-black tracking-tighter" style={{ color: bc }}>
                 {successData.memberCode}
               </p>
             </div>
@@ -437,7 +441,8 @@ export function EnhancedRegisterForm({
                     window.location.reload();
                   }
                 }}
-                className="w-full h-14 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-lg transition-all"
+                className="w-full h-14 rounded-2xl text-white font-bold text-lg transition-all"
+                style={{ backgroundColor: bc }}
               >
                 Go to My Dashboard
               </Button>
@@ -550,10 +555,11 @@ export function EnhancedRegisterForm({
                                   className="pl-11 pr-10 rounded-xl h-12"
                                 />
                                 <button
-                                  type="button"
-                                  onClick={() => setShowPassword(!showPassword)}
-                                  className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400"
-                                >
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400"
+                    style={{}}
+                  >
                                   {showPassword ? (
                                     <EyeOff className="w-4 h-4" />
                                   ) : (
@@ -804,7 +810,8 @@ export function EnhancedRegisterForm({
                                         !preselectedRegionId) ||
                                       !!preselectedTenantId
                                     }
-                                    className="w-full rounded-xl h-12 border border-slate-200 px-4 bg-white outline-none font-bold text-emerald-700 disabled:opacity-50"
+                                    className="w-full rounded-xl h-12 border border-slate-200 px-4 bg-white outline-none font-bold disabled:opacity-50"
+                                          style={{ color: bc }}
                                   >
                                     <option value="">Select Tenant</option>
                                     {tenants.map((t: any) => (
@@ -982,7 +989,7 @@ export function EnhancedRegisterForm({
                                 alt="ID Preview"
                                 className="w-16 h-16 object-cover rounded-xl mx-auto shadow-md"
                               />
-                              <p className="text-emerald-600 text-[10px] font-bold">
+                              <p className="text-[10px] font-bold" style={{ color: bc }}>
                                 Change
                               </p>
                             </div>
@@ -1019,7 +1026,7 @@ export function EnhancedRegisterForm({
                                 alt="Brgy Preview"
                                 className="w-16 h-16 object-cover rounded-xl mx-auto shadow-md"
                               />
-                              <p className="text-emerald-600 text-[10px] font-bold">
+                              <p className="text-[10px] font-bold" style={{ color: bc }}>
                                 Change
                               </p>
                             </div>
@@ -1058,7 +1065,7 @@ export function EnhancedRegisterForm({
                                 alt="Business Preview"
                                 className="w-16 h-16 object-cover rounded-xl mx-auto shadow-md"
                               />
-                              <p className="text-emerald-600 text-[10px] font-bold">
+                              <p className="text-[10px] font-bold" style={{ color: bc }}>
                                 Change
                               </p>
                             </div>
@@ -1084,13 +1091,15 @@ export function EnhancedRegisterForm({
                               type="checkbox"
                               checked={field.value}
                               onChange={field.onChange}
-                              className="w-5 h-5 rounded border-slate-300 text-emerald-600 outline-none"
+                              className="w-5 h-5 rounded border-slate-300 outline-none"
+                              style={{ accentColor: bc }}
                             />
                             <span className="text-sm text-slate-600">
                               I accept the{" "}
                               <Link
                                 href="/terms"
-                                className="text-emerald-600 underline"
+                                className="underline"
+                                style={{ color: bc }}
                               >
                                 Terms of Service
                               </Link>
@@ -1107,13 +1116,15 @@ export function EnhancedRegisterForm({
                               type="checkbox"
                               checked={field.value}
                               onChange={field.onChange}
-                              className="w-5 h-5 rounded border-slate-300 text-emerald-600 outline-none"
+                              className="w-5 h-5 rounded border-slate-300 outline-none"
+                              style={{ accentColor: bc }}
                             />
                             <span className="text-sm text-slate-600">
                               I agree to the{" "}
                               <Link
                                 href="/privacy"
-                                className="text-emerald-600 underline"
+                                className="underline"
+                                style={{ color: bc }}
                               >
                                 Privacy Policy
                               </Link>
@@ -1141,7 +1152,8 @@ export function EnhancedRegisterForm({
                     <Button
                       type="button"
                       onClick={nextStep}
-                      className="ml-auto rounded-xl h-12 px-8 bg-emerald-600 hover:bg-emerald-700 text-white flex items-center gap-2"
+                      className="ml-auto rounded-xl h-12 px-8 text-white flex items-center gap-2"
+                      style={{ backgroundColor: bc }}
                     >
                       Next
                       <ChevronRight className="w-4 h-4" />
@@ -1150,7 +1162,8 @@ export function EnhancedRegisterForm({
                     <Button
                       disabled={isPending}
                       type="submit"
-                      className="ml-auto rounded-xl h-12 px-12 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-lg shadow-xl shadow-emerald-600/20"
+                      className="ml-auto rounded-xl h-12 px-12 text-white font-bold text-lg shadow-xl"
+                      style={{ backgroundColor: bc }}
                     >
                       {isPending ? "Registering..." : "Start Now!"}
                     </Button>

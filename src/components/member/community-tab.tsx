@@ -394,30 +394,34 @@ export function CommunityTab({
     <div className="flex h-[calc(100vh-120px)] max-h-[860px] gap-0 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
       {/* Discord-style Sidebar: Channels & DMs */}
       <aside className="flex w-[280px] shrink-0 flex-col overflow-hidden border-r border-slate-200 bg-slate-50">
-        <div className="flex items-center justify-between border-b border-slate-200 px-4 py-3">
+        <div className="flex items-center justify-between border-b border-slate-200 px-5 py-3">
           <h2 className="text-xs font-black uppercase tracking-[0.18em] text-slate-500">
             Agapay Community
           </h2>
           <div className="flex items-center gap-2">
-            <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-bold text-slate-600">
-              {unreadCount} new
-            </span>
+            {unreadCount > 0 && (
+              <span className="rounded-full bg-emerald-500 px-2 py-0.5 text-[10px] font-bold text-white shadow-sm">
+                {unreadCount} new
+              </span>
+            )}
           </div>
         </div>
         <div className="flex-1 overflow-y-auto space-y-4 p-3">
           {/* Support Rooms */}
           <div>
-            <h3 className="mb-1 flex items-center gap-1.5 px-2 text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">
+            <h3 className="mb-1 flex items-center gap-1.5 px-3 text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">
               <Users className="h-3 w-3" /> Support
             </h3>
-            <div className="space-y-0.5">
-              {initialData.operatorRooms.map((room: any) => (
+            <div className="space-y-0.5 ml-1 border-l-2 border-slate-100 pl-2">
+              {initialData.operatorRooms.map((room: any) => {
+                const isActive = room.id === selectedConversationId;
+                return (
                 <button
                   key={room.id}
                   onClick={() => setSelectedConversationId(room.id)}
-                  className={`flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-left text-sm transition-colors ${
-                    room.id === selectedConversationId
-                      ? "bg-emerald-100 text-emerald-900"
+                  className={`flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-left text-sm transition-colors ${
+                    isActive
+                      ? "bg-emerald-100 text-emerald-900 border-l-[3px] border-emerald-500 -ml-[1px]"
                       : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
                   }`}
                 >
@@ -425,28 +429,36 @@ export function CommunityTab({
                   <span className="flex-1 truncate text-xs font-semibold">
                     {room.title || "Operator"}
                   </span>
-                  {room.hasUnread && <span className="h-2 w-2 rounded-full bg-emerald-500" />}
+                  {room.hasUnread && (
+                    <span className="relative flex h-2.5 w-2.5">
+                      <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
+                      <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-emerald-500" />
+                    </span>
+                  )}
                 </button>
-              ))}
+                );
+              })}
               {initialData.operatorRooms.length === 0 && (
-                <p className="px-2 py-2 text-xs text-slate-400">No support channels</p>
+                <p className="px-3 py-2 text-xs text-slate-400">No support channels</p>
               )}
             </div>
           </div>
 
           {/* Direct Messages */}
           <div>
-            <h3 className="mb-1 flex items-center gap-1.5 px-2 text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">
+            <h3 className="mb-1 flex items-center gap-1.5 px-3 text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">
               <MessageSquareText className="h-3 w-3" /> Direct Messages
             </h3>
-            <div className="space-y-0.5">
-              {initialData.directConversations.map((conversation: any) => (
+            <div className="space-y-0.5 ml-1 border-l-2 border-slate-100 pl-2">
+              {initialData.directConversations.map((conversation: any) => {
+                const isActive = conversation.id === selectedConversationId;
+                return (
                 <button
                   key={conversation.id}
                   onClick={() => setSelectedConversationId(conversation.id)}
-                  className={`flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-left text-sm transition-colors ${
-                    conversation.id === selectedConversationId
-                      ? "bg-indigo-100 text-indigo-900"
+                  className={`flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-left text-sm transition-colors ${
+                    isActive
+                      ? "bg-indigo-100 text-indigo-900 border-l-[3px] border-indigo-500 -ml-[1px]"
                       : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
                   }`}
                 >
@@ -456,11 +468,17 @@ export function CommunityTab({
                   <span className="flex-1 truncate text-xs font-semibold">
                     {conversation.counterparty?.name || "Direct Message"}
                   </span>
-                  {conversation.hasUnread && <span className="h-2 w-2 rounded-full bg-indigo-500" />}
+                  {conversation.hasUnread && (
+                    <span className="relative flex h-2.5 w-2.5">
+                      <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-indigo-400 opacity-75" />
+                      <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-indigo-500" />
+                    </span>
+                  )}
                 </button>
-              ))}
+                );
+              })}
               {initialData.directConversations.length === 0 && (
-                <p className="px-2 py-2 text-xs text-slate-400">No conversations yet</p>
+                <p className="px-3 py-2 text-xs text-slate-400">No conversations yet</p>
               )}
             </div>
           </div>
@@ -468,40 +486,48 @@ export function CommunityTab({
           {/* Group Chats */}
           {(initialData.groupChats || []).length > 0 && (
             <div>
-              <h3 className="mb-1 flex items-center gap-1.5 px-2 text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">
+              <h3 className="mb-1 flex items-center gap-1.5 px-3 text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">
                 <Layers3 className="h-3 w-3" /> Groups
               </h3>
-              <div className="space-y-0.5">
-                {(initialData.groupChats || []).map((group: any) => (
+              <div className="space-y-0.5 ml-1 border-l-2 border-slate-100 pl-2">
+                {(initialData.groupChats || []).map((group: any) => {
+                  const isActive = group.id === selectedConversationId;
+                  return (
                   <button
                     key={group.id}
                     onClick={() => setSelectedConversationId(group.id)}
-                    className={`flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-left text-sm transition-colors ${
-                      group.id === selectedConversationId
-                        ? "bg-violet-100 text-violet-900"
+                    className={`flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-left text-sm transition-colors ${
+                      isActive
+                        ? "bg-violet-100 text-violet-900 border-l-[3px] border-violet-500 -ml-[1px]"
                         : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
                     }`}
                   >
                     <Layers3 className="h-4 w-4 shrink-0" />
                     <span className="flex-1 truncate text-xs font-semibold">{group.title}</span>
-                    {group.hasUnread && <span className="h-2 w-2 rounded-full bg-violet-500" />}
+                    {group.hasUnread && (
+                      <span className="relative flex h-2.5 w-2.5">
+                        <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-violet-400 opacity-75" />
+                        <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-violet-500" />
+                      </span>
+                    )}
                   </button>
-                ))}
+                  );
+                })}
               </div>
             </div>
           )}
 
           {/* Divider */}
           <div className="border-t border-slate-200 pt-3">
-            <h3 className="mb-1 flex items-center gap-1.5 px-2 text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">
+            <h3 className="mb-1 flex items-center gap-1.5 px-3 text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">
               <Handshake className="h-3 w-3" /> Discover
             </h3>
-            <div className="space-y-0.5">
+            <div className="space-y-0.5 ml-1 border-l-2 border-slate-100 pl-2">
               {discoverableDirectory.slice(0, 8).map((user: any) => (
                 <button
                   key={user.userId}
                   onClick={() => handleStartConversation(user.userId)}
-                  className="flex w-full items-center gap-2.5 rounded-lg px-2.5 py-1.5 text-left text-xs text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-700"
+                  className="flex w-full items-center gap-2.5 rounded-lg px-3 py-1.5 text-left text-xs text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-700"
                 >
                   <div className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-amber-100 text-[8px] font-bold text-amber-700">
                     {user.name.charAt(0)}
@@ -612,13 +638,15 @@ export function CommunityTab({
                                   <div
                                     className="flex h-9 w-9 shrink-0 cursor-pointer items-center justify-center rounded-xl bg-emerald-100 text-sm font-bold text-emerald-700 hover:bg-emerald-200 transition-colors mt-0.5"
                                     onClick={() => {
-                                      const user = discoverableDirectory.find(
-                                        (u: any) => u.name === message.senderName
-                                      );
-                                      if (user) {
-                                        setSelectedProfile(user);
-                                        setProfilePopupOpen(true);
-                                      }
+                                      setSelectedProfile({
+                                        userId: message.senderId,
+                                        name: message.senderName,
+                                        role: message.senderRole || "member",
+                                        subtitle:
+                                          message.senderProfile?.subtitle ||
+                                          "Ka-Agapay",
+                                      });
+                                      setProfilePopupOpen(true);
                                     }}
                                     title={message.senderName}
                                   >

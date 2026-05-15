@@ -1,467 +1,276 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
-import { Bot, Save } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import {
-  getAIConfig,
-  updateAIConfig,
-} from "@/actions/superadmin-actions";
+import { Separator } from "@/components/ui/separator";
+import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { updateAIConfig } from "@/actions/superadmin-actions";
+import { Save, AlertCircle, Bot, Zap, Bell, Target } from "lucide-react";
 
-type AIConfigData = {
-  id?: number;
-  snapshotPrompts?: {
-    overview?: string;
-    portfolio?: string;
-    risk?: string;
-    financial?: string;
-  };
-  riskSensitivity?: "low" | "medium" | "high";
-  notificationSettings?: {
-    enableRiskAlerts?: boolean;
-    enablePortfolioInsights?: boolean;
-    enableAutomatedReports?: boolean;
-    reportFrequency?: "daily" | "weekly" | "monthly";
-  };
-  analysisConfig?: {
-    maxLoanAmountToAnalyze?: number;
-    minDataPointsForInsights?: number;
-    anomalyDetectionThreshold?: number;
-  };
-};
+const aiConfigSchema = z.object({
+  snapshotPrompts: z.object({
+    overview: z.string().min(1, "Prompt cannot be empty"),
+    portfolio: z.string().min(1, "Prompt cannot be empty"),
+    risk: z.string().min(1, "Prompt cannot be empty"),
+    financial: z.string().min(1, "Prompt cannot be empty"),
+  }),
+  riskSensitivity: z.enum(["low", "medium", "high"]),
+  notificationSettings: z.object({
+    enableRiskAlerts: z.boolean(),
+    enablePortfolioInsights: z.boolean(),
+    enableAutomatedReports: z.boolean(),
+    reportFrequency: z.enum(["daily", "weekly", "monthly"]),
+  }),
+  analysisConfig: z.object({
+    maxLoanAmountToAnalyze: z.number().min(0, "Must be positive"),
+    minDataPointsForInsights: z.number().min(1, "Must be at least 1"),
+    anomalyDetectionThreshold: z.number().min(0).max(100),
+  }),
+});
 
-const defaultConfig: AIConfigData = {
-  riskSensitivity: "medium",
-  snapshotPrompts: {
-    overview: "",
-    portfolio: "",
-    risk: "",
-    financial: "",
-  },
-  notificationSettings: {
-    enableRiskAlerts: true,
-    enablePortfolioInsights: true,
-    enableAutomatedReports: false,
-    reportFrequency: "weekly",
-  },
-  analysisConfig: {
-    maxLoanAmountToAnalyze: 100000,
-    minDataPointsForInsights: 10,
-    anomalyDetectionThreshold: 3,
-  },
-};
+type AIConfigFormValues = z.infer<typeof aiConfigSchema>;
 
-export function AIConfigTab() {
-  const [config, setConfig] = useState<AIConfigData>(defaultConfig);
-  const [isLoading, setIsLoading] = useState(true);
-  const [isSaving, setIsSaving] = useState(false);
+export function AIConfigTab({ initialConfig }: { initialConfig?: any }) {
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const loadConfig = useCallback(async () => {
-    setIsLoading(true);
-    const res = await getAIConfig();
-    if (res.success && res.data) {
-      const d = res.data as AIConfigData;
-      setConfig({
-        riskSensitivity: d.riskSensitivity || "medium",
-        snapshotPrompts: {
-          overview: d.snapshotPrompts?.overview || "",
-          portfolio: d.snapshotPrompts?.portfolio || "",
-          risk: d.snapshotPrompts?.risk || "",
-          financial: d.snapshotPrompts?.financial || "",
-        },
-        notificationSettings: {
-          enableRiskAlerts:
-            d.notificationSettings?.enableRiskAlerts ?? true,
-          enablePortfolioInsights:
-            d.notificationSettings?.enablePortfolioInsights ?? true,
-          enableAutomatedReports:
-            d.notificationSettings?.enableAutomatedReports ?? false,
-          reportFrequency:
-            d.notificationSettings?.reportFrequency || "weekly",
-        },
-        analysisConfig: {
-          maxLoanAmountToAnalyze:
-            d.analysisConfig?.maxLoanAmountToAnalyze ?? 100000,
-          minDataPointsForInsights:
-            d.analysisConfig?.minDataPointsForInsights ?? 10,
-          anomalyDetectionThreshold:
-            d.analysisConfig?.anomalyDetectionThreshold ?? 3,
-        },
-      });
+  const form = useForm<AIConfigFormValues>({
+    resolver: zodResolver(aiConfigSchema),
+    defaultValues: {
+      snapshotPrompts: {
+        overview: initialConfig?.snapshotPrompts?.overview ?? "Summarize the overall health of the cooperative.",
+        portfolio: initialConfig?.snapshotPrompts?.portfolio ?? "Analyze the active loan portfolio and suggest improvements.",
+        risk: initialConfig?.snapshotPrompts?.risk ?? "Identify high-risk patterns in recent repayments.",
+        financial: initialConfig?.snapshotPrompts?.financial ?? "Provide financial tips based on wallet transactions.",
+      },
+      riskSensitivity: initialConfig?.riskSensitivity ?? "medium",
+      notificationSettings: {
+        enableRiskAlerts: initialConfig?.notificationSettings?.enableRiskAlerts ?? true,
+        enablePortfolioInsights: initialConfig?.notificationSettings?.enablePortfolioInsights ?? true,
+        enableAutomatedReports: initialConfig?.notificationSettings?.enableAutomatedReports ?? false,
+        reportFrequency: initialConfig?.notificationSettings?.reportFrequency ?? "weekly",
+      },
+      analysisConfig: {
+        maxLoanAmountToAnalyze: initialConfig?.analysisConfig?.maxLoanAmountToAnalyze ?? 1000000,
+        minDataPointsForInsights: initialConfig?.analysisConfig?.minDataPointsForInsights ?? 5,
+        anomalyDetectionThreshold: initialConfig?.analysisConfig?.anomalyDetectionThreshold ?? 80,
+      },
+    },
+  });
+
+  async function onSubmit(data: AIConfigFormValues) {
+    setIsSubmitting(true);
+    try {
+      const result = await updateAIConfig(data);
+      if (result.success) {
+        toast.success("AI configuration updated successfully");
+      } else {
+        toast.error(result.error || "Failed to update configuration");
+      }
+    } catch (error) {
+      toast.error("An unexpected error occurred");
+      console.error(error);
+    } finally {
+      setIsSubmitting(false);
     }
-    setIsLoading(false);
-  }, []);
-
-  useEffect(() => {
-    loadConfig();
-  }, [loadConfig]);
-
-  const handleSave = async () => {
-    setIsSaving(true);
-    const res = await updateAIConfig({
-      riskSensitivity: config.riskSensitivity,
-      snapshotPrompts: config.snapshotPrompts,
-      notificationSettings: config.notificationSettings,
-      analysisConfig: config.analysisConfig,
-    });
-    if (res.success) {
-      toast.success("AI configuration saved");
-    } else {
-      toast.error(res.error || "Failed to save AI configuration");
-    }
-    setIsSaving(false);
-  };
-
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <div className="animate-pulse text-slate-400">
-          Loading AI configuration...
-        </div>
-      </div>
-    );
   }
 
+  const { formState: { errors } } = form;
+
   return (
-    <div className="space-y-6">
-      <Card>
-        <CardHeader className="pb-3">
-          <CardTitle className="text-lg flex items-center gap-2">
-            <Bot className="w-5 h-5 text-emerald-600" />
-            AI Configuration
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-8">
-          {/* Risk Sensitivity */}
-          <div className="space-y-4">
-            <div>
-              <h3 className="text-sm font-bold text-slate-800">
-                Risk Sensitivity
-              </h3>
-              <p className="text-xs text-slate-500 mt-0.5">
-                Controls how aggressively the AI flags risks.
-              </p>
+    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        
+        {/* System Prompt Templates */}
+        <Card className="hover:shadow-md transition-shadow border-slate-200/60 overflow-hidden lg:col-span-2">
+          <CardHeader className="bg-slate-50/50 border-b border-slate-100 pb-4">
+            <CardTitle className="text-lg flex items-center gap-2">
+              <span className="w-8 h-8 rounded-full bg-violet-100 flex items-center justify-center text-violet-600">
+                <Bot className="w-4 h-4" />
+              </span>
+              System Prompts
+            </CardTitle>
+            <CardDescription>
+              Configure the templates used by the AI engine to generate insights and summaries.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="pt-6 space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-2">
+                <Label htmlFor="sp-overview">Overview Snapshot Prompt</Label>
+                <Textarea id="sp-overview" className="h-24 resize-none" {...form.register("snapshotPrompts.overview")} />
+                {errors.snapshotPrompts?.overview && (
+                  <p className="text-xs text-rose-500">{errors.snapshotPrompts.overview.message}</p>
+                )}
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="sp-portfolio">Portfolio Prompt</Label>
+                <Textarea id="sp-portfolio" className="h-24 resize-none" {...form.register("snapshotPrompts.portfolio")} />
+                {errors.snapshotPrompts?.portfolio && (
+                  <p className="text-xs text-rose-500">{errors.snapshotPrompts.portfolio.message}</p>
+                )}
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="sp-risk">Risk Assessment Prompt</Label>
+                <Textarea id="sp-risk" className="h-24 resize-none" {...form.register("snapshotPrompts.risk")} />
+                {errors.snapshotPrompts?.risk && (
+                  <p className="text-xs text-rose-500">{errors.snapshotPrompts.risk.message}</p>
+                )}
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="sp-financial">Financial Tips Prompt</Label>
+                <Textarea id="sp-financial" className="h-24 resize-none" {...form.register("snapshotPrompts.financial")} />
+                {errors.snapshotPrompts?.financial && (
+                  <p className="text-xs text-rose-500">{errors.snapshotPrompts.financial.message}</p>
+                )}
+              </div>
             </div>
-            <Select
-              value={config.riskSensitivity}
-              onValueChange={(v: "low" | "medium" | "high") =>
-                setConfig({ ...config, riskSensitivity: v })
-              }
-            >
-              <SelectTrigger className="w-48">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="low">Low (1-4)</SelectItem>
-                <SelectItem value="medium">Medium (5-7)</SelectItem>
-                <SelectItem value="high">High (8-10)</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
+          </CardContent>
+        </Card>
 
-          {/* Snapshot Prompts */}
-          <div className="space-y-4">
-            <div>
-              <h3 className="text-sm font-bold text-slate-800">
-                Snapshot Prompts
-              </h3>
-              <p className="text-xs text-slate-500 mt-0.5">
-                AI prompt templates for generating platform snapshots.
-              </p>
+        {/* Engine and Sensitivity */}
+        <Card className="hover:shadow-md transition-shadow border-slate-200/60 overflow-hidden">
+          <CardHeader className="bg-slate-50/50 border-b border-slate-100 pb-4">
+            <CardTitle className="text-lg flex items-center gap-2">
+              <span className="w-8 h-8 rounded-full bg-amber-100 flex items-center justify-center text-amber-600">
+                <Zap className="w-4 h-4" />
+              </span>
+              Analysis Engine
+            </CardTitle>
+            <CardDescription>
+              Configure how aggressive the AI should be when flagging data patterns.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="pt-6 space-y-4">
+            <div className="space-y-2">
+              <Label>Risk Sensitivity</Label>
+              <Select 
+                value={form.watch("riskSensitivity")} 
+                onValueChange={(val: any) => form.setValue("riskSensitivity", val)}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select sensitivity" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="low">Low - Relaxed</SelectItem>
+                  <SelectItem value="medium">Medium - Balanced</SelectItem>
+                  <SelectItem value="high">High - Strict</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <label className="text-xs font-medium text-slate-600">
-                  Overview Prompt
-                </label>
-                <Textarea
-                  value={config.snapshotPrompts?.overview || ""}
-                  onChange={(e) =>
-                    setConfig({
-                      ...config,
-                      snapshotPrompts: {
-                        ...config.snapshotPrompts,
-                        overview: e.target.value,
-                      },
-                    })
-                  }
-                  placeholder="Prompt for platform overview snapshot..."
-                  className="min-h-[100px] text-sm"
-                />
-              </div>
-              <div className="space-y-2">
-                <label className="text-xs font-medium text-slate-600">
-                  Portfolio Prompt
-                </label>
-                <Textarea
-                  value={config.snapshotPrompts?.portfolio || ""}
-                  onChange={(e) =>
-                    setConfig({
-                      ...config,
-                      snapshotPrompts: {
-                        ...config.snapshotPrompts,
-                        portfolio: e.target.value,
-                      },
-                    })
-                  }
-                  placeholder="Prompt for portfolio analysis..."
-                  className="min-h-[100px] text-sm"
-                />
-              </div>
-              <div className="space-y-2">
-                <label className="text-xs font-medium text-slate-600">
-                  Risk Prompt
-                </label>
-                <Textarea
-                  value={config.snapshotPrompts?.risk || ""}
-                  onChange={(e) =>
-                    setConfig({
-                      ...config,
-                      snapshotPrompts: {
-                        ...config.snapshotPrompts,
-                        risk: e.target.value,
-                      },
-                    })
-                  }
-                  placeholder="Prompt for risk assessment..."
-                  className="min-h-[100px] text-sm"
-                />
-              </div>
-              <div className="space-y-2">
-                <label className="text-xs font-medium text-slate-600">
-                  Financial Prompt
-                </label>
-                <Textarea
-                  value={config.snapshotPrompts?.financial || ""}
-                  onChange={(e) =>
-                    setConfig({
-                      ...config,
-                      snapshotPrompts: {
-                        ...config.snapshotPrompts,
-                        financial: e.target.value,
-                      },
-                    })
-                  }
-                  placeholder="Prompt for financial analysis..."
-                  className="min-h-[100px] text-sm"
-                />
-              </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="ac-max-loan">Max Loan Amount to Analyze (₱)</Label>
+              <Input id="ac-max-loan" type="number" {...form.register("analysisConfig.maxLoanAmountToAnalyze", { valueAsNumber: true })} />
             </div>
-          </div>
+            <div className="space-y-2">
+              <Label htmlFor="ac-min-dp">Minimum Data Points for Insights</Label>
+              <Input id="ac-min-dp" type="number" {...form.register("analysisConfig.minDataPointsForInsights", { valueAsNumber: true })} />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="ac-anomaly">Anomaly Detection Threshold (%)</Label>
+              <Input id="ac-anomaly" type="number" {...form.register("analysisConfig.anomalyDetectionThreshold", { valueAsNumber: true })} />
+            </div>
+          </CardContent>
+        </Card>
 
-          {/* Analysis Config */}
-          <div className="space-y-4">
-            <div>
-              <h3 className="text-sm font-bold text-slate-800">
-                Analysis Configuration
-              </h3>
-              <p className="text-xs text-slate-500 mt-0.5">
-                Parameters for AI analysis engine.
-              </p>
+        {/* AI Notification Settings */}
+        <Card className="hover:shadow-md transition-shadow border-slate-200/60 overflow-hidden">
+          <CardHeader className="bg-slate-50/50 border-b border-slate-100 pb-4">
+            <CardTitle className="text-lg flex items-center gap-2">
+              <span className="w-8 h-8 rounded-full bg-sky-100 flex items-center justify-center text-sky-600">
+                <Bell className="w-4 h-4" />
+              </span>
+              Alerts & Notifications
+            </CardTitle>
+            <CardDescription>
+              Manage parameters for AI-generated alerts.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="pt-6 space-y-5">
+            <div className="flex items-center justify-between">
+              <div className="space-y-0.5">
+                <Label>Enable Risk Alerts</Label>
+                <p className="text-sm text-slate-500">Allow AI to trigger warnings for detected risks.</p>
+              </div>
+              <Switch 
+                checked={form.watch("notificationSettings.enableRiskAlerts")} 
+                onCheckedChange={(val) => form.setValue("notificationSettings.enableRiskAlerts", val)} 
+              />
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="space-y-2">
-                <label className="text-xs font-medium text-slate-600">
-                  Max Loan Amount to Analyze
-                </label>
-                <Input
-                  type="number"
-                  value={config.analysisConfig?.maxLoanAmountToAnalyze ?? ""}
-                  onChange={(e) =>
-                    setConfig({
-                      ...config,
-                      analysisConfig: {
-                        ...config.analysisConfig,
-                        maxLoanAmountToAnalyze: Number(e.target.value),
-                      },
-                    })
-                  }
-                />
+            <Separator />
+            <div className="flex items-center justify-between">
+              <div className="space-y-0.5">
+                <Label>Enable Portfolio Insights</Label>
+                <p className="text-sm text-slate-500">Allow AI to suggest growth opportunities to operators.</p>
               </div>
-              <div className="space-y-2">
-                <label className="text-xs font-medium text-slate-600">
-                  Min Data Points for Insights
-                </label>
-                <Input
-                  type="number"
-                  value={
-                    config.analysisConfig?.minDataPointsForInsights ?? ""
-                  }
-                  onChange={(e) =>
-                    setConfig({
-                      ...config,
-                      analysisConfig: {
-                        ...config.analysisConfig,
-                        minDataPointsForInsights: Number(e.target.value),
-                      },
-                    })
-                  }
-                />
-              </div>
-              <div className="space-y-2">
-                <label className="text-xs font-medium text-slate-600">
-                  Anomaly Detection Threshold
-                </label>
-                <Input
-                  type="number"
-                  step="0.1"
-                  value={
-                    config.analysisConfig?.anomalyDetectionThreshold ?? ""
-                  }
-                  onChange={(e) =>
-                    setConfig({
-                      ...config,
-                      analysisConfig: {
-                        ...config.analysisConfig,
-                        anomalyDetectionThreshold: Number(e.target.value),
-                      },
-                    })
-                  }
-                />
-              </div>
+              <Switch 
+                checked={form.watch("notificationSettings.enablePortfolioInsights")} 
+                onCheckedChange={(val) => form.setValue("notificationSettings.enablePortfolioInsights", val)} 
+              />
             </div>
-          </div>
-
-          {/* Notification Settings */}
-          <div className="space-y-4">
-            <div>
-              <h3 className="text-sm font-bold text-slate-800">
-                Notification Settings
-              </h3>
-              <p className="text-xs text-slate-500 mt-0.5">
-                Configure AI-generated notifications and reports.
-              </p>
+            <Separator />
+            <div className="flex items-center justify-between">
+              <div className="space-y-0.5">
+                <Label>Automated Reports</Label>
+                <p className="text-sm text-slate-500">Send digested summaries regularly.</p>
+              </div>
+              <Switch 
+                checked={form.watch("notificationSettings.enableAutomatedReports")} 
+                onCheckedChange={(val) => form.setValue("notificationSettings.enableAutomatedReports", val)} 
+              />
             </div>
-            <div className="space-y-3">
-              <div className="flex items-center justify-between p-3 bg-slate-50 rounded-lg">
-                <div>
-                  <span className="text-sm font-medium text-slate-700">
-                    Risk Alerts
-                  </span>
-                  <p className="text-xs text-slate-400">
-                    Send alerts when risk thresholds are breached
-                  </p>
-                </div>
-                <Switch
-                  checked={
-                    config.notificationSettings?.enableRiskAlerts ?? true
-                  }
-                  onCheckedChange={(v) =>
-                    setConfig({
-                      ...config,
-                      notificationSettings: {
-                        ...config.notificationSettings,
-                        enableRiskAlerts: v,
-                      },
-                    })
-                  }
-                />
-              </div>
-              <div className="flex items-center justify-between p-3 bg-slate-50 rounded-lg">
-                <div>
-                  <span className="text-sm font-medium text-slate-700">
-                    Portfolio Insights
-                  </span>
-                  <p className="text-xs text-slate-400">
-                    Periodic portfolio performance summaries
-                  </p>
-                </div>
-                <Switch
-                  checked={
-                    config.notificationSettings?.enablePortfolioInsights ??
-                    true
-                  }
-                  onCheckedChange={(v) =>
-                    setConfig({
-                      ...config,
-                      notificationSettings: {
-                        ...config.notificationSettings,
-                        enablePortfolioInsights: v,
-                      },
-                    })
-                  }
-                />
-              </div>
-              <div className="flex items-center justify-between p-3 bg-slate-50 rounded-lg">
-                <div>
-                  <span className="text-sm font-medium text-slate-700">
-                    Automated Reports
-                  </span>
-                  <p className="text-xs text-slate-400">
-                    Generate and send automated reports
-                  </p>
-                </div>
-                <Switch
-                  checked={
-                    config.notificationSettings?.enableAutomatedReports ??
-                    false
-                  }
-                  onCheckedChange={(v) =>
-                    setConfig({
-                      ...config,
-                      notificationSettings: {
-                        ...config.notificationSettings,
-                        enableAutomatedReports: v,
-                      },
-                    })
-                  }
-                />
-              </div>
-              <div className="flex items-center justify-between p-3 bg-slate-50 rounded-lg">
-                <div>
-                  <span className="text-sm font-medium text-slate-700">
-                    Report Frequency
-                  </span>
-                </div>
-                <Select
-                  value={
-                    config.notificationSettings?.reportFrequency || "weekly"
-                  }
-                  onValueChange={(
-                    v: "daily" | "weekly" | "monthly",
-                  ) =>
-                    setConfig({
-                      ...config,
-                      notificationSettings: {
-                        ...config.notificationSettings,
-                        reportFrequency: v,
-                      },
-                    })
-                  }
+            
+            {form.watch("notificationSettings.enableAutomatedReports") && (
+              <div className="space-y-2 pt-2 animate-in fade-in">
+                <Label>Report Frequency</Label>
+                <Select 
+                  value={form.watch("notificationSettings.reportFrequency")} 
+                  onValueChange={(val: any) => form.setValue("notificationSettings.reportFrequency", val)}
                 >
-                  <SelectTrigger className="w-36">
-                    <SelectValue />
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select frequency" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="daily">Daily</SelectItem>
-                    <SelectItem value="weekly">Weekly</SelectItem>
-                    <SelectItem value="monthly">Monthly</SelectItem>
+                    <SelectItem value="daily">Daily Digested Summary</SelectItem>
+                    <SelectItem value="weekly">Weekly Comprehensive Review</SelectItem>
+                    <SelectItem value="monthly">Monthly Full Analysis</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
-            </div>
-          </div>
+            )}
+          </CardContent>
+        </Card>
 
-          <div className="flex justify-end pt-4 border-t">
-            <Button onClick={handleSave} disabled={isSaving}>
-              <Save className="w-4 h-4 mr-2" />
-              {isSaving ? "Saving..." : "Save Configuration"}
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
-    </div>
+      </div>
+
+      <div className="flex justify-end p-4 bg-white/60 backdrop-blur-md rounded-2xl border border-slate-200 mt-8 shadow-sm">
+        <Button 
+          type="submit" 
+          disabled={isSubmitting}
+          className="bg-slate-900 hover:bg-slate-800 text-white rounded-xl shadow-md min-w-[200px]"
+        >
+          {isSubmitting ? (
+            <div className="flex items-center gap-2">
+              <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+              Saving Configuration...
+            </div>
+          ) : (
+            <div className="flex items-center gap-2">
+              <Save className="w-4 h-4" />
+              Commit AI Configuration
+            </div>
+          )}
+        </Button>
+      </div>
+    </form>
   );
 }

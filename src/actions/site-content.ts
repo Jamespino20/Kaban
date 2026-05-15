@@ -136,7 +136,7 @@ export async function getHomepageContent() {
 
 export async function getHomepageContentAdmin() {
   if (shouldUseApiClient()) {
-    return { faqs: [], testimonials: [] };
+    return { faqs: [], testimonials: [], vision: "", mission: "" };
   }
   const session = await requireTanawSession();
   ensureHomepageEditorRole(session.user.role);
@@ -148,7 +148,7 @@ export async function getHomepageContentAdmin() {
         ? {}
         : { tenant_id: tenantId ?? -1 };
 
-    const [faqs, testimonials] = await Promise.all([
+    const [faqs, testimonials, tenantMeta] = await Promise.all([
       db.homepageFaq.findMany({
         where: baseWhere,
         orderBy: [
@@ -165,9 +165,22 @@ export async function getHomepageContentAdmin() {
           { created_at: "desc" },
         ],
       }),
+      tenantId
+        ? db.tenant.findUnique({
+            where: { tenant_id: tenantId },
+            select: { metadata: true },
+          })
+        : Promise.resolve(null),
     ]);
 
-    return { faqs, testimonials };
+    const meta = (tenantMeta?.metadata as Record<string, unknown>) ?? {};
+
+    return {
+      faqs,
+      testimonials,
+      vision: (meta.vision as string) ?? "",
+      mission: (meta.mission as string) ?? "",
+    };
   };
 
   if (!tenantId) {
@@ -846,6 +859,12 @@ export async function submitFeedback(input: z.infer<typeof feedbackSchema>) {
     } catch {}
 
     const tenantId = session?.user?.tenantId;
+    const moduleContext =
+      data.category === "testimonial"
+        ? "homepage"
+        : data.category === "concern"
+          ? "system"
+          : "general";
 
     const query = async (db: any) => {
       await sendFeedbackNotificationEmail({
@@ -866,7 +885,7 @@ export async function submitFeedback(input: z.infer<typeof feedbackSchema>) {
           category: (data.category as any) || "general_support",
           subject: data.subject || "Public Feedback",
           description: data.message,
-          module_context: (data.category as any) || "general",
+          module_context: moduleContext,
           status: "open",
           metadata: {
             name: data.name,
@@ -921,43 +940,35 @@ export async function getFeedbackEntries() {
           select: { name: true },
         },
       },
-      take: 100,
+      take: 1000,
     });
   };
 
+  if (isSuperadmin) {
+    // Superadmin always queries at platform level to get ALL feedback across all tenants
+    return await prisma.supportTicket.findMany({
+      where: {},
+      orderBy: [{ status: "asc" }, { created_at: "desc" }],
+      include: {
+        requester: {
+          select: { username: true, email: true },
+        },
+        tenant: {
+          select: { name: true },
+        },
+      },
+      take: 1000,
+    });
+  }
+
   if (!tenantId) {
-    // Not scoped to any tenant - fetch all (for superadmin) or error (shouldn't happen for others)
-    return await query(prisma, isSuperadmin ? {} : { tenant_id: -1 });
+    return await query(prisma, { tenant_id: -1 });
   }
 
   // Scoped view for the current tenant
   const scopedResults = await prisma.$withTenant(tenantId, async (tx: any) => {
     return await query(tx, { tenant_id: tenantId });
   });
-
-  if (isSuperadmin) {
-    // Superadmin also needs platform-wide feedback (tenant_id IS NULL)
-    // We fetch this using the base prisma client where session RLS is NULL
-    const platformResults = await query(prisma, { tenant_id: null });
-
-    // Merge and sort manually
-    const statusOrder: Record<string, number> = {
-      open: 0,
-      in_review: 1,
-      resolved: 2,
-    };
-
-    const merged = [...scopedResults, ...platformResults]
-      .sort((a, b) => {
-        if (a.status !== b.status) {
-          return (statusOrder[a.status] ?? 0) - (statusOrder[b.status] ?? 0);
-        }
-        return b.created_at.getTime() - a.created_at.getTime();
-      })
-      .slice(0, 100);
-
-    return merged;
-  }
 
   return scopedResults;
 }
@@ -1076,4 +1087,62 @@ export async function getContentWorkflowSummary() {
   return await prisma.$withTenant(tenantId, async (tx: any) => {
     return await query(tx);
   });
+}
+
+export async function updateTenantMetadata(data: {
+  vision?: string;
+  mission?: string;
+  tagline?: string;
+  heroSubheadline?: string;
+  heroMediaUrl?: string;
+  navIconUrl?: string;
+  sectionVisibility?: {
+    hero?: boolean;
+    faqs?: boolean;
+    testimonials?: boolean;
+    stats?: boolean;
+  };
+}) {
+  const session = await requireTanawSession();
+  const tenantId = session.user.tenantId;
+
+  if (!tenantId) {
+    return { error: "Tenant context required." };
+  }
+
+  try {
+    const tenant = await prisma.tenant.findUnique({
+      where: { tenant_id: tenantId },
+      select: { metadata: true },
+    });
+
+    const currentMeta = (tenant?.metadata as Record<string, unknown>) ?? {};
+    const updatedMeta = {
+      ...currentMeta,
+      ...(data.vision !== undefined && { vision: data.vision }),
+      ...(data.mission !== undefined && { mission: data.mission }),
+      ...(data.tagline !== undefined && { tagline: data.tagline }),
+      ...(data.heroSubheadline !== undefined && {
+        heroSubheadline: data.heroSubheadline,
+      }),
+      ...(data.heroMediaUrl !== undefined && {
+        hero_media_url: data.heroMediaUrl,
+      }),
+      ...(data.navIconUrl !== undefined && { nav_icon_url: data.navIconUrl }),
+      ...(data.sectionVisibility !== undefined && {
+        section_visibility: data.sectionVisibility,
+      }),
+    };
+
+    await prisma.tenant.update({
+      where: { tenant_id: tenantId },
+      data: { metadata: updatedMeta },
+    });
+
+    revalidatePath("/agapay-tanaw");
+    return { success: "Homepage metadata updated." };
+  } catch (error) {
+    console.error("updateTenantMetadata failed:", error);
+    return { error: "Failed to update metadata." };
+  }
 }

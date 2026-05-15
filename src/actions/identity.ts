@@ -68,7 +68,7 @@ export async function getAvailableTenants(
           tg.name AS group_name
         FROM tenants t
         LEFT JOIN tenant_groups tg ON tg.id = t.tenant_group_id
-        WHERE t.is_active = true
+        WHERE t.is_active = true AND t.entitlement_status = 'active'
         ORDER BY t.name ASC
       `;
 
@@ -132,8 +132,12 @@ async function processUsers(users: User[], sql: any, password?: string) {
         SELECT name, slug, tenant_group_id, brand_color, accent_color, logo_url
         FROM tenants 
         WHERE tenant_id = ${user.tenant_id}
+        AND is_active = true
+        AND entitlement_status = 'active'
       `;
       tenant = tenants[0];
+
+      if (!tenant) continue;
 
       if (tenant?.tenant_group_id) {
         const groups = await sql`
@@ -179,4 +183,108 @@ async function processUsers(users: User[], sql: any, password?: string) {
     success: true,
     tenants: dedupedTenants,
   };
+}
+
+export async function approveIdentityVerification(userId: number) {
+  const { requireAdminSession } = await import("@/lib/authorization");
+  const prisma = (await import("@/lib/prisma")).default;
+  const { createNotification } = await import("@/lib/notifications");
+  const { revalidatePath } = await import("next/cache");
+
+  const session = await requireAdminSession();
+  const tenantId = session.user.tenantId;
+  if (!tenantId) return { error: "Tenant context required." };
+
+  try {
+    await prisma.$withTenant(tenantId, async (tx: any) => {
+      await tx.user.update({
+        where: { user_id: userId },
+        data: { status: "active" },
+      });
+
+      await tx.userDocument.updateMany({
+        where: { user_id: userId, tenant_id: tenantId, verification_status: "pending" },
+        data: { verification_status: "verified" },
+      });
+
+      await tx.auditLog.create({
+        data: {
+          tenant_id: tenantId,
+          user_id: session.user.user_id,
+          action: "IDENTITY_APPROVED",
+          entity_type: "User",
+          entity_id: userId,
+          module: "members",
+          action_category: "update",
+          severity: "info",
+        },
+      });
+    });
+
+    await createNotification({
+      userId,
+      tenantId,
+      type: "identity_verified",
+      title: "Identity Verified",
+      body: "Your identity has been verified. You can now apply for loans.",
+      actionUrl: "/agapay-pintig",
+    });
+
+    revalidatePath("/agapay-tanaw");
+    return { success: "Identity approved and member activated." };
+  } catch (error) {
+    console.error("approveIdentityVerification failed:", error);
+    return { error: "Failed to approve identity. Please try again." };
+  }
+}
+
+export async function rejectIdentityVerification(userId: number, reason: string) {
+  const { requireAdminSession } = await import("@/lib/authorization");
+  const prisma = (await import("@/lib/prisma")).default;
+  const { createNotification } = await import("@/lib/notifications");
+  const { revalidatePath } = await import("next/cache");
+
+  const session = await requireAdminSession();
+  const tenantId = session.user.tenantId;
+  if (!tenantId) return { error: "Tenant context required." };
+
+  try {
+    await prisma.$withTenant(tenantId, async (tx: any) => {
+      await tx.userDocument.updateMany({
+        where: { user_id: userId, tenant_id: tenantId, verification_status: "pending" },
+        data: { verification_status: "rejected" },
+      });
+
+      await tx.auditLog.create({
+        data: {
+          tenant_id: tenantId,
+          user_id: session.user.user_id,
+          action: "IDENTITY_REJECTED",
+          entity_type: "User",
+          entity_id: userId,
+          module: "members",
+          action_category: "update",
+          severity: "warning",
+          new_values: { reason },
+        },
+      });
+    });
+
+    await createNotification({
+      userId,
+      tenantId,
+      type: "identity_rejected",
+      title: "Identity Verification Rejected",
+      body: reason
+        ? `Your identity verification was rejected. Reason: ${reason}`
+        : "Your identity verification was rejected. Please re-upload valid documents.",
+      actionUrl: "/agapay-pintig?tab=profile",
+    });
+
+    revalidatePath("/agapay-tanaw");
+    return { success: "Identity verification rejected." };
+  } catch (error) {
+    console.error("rejectIdentityVerification failed:", error);
+    return { error: "Failed to reject identity. Please try again." };
+  }
 }

@@ -134,11 +134,38 @@ export async function getTenantApplicationsForReview(filters?: {
       orderBy: { created_at: "desc" },
     });
 
-    let filtered = applications;
+    // Enrich with tenant_group name and submitted_by user info
+    const groupIds = [...new Set(applications.map((a: any) => a.tenant_group_id).filter(Boolean))];
+    const groupMap = new Map<number, string>();
+    if (groupIds.length > 0) {
+      const groups = await prisma.tenantGroup.findMany({
+        where: { id: { in: groupIds as number[] } },
+        select: { id: true, name: true },
+      });
+      groups.forEach((g: any) => groupMap.set(g.id, g.name));
+    }
+
+    const submittedByIds = [...new Set(applications.map((a: any) => a.submitted_by).filter(Boolean))];
+    const userMap = new Map<number, { username: string; email: string }>();
+    if (submittedByIds.length > 0) {
+      const users = await prisma.user.findMany({
+        where: { user_id: { in: submittedByIds as number[] } },
+        select: { user_id: true, username: true, email: true },
+      });
+      users.forEach((u: any) => userMap.set(u.user_id, u));
+    }
+
+    const enriched = applications.map((app: any) => ({
+      ...app,
+      tenant_group: app.tenant_group_id ? { name: groupMap.get(app.tenant_group_id) || "Unknown Region" } : { name: "Unassigned" },
+      submitted_by_user: userMap.get(app.submitted_by) || null,
+    }));
+
+    let filtered = enriched;
 
     if (filters?.search) {
       const searchLower = filters.search.toLowerCase();
-      filtered = applications.filter(
+      filtered = enriched.filter(
         (app: any) =>
           app.tenant_name.toLowerCase().includes(searchLower) ||
           app.applicant_name?.toLowerCase().includes(searchLower) ||
@@ -690,9 +717,7 @@ export async function exportFinancialReportCSV(params: {
         filename = `members-export-${new Date().toISOString().split("T")[0]}.csv`;
         break;
     }
-
-    const result = await prisma.$queryRaw`${query}`;
-
+    const result = await prisma.$queryRawUnsafe(query);
     // Generate CSV content
     const data = Array.isArray(result) ? result : [];
     if (data.length === 0) {
@@ -869,6 +894,27 @@ export async function createPlatformAnnouncement(data: {
       },
     });
 
+    // Send notifications to target audience when published
+    if (data.isPublished !== false) {
+      try {
+        const targetUsers = await getTargetUsersForAnnouncement(data.targetAudience);
+        for (const user of targetUsers) {
+          await prisma.notification.create({
+            data: {
+              user_id: user.user_id,
+              type: "tenant_announcement",
+              title: data.title,
+              body: data.content.substring(0, 200),
+              action_url: "/agapay-pintig",
+              channel: "in_app",
+            },
+          });
+        }
+      } catch (notifyErr) {
+        console.error("Failed to send announcement notifications:", notifyErr);
+      }
+    }
+
     return {
       success: true,
       data: announcement,
@@ -880,6 +926,23 @@ export async function createPlatformAnnouncement(data: {
       error: "Failed to create announcement",
     };
   }
+}
+
+async function getTargetUsersForAnnouncement(audience: string) {
+  if (audience === "all") {
+    return prisma.$queryRaw`
+      SELECT user_id FROM users WHERE status = 'active'
+    ` as Promise<{ user_id: number }[]>;
+  } else if (audience === "admins") {
+    return prisma.$queryRaw`
+      SELECT user_id FROM users WHERE role IN ('operator', 'superadmin') AND status = 'active'
+    ` as Promise<{ user_id: number }[]>;
+  } else if (audience === "members") {
+    return prisma.$queryRaw`
+      SELECT user_id FROM users WHERE role = 'member' AND status = 'active'
+    ` as Promise<{ user_id: number }[]>;
+  }
+  return [];
 }
 
 export async function publishPlatformAnnouncement(announcementId: number) {

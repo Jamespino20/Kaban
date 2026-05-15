@@ -2,14 +2,13 @@
 
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { MessageSquare, ShieldCheck, Award, Calendar } from "lucide-react";
+import { MessageSquare, ShieldCheck, Calendar } from "lucide-react";
 
 type ProfileData = {
   userId: number;
   name: string;
   role: string;
   subtitle?: string;
-  averageVouchScore?: number;
   joinedAt?: string;
   loanCount?: number;
   trustTier?: string;
@@ -45,17 +44,6 @@ export function MemberProfilePopup({
             <p className="text-sm text-slate-600 text-center">{profile.subtitle}</p>
           )}
           <div className="grid grid-cols-2 gap-3">
-            {profile.averageVouchScore !== undefined && (
-              <div className="rounded-2xl bg-emerald-50 p-3 text-center">
-                <Award className="mx-auto h-5 w-5 text-emerald-600" />
-                <p className="mt-1 text-lg font-bold text-emerald-700">
-                  {profile.averageVouchScore.toFixed(1)}
-                </p>
-                <p className="text-[10px] uppercase tracking-wider text-emerald-500">
-                  Vouch Score
-                </p>
-              </div>
-            )}
             {profile.trustTier && (
               <div className="rounded-2xl bg-blue-50 p-3 text-center">
                 <ShieldCheck className="mx-auto h-5 w-5 text-blue-600" />

@@ -162,8 +162,7 @@ export async function enforceLoanDefault(
 
   const eligibleGuarantees = loan.guarantees.filter(
     (guarantee) =>
-      guarantee.status === GuaranteeStatus.pending ||
-      guarantee.status === GuaranteeStatus.vouched,
+      guarantee.status === GuaranteeStatus.pending,
   );
 
   if (loan.status !== LoanStatus.defaulted) {

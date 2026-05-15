@@ -1,10 +1,10 @@
-import { Skeleton } from "@/components/ui/skeleton";
 import { TrendingUp, Clock, Info } from "lucide-react";
 import { KPIMetricCard } from "@/components/analytics/kpi-metric-card";
 import { TrustMeter } from "@/components/analytics/trust-meter";
 import { getSuperadminOverview } from "@/actions/superadmin-actions";
 import { InterestTier } from "@prisma/client";
 import { TrustScoreBreakdown } from "@/lib/trust-engine";
+import { AiInsightCard } from "@/components/admin/ai-insight-card";
 
 export default async function SuperadminOverviewTab() {
   const overviewData = (await getSuperadminOverview()) as any;
@@ -117,31 +117,7 @@ export default async function SuperadminOverviewTab() {
         </div>
 
         {/* AI Snapshot Summary */}
-        <div className="dashboard-card bg-white/70 backdrop-blur-xl p-6">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-xl font-display font-bold text-slate-900">
-              AI Platform Insights
-            </h3>
-            <Info className="h-4 w-4 text-slate-400" />
-          </div>
-          {data.aiSnapshot ? (
-            <div className="space-y-3">
-              <p className="text-slate-800">
-                {data.aiSnapshot.output_text || "No summary available."}
-              </p>
-              <p className="text-slate-500 text-sm">
-                Generated:{" "}
-                {new Date(data.aiSnapshot.created_at).toLocaleDateString()}
-              </p>
-            </div>
-          ) : (
-            <div className="text-center py-6">
-              <p className="text-slate-500">Generating AI insights...</p>
-              <Skeleton className="h-4 w-32 mt-2" />
-              <Skeleton className="h-4 w-24 mt-1" />
-            </div>
-          )}
-        </div>
+        <AiInsightCard />
       </div>
     </div>
   );

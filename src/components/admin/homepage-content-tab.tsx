@@ -7,20 +7,25 @@ import {
   reviewHomepageTestimonialProposal,
   submitHomepageFaqProposal,
   submitHomepageTestimonialProposal,
+  updateTenantMetadata,
 } from "@/actions/site-content";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
-
   BellRing,
   Clock3,
-
   MessageSquareWarning,
   ShieldCheck,
   Trash2,
+  Image,
+  Eye,
+  EyeOff,
+  Globe,
+  Target,
+  Camera,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useMemo, useState, useTransition } from "react";
+import { useMemo, useState, useTransition, useRef } from "react";
 import { toast } from "sonner";
 
 type HomepageFaqRecord = {
@@ -59,16 +64,67 @@ export function HomepageContentTab({
   role,
   faqs,
   testimonials,
+  initialVision,
+  initialMission,
 }: {
   role: string;
   faqs: HomepageFaqRecord[];
   testimonials: HomepageTestimonialRecord[];
+  initialVision?: string;
+  initialMission?: string;
 }) {
+  const [vision, setVision] = useState(initialVision ?? "");
+  const [mission, setMission] = useState(initialMission ?? "");
+  const [showHero, setShowHero] = useState(true);
+  const [showFaqs, setShowFaqs] = useState(true);
+  const [showTestimonials, setShowTestimonials] = useState(true);
+  const [showStats, setShowStats] = useState(true);
+  const [heroTagline, setHeroTagline] = useState("Iyong Agapay, Ating Tagumpay");
+  const [heroSubtitle, setHeroSubtitle] = useState(
+    "Transparent cooperative finance powered by Agapay.",
+  );
+  const [heroMediaUrl, setHeroMediaUrl] = useState("");
+  const [navIconUrl, setNavIconUrl] = useState("");
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [savingMeta, startMetaTransition] = useTransition();
+  const router = useRouter();
   const faqGroups = useMemo(() => groupByStatus(faqs), [faqs]);
   const testimonialGroups = useMemo(
     () => groupByStatus(testimonials),
     [testimonials],
   );
+
+  const handleNavIconUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onloadend = () => setNavIconUrl(reader.result as string);
+    reader.readAsDataURL(file);
+  };
+
+  const handleSaveMeta = () => {
+    startMetaTransition(async () => {
+      const res = await updateTenantMetadata({
+        vision,
+        mission,
+        tagline: heroTagline,
+        heroSubheadline: heroSubtitle,
+        heroMediaUrl,
+        navIconUrl,
+        sectionVisibility: {
+          hero: showHero,
+          faqs: showFaqs,
+          testimonials: showTestimonials,
+          stats: showStats,
+        },
+      });
+      if (res?.error) toast.error(res.error);
+      else {
+        toast.success("Homepage settings saved");
+        router.refresh();
+      }
+    });
+  };
 
   return (
     <div className="grid grid-cols-1 2xl:grid-cols-5 gap-8">
@@ -79,6 +135,149 @@ export function HomepageContentTab({
             rejectedTestimonials={testimonialGroups.rejected}
           />
         )}
+
+        {/* Hero Content Editor */}
+        <ContentSectionCard
+          title="Hero Content"
+          description="Edit the hero banner tagline, subtitle, and media for the homepage."
+        >
+          <div className="space-y-4">
+            <div className="flex items-center gap-3">
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={showHero}
+                  onChange={(e) => setShowHero(e.target.checked)}
+                  className="w-4 h-4 rounded text-emerald-600"
+                />
+                {showHero ? <Eye className="w-4 h-4 text-emerald-600" /> : <EyeOff className="w-4 h-4 text-slate-400" />}
+                <span className="text-sm font-medium text-slate-700">Visible</span>
+              </label>
+            </div>
+            <Input
+              value={heroTagline}
+              onChange={(e) => setHeroTagline(e.target.value)}
+              placeholder="Hero tagline (e.g. Iyong Agapay, Ating Tagumpay)"
+              className="rounded-xl"
+            />
+            <textarea
+              value={heroSubtitle}
+              onChange={(e) => setHeroSubtitle(e.target.value)}
+              placeholder="Hero subtitle / description"
+              className="w-full min-h-[60px] rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm"
+            />
+            <Input
+              value={heroMediaUrl}
+              onChange={(e) => setHeroMediaUrl(e.target.value)}
+              placeholder="Hero image or video URL (optional)"
+              className="rounded-xl"
+            />
+            {role === "superadmin" && (
+              <Button
+                size="sm"
+                disabled={savingMeta}
+                onClick={handleSaveMeta}
+                className="rounded-xl bg-emerald-600 text-white hover:bg-emerald-700"
+              >
+                Save Hero Content
+              </Button>
+            )}
+          </div>
+        </ContentSectionCard>
+
+        {/* Vision & Mission Editor */}
+        <ContentSectionCard
+          title="Vision & Mission"
+          description="Set the platform or tenant vision and mission statements."
+        >
+          <div className="space-y-4">
+            <div>
+              <label className="text-xs font-bold uppercase tracking-widest text-slate-500 flex items-center gap-1 mb-2">
+                <Target className="w-3 h-3" /> Mission
+              </label>
+              <textarea
+                value={mission}
+                onChange={(e) => setMission(e.target.value)}
+                placeholder="Enter mission statement..."
+                className="w-full min-h-[60px] rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm"
+              />
+            </div>
+            <div>
+              <label className="text-xs font-bold uppercase tracking-widest text-slate-500 flex items-center gap-1 mb-2">
+                <Globe className="w-3 h-3" /> Vision
+              </label>
+              <textarea
+                value={vision}
+                onChange={(e) => setVision(e.target.value)}
+                placeholder="Enter vision statement..."
+                className="w-full min-h-[60px] rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm"
+              />
+            </div>
+            {role === "superadmin" && (
+              <Button
+                size="sm"
+                disabled={savingMeta}
+                onClick={handleSaveMeta}
+                className="rounded-xl bg-emerald-600 text-white hover:bg-emerald-700"
+              >
+                Save Vision & Mission
+              </Button>
+            )}
+          </div>
+        </ContentSectionCard>
+
+        {/* Section Visibility Toggles */}
+        <ContentSectionCard
+          title="Section Visibility"
+          description="Toggle visibility of homepage sections."
+        >
+          <div className="space-y-3">
+            {[
+              { key: "hero", label: "Hero Section", state: showHero, setter: setShowHero },
+              { key: "faqs", label: "FAQs Section", state: showFaqs, setter: setShowFaqs },
+              { key: "testimonials", label: "Testimonials Section", state: showTestimonials, setter: setShowTestimonials },
+              { key: "stats", label: "Stats Section", state: showStats, setter: setShowStats },
+            ].map((section) => (
+              <label key={section.key} className="flex items-center justify-between p-3 rounded-xl border border-slate-100 bg-slate-50 cursor-pointer hover:bg-slate-100 transition-colors">
+                <span className="text-sm font-medium text-slate-700">{section.label}</span>
+                <input
+                  type="checkbox"
+                  checked={section.state}
+                  onChange={(e) => section.setter(e.target.checked)}
+                  className="w-4 h-4 rounded text-emerald-600"
+                />
+              </label>
+            ))}
+          </div>
+        </ContentSectionCard>
+
+        {/* Platform Navbar Icon */}
+        <ContentSectionCard
+          title="Platform Navbar Icon"
+          description="Upload or change the platform navbar icon (favicon / logo)."
+        >
+          <div className="flex items-center gap-4">
+            <div className="h-12 w-12 rounded-xl border border-dashed border-slate-200 bg-slate-50 flex items-center justify-center overflow-hidden">
+              {navIconUrl ? (
+                <img src={navIconUrl} className="h-full w-full object-contain" />
+              ) : (
+                <Camera className="h-5 w-5 text-slate-300" />
+              )}
+            </div>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              onChange={handleNavIconUpload}
+              className="text-sm"
+            />
+            {navIconUrl && (
+              <Button size="sm" variant="outline" onClick={() => setNavIconUrl("")}>
+                Clear
+              </Button>
+            )}
+          </div>
+        </ContentSectionCard>
 
         <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
           <ContentSectionCard
@@ -138,7 +337,15 @@ export function HomepageContentTab({
             </span>
           </div>
           <div className="h-[700px] w-full">
-            <MockHomepagePreview />
+            <MockHomepagePreview
+              branding={{
+                logoUrl: navIconUrl || undefined,
+              }}
+              content={{
+                heroHeadline: heroTagline,
+                heroSubheadline: heroSubtitle,
+              }}
+            />
           </div>
           <div className="p-4 rounded-2xl bg-slate-100 border border-slate-200">
             <p className="text-xs text-slate-500 font-medium leading-relaxed">

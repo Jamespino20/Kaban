@@ -5,10 +5,9 @@ import { determineInterestTierFromScore } from "@/lib/microfinance-policy";
 /**
  * Agapay Socio-Economic Trust Engine
  * Logic weightage based on AGAPAY.md 4.1:
- * - Payment Reliability: 40%
- * - Business Performance: 20%
- * - Peer Reviews (Social Vouch): 20%
- * - Guarantor Feedback: 20%
+ * - Payment Reliability: 50%
+ * - Business & Savings: 25%
+ * - Guarantor Feedback: 25%
  */
 
 export interface TrustScoreBreakdown {
@@ -38,7 +37,7 @@ export async function calculateTrustScore(
           payments: true,
         },
       },
-      social_vouches_received: true,
+      // social_vouches_received: true, // REMOVED: vouch system dropped
       guarantees: {
         where: tenantId ? { loan: { tenant_id: tenantId } } : undefined,
         include: {
@@ -80,38 +79,20 @@ export async function calculateTrustScore(
   if (user.loans.some((l: any) => l.status === "active")) businessScore += 10;
   businessScore = Math.min(100, businessScore);
 
-  // 3. Peer Reviews (Social Vouch) (20%)
-  // Average score from SocialVouch model
-  let peerScore = 50;
-  if (user.social_vouches_received.length > 0) {
-    const avgVouch =
-      user.social_vouches_received.reduce(
-        (acc: number, v: any) => acc + v.score,
-        0,
-      ) / user.social_vouches_received.length;
-    peerScore = (avgVouch / 10) * 100; // Assuming 1-10 scale
-  }
-
-  // 4. Guarantor Feedback (20%)
-  // How many people have vouched for them successfully vs defaults
+  // 3. Guarantor Feedback (25%)
   let guarantorScore = 60;
-  const vouchedGuarantees = user.guarantees.filter(
-    (g: any) => g.status === "vouched",
-  );
   const chargedGuarantees = user.guarantees.filter(
-    (g: any) => g.status === "charged" || g.loan.status === "defaulted",
+    (g: any) => g.status === "charged" || g.loan?.status === "defaulted",
   );
-  guarantorScore += vouchedGuarantees.length * 10;
   guarantorScore -= chargedGuarantees.length * 15;
   guarantorScore = Math.min(100, guarantorScore);
   guarantorScore = Math.max(0, guarantorScore);
 
-  // Final Weighted Calculation
+  // Final Weighted Calculation (Peer reviews removed — weight redistributed)
   const finalScore =
-    paymentScore * 0.4 +
-    businessScore * 0.2 +
-    peerScore * 0.2 +
-    guarantorScore * 0.2;
+    paymentScore * 0.50 +
+    businessScore * 0.25 +
+    guarantorScore * 0.25;
 
   // Determine Tier (AGAPAY.md 3.3)
   const tier = determineInterestTierFromScore(finalScore);
@@ -120,7 +101,7 @@ export async function calculateTrustScore(
     score: Math.round(finalScore),
     paymentScore: Math.round(paymentScore),
     businessScore: Math.round(businessScore),
-    peerScore: Math.round(peerScore),
+    peerScore: 50,
     guarantorScore: Math.round(guarantorScore),
     tier,
   };

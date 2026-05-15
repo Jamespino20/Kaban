@@ -53,6 +53,8 @@ interface TenantApplication {
   reviewed_at: Date | null;
   review_notes: string | null;
   attached_documents: any;
+  payment_amount: string | null;
+  payment_proof_url: string | null;
   tenant_group: {
     name: string;
   };
@@ -329,6 +331,33 @@ export function SuperadminApprovalsTab({ initialApplications = [] }: ApprovalsTa
                       </div>
                     </div>
                   </div>
+
+                  {/* Payment Details */}
+                  {(app.payment_amount || app.payment_proof_url) && (
+                    <div className="mt-4 p-4 rounded-2xl bg-amber-50 border border-amber-200 space-y-2">
+                      <h4 className="font-bold text-amber-800 text-sm flex items-center gap-2">
+                        <span>💰</span> Payment Received
+                      </h4>
+                      {app.payment_amount && (
+                        <p className="text-sm text-amber-900">
+                          <span className="font-semibold">Amount:</span> ₱
+                          {Number(app.payment_amount).toLocaleString()}
+                        </p>
+                      )}
+                      {app.payment_proof_url && (
+                        <div>
+                          <a
+                            href={app.payment_proof_url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-sm text-blue-600 underline font-semibold inline-flex items-center gap-1"
+                          >
+                            View Payment Proof
+                          </a>
+                        </div>
+                      )}
+                    </div>
+                  )}
                   
                   {app.status === "pending" && (
                     <div className="flex gap-2 mt-6">

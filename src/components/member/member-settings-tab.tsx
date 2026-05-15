@@ -30,6 +30,9 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { toast } from "sonner";
+import { useRouter } from "next/navigation";
+import { updatePersonalInfo } from "@/actions/member-profile";
+import { uploadIdPicture } from "@/actions/upload";
 import {
   Form,
   FormControl,
@@ -263,21 +266,40 @@ export function MemberSettingsTab({
     } catch { /* ignore */ }
   }, []);
 
-  const handleSubmitProfile = (values: ProfileFormValues) => {
-    toast.success("Profile updated successfully");
+  const router = useRouter();
+
+  const handleSubmitProfile = async (values: ProfileFormValues) => {
+    const res = await updatePersonalInfo({
+      email: values.email,
+      phone: values.phone,
+      occupation: values.occupation,
+      businessName: values.businessName,
+    });
+    if (res.error) {
+      toast.error(res.error);
+    } else {
+      toast.success(res.success || "Profile updated successfully");
+      clearPersistence();
+      router.refresh();
+    }
   };
 
-  const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      const dataUrl = event.target?.result as string;
-      setAvatarPreview(dataUrl);
-      localStorage.setItem("agapay_avatar_url", dataUrl);
-      toast.success("Profile image updated");
-    };
-    reader.readAsDataURL(file);
+
+    const formData = new FormData();
+    formData.append("file", file);
+    const res = await uploadIdPicture(formData);
+    if (res.success && res.url) {
+      setAvatarPreview(res.url);
+      localStorage.setItem("agapay_avatar_url", res.url);
+      const updateRes = await updatePersonalInfo({ photoUrl: res.url });
+      if (updateRes.error) toast.error(updateRes.error);
+      else toast.success("Profile image updated");
+    } else {
+      toast.error(res.error || "Failed to upload image");
+    }
   };
 
   const handleDeactivation = () => {

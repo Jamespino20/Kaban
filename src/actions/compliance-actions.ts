@@ -106,7 +106,7 @@ export const submitCoopApplication = async (values: {
         ticket_number: ticketNumber,
         ticket_type: "FEEDBACK",
         tenant_id: null,
-        requester_id: 0, // Using 0 for Guest/Public submissions
+        requester_id: null,
         category: "general_support",
         subject: `New Cooperative Application: ${values.name}`,
         description: `Region: ${values.region}\nMembers: ${values.membersCount}\nPhone: ${values.phone}\nPlan: ${planLabel}\n\nMessage: ${values.message}${billingNotes}`,

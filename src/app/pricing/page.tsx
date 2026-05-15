@@ -9,8 +9,8 @@ import Link from "next/link";
 const SUBSCRIPTION_PLANS = [
   {
     name: "Agapay Core",
-    price: "₱2,500",
-    interval: "per month",
+    price: "₱3,500",
+    interval: "3 months",
     description:
       "For cooperatives just getting started and small lending teams.",
     icon: Building,
@@ -28,8 +28,8 @@ const SUBSCRIPTION_PLANS = [
   },
   {
     name: "Agapay Pro",
-    price: "₱4,500",
-    interval: "per month",
+    price: "₱6,500",
+    interval: "6 months",
     description: "For growing cooperatives that need advanced analytics.",
     icon: Zap,
     features: [
@@ -47,8 +47,8 @@ const SUBSCRIPTION_PLANS = [
   },
   {
     name: "Agapay Enterprise",
-    price: "Custom",
-    interval: "per year",
+    price: "₱12,000",
+    interval: "12 months",
     description: "For larger institutions. Limitless capacity.",
     icon: Shield,
     features: [

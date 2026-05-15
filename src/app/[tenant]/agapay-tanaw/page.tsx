@@ -53,7 +53,7 @@ import { SuperadminCommunityTab } from "@/components/admin/superadmin-community-
 import { CommunityOperationsTab } from "@/components/admin/community-operations-tab";
 import { CommunityTab } from "@/components/member/community-tab";
 import { OperatorVaultTab } from "@/components/admin/operator-vault-tab";
-import { AISnapshotSummary } from "@/components/admin/ai-snapshot-summary";
+import { AiInsightCard } from "@/components/admin/ai-insight-card";
 import { TanawPollingWrapper } from "@/components/admin/tanaw-polling-wrapper";
 import { ReconciliationTab } from "@/components/admin/reconciliation-tab";
 import { SubscriptionSettings } from "@/components/admin/subscription-settings";
@@ -62,6 +62,7 @@ import { getPendingTopUps } from "@/actions/wallet-actions";
 import { SystemHealthTab } from "@/components/admin/system-health-tab";
 import { ApprovalsQueueModule } from "@/components/admin/approvals-queue-module";
 import { SupportAnalyticsModule } from "@/components/admin/support-analytics-module";
+import { AnalyticsDashboardTab } from "@/components/admin/analytics-dashboard-tab";
 import SuperadminOverviewTab from "@/components/admin/superadmin-overview-tab";
 import { SuperadminApprovalsTab } from "@/components/admin/superadmin-approvals-tab";
 import { AuditLogViewer } from "@/components/admin/audit-log-viewer";
@@ -151,7 +152,7 @@ export default async function AgapayTanawPage(props: {
 
   const homepageContent = canManageHomepageContent
     ? await getHomepageContentAdmin()
-    : { faqs: [], testimonials: [] };
+    : { faqs: [], testimonials: [], vision: "", mission: "" };
   const feedbackEntries = canViewFeedback ? await getFeedbackEntries() : [];
   const [allPlansRes, allTenantSubsRes] = isSuperAdmin
     ? await Promise.all([
@@ -354,6 +355,12 @@ export default async function AgapayTanawPage(props: {
       icon: "feedback",
       category: "Support & Analytics",
     },
+    ...(isFeatureEnabled("analytics") ? [{
+      value: "analytics" as const,
+      label: "Growth Analytics",
+      icon: "analytics" as const,
+      category: "Support & Analytics",
+    }] : []),
 
     // 7. System (bottom)
     {
@@ -452,8 +459,42 @@ export default async function AgapayTanawPage(props: {
             )}
 
             {!isGlobalSuperadminView && (
+              <>
+                {/* Member Growth & Metric Bars */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <KPIMetricCard
+                    label="Total Members"
+                    value={members.length}
+                    iconName="users"
+                    description="Registered cooperative members"
+                  />
+                  <div className="dashboard-card p-5 flex flex-col justify-center">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Active Loans</span>
+                      <span className="text-sm font-bold text-slate-900">{metrics.activeLoans}</span>
+                    </div>
+                    <div className="h-3 w-full bg-slate-100 rounded-full overflow-hidden">
+                      <div className="h-full bg-emerald-500 rounded-full transition-all" style={{ width: `${Math.min(100, (metrics.activeLoans / 200) * 100)}%` }} />
+                    </div>
+                    <p className="text-[10px] text-slate-400 mt-1.5">{metrics.activeLoans > 0 ? `${metrics.activeLoans} loans currently active` : "No active loans"}</p>
+                  </div>
+                  <div className="dashboard-card p-5 flex flex-col justify-center">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Repayment Rate</span>
+                      <span className="text-sm font-bold text-emerald-600">{metrics.repaymentRate.toFixed(1)}%</span>
+                    </div>
+                    <div className="h-3 w-full bg-slate-100 rounded-full overflow-hidden">
+                      <div className="h-full bg-blue-500 rounded-full transition-all" style={{ width: `${metrics.repaymentRate}%` }} />
+                    </div>
+                    <p className="text-[10px] text-slate-400 mt-1.5">{metrics.repaymentRate >= 80 ? "Healthy repayment culture" : "Needs collection attention"}</p>
+                  </div>
+                </div>
+              </>
+            )}
+
+            {!isGlobalSuperadminView && (
               <div className="mb-6">
-                <AISnapshotSummary />
+                <AiInsightCard compact />
               </div>
             )}
 
@@ -525,6 +566,7 @@ export default async function AgapayTanawPage(props: {
                 pendingTopUps={pendingTopUps as any}
                 compassionActions={pendingData.compassion || []}
                 isOperator={isOperator}
+                compassionEnabled={isFeatureEnabled("compassion")}
               />
             </TabsContent>
           )}
@@ -558,6 +600,13 @@ export default async function AgapayTanawPage(props: {
               </TabsContent>
               <TabsContent value="reconciliation" className="outline-none">
                 <ReconciliationTab />
+              </TabsContent>
+              <TabsContent value="analytics" className="outline-none">
+                {isFeatureEnabled("analytics") ? (
+                  <AnalyticsDashboardTab />
+                ) : (
+                  <RestrictedAccess moduleName="Analytics" />
+                )}
               </TabsContent>
             </>
           )}
@@ -666,6 +715,8 @@ export default async function AgapayTanawPage(props: {
                     role={userRole}
                     faqs={homepageContent.faqs}
                     testimonials={homepageContent.testimonials}
+                    initialVision={(homepageContent as any).vision}
+                    initialMission={(homepageContent as any).mission}
                   />
                 ) : null}
               </div>
@@ -714,7 +765,7 @@ export default async function AgapayTanawPage(props: {
                   </div>
                 ) : null}
 
-                {tenantContextId && (isOperator || isSuperAdmin) && (
+                {tenantContextId && isOperator && (
                   <div className="flex justify-center -mx-4 md:mx-0">
                     <SubscriptionSettings
                       tenantId={tenantContextId}

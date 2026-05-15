@@ -16,6 +16,7 @@ import {
   X,
 } from "lucide-react";
 import { requestWalletTopUp } from "@/actions/wallet-actions";
+import { createIssueTicket } from "@/actions/support-tickets";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -56,6 +57,7 @@ export function WalletTab({ savings, transactions }: WalletTabProps) {
   const [referenceNumber, setReferenceNumber] = useState("");
   const [proofFile, setProofFile] = useState<File | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [reportingTxId, setReportingTxId] = useState<number | null>(null);
 
   const formatCurrency = (val: number) =>
     new Intl.NumberFormat("en-PH", {
@@ -456,13 +458,15 @@ export function WalletTab({ savings, transactions }: WalletTabProps) {
         </CardHeader>
         <CardContent className="p-4">
           <div className="space-y-3">
-            {transactions.length > 0 ? (
+              {transactions.length > 0 ? (
               transactions.map((tx: any) => {
                 const tone = getTransactionTone(tx.transaction_type);
+                const txId = tx.transaction_id || tx.id;
+                const isReporting = reportingTxId === txId;
 
                 return (
                   <div
-                    key={tx.id}
+                    key={txId}
                     className="rounded-2xl border border-slate-100 bg-slate-50 px-4 py-3"
                   >
                     <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
@@ -487,16 +491,42 @@ export function WalletTab({ savings, transactions }: WalletTabProps) {
                         </div>
                       </div>
 
-                      <div className="text-left md:text-right">
-                        <p
-                          className={`text-lg font-display font-bold ${tone.amount}`}
+                      <div className="flex items-center gap-3 text-left md:text-right">
+                        <div>
+                          <p
+                            className={`text-lg font-display font-bold ${tone.amount}`}
+                          >
+                            {tone.sign}
+                            {formatCurrency(Number(tx.amount))}
+                          </p>
+                          <p className="text-[10px] uppercase tracking-[0.16em] text-slate-400">
+                            processed
+                          </p>
+                        </div>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          disabled={isReporting}
+                          onClick={async () => {
+                            setReportingTxId(txId);
+                            const res = await createIssueTicket({
+                              subject: "Wallet Transaction Issue",
+                              description: `I have an issue with transaction ${tx.reference || `#${txId}`}.`,
+                              category: "wallet_issue",
+                              relatedEntityType: "savings_transaction",
+                              relatedEntityId: String(txId),
+                            });
+                            setReportingTxId(null);
+                            if (res.success) {
+                              toast.success(res.success);
+                            } else {
+                              toast.error(res.error || "Failed to report issue.");
+                            }
+                          }}
+                          className="rounded-xl text-[10px] text-rose-500 hover:text-rose-700 hover:bg-rose-50 border border-rose-200"
                         >
-                          {tone.sign}
-                          {formatCurrency(Number(tx.amount))}
-                        </p>
-                        <p className="text-[10px] uppercase tracking-[0.16em] text-slate-400">
-                          processed
-                        </p>
+                          Report
+                        </Button>
                       </div>
                     </div>
                   </div>

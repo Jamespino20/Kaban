@@ -75,7 +75,7 @@ export const ConsentDashboard = ({
               {[
                 "Name, Profile Photo, and Gender",
                 "Loan and Payment History",
-                "Trust Score and Vouch History",
+                "Trust Score History",
                 "Business Performance Metrics",
               ].map((item, i) => (
                 <li

@@ -267,11 +267,6 @@ export async function getCommunityDashboardData() {
         },
         include: {
           profile: true,
-          social_vouches_received: {
-            select: {
-              score: true,
-            },
-          },
         },
         orderBy: [{ role: "asc" }, { created_at: "desc" }],
         take: 16,
@@ -385,13 +380,6 @@ export async function getCommunityDashboardData() {
           user.profile?.business_name ||
           user.profile?.occupation ||
           "Ka-Agapay",
-        averageVouchScore:
-          user.social_vouches_received.length > 0
-            ? user.social_vouches_received.reduce(
-                (sum: number, item: any) => sum + item.score,
-                0,
-              ) / user.social_vouches_received.length
-            : null,
       })),
       mentorships: mentorships.map((connection: any) => ({
         id: connection.id,
@@ -595,6 +583,17 @@ export async function getConversationThread(
           message.sender.profile?.last_name
             ? `${message.sender.profile.first_name} ${message.sender.profile.last_name}`
             : message.sender.username,
+        senderRole: message.sender.role,
+        senderProfile: message.sender.profile
+          ? {
+              firstName: message.sender.profile.first_name || null,
+              lastName: message.sender.profile.last_name || null,
+              subtitle:
+                message.sender.profile.business_name ||
+                message.sender.profile.occupation ||
+                null,
+            }
+          : null,
         createdAt: message.created_at,
         replyTo: message.reply_to
           ? {

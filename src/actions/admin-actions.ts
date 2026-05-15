@@ -191,13 +191,13 @@ export async function getTenantMembers() {
             document_type: true,
           },
         },
-        social_vouches_received: {
-          select: {
-            id: true,
-            status: true,
-            score: true,
-          },
-        },
+        // social_vouches_received: { // REMOVED: vouch system dropped
+        //   select: {
+        //     id: true,
+        //     status: true,
+        //     score: true,
+        //   },
+        // },
       },
       orderBy: {
         created_at: "desc",

@@ -282,8 +282,8 @@ function PendingLoansSection({ loans }: { loans: any[] }) {
               value: String(loan.user?.trust_score ?? "Pending"),
             },
             {
-              label: "Vouch Score",
-              value: String(loan.user?.vouch_score ?? "Pending"),
+              label: "Trust Score",
+              value: String(loan.user?.trust_score ?? "N/A"),
             },
             {
               label: "Cadence / Term",
@@ -439,40 +439,121 @@ function IdentityVerificationSection({
       emptyMessage="No identity checks are waiting for review."
     >
       {verifications.map((user: any) => (
-        <QueueCard
-          key={user.user_id}
-          accent="slate"
-          summary={
-            <ApplicantSummary
-              firstName={user.profile?.first_name}
-              lastName={user.profile?.last_name}
-              subtitle={user.member_code || "Membership code pending"}
-            />
-          }
-          meta={[
-            {
-              label: "Uploaded IDs",
-              value: `${user.documents.length} file(s)`,
-            },
-            {
-              label: "Status",
-              value: user.status?.replaceAll("_", " ") || "pending",
-            },
-            { label: "Tenant", value: user.tenant?.name || "Current tenant" },
-          ]}
-          sideAction={
-            <button
-              onClick={() => toast.info("Identity verification workflow coming soon. The member's uploaded documents will be reviewed here.")}
-              className="flex h-10 w-10 items-center justify-center rounded-2xl bg-slate-50 transition-all hover:bg-primary hover:text-primary-foreground cursor-pointer"
-            >
-              <UserCheck className="h-4 w-4" />
-            </button>
-          }
-        />
+        <IdentityCard key={user.user_id} user={user} />
       ))}
     </QueueSection>
   );
 }
+
+function IdentityCard({ user }: { user: any }) {
+  const router = useRouter();
+  const [isPending, startTransition] = useTransition();
+  const [rejectOpen, setRejectOpen] = useState(false);
+  const [rejectReason, setRejectReason] = useState("");
+
+  const handleApprove = () => {
+    startTransition(async () => {
+      const { approveIdentityVerification } = await import("@/actions/identity");
+      const res = await approveIdentityVerification(user.user_id) as any;
+      if (res.error) toast.error(res.error);
+      else { toast.success(res.success); router.refresh(); }
+    });
+  };
+
+  const handleReject = () => {
+    startTransition(async () => {
+      const { rejectIdentityVerification } = await import("@/actions/identity");
+      const res = await rejectIdentityVerification(user.user_id, rejectReason.trim()) as any;
+      if (res.error) toast.error(res.error);
+      else { toast.success(res.success); setRejectOpen(false); setRejectReason(""); router.refresh(); }
+    });
+  };
+
+  return (
+    <QueueCard
+      accent="slate"
+      summary={
+        <ApplicantSummary
+          firstName={user.profile?.first_name}
+          lastName={user.profile?.last_name}
+          subtitle={user.member_code || "Membership code pending"}
+        />
+      }
+      meta={[
+        { label: "Uploaded IDs", value: `${user.documents.length} file(s)` },
+        { label: "Status", value: user.status?.replaceAll("_", " ") || "pending" },
+        { label: "Tenant", value: user.tenant?.name || "Current tenant" },
+      ]}
+      extra={
+        user.documents.length > 0 ? (
+          <div className="flex flex-wrap gap-2 pt-1">
+            {user.documents.map((doc: any) => (
+              <a
+                key={doc.document_id}
+                href={doc.file_url}
+                target="_blank"
+                className="text-xs text-sky-600 underline hover:text-sky-800"
+              >
+                {doc.document_type?.replaceAll("_", " ") || "Document"}
+              </a>
+            ))}
+          </div>
+        ) : null
+      }
+      actions={
+        <>
+          <Button
+            disabled={isPending}
+            onClick={handleApprove}
+            className="flex-1 rounded-xl bg-primary text-primary-foreground hover:bg-primary/90"
+          >
+            {isPending ? "Processing..." : "Approve"}
+          </Button>
+          <Dialog open={rejectOpen} onOpenChange={setRejectOpen}>
+            <DialogTrigger asChild>
+              <Button
+                disabled={isPending}
+                variant="outline"
+                className="flex-1 rounded-xl border-rose-200 text-rose-600 hover:bg-rose-50"
+              >
+                Reject
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-md">
+              <DialogHeader>
+                <DialogTitle>Reject Identity Verification</DialogTitle>
+                <DialogDescription>
+                  Provide a reason — this will be sent to the member so they can resubmit.
+                </DialogDescription>
+              </DialogHeader>
+              <div className="space-y-4">
+                <textarea
+                  value={rejectReason}
+                  onChange={(e) => setRejectReason(e.target.value)}
+                  placeholder="e.g., ID is blurry, barangay certificate missing..."
+                  className="min-h-24 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-rose-300"
+                />
+                <div className="flex gap-2">
+                  <Button
+                    disabled={isPending}
+                    onClick={handleReject}
+                    className="flex-1 rounded-xl bg-rose-600 text-white hover:bg-rose-700"
+                  >
+                    {isPending ? "Rejecting..." : "Confirm Reject"}
+                  </Button>
+                  <Button variant="outline" onClick={() => setRejectOpen(false)} className="rounded-xl">
+                    Cancel
+                  </Button>
+                </div>
+              </div>
+            </DialogContent>
+          </Dialog>
+        </>
+      }
+    />
+  );
+}
+
 
 function ReleaseLoanCard({ loan }: { loan: any }) {
   const router = useRouter();

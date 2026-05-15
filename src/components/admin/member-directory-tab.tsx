@@ -175,7 +175,7 @@ export function MemberDirectoryTab({
           </h2>
           <p className="max-w-3xl text-sm text-slate-500">
             Directory view for member identity, loan exposure, wallet balance,
-            document verification, vouch activity, and status controls.
+            document verification, trust scoring, and status controls.
           </p>
         </div>
         <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
@@ -272,7 +272,7 @@ export function MemberDirectoryTab({
                   Loans / Wallet
                 </th>
                 <th className="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
-                  Trust / Vouch
+                  Trust Score
                 </th>
                 <th className="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
                   Documents
@@ -311,19 +311,6 @@ export function MemberDirectoryTab({
                   const chargedGuarantees = member.guarantees.filter(
                     (guarantee: any) => guarantee.status === "charged",
                   ).length;
-                  const activeVouches = member.social_vouches_received.filter(
-                    (vouch: any) => vouch.status === "active",
-                  );
-                  const vouchScore =
-                    activeVouches.length > 0
-                      ? (
-                          activeVouches.reduce(
-                            (sum: number, vouch: any) =>
-                              sum + Number(vouch.score || 0),
-                            0,
-                          ) / activeVouches.length
-                        ).toFixed(1)
-                      : "N/A";
                   const verifiedDocuments = member.documents.filter(
                     (document: any) =>
                       document.verification_status === "verified",
@@ -411,12 +398,7 @@ export function MemberDirectoryTab({
                           <p className="font-bold text-slate-900">
                             Trust: {member.trust_score ?? "N/A"}
                           </p>
-                          <p className="text-[10px] uppercase tracking-widest text-slate-400">
-                            Vouch: {vouchScore} / 10
-                          </p>
-                          <p className="text-[10px] uppercase tracking-widest text-slate-400">
-                            Active vouches: {activeVouches.length}
-                          </p>
+
                         </div>
                       </td>
                       <td className="px-6 py-4 text-sm font-medium text-slate-600">

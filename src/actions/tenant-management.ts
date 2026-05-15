@@ -254,7 +254,7 @@ export async function decommissionTenant(tenantId: number) {
 
         const tenant = await tx.tenant.update({
           where: { tenant_id: tenantId },
-          data: { is_active: false },
+          data: { is_active: false, entitlement_status: "suspended" },
         });
 
         // 2. Extract Full Transaction History for Backup
@@ -335,7 +335,7 @@ export async function restoreTenant(tenantId: number) {
   try {
     const updated = await prisma.tenant.update({
       where: { tenant_id: tenantId },
-      data: { is_active: true },
+      data: { is_active: true, entitlement_status: "active" },
     });
 
     await prisma.auditLog.create({

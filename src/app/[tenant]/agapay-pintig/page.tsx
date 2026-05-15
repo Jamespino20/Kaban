@@ -30,6 +30,7 @@ import { MemberOnboardingDialogs } from "@/components/member/member-onboarding-d
 import { acceptConsent } from "@/actions/compliance-actions";
 import { MemberSettingsTab } from "@/components/member/member-settings-tab";
 import { SupportTab } from "@/components/member/support-tab";
+import { TrustScoreCard } from "@/components/member/trust-score-card";
 import { RestrictedAccess } from "@/components/layout/restricted-access";
 import { getUserFeedbackTickets } from "@/actions/transactional-feedback";
 import { DashboardPollingWrapper } from "@/components/member/dashboard-polling-wrapper";
@@ -100,7 +101,7 @@ export default async function AgapayPintigPage(props: {
       where: {
         user_id: userId,
         tenant_id: tenantId,
-        status: { in: ["active", "paid", "defaulted"] },
+        status: { in: ["active", "paid", "defaulted", "rejected"] },
       },
       include: {
         product: true,
@@ -424,88 +425,14 @@ export default async function AgapayPintigPage(props: {
             </div>
 
             {trustScoreSnapshot && (
-              <div className="dashboard-card p-6">
-                <div className="flex items-center justify-between mb-4">
-                  <div>
-                    <h3 className="text-sm font-bold uppercase tracking-widest text-indigo-600">
-                      Trust Score
-                    </h3>
-                    <p className="text-xs text-slate-400 mt-1">
-                      Last updated: {trustScoreDate || "N/A"}
-                    </p>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <div
-                      className={`text-4xl font-numbers font-bold ${trustScoreValue >= 700 ? "text-emerald-600" : trustScoreValue >= 400 ? "text-amber-600" : "text-red-600"}`}
-                    >
-                      {trustScoreValue}
-                    </div>
-                    <Badge
-                      variant="secondary"
-                      className="bg-indigo-50 text-indigo-700 border-none font-black text-[10px] uppercase tracking-widest px-3 py-1.5 h-auto"
-                    >
-                      {trustScoreSnapshot.tier_after?.replace(/_/g, " ") ||
-                        "N/A"}
-                    </Badge>
-                  </div>
-                </div>
-                <div className="grid grid-cols-3 gap-4">
-                  <div className="space-y-1">
-                    <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
-                      Payment
-                    </p>
-                    <div className="flex items-center gap-2">
-                      <div className="h-2 flex-1 bg-slate-100 rounded-full overflow-hidden">
-                        <div
-                          className="h-full bg-emerald-500 rounded-full"
-                          style={{
-                            width: `${Math.min(100, trustScoreSnapshot.payment_score)}%`,
-                          }}
-                        />
-                      </div>
-                      <span className="text-xs font-bold text-slate-600">
-                        {trustScoreSnapshot.payment_score}
-                      </span>
-                    </div>
-                  </div>
-                  <div className="space-y-1">
-                    <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
-                      Business
-                    </p>
-                    <div className="flex items-center gap-2">
-                      <div className="h-2 flex-1 bg-slate-100 rounded-full overflow-hidden">
-                        <div
-                          className="h-full bg-blue-500 rounded-full"
-                          style={{
-                            width: `${Math.min(100, trustScoreSnapshot.business_score)}%`,
-                          }}
-                        />
-                      </div>
-                      <span className="text-xs font-bold text-slate-600">
-                        {trustScoreSnapshot.business_score}
-                      </span>
-                    </div>
-                  </div>
-                  <div className="space-y-1">
-                    <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
-                      Peer
-                    </p>
-                    <div className="flex items-center gap-2">
-                      <div className="h-2 flex-1 bg-slate-100 rounded-full overflow-hidden">
-                        <div
-                          className="h-full bg-purple-500 rounded-full"
-                          style={{
-                            width: `${Math.min(100, trustScoreSnapshot.peer_score)}%`,
-                          }}
-                        />
-                      </div>
-                      <span className="text-xs font-bold text-slate-600">
-                        {trustScoreSnapshot.peer_score}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              </div>
+              <TrustScoreCard
+                score={trustScoreValue}
+                tierAfter={trustScoreSnapshot.tier_after}
+                paymentScore={trustScoreSnapshot.payment_score}
+                businessScore={trustScoreSnapshot.business_score}
+                peerScore={trustScoreSnapshot.peer_score}
+                lastUpdated={trustScoreDate}
+              />
             )}
 
             <div className="my-6">

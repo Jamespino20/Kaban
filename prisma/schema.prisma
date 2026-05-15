@@ -101,6 +101,8 @@ model TenantApplication {
   reviewed_at       DateTime?
   review_notes      String?
   documents         Json?
+  payment_amount    Decimal?        @db.Decimal(15, 2)
+  payment_proof_url String?         @db.VarChar(255)
   created_at         DateTime      @default(now())
   updated_at         DateTime      @updatedAt
 
@@ -145,8 +147,7 @@ model User {
   verified_payments         Payment[]                 @relation("VerifiedPayments")
   savings_accounts          SavingsAccount[]
   processed_savings         SavingsTransaction[]      @relation("ProcessedSavings")
-  social_vouches_received   SocialVouch[]             @relation("Vouchee")
-  social_vouches_sent       SocialVouch[]             @relation("Voucher")
+  // REMOVED: Vouch system dropped per PRD
   two_factor_auth           TwoFactorAuth?
   documents                 UserDocument[]
   system_files              SystemFile[]              @relation("FileUploader")
@@ -256,6 +257,8 @@ model Loan {
   applied_at              DateTime           @default(now())
   approved_at             DateTime?
   approved_by             Int?
+  paid_at                 DateTime?
+  rejection_reason        String?
   repayment_frequency     RepaymentFrequency @default(monthly)
   recovery_parent_loan_id Int?
   is_recovery_loan        Boolean            @default(false)
@@ -804,7 +807,7 @@ model LoanGuarantee {
   liability_amount           Decimal?        @db.Decimal(15, 2)
   charged_amount             Decimal         @default(0) @db.Decimal(15, 2)
   charge_reason              String?         @db.VarChar(255)
-  vouched_at                 DateTime?
+  // vouched_at — removed with vouch system
   soft_freeze_at             DateTime?
   hard_freeze_at             DateTime?
   default_triggered_at       DateTime?
@@ -926,58 +929,10 @@ model LedgerAccount {
   @@map("ledger_accounts")
 }
 
-model SocialVouch {
-  id                         Int                           @id @default(autoincrement())
-  tenant_id                  Int?
-  voucher_id                 Int
-  vouchee_id                 Int
-  requester_id               Int?
-  relationship_type          VouchRelationshipType         @default(peer)
-  score                      Int                           @default(5)
-  score_scale                Int                           @default(10)
-  score_base                 Int                           @default(10)
-  status                     VouchStatus                   @default(active)
-  discount_eligibility_state VouchDiscountEligibilityState @default(not_evaluated)
-  discount_eligible          Boolean                       @default(false)
-  trust_network_visibility   TrustNetworkVisibility        @default(tenant_network)
-  visibility_metadata        Json?
-  comment                    String?
-  expires_at                 DateTime?
-  revoked_at                 DateTime?
-  audit_log_id               Int?
-  created_at                 DateTime                      @default(now())
-  updated_at                 DateTime                      @updatedAt
-  vouchee                    User                          @relation("Vouchee", fields: [vouchee_id], references: [user_id])
-  voucher                    User                          @relation("Voucher", fields: [voucher_id], references: [user_id])
-
-  @@index([tenant_id, status, created_at])
-  @@index([voucher_id, status])
-  @@index([vouchee_id, status])
-  @@index([requester_id])
-  @@index([discount_eligibility_state])
-  @@index([trust_network_visibility])
-  @@index([audit_log_id])
-  @@map("social_vouches")
-}
-
-model VouchScoreSnapshot {
-  id                         Int                           @id @default(autoincrement())
-  tenant_id                  Int?
-  user_id                    Int
-  average_score              Decimal                       @db.Decimal(5, 2)
-  score_scale                Int                           @default(10)
-  score_base                 Int                           @default(10)
-  vouch_count                Int                           @default(0)
-  active_vouch_count         Int                           @default(0)
-  discount_eligibility_state VouchDiscountEligibilityState @default(not_evaluated)
-  discount_eligible          Boolean                       @default(false)
-  calculated_at              DateTime                      @default(now())
-  metadata                   Json?
-
-  @@index([tenant_id, user_id, calculated_at])
-  @@index([discount_eligibility_state])
-  @@map("vouch_score_snapshots")
-}
+// REMOVED: SocialVouch & VouchScoreSnapshot — vouch system dropped per PRD
+// model VouchScoreSnapshot {
+//   ...
+// }
 
 model TenantTrustPolicy {
   id                       Int      @id @default(autoincrement())
@@ -1349,7 +1304,6 @@ enum DailyReconciliationStatus {
 
 enum GuaranteeStatus {
   pending
-  vouched
   rejected
   voided
   charged
@@ -1454,28 +1408,7 @@ enum LowRatingActionState {
   tier_downgraded
 }
 
-enum VouchRelationshipType {
-  peer
-  family
-  business_partner
-  guarantor
-  mentor
-  admin_observed
-}
-
-enum VouchStatus {
-  active
-  revoked
-  expired
-  disputed
-}
-
-enum VouchDiscountEligibilityState {
-  not_evaluated
-  eligible
-  ineligible
-  suspended
-}
+// REMOVED: VouchRelationshipType, VouchStatus, VouchDiscountEligibilityState — vouch system dropped
 
 enum TrustNetworkVisibility {
   private_record
@@ -1539,6 +1472,7 @@ enum NotificationType {
   loan_defaulted
   // Repayment
   repayment_reminder
+  loan_paid
   repayment_received
   repayment_overdue
   // Guarantorship

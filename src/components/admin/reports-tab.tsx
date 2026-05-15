@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { toast } from "sonner";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import {
   Wallet,
   Users,
@@ -10,8 +11,13 @@ import {
   CreditCard,
   PieChart,
   TrendingUp,
+  Download,
+  BarChart3,
+  AlertTriangle,
+  DollarSign,
+  Percent,
 } from "lucide-react";
-import { getSuperadminReports } from "@/actions/superadmin-actions";
+import { getSuperadminReports, getCrossTenantFinancialReports, exportFinancialReportCSV } from "@/actions/superadmin-actions";
 
 type ReportsData = {
   totalTenants: number;
@@ -28,20 +34,34 @@ type ReportsData = {
   };
 };
 
+type CrossTenantFinancial = {
+  disbursedVsRepaid: any[];
+  defaultRatesByRegion: any[];
+  portfolioAtRisk: any[];
+};
+
 export function ReportsTab() {
   const [data, setData] = useState<ReportsData | null>(null);
+  const [financialData, setFinancialData] = useState<CrossTenantFinancial | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [hasError, setHasError] = useState(false);
+  const [exportingReport, setExportingReport] = useState<string | null>(null);
 
   const loadReports = async () => {
     try {
-      const res = await getSuperadminReports();
-      if (res.success && res.data) {
-        setData(res.data);
+      const [overviewRes, financialRes] = await Promise.all([
+        getSuperadminReports(),
+        getCrossTenantFinancialReports({}),
+      ]);
+      if (overviewRes.success && overviewRes.data) {
+        setData(overviewRes.data);
         setHasError(false);
       } else {
         setHasError(true);
-        toast.error(res.error || "Failed to load reports");
+        toast.error(overviewRes.error || "Failed to load reports");
+      }
+      if (financialRes.success && financialRes.data) {
+        setFinancialData(financialRes.data);
       }
     } catch {
       setHasError(true);
@@ -52,6 +72,29 @@ export function ReportsTab() {
   };
 
   useEffect(() => { loadReports(); }, []);
+
+  const handleExport = useCallback(async (reportType: "financial" | "performance" | "loans" | "members") => {
+    setExportingReport(reportType);
+    try {
+      const res = await exportFinancialReportCSV({ reportType });
+      if (res.success && res.data) {
+        const blob = new Blob([res.data.content], { type: "text/csv;charset=utf-8;" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = res.data.filename;
+        a.click();
+        URL.revokeObjectURL(url);
+        toast.success(`${reportType} report exported successfully`);
+      } else {
+        toast.error(res.error || "Failed to export report");
+      }
+    } catch {
+      toast.error("Failed to export report");
+    } finally {
+      setExportingReport(null);
+    }
+  }, []);
 
   if (isLoading) {
     return (
@@ -256,6 +299,169 @@ export function ReportsTab() {
           </Card>
         </div>
       </div>
+
+      {/* CSV Export Buttons */}
+      <div className="flex flex-wrap gap-3 items-center">
+        {(["financial", "performance", "loans", "members"] as const).map((type) => (
+          <Button
+            key={type}
+            variant="outline"
+            size="sm"
+            disabled={exportingReport === type}
+            onClick={() => handleExport(type)}
+            className="text-xs"
+          >
+            <Download className="w-3 h-3 mr-2" />
+            {exportingReport === type ? "Exporting..." : `Export ${type.charAt(0).toUpperCase() + type.slice(1)} CSV`}
+          </Button>
+        ))}
+      </div>
+
+      {/* Cross-Tenant Financial Reports */}
+      {financialData && (
+        <div className="space-y-6 mt-6">
+          <h3 className="text-xl font-bold font-display text-slate-900 flex items-center gap-2">
+            <BarChart3 className="w-5 h-5 text-emerald-600" />
+            Cross-Tenant Financial Analysis
+          </h3>
+
+          {/* Disbursed vs Repaid by Region */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg flex items-center gap-2">
+                <DollarSign className="w-5 h-5 text-emerald-500" />
+                Disbursed vs Repaid by Region
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="border-b border-slate-200">
+                      <th className="text-left py-2 px-3 font-semibold text-slate-700">Region</th>
+                      <th className="text-right py-2 px-3 font-semibold text-slate-700">Total Loans</th>
+                      <th className="text-right py-2 px-3 font-semibold text-slate-700">Disbursed</th>
+                      <th className="text-right py-2 px-3 font-semibold text-slate-700">Repaid</th>
+                      <th className="text-right py-2 px-3 font-semibold text-slate-700">Outstanding</th>
+                      <th className="text-right py-2 px-3 font-semibold text-slate-700">Avg Rate</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100">
+                    {(financialData.disbursedVsRepaid || []).length === 0 ? (
+                      <tr><td colSpan={6} className="py-4 text-center text-slate-400">No data available</td></tr>
+                    ) : (
+                      (financialData.disbursedVsRepaid || []).map((row: any, i: number) => (
+                        <tr key={i} className="hover:bg-slate-50">
+                          <td className="py-2 px-3 font-medium text-slate-900">{row.region}</td>
+                          <td className="py-2 px-3 text-right">{row.total_loans}</td>
+                          <td className="py-2 px-3 text-right text-emerald-600 font-medium">₱{Number(row.total_disbursed).toLocaleString()}</td>
+                          <td className="py-2 px-3 text-right text-blue-600 font-medium">₱{Number(row.total_repaid).toLocaleString()}</td>
+                          <td className="py-2 px-3 text-right text-amber-600 font-medium">₱{Number(row.outstanding_balance).toLocaleString()}</td>
+                          <td className="py-2 px-3 text-right">{Number(row.avg_interest_rate).toFixed(2)}%</td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              </div>
+              {/* Chart placeholder */}
+              <div className="mt-4 h-16 bg-slate-50 rounded-xl border border-dashed border-slate-200 flex items-center justify-center text-xs text-slate-400">
+                <BarChart3 className="w-4 h-4 mr-2" /> Chart visualization coming soon
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Default Rates by Region */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg flex items-center gap-2">
+                <AlertTriangle className="w-5 h-5 text-red-500" />
+                Default Rates by Region
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="border-b border-slate-200">
+                      <th className="text-left py-2 px-3 font-semibold text-slate-700">Region</th>
+                      <th className="text-right py-2 px-3 font-semibold text-slate-700">Total Loans</th>
+                      <th className="text-right py-2 px-3 font-semibold text-slate-700">Defaulted</th>
+                      <th className="text-right py-2 px-3 font-semibold text-slate-700">Default Rate</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100">
+                    {(financialData.defaultRatesByRegion || []).length === 0 ? (
+                      <tr><td colSpan={4} className="py-4 text-center text-slate-400">No data available</td></tr>
+                    ) : (
+                      (financialData.defaultRatesByRegion || []).map((row: any, i: number) => (
+                        <tr key={i} className="hover:bg-slate-50">
+                          <td className="py-2 px-3 font-medium text-slate-900">{row.region}</td>
+                          <td className="py-2 px-3 text-right">{row.total_loans}</td>
+                          <td className="py-2 px-3 text-right text-red-600 font-medium">{row.defaulted_loans}</td>
+                          <td className="py-2 px-3 text-right">
+                            <span className={`font-bold ${Number(row.default_rate_percent) > 10 ? "text-red-600" : Number(row.default_rate_percent) > 5 ? "text-amber-600" : "text-emerald-600"}`}>
+                              {Number(row.default_rate_percent).toFixed(2)}%
+                            </span>
+                          </td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              </div>
+              <div className="mt-4 h-16 bg-slate-50 rounded-xl border border-dashed border-slate-200 flex items-center justify-center text-xs text-slate-400">
+                <BarChart3 className="w-4 h-4 mr-2" /> Default rate chart coming soon
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Portfolio at Risk (PAR) */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg flex items-center gap-2">
+                <Percent className="w-5 h-5 text-amber-500" />
+                Portfolio at Risk (PAR)
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="border-b border-slate-200">
+                      <th className="text-left py-2 px-3 font-semibold text-slate-700">Region</th>
+                      <th className="text-right py-2 px-3 font-semibold text-slate-700">At Risk Amount</th>
+                      <th className="text-right py-2 px-3 font-semibold text-slate-700">Total Outstanding</th>
+                      <th className="text-right py-2 px-3 font-semibold text-slate-700">PAR %</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100">
+                    {(financialData.portfolioAtRisk || []).length === 0 ? (
+                      <tr><td colSpan={4} className="py-4 text-center text-slate-400">No data available</td></tr>
+                    ) : (
+                      (financialData.portfolioAtRisk || []).map((row: any, i: number) => (
+                        <tr key={i} className="hover:bg-slate-50">
+                          <td className="py-2 px-3 font-medium text-slate-900">{row.region}</td>
+                          <td className="py-2 px-3 text-right text-red-600 font-medium">₱{Number(row.at_risk_amount).toLocaleString()}</td>
+                          <td className="py-2 px-3 text-right">₱{Number(row.total_outstanding).toLocaleString()}</td>
+                          <td className="py-2 px-3 text-right">
+                            <span className={`font-bold ${Number(row.risk_percentage) > 15 ? "text-red-600" : Number(row.risk_percentage) > 8 ? "text-amber-600" : "text-emerald-600"}`}>
+                              {Number(row.risk_percentage).toFixed(2)}%
+                            </span>
+                          </td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              </div>
+              <div className="mt-4 h-16 bg-slate-50 rounded-xl border border-dashed border-slate-200 flex items-center justify-center text-xs text-slate-400">
+                <BarChart3 className="w-4 h-4 mr-2" /> PAR trend chart coming soon
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
     </div>
   );
 }

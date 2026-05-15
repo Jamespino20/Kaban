@@ -14,6 +14,7 @@ import {
 } from "@prisma/client";
 import { postLedgerEntry } from "./ledger";
 import { logInteraction } from "@/lib/analytics-logger";
+import { createNotification } from "@/lib/notifications";
 
 const PERSONAL_WALLET = "personal_wallet";
 
@@ -25,7 +26,7 @@ export async function approveWalletTopUp(requestId: number) {
   if (!tenantId) return { error: "Tenant context required." };
 
   try {
-    return await prisma.$withTenant(tenantId, async (tx: any) => {
+    const result = await prisma.$withTenant(tenantId, async (tx: any) => {
       // 1. Get request
       const request = await tx.topUpRequest.findUnique({
         where: { id: requestId },
@@ -36,6 +37,8 @@ export async function approveWalletTopUp(requestId: number) {
         return { error: "This top-up has already been processed automatically." };
       if (request.status !== "pending")
         return { error: "Request is not pending." };
+
+      const memberUserId = request.user_id;
 
       // 2. Mark approved
       await tx.topUpRequest.update({
@@ -104,8 +107,25 @@ export async function approveWalletTopUp(requestId: number) {
       });
 
       revalidatePath("/agapay-tanaw");
-      return { success: "Top-up request successfully approved." };
+      return { ok: true, memberUserId, amount: Number(request.amount) };
     });
+
+    if (result && "error" in result) {
+      return result;
+    }
+
+    if (result?.ok) {
+      await createNotification({
+        userId: result.memberUserId,
+        tenantId,
+        type: "wallet_deposit_approved",
+        title: "Wallet Top-Up Approved",
+        body: `Your wallet top-up of ₱${result.amount.toLocaleString()} has been approved and credited.`,
+        actionUrl: "/agapay-pintig?tab=wallet",
+      });
+    }
+
+    return { success: "Top-up request successfully approved." };
   } catch (error) {
     console.error("approveWalletTopUp failed:", error);
     return { error: `Failed to approve top-up: ${error instanceof Error ? error.message : "Unknown server error. Please try again or contact support."}` };

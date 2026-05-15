@@ -1,11 +1,11 @@
 "use client";
 
-import { useState, useTransition, useEffect, useRef } from "react";
+import { useState, useTransition, useEffect, useRef, useCallback } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { toast } from "sonner";
-import { Building2, Map, UploadCloud, X, CreditCard } from "lucide-react";
+import { Building2, Map, UploadCloud, X, CreditCard, Users } from "lucide-react";
 
 import {
   Form,
@@ -21,8 +21,10 @@ import { Label } from "@/components/ui/label";
 import { createTenant, getRegions } from "@/actions/tenant-management";
 import { getSubscriptionPlans } from "@/actions/superadmin-actions";
 import { MockHomepagePreview } from "./mock-homepage-preview";
+import { getTenantApplicationsForReview } from "@/actions/superadmin-actions";
 
 const MAX_FILE_BYTES = 5 * 1024 * 1024; // 5 MB
+const STORAGE_KEY = "agapay_tenant_draft";
 
 const TenantSchema = z.object({
   name: z.string().min(3, "Name must be at least 3 characters"),
@@ -49,6 +51,8 @@ export function CreateTenantForm({
   const [isPending, startTransition] = useTransition();
   const [regions, setRegions] = useState<{ id: number; name: string }[]>([]);
   const [plans, setPlans] = useState<any[]>([]);
+  const [pendingApplications, setPendingApplications] = useState<any[]>([]);
+  const [selectedApplicantId, setSelectedApplicantId] = useState<string>("");
   const [logoDataUrl, setLogoDataUrl] = useState<string>("");
   const [brandColor, setBrandColor] = useState("#10b981");
   const [accentColor, setAccentColor] = useState("#3b82f6");
@@ -58,6 +62,9 @@ export function CreateTenantForm({
     getRegions().then(setRegions as any);
     getSubscriptionPlans().then((r) => {
       if (r.success && r.data) setPlans(r.data);
+    });
+    getTenantApplicationsForReview({ status: "pending" }).then((r: any) => {
+      if (r.success && r.data) setPendingApplications(r.data);
     });
   }, []);
 
@@ -77,8 +84,21 @@ export function CreateTenantForm({
     },
   });
 
+  const handleSelectApplicant = useCallback((applicationId: string) => {
+    setSelectedApplicantId(applicationId);
+    if (!applicationId) return;
+    const app = pendingApplications.find((a) => a.application_id.toString() === applicationId);
+    if (!app) return;
+    form.setValue("name", app.tenant_name || "");
+    form.setValue("slug", app.tenant_slug || "");
+    form.setValue("groupId", app.tenant_group_id?.toString() || "");
+    if (app.brand_color) setBrandColor(app.brand_color);
+    if (app.accent_color) setAccentColor(app.accent_color);
+    if (app.logo_url) setLogoDataUrl(app.logo_url);
+    toast.info(`Pre-filled from "${app.tenant_name}" application`);
+  }, [pendingApplications, form]);
+
   const [isLoaded, setIsLoaded] = useState(false);
-  const STORAGE_KEY = "agapay_tenant_draft";
 
   useEffect(() => {
     const saved = localStorage.getItem(STORAGE_KEY);
@@ -122,9 +142,9 @@ export function CreateTenantForm({
         const tier = (selectedPlan.tier_name || "").toLowerCase();
         let defaultFeatures = ["loans", "wallet", "audit"];
         if (tier.includes("pro")) {
-          defaultFeatures = [...defaultFeatures, "community", "branding"];
+          defaultFeatures = [...defaultFeatures, "community", "branding", "analytics"];
         } else if (tier.includes("enterprise")) {
-          defaultFeatures = [...defaultFeatures, "community", "branding", "reports"];
+          defaultFeatures = [...defaultFeatures, "community", "branding", "reports", "analytics", "system_config", "compassion"];
         }
         form.setValue("enabledFeatures", defaultFeatures);
       }
@@ -250,6 +270,25 @@ export function CreateTenantForm({
                   </FormItem>
                 )}
               />
+            </div>
+
+            {/* Pending Applicant Selection */}
+            <div className="space-y-2">
+              <label className="text-xs font-bold uppercase tracking-widest text-slate-500">
+                <Users className="w-3 h-3 inline mr-1" /> From Pending Applicant
+              </label>
+              <select
+                value={selectedApplicantId}
+                onChange={(e) => handleSelectApplicant(e.target.value)}
+                className="w-full rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-bold text-slate-700 outline-none focus:ring-2 focus:ring-emerald-500/20"
+              >
+                <option value="">Manual entry (no applicant)</option>
+                {pendingApplications.map((a: any) => (
+                  <option key={a.application_id} value={a.application_id.toString()}>
+                    {a.tenant_name} — {a.applicant_name || a.applicant_email}
+                  </option>
+                ))}
+              </select>
             </div>
 
             {/* Plan Selection */}
@@ -400,10 +439,13 @@ export function CreateTenantForm({
                 {[
                   { id: "loans", label: "Loaning Node", icon: "💰" },
                   { id: "wallet", label: "E-Wallet", icon: "💳" },
-                  { id: "audit", label: "Audit Logs", icon: "📋" },
-                  { id: "branding", label: "Content/Branding", icon: "🎨" },
                   { id: "community", label: "Community", icon: "🤝" },
+                  { id: "branding", label: "Content/Branding", icon: "🎨" },
                   { id: "reports", label: "Analytics", icon: "📊" },
+                  { id: "audit", label: "Audit Logs", icon: "📋" },
+                  { id: "analytics", label: "Analytics", icon: "📈" },
+                  { id: "system_config", label: "System Config", icon: "⚙️" },
+                  { id: "compassion", label: "Compassion", icon: "❤️" },
                 ].map((feat) => (
                   <label
                     key={feat.id}

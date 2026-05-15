@@ -6,9 +6,9 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { Pencil, Save, X, Loader2, CreditCard, Users } from "lucide-react";
+import { Pencil, Save, X, Loader2, CreditCard, Users, Check } from "lucide-react";
 import { toast } from "sonner";
-import { updateSubscriptionPlan } from "@/actions/subscription-actions";
+import { updateSubscriptionPlan, updateTenantSubscription } from "@/actions/subscription-actions";
 
 type Plan = {
   id: number;
@@ -32,7 +32,7 @@ type TenantSub = {
     billing_cycle: string;
     start_date: Date;
     end_date: Date | null;
-    plan: { tier_name: string } | null;
+    plan: { id: number; tier_name: string } | null;
   } | null;
 };
 
@@ -43,9 +43,49 @@ interface Props {
 
 export function SubscriptionsModule({ initialPlans, initialTenants }: Props) {
   const [plans, setPlans] = useState<Plan[]>(initialPlans);
+  const [tenants, setTenants] = useState<TenantSub[]>(initialTenants);
   const [editingId, setEditingId] = useState<number | null>(null);
   const [savingId, setSavingId] = useState<number | null>(null);
   const [editForm, setEditForm] = useState<Partial<Plan> | null>(null);
+  const [editingTenantId, setEditingTenantId] = useState<number | null>(null);
+  const [editingTenantForm, setEditingTenantForm] = useState<{ status: string; billing_cycle: string; plan_id: number } | null>(null);
+  const [savingTenantId, setSavingTenantId] = useState<number | null>(null);
+
+  const saveTenantSub = useCallback(async (tenantId: number) => {
+    if (!editingTenantForm) return;
+    setSavingTenantId(tenantId);
+    try {
+      const res = await updateTenantSubscription(tenantId, {
+        status: editingTenantForm.status,
+        billing_cycle: editingTenantForm.billing_cycle,
+        plan_id: editingTenantForm.plan_id,
+      });
+      if (res.success) {
+        setTenants((prev) =>
+          prev.map((t) =>
+            t.tenant_id === tenantId
+              ? {
+                  ...t,
+                  entitlement_status: editingTenantForm.status,
+                  tenantSubscription: t.tenantSubscription
+                    ? { ...t.tenantSubscription, status: editingTenantForm.status, billing_cycle: editingTenantForm.billing_cycle }
+                    : null,
+                }
+              : t,
+          ),
+        );
+        toast.success("Tenant subscription updated.");
+        setEditingTenantId(null);
+        setEditingTenantForm(null);
+      } else {
+        toast.error(res.error || "Failed to update subscription.");
+      }
+    } catch {
+      toast.error("System error updating subscription.");
+    } finally {
+      setSavingTenantId(null);
+    }
+  }, [editingTenantForm]);
 
   const startEdit = useCallback((plan: Plan) => {
     setEditingId(plan.id);
@@ -352,10 +392,12 @@ export function SubscriptionsModule({ initialPlans, initialTenants }: Props) {
                   <th className="text-left px-4 py-3 font-semibold text-slate-700">Start Date</th>
                   <th className="text-left px-4 py-3 font-semibold text-slate-700">End Date</th>
                   <th className="text-left px-4 py-3 font-semibold text-slate-700">Entitlement</th>
+                  <th className="text-left px-4 py-3 font-semibold text-slate-700">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
-                {initialTenants.map((tenant) => {
+                {tenants.map((tenant) => {
+                  const isEditing = editingTenantId === tenant.tenant_id;
                   const sub = tenant.tenantSubscription;
                   const getStatusBadge = (status: string | undefined) => {
                     if (!status) return { label: "No Subscription", variant: "outline" as const, className: "text-slate-400" };
@@ -390,15 +432,67 @@ export function SubscriptionsModule({ initialPlans, initialTenants }: Props) {
                     <tr key={tenant.tenant_id} className="hover:bg-slate-50/50 transition-colors">
                       <td className="px-4 py-3 font-medium text-slate-900">{tenant.name}</td>
                       <td className="px-4 py-3 text-slate-700">
-                        {sub?.plan?.tier_name || <span className="text-slate-400 italic">None</span>}
+                        {isEditing ? (
+                          <select
+                            className="h-8 text-xs rounded border border-input px-2"
+                            value={editingTenantForm?.plan_id ?? sub?.plan?.id ?? ""}
+                            onChange={(e) =>
+                              setEditingTenantForm((prev) =>
+                                prev ? { ...prev, plan_id: Number(e.target.value) } : null,
+                              )
+                            }
+                          >
+                            {plans.map((p) => (
+                              <option key={p.id} value={p.id}>
+                                {p.tier_name}
+                              </option>
+                            ))}
+                          </select>
+                        ) : (
+                          sub?.plan?.tier_name || <span className="text-slate-400 italic">None</span>
+                        )}
                       </td>
                       <td className="px-4 py-3 text-slate-600 capitalize">
-                        {sub?.billing_cycle || <span className="text-slate-400 italic">N/A</span>}
+                        {isEditing ? (
+                          <select
+                            className="h-8 text-xs rounded border border-input px-2"
+                            value={editingTenantForm?.billing_cycle ?? sub?.billing_cycle ?? "monthly"}
+                            onChange={(e) =>
+                              setEditingTenantForm((prev) =>
+                                prev ? { ...prev, billing_cycle: e.target.value } : null,
+                              )
+                            }
+                          >
+                            <option value="monthly">Monthly</option>
+                            <option value="quarterly">Quarterly</option>
+                            <option value="semi_annually">Semi-Annually</option>
+                            <option value="annually">Annually</option>
+                          </select>
+                        ) : (
+                          sub?.billing_cycle || <span className="text-slate-400 italic">N/A</span>
+                        )}
                       </td>
                       <td className="px-4 py-3">
-                        <Badge variant={badge.variant} className={badge.className}>
-                          {badge.label}
-                        </Badge>
+                        {isEditing ? (
+                          <select
+                            className="h-8 text-xs rounded border border-input px-2"
+                            value={editingTenantForm?.status ?? sub?.status ?? "pending"}
+                            onChange={(e) =>
+                              setEditingTenantForm((prev) =>
+                                prev ? { ...prev, status: e.target.value } : null,
+                              )
+                            }
+                          >
+                            <option value="active">Active</option>
+                            <option value="pending">Pending</option>
+                            <option value="canceled">Canceled</option>
+                            <option value="expired">Expired</option>
+                          </select>
+                        ) : (
+                          <Badge variant={badge.variant} className={badge.className}>
+                            {badge.label}
+                          </Badge>
+                        )}
                       </td>
                       <td className="px-4 py-3 text-slate-600">
                         {sub?.start_date
@@ -414,6 +508,48 @@ export function SubscriptionsModule({ initialPlans, initialTenants }: Props) {
                         <Badge className={entBadge.className}>
                           {entBadge.label}
                         </Badge>
+                      </td>
+                      <td className="px-4 py-3">
+                        {isEditing ? (
+                          <div className="flex gap-1">
+                            <Button
+                              size="sm"
+                              className="h-7 w-7 p-0"
+                              disabled={savingTenantId === tenant.tenant_id}
+                              onClick={() => saveTenantSub(tenant.tenant_id)}
+                            >
+                              {savingTenantId === tenant.tenant_id ? (
+                                <Loader2 className="h-3 w-3 animate-spin" />
+                              ) : (
+                                <Check className="h-3 w-3" />
+                              )}
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="h-7 w-7 p-0"
+                              onClick={() => { setEditingTenantId(null); setEditingTenantForm(null); }}
+                            >
+                              <X className="h-3 w-3" />
+                            </Button>
+                          </div>
+                        ) : (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="h-7 w-7 p-0"
+                            onClick={() => {
+                              setEditingTenantId(tenant.tenant_id);
+                              setEditingTenantForm({
+                                status: sub?.status || "pending",
+                                billing_cycle: sub?.billing_cycle || "monthly",
+                                plan_id: sub?.plan?.id || plans[0]?.id || 0,
+                              });
+                            }}
+                          >
+                            <Pencil className="h-3 w-3" />
+                          </Button>
+                        )}
                       </td>
                     </tr>
                   );

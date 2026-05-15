@@ -226,6 +226,41 @@ export async function getAllTenantSubscriptions() {
   }
 }
 
+export async function updateTenantSubscription(
+  tenantId: number,
+  data: {
+    status?: string;
+    billing_cycle?: string;
+    plan_id?: number;
+  },
+) {
+  if (shouldUseApiClient()) {
+    return { success: true, message: "Subscription updated." };
+  }
+  try {
+    const session = await requireTanawSession();
+    if (session.user.role !== "superadmin") {
+      return { success: false, error: "Unauthorized. Superadmin only." };
+    }
+
+    const updateData: any = {};
+    if (data.status) updateData.status = data.status;
+    if (data.billing_cycle) updateData.billing_cycle = data.billing_cycle;
+    if (data.plan_id) updateData.plan_id = data.plan_id;
+
+    const sub = await prisma.tenantSubscription.update({
+      where: { tenant_id: tenantId },
+      data: updateData,
+    });
+
+    revalidatePath("/agapay-tanaw");
+    return { success: true, message: "Subscription updated successfully." };
+  } catch (error) {
+    console.error("Failed to update tenant subscription:", error);
+    return { success: false, error: "Failed to update tenant subscription." };
+  }
+}
+
 export async function approveSubscriptionUpgrade(tenantId: number) {
   if (shouldUseApiClient()) {
     return { success: true, message: "Subscription approved." };

@@ -22,13 +22,13 @@ interface ApprovalsQueueModuleProps {
   pendingTopUps: TopUpRequest[];
   compassionActions: CompassionAction[];
   isOperator: boolean;
+  compassionEnabled?: boolean;
 }
 
 const TABS = [
   { value: "verification", label: "Verification Queue" },
   { value: "payment-intake", label: "Payment Intake" },
   { value: "topup", label: "Capital Top-Up" },
-  { value: "compassion", label: "Compassion Actions" },
 ] as const;
 
 const SUPERADMIN_TABS = [
@@ -41,10 +41,14 @@ export function ApprovalsQueueModule({
   pendingTopUps,
   compassionActions,
   isOperator,
+  compassionEnabled = true,
 }: ApprovalsQueueModuleProps) {
   const router = useRouter();
   const [activeTab, setActiveTab] = useState("verification");
-  const tabs = isOperator ? TABS : SUPERADMIN_TABS;
+  const allTabs = compassionEnabled
+    ? [...TABS, { value: "compassion", label: "Compassion Actions" } as const]
+    : TABS;
+  const tabs = isOperator ? allTabs : SUPERADMIN_TABS;
 
   usePolling(async () => {
     router.refresh();
