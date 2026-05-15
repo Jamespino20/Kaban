@@ -305,8 +305,6 @@ export function EnhancedRegisterForm({
           "maritalStatus",
           "placeOfBirth",
           "businessName",
-          "incomeRange",
-          "personalSavings",
         ];
       case 3:
         return [

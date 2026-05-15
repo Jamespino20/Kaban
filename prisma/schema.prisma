@@ -186,7 +186,7 @@ model UserProfile {
   barangay         String?        @db.VarChar(255)
   income_range     String?        @db.VarChar(50)
   personal_savings Decimal?       @db.Decimal(15, 2) @map("savings")
-  photo_url        String?        @db.Text
+  photo_url        String?        @db.LongText
   user           User           @relation(fields: [user_id], references: [user_id], onDelete: Cascade)
   tenant         Tenant         @relation(fields: [tenant_id], references: [tenant_id])
 

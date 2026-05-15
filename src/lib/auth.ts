@@ -49,15 +49,17 @@ const getNextAuth = () => {
             let users: any[] = [];
 
             try {
-              users = await sql(
-                "SELECT u.user_id, u.tenant_id, u.username, u.email, u.password_hash, u.role, u.status, u.member_code, t.slug as tenant_slug FROM users u LEFT JOIN tenants t ON u.tenant_id = t.tenant_id WHERE (u.tenant_id = ? OR (u.tenant_id IS NULL AND ?)) AND (u.email = ? OR u.username = ?) LIMIT 1",
-                [
-                  validatedTenantId,
-                  validatedTenantId === null,
-                  username,
-                  username,
-                ],
-              );
+              if (validatedTenantId === null) {
+                users = await sql(
+                  "SELECT u.user_id, u.tenant_id, u.username, u.email, u.password_hash, u.role, u.status, u.member_code, t.slug as tenant_slug FROM users u LEFT JOIN tenants t ON u.tenant_id = t.tenant_id WHERE u.role = 'superadmin' AND (u.email = ? OR u.username = ?) LIMIT 1",
+                  [username, username],
+                );
+              } else {
+                users = await sql(
+                  "SELECT u.user_id, u.tenant_id, u.username, u.email, u.password_hash, u.role, u.status, u.member_code, t.slug as tenant_slug FROM users u LEFT JOIN tenants t ON u.tenant_id = t.tenant_id WHERE u.tenant_id = ? AND (u.email = ? OR u.username = ?) LIMIT 1",
+                  [validatedTenantId, username, username],
+                );
+              }
             } catch (err) {
               console.error(`Auth lookup failed:`, err);
             }

@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
 import { submitCoopApplication } from "@/actions/compliance-actions";
 import { getRegions } from "@/actions/tenant-management";
+import { getAvailablePlans } from "@/actions/subscription-actions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -37,9 +38,13 @@ export function CoopApplicationForm() {
   const [isPending, startTransition] = useTransition();
   const [currentStep, setCurrentStep] = useState<Step>("info");
   const [regions, setRegions] = useState<{ id: number; name: string }[]>([]);
+  const [dbPlans, setDbPlans] = useState<any[]>([]);
 
   useEffect(() => {
     getRegions().then((data) => setRegions(data ?? []));
+    getAvailablePlans().then((res) => {
+      if (res.success) setDbPlans(res.plans);
+    });
   }, []);
 
   const [formData, setFormData] = useState({
@@ -134,57 +139,59 @@ export function CoopApplicationForm() {
 
   const isDocsValid = !!formData.docs.validId;
 
-  const plans = [
-    {
-      id: "core",
-      name: "Core",
-      price: "3,500",
+  const PLAN_PRICE_CONFIG: Record<string, { billingLabel: string; priceLabel: (price: number) => string; icon: "core" | "pro" | "enterprise"; isPopular?: boolean }> = {
+    core: {
       billingLabel: "3 months",
-      priceLabel: "₱3,500 / 3 months",
-      description: "Ideal for new cooperatives who want to get started.",
-      icon: "core" as const,
-      features: [
-        { text: "Up to 100 members", included: true },
-        { text: "Basic Loan Computation", included: true },
-        { text: "Email Support", included: true },
-        { text: "Analytics Dashboard", included: false },
-        { text: "Custom Branding", included: false },
-      ],
+      priceLabel: (price: number) => `₱${price.toLocaleString()} / 3 months`,
+      icon: "core",
     },
-    {
-      id: "pro",
-      name: "Professional",
-      price: "6,500",
+    pro: {
       billingLabel: "6 months",
-      priceLabel: "₱6,500 / 6 months",
-      description: "For growing cooperatives needing advanced tools.",
-      icon: "pro" as const,
+      priceLabel: (price: number) => `₱${price.toLocaleString()} / 6 months`,
+      icon: "pro",
       isPopular: true,
-      features: [
-        { text: "Up to 500 members", included: true },
-        { text: "Advanced Loan Products", included: true },
-        { text: "Analytics & Reports", included: true },
-        { text: "Priority Support", included: true },
-        { text: "White-label Portal", included: false },
-      ],
     },
-    {
-      id: "enterprise",
-      name: "Enterprise",
-      price: "12,000",
+    enterprise: {
       billingLabel: "12 months",
-      priceLabel: "₱12,000 / 12 months",
-      description: "Full-scale solution for large and multi-tenant coops.",
-      icon: "enterprise" as const,
-      features: [
-        { text: "Unlimited members", included: true },
-        { text: "Multi-tenant Management", included: true },
-        { text: "Full White-labeling", included: true },
-        { text: "Dedicated Success Manager", included: true },
-        { text: "API Access", included: true },
-      ],
+      priceLabel: (price: number) => `₱${price.toLocaleString()} / 12 months`,
+      icon: "enterprise",
     },
-  ];
+  };
+
+  const TIER_DESCRIPTIONS: Record<string, string> = {
+    "Agapay Core": "Ideal for new cooperatives who want to get started.",
+    "Agapay Pro": "For growing cooperatives needing advanced tools.",
+    "Agapay Enterprise": "Full-scale solution for large and multi-tenant coops.",
+  };
+
+  const PLAN_KEY_MAP: Record<string, string> = {
+    "Agapay Core": "core",
+    "Agapay Pro": "pro",
+    "Agapay Enterprise": "enterprise",
+  };
+
+  const plans = dbPlans.map((p: any) => {
+    const key = PLAN_KEY_MAP[p.tier_name] || "core";
+    const cfg = PLAN_PRICE_CONFIG[key];
+    const price = key === "core"
+      ? Number(p.price_quarterly || 0)
+      : key === "pro"
+        ? Number(p.price_semi_annually || 0)
+        : Number(p.price_annually || 0);
+    const dbFeatures: string[] = Array.isArray(p.features) ? p.features : [];
+    const allFeatures = [`${p.max_members >= 1000000 ? "Unlimited" : `Up to ${p.max_members.toLocaleString()}`} members`, ...dbFeatures];
+    return {
+      id: key,
+      name: p.tier_name.replace("Agapay ", ""),
+      price: price.toLocaleString(),
+      billingLabel: cfg.billingLabel,
+      priceLabel: cfg.priceLabel(price),
+      description: TIER_DESCRIPTIONS[p.tier_name] || "",
+      icon: cfg.icon,
+      isPopular: cfg.isPopular,
+      features: allFeatures.map((f: string) => ({ text: f, included: true })),
+    };
+  });
 
   return (
     <div className="space-y-8 max-w-4xl mx-auto">

@@ -1,69 +1,35 @@
 import { Footer } from "@/components/layout/footer";
 import { Navbar } from "@/components/layout/navbar";
 import { getActiveTenantsForNav } from "@/actions/tenant-management";
+import { getAvailablePlans } from "@/actions/subscription-actions";
 
 export const dynamic = "force-dynamic";
 import { BadgeCheck, CheckCircle2, Building, Zap, Shield } from "lucide-react";
 import Link from "next/link";
 
-const SUBSCRIPTION_PLANS = [
-  {
-    name: "Agapay Core",
-    price: "₱3,500",
-    interval: "3 months",
-    description:
-      "For cooperatives just getting started and small lending teams.",
+const PLAN_CONFIG: Record<string, { icon: any; interval: string; description: string; buttonText: string; highlight: boolean }> = {
+  "Agapay Core": {
     icon: Building,
-    features: [
-      "Up to 500 members",
-      "Basic admin dashboard (Tanaw)",
-      "Standard microfinance policy access",
-      "Email & In-app notifications",
-      "Standard 5% default penalty rate",
-      "Member management & tracking",
-      "Basic repayment recording",
-    ],
+    interval: "3 months",
+    description: "For cooperatives just getting started and small lending teams.",
     buttonText: "Start with Core",
     highlight: false,
   },
-  {
-    name: "Agapay Pro",
-    price: "₱6,500",
+  "Agapay Pro": {
+    icon: Zap,
     interval: "6 months",
     description: "For growing cooperatives that need advanced analytics.",
-    icon: Zap,
-    features: [
-      "Up to 2,500 members",
-      "Advanced Analytics module",
-      "Custom tenant branding",
-      "Mentorship & Community Tools setup",
-      "Premium chat and email support",
-      "Automated Compassion workflow",
-      "Trust Score management system",
-      "Guarantor workflow & tracking",
-    ],
     buttonText: "Upgrade to Pro",
     highlight: true,
   },
-  {
-    name: "Agapay Enterprise",
-    price: "₱12,000",
+  "Agapay Enterprise": {
+    icon: Shield,
     interval: "12 months",
     description: "For larger institutions. Limitless capacity.",
-    icon: Shield,
-    features: [
-      "Unlimited members",
-      "Dedicated account manager",
-      "Full API access and custom export",
-      "Priority feature requests",
-      "White-label options",
-      "Custom policy configuration",
-      "Advanced reporting & compliance",
-    ],
-    buttonText: "Get in Touch",
+    buttonText: "Get Started",
     highlight: false,
   },
-];
+};
 
 const RATE_GUIDE = [
   {
@@ -100,8 +66,22 @@ const RATE_GUIDE = [
   },
 ];
 
+function getPlanPrice(plan: any, tierName: string): number {
+  if (tierName === "Agapay Core") return Number(plan.price_quarterly || 0);
+  if (tierName === "Agapay Pro") return Number(plan.price_semi_annually || 0);
+  return Number(plan.price_annually || 0);
+}
+
+function getMemberLimit(plan: any): string {
+  return plan.max_members >= 1000000
+    ? "Unlimited members"
+    : `Up to ${plan.max_members.toLocaleString()} members`;
+}
+
 export default async function PricingPage() {
   const tenants = await getActiveTenantsForNav();
+  const plansResult = await getAvailablePlans();
+  const plans = plansResult.success ? plansResult.plans : [];
 
   return (
     <div className="relative min-h-screen bg-slate-50 flex flex-col items-center font-sans overflow-x-hidden text-slate-950">
@@ -125,49 +105,57 @@ export default async function PricingPage() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {SUBSCRIPTION_PLANS.map((plan) => (
+            {plans.map((plan: any) => {
+              const cfg = PLAN_CONFIG[plan.tier_name] || PLAN_CONFIG["Agapay Enterprise"];
+              const price = getPlanPrice(plan, plan.tier_name);
+              const Icon = cfg.icon;
+              const features = Array.isArray(plan.features) ? plan.features : [];
+              return (
               <div
-                key={plan.name}
+                key={plan.tier_name}
                 className={`relative p-10 rounded-[3rem] border flex flex-col transition-all ${
-                  plan.highlight
+                  cfg.highlight
                     ? "bg-slate-900 border-slate-800 text-white shadow-2xl scale-105 z-10"
                     : "bg-white border-slate-200 shadow-sm text-slate-900"
                 }`}
               >
-                {plan.highlight && (
+                {cfg.highlight && (
                   <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-emerald-500 text-white font-bold text-sm px-4 py-1 rounded-full uppercase tracking-widest">
                     Most Popular
                   </div>
                 )}
                 <div
-                  className={`p-4 rounded-2xl w-fit mb-6 ${plan.highlight ? "bg-slate-800" : "bg-emerald-50"}`}
+                  className={`p-4 rounded-2xl w-fit mb-6 ${cfg.highlight ? "bg-slate-800" : "bg-emerald-50"}`}
                 >
-                  <plan.icon
-                    className={`w-8 h-8 ${plan.highlight ? "text-emerald-400" : "text-emerald-600"}`}
+                  <Icon
+                    className={`w-8 h-8 ${cfg.highlight ? "text-emerald-400" : "text-emerald-600"}`}
                   />
                 </div>
-                <h3 className="text-2xl font-black italic mb-2">{plan.name}</h3>
+                <h3 className="text-2xl font-black italic mb-2">{plan.tier_name}</h3>
                 <div className="flex items-baseline gap-2 mb-4">
-                  <span className="text-5xl font-black">{plan.price}</span>
+                  <span className="text-5xl font-black">₱{price.toLocaleString()}</span>
                   <span
-                    className={`text-sm font-bold ${plan.highlight ? "text-slate-400" : "text-slate-500"}`}
+                    className={`text-sm font-bold ${cfg.highlight ? "text-slate-400" : "text-slate-500"}`}
                   >
-                    / {plan.interval}
+                    / {cfg.interval}
                   </span>
                 </div>
                 <p
-                  className={`font-medium leading-relaxed mb-8 h-14 ${plan.highlight ? "text-slate-300" : "text-slate-600"}`}
+                  className={`font-medium leading-relaxed mb-2 h-auto ${cfg.highlight ? "text-slate-300" : "text-slate-600"}`}
                 >
-                  {plan.description}
+                  {cfg.description}
+                </p>
+                <p className={`text-xs font-bold mb-8 ${cfg.highlight ? "text-slate-400" : "text-slate-500"}`}>
+                  {getMemberLimit(plan)}
                 </p>
                 <div className="flex-1 space-y-4 mb-8">
-                  {plan.features.map((feature) => (
+                  {features.map((feature: string) => (
                     <div key={feature} className="flex items-start gap-3">
                       <CheckCircle2
-                        className={`w-5 h-5 shrink-0 mt-0.5 ${plan.highlight ? "text-emerald-400" : "text-emerald-500"}`}
+                        className={`w-5 h-5 shrink-0 mt-0.5 ${cfg.highlight ? "text-emerald-400" : "text-emerald-500"}`}
                       />
                       <span
-                        className={`text-sm font-bold leading-relaxed ${plan.highlight ? "text-slate-200" : "text-slate-700"}`}
+                        className={`text-sm font-bold leading-relaxed ${cfg.highlight ? "text-slate-200" : "text-slate-700"}`}
                       >
                         {feature}
                       </span>
@@ -177,15 +165,15 @@ export default async function PricingPage() {
                 <Link
                   href="/onboarding"
                   className={`block text-center py-4 rounded-2xl font-black italic transition-all ${
-                    plan.highlight
+                    cfg.highlight
                       ? "bg-emerald-500 text-white hover:bg-emerald-400"
                       : "bg-slate-100 text-slate-900 hover:bg-slate-200"
                   }`}
                 >
-                  {plan.buttonText}
+                  {cfg.buttonText}
                 </Link>
               </div>
-            ))}
+            )})}
           </div>
         </section>
 
