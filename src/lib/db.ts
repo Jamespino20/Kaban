@@ -48,6 +48,7 @@ export async function sql<T = Record<string, unknown>>(
   strings: TemplateStringsArray | string,
   ...values: unknown[]
 ): Promise<T[]> {
+  console.log("[SQL] → Calling utility...");
   // Return empty in API client mode — data comes from PHP API
   if (shouldUseApiClient()) {
     return [] as T[];
