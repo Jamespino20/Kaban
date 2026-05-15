@@ -430,6 +430,40 @@ export default async function AgapayTanawPage(props: {
               </div>
             </div>
           )}
+          {subscriptionAlert && subscriptionAlert.status === "suspended" && (
+            <div className="dashboard-card border-red-200 bg-red-50 text-slate-900 animate-in fade-in slide-in-from-top-4 duration-500 flex flex-col md:flex-row items-center gap-6">
+              <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-red-100 text-red-600 ring-4 ring-white shadow-sm">
+                <ShieldAlert className="h-7 w-7" />
+              </div>
+              <div className="flex-1 text-center md:text-left space-y-1">
+                <h3 className="text-xl font-heading font-bold text-red-900 italic">Subscription Suspended</h3>
+                <p className="text-red-700 font-medium">
+                  Your subscription has been suspended due to non-payment. It has been{" "}
+                  <span className="font-black">{subscriptionAlert.daysOverdue} days overdue</span>.
+                  Please renew your subscription to restore full access.
+                </p>
+              </div>
+              <a href={`/${tenant}/agapay-tanaw?tab=settings`} className="shrink-0 px-6 py-3 bg-red-600 hover:bg-red-700 text-white rounded-xl font-bold text-sm transition-all shadow-sm">
+                Renew Now
+              </a>
+            </div>
+          )}
+          {subscriptionAlert && subscriptionAlert.status === "expiring_today" && (
+            <div className="dashboard-card border-amber-200 bg-amber-50 text-slate-900 animate-in fade-in slide-in-from-top-4 duration-500 flex flex-col md:flex-row items-center gap-6">
+              <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-amber-100 text-amber-600 ring-4 ring-white shadow-sm">
+                <ShieldAlert className="h-7 w-7" />
+              </div>
+              <div className="flex-1 text-center md:text-left space-y-1">
+                <h3 className="text-xl font-heading font-bold text-amber-900 italic">Subscription Expiring Today</h3>
+                <p className="text-amber-700 font-medium">
+                  Your subscription ends today. Renew immediately to avoid service suspension.
+                </p>
+              </div>
+              <a href={`/${tenant}/agapay-tanaw?tab=settings`} className="shrink-0 px-6 py-3 bg-amber-600 hover:bg-amber-700 text-white rounded-xl font-bold text-sm transition-all shadow-sm">
+                Renew Now
+              </a>
+            </div>
+          )}
           {/* Shared / Role-Specific TabsContent */}
           <TabsContent value="overview" className="space-y-6 outline-none">
             {isGlobalSuperadminView ? (

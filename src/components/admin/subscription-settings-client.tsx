@@ -3,8 +3,9 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { requestSubscriptionUpgrade } from "@/actions/subscription-actions";
+import { renewSubscription } from "@/lib/subscription-enforcement";
 import { Badge } from "@/components/ui/badge";
-import { ShieldCheck, Loader2 } from "lucide-react";
+import { ShieldCheck, Loader2, AlertTriangle } from "lucide-react";
 import { toast } from "sonner";
 
 type Plan = {
@@ -67,6 +68,7 @@ export function SubscriptionSettingsClient({
   tenantSlug,
 }: Props) {
   const [isLoading, setIsLoading] = useState<number | null>(null);
+  const [renewing, setRenewing] = useState(false);
   const activeCycle = currentSubscription?.billing_cycle || "monthly";
 
   const handleRequestUpgrade = async (planId: number) => {
@@ -149,6 +151,36 @@ export function SubscriptionSettingsClient({
             <p className="text-xs text-slate-500 mt-1">
               Nasa Seed / Prospect level pa lamang ang iyong cooperative.
             </p>
+          </div>
+        )}
+        {currentSubscription?.status === "active" ? null : (
+          <div className="mt-4 p-4 bg-amber-50 border border-amber-200 rounded-xl flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <AlertTriangle className="h-5 w-5 text-amber-600" />
+              <p className="text-sm font-medium text-amber-800">
+                Your subscription requires renewal to continue using all features.
+              </p>
+            </div>
+            <Button
+              onClick={async () => {
+                setRenewing(true);
+                try {
+                  const res = await renewSubscription(tenantId, "manual", activeCycle as any);
+                  if (res.success) {
+                    toast.success("Subscription renewed! Your access has been restored.");
+                    window.location.reload();
+                  } else {
+                    toast.error(res.error || "Renewal failed");
+                  }
+                } catch { toast.error("System error during renewal"); }
+                setRenewing(false);
+              }}
+              disabled={renewing}
+              className="bg-amber-600 hover:bg-amber-700 text-white shrink-0"
+            >
+              {renewing ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
+              Renew Now
+            </Button>
           </div>
         )}
       </div>
