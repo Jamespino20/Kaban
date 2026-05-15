@@ -200,12 +200,9 @@ export function EnhancedRegisterForm({
 
   // Pre-select logic
   useEffect(() => {
-    if (preselectedTenantId) {
-      form.setValue("tenantId", preselectedTenantId);
-    }
-    if (preselectedRegionId) {
-      form.setValue("regionId", preselectedRegionId);
-    }
+    if (preselectedTenantId) form.setValue("tenantId", preselectedTenantId);
+    if (preselectedRegionId) form.setValue("regionId", preselectedRegionId);
+    if (preselectedTenantId && !preselectedRegionId) form.setValue("regionId", "1");
   }, [preselectedTenantId, preselectedRegionId, form]);
 
   // Fetch Regions + PSGC Regions on Mount
@@ -572,7 +569,11 @@ export function EnhancedRegisterForm({
             )}
             <Form {...form}>
               <form
-                onSubmit={form.handleSubmit(onSubmit)}
+                onSubmit={form.handleSubmit(onSubmit, (errors) => {
+                  const first = Object.values(errors)[0];
+                  const msg = (first as any)?.message || "Please check all required fields.";
+                  toast.error(msg);
+                })}
                 className="space-y-6"
               >
                 {step === 1 && (
