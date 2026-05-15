@@ -283,6 +283,33 @@ export function EnhancedRegisterForm({
     }
   };
 
+  useEffect(() => {
+    const restoreAddressLists = async () => {
+      const savedRegion = form.getValues("psgcRegion");
+      const savedProvince = form.getValues("province");
+      const savedCity = form.getValues("city");
+
+      if (savedRegion && geoProvinces.length === 0) {
+        const provinceData = await fetchPsgcProvinces(savedRegion);
+        setGeoProvinces(provinceData);
+      }
+
+      if (savedProvince && geoCities.length === 0) {
+        const cityData = await fetchPsgcCities(savedProvince);
+        setGeoCities(cityData.map((c) => ({ code: c.code, name: c.name })));
+      }
+
+      if (savedCity && geoBarangays.length === 0) {
+        const barangayData = await fetchPsgcBarangays(savedCity);
+        setGeoBarangays(
+          barangayData.map((b) => ({ code: b.code, name: b.name })),
+        );
+      }
+    };
+
+    restoreAddressLists();
+  }, [form, geoProvinces.length, geoCities.length, geoBarangays.length]);
+
   const nextStep = async () => {
     const fields = getStepFields(step);
     const isValid = await form.trigger(fields as any);
