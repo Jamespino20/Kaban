@@ -179,7 +179,7 @@ export function OperatorCommunityTab({
   };
 
   const handleReviewMentorship = (
-    connectionId: number,
+    connectionId: string,
     status: "endorsed" | "rejected",
   ) => {
     startTransition(async () => {
