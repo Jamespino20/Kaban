@@ -73,6 +73,7 @@ import { EmailTemplatesTab } from "@/components/admin/email-templates-tab";
 import { AIConfigTab } from "@/components/admin/ai-config-tab";
 import { SubscriptionsModule } from "@/components/admin/subscriptions-module";
 import { SuperadminEODTab } from "@/components/admin/superadmin-eod-tab";
+import { TieringMilestonesTab } from "@/components/admin/tiering-milestones-tab";
 import {
   getAllSubscriptionPlans,
   getAllTenantSubscriptions,
@@ -277,6 +278,12 @@ export default async function AgapayTanawPage(props: {
       value: "reports",
       label: "Reports & Analytics",
       icon: "reconciliation",
+      category: "Platform Strategy",
+    },
+    {
+      value: "progression-milestones",
+      label: "Tiering & Milestones",
+      icon: "analytics",
       category: "Platform Strategy",
     },
 
@@ -662,6 +669,21 @@ export default async function AgapayTanawPage(props: {
                   initialTenants={tenants}
                   role={session?.user?.role as string}
                 />
+              </TabsContent>
+              <TabsContent value="email-templates" className="outline-none">
+                <EmailTemplatesTab />
+              </TabsContent>
+              <TabsContent value="ai-config" className="outline-none">
+                <AIConfigTab />
+              </TabsContent>
+              <TabsContent value="subscriptions" className="outline-none">
+                <SubscriptionsModule
+                  initialPlans={subscriptionPlans}
+                  initialTenants={tenantSubscriptions}
+                />
+              </TabsContent>
+              <TabsContent value="progression-milestones" className="outline-none">
+                <TieringMilestonesTab />
               </TabsContent>
               <TabsContent
                 value="reports"

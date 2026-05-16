@@ -698,28 +698,31 @@ export async function verifySubmittedPayment(
         orderBy: { installment_number: "asc" },
       });
 
+      const schedulesToPay: number[] = [];
       let remaining = Number(payment.amount_paid);
+      const now = new Date();
+
       for (const schedule of schedules) {
         const scheduleDue = Number(schedule.total_due);
-        if (remaining + 0.01 < scheduleDue) {
-          // Partial payment: amount is insufficient for this installment, stop here
-          break;
-        }
+        if (remaining + 0.01 < scheduleDue) break;
+        schedulesToPay.push(schedule.schedule_id);
+        remaining -= scheduleDue;
+      }
 
-        await tx.loanSchedule.update({
-          where: { schedule_id: schedule.schedule_id },
+      if (schedulesToPay.length > 0) {
+        await tx.loanSchedule.updateMany({
+          where: { schedule_id: { in: schedulesToPay } },
           data: {
             status: ScheduleStatus.paid,
-            paid_at: new Date(),
+            paid_at: now,
           },
         });
-        remaining -= scheduleDue;
       }
 
       const appliedAmount = Number(payment.amount_paid) - remaining;
 
-      // Update loan balance
-      await tx.loan.update({
+      // Atomic Update: Reduce balance and mark as paid if fully settled
+      const updatedLoan = await tx.loan.update({
         where: { loan_id: payment.loan_id },
         data: {
           balance_remaining: {
@@ -728,16 +731,14 @@ export async function verifySubmittedPayment(
         },
       });
 
-      // Check if fully paid and update status
-      const updatedLoan = await tx.loan.findUnique({
-        where: { loan_id: payment.loan_id },
-        select: { balance_remaining: true },
-      });
-
-      if (updatedLoan && Number(updatedLoan.balance_remaining) <= 0) {
+      if (Number(updatedLoan.balance_remaining) <= 0.01) {
         await tx.loan.update({
           where: { loan_id: payment.loan_id },
-          data: { status: "paid", paid_at: new Date() },
+          data: { 
+            status: "paid", 
+            paid_at: now,
+            balance_remaining: 0 // Clean up any remaining cents
+          },
         });
       }
 

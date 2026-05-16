@@ -159,8 +159,13 @@ export function MemberProfileModal({
                       <dd className="font-bold text-slate-900">₱{walletBalance.toLocaleString()}</dd>
                     </div>
                     <div className="flex justify-between">
-                      <dt className="text-slate-500">Trust Score</dt>
-                      <dd className="font-bold text-slate-900">{member.trust_score ?? "N/A"}</dd>
+                      <dt className="text-slate-500">Tier-Based Score</dt>
+                      <dd className="font-bold text-slate-900">
+                        {member.interest_tier === 'T5_3_PERCENT' ? 92 :
+                         member.interest_tier === 'T4_3_5_PERCENT' ? 80 :
+                         member.interest_tier === 'T3_4_PERCENT' ? 70 :
+                         member.interest_tier === 'T2_4_5_PERCENT' ? 60 : 40}
+                      </dd>
                     </div>
                     <div className="flex justify-between">
                       <dt className="text-slate-500">Active Loans</dt>

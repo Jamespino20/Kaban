@@ -84,10 +84,18 @@ export async function getTenantOverview() {
           FROM users WHERE role = 'operator' AND tenant_id = ${tenantId}
         `,
 
-        // Tenant trust score (average)
+        // Tenant trust score (average derived from tiers)
         tx.$queryRaw`
-          SELECT AVG(trust_score) as avg_score
-          FROM users WHERE trust_score IS NOT NULL AND tenant_id = ${tenantId}
+          SELECT AVG(
+            CASE 
+              WHEN interest_tier = 'T5_3_PERCENT' THEN 92
+              WHEN interest_tier = 'T4_3_5_PERCENT' THEN 80
+              WHEN interest_tier = 'T3_4_PERCENT' THEN 70
+              WHEN interest_tier = 'T2_4_5_PERCENT' THEN 60
+              ELSE 40
+            END
+          ) as avg_score
+          FROM users WHERE role = 'member' AND tenant_id = ${tenantId}
         `,
 
         // Payment score (simplified - based on repayment rate)

@@ -61,10 +61,18 @@ export async function getSuperadminOverview() {
         FROM loans WHERE status = 'active'
       `,
 
-      // Global trust score (platform-wide average)
-      prisma.$queryRaw`
-        SELECT AVG(trust_score) as avg_score
-        FROM users WHERE trust_score IS NOT NULL
+      // Global trust score (platform-wide average derived from interest tiers)
+      prisma.$queryRaw<{ avg_score: number }[]>`
+        SELECT AVG(
+          CASE 
+            WHEN interest_tier = 'T5_3_PERCENT' THEN 92
+            WHEN interest_tier = 'T4_3_5_PERCENT' THEN 80
+            WHEN interest_tier = 'T3_4_PERCENT' THEN 70
+            WHEN interest_tier = 'T2_4_5_PERCENT' THEN 60
+            ELSE 40
+          END
+        ) as avg_score
+        FROM users WHERE role = 'member' AND status = 'active'
       `,
 
       // Subscription revenue - total from all tenant subscriptions
@@ -463,7 +471,15 @@ export async function getGlobalTenantManagement() {
         SUM(CASE WHEN t.entitlement_status = 'suspended' THEN 1 ELSE 0 END) as suspended_count,
         COUNT(DISTINCT u.user_id) as member_count,
         COALESCE(SUM(l.principal_amount), 0) as total_portfolio,
-        ROUND(AVG(u.trust_score), 2) as avg_trust_score
+        ROUND(AVG(
+          CASE 
+            WHEN u.interest_tier = 'T5_3_PERCENT' THEN 92
+            WHEN u.interest_tier = 'T4_3_5_PERCENT' THEN 80
+            WHEN u.interest_tier = 'T3_4_PERCENT' THEN 70
+            WHEN u.interest_tier = 'T2_4_5_PERCENT' THEN 60
+            ELSE 40
+          END
+        ), 2) as avg_trust_score
       FROM tenants t
       LEFT JOIN tenant_groups tg ON tg.id = t.tenant_group_id
       LEFT JOIN users u ON u.tenant_id = t.tenant_id AND u.role = 'member'
@@ -613,12 +629,12 @@ export async function getCrossTenantFinancialReports(params: {
   try {
     const dateFilter =
       params.startDate && params.endDate
-        ? `AND l.applied_at BETWEEN '${params.startDate.toISOString()}' AND '${params.endDate.toISOString()}'`
-        : "";
+        ? Prisma.sql`AND l.applied_at BETWEEN ${params.startDate} AND ${params.endDate}`
+        : Prisma.empty;
 
     const regionFilter = params.region
-      ? `AND t.tenant_group_id = ${parseInt(params.region)}`
-      : "";
+      ? Prisma.sql`AND t.tenant_group_id = ${parseInt(params.region)}`
+      : Prisma.empty;
 
     // Total disbursed vs repaid by region
     const disbursedVsRepaid = await prisma.$queryRaw`
@@ -702,12 +718,16 @@ export async function getTenantPerformanceReports(params: {
 
   try {
     const tenantFilter = params.tenantId
-      ? `AND t.tenant_id = ${params.tenantId}`
-      : "";
-    const dateFilter =
-      params.startDate && params.endDate
-        ? `AND l.applied_at BETWEEN '${params.startDate.toISOString()}' AND '${params.endDate.toISOString()}'`
-        : "";
+      ? Prisma.sql`AND t.tenant_id = ${params.tenantId}`
+      : Prisma.empty;
+
+    const dateFilter = params.startDate && params.endDate
+      ? Prisma.sql`AND u.created_at BETWEEN ${params.startDate} AND ${params.endDate}`
+      : Prisma.empty;
+
+    const loanDateFilter = params.startDate && params.endDate
+      ? Prisma.sql`AND l.applied_at BETWEEN ${params.startDate} AND ${params.endDate}`
+      : Prisma.empty;
 
     // Growth trends - new members and loans over time
     const growthTrends = await prisma.$queryRaw`
@@ -719,7 +739,7 @@ export async function getTenantPerformanceReports(params: {
         COUNT(DISTINCT l.loan_id) as new_loans
       FROM tenants t
       LEFT JOIN users u ON u.tenant_id = t.tenant_id AND u.role = 'member' ${dateFilter}
-      LEFT JOIN loans l ON l.tenant_id = t.tenant_id ${dateFilter}
+      LEFT JOIN loans l ON l.tenant_id = t.tenant_id ${loanDateFilter}
       WHERE t.entitlement_status = 'active' ${tenantFilter}
       GROUP BY t.tenant_id, t.name, month
       ORDER BY month DESC
@@ -901,7 +921,7 @@ export async function exportFinancialReportCSV(params: {
             t.name as tenant_name,
             u.role,
             u.status,
-            u.trust_score,
+            u.interest_tier,
             u.interest_tier,
             u.created_at
           FROM users u

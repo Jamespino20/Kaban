@@ -334,8 +334,11 @@ function PendingLoansSection({ loans }: { loans: any[] }) {
           }
           meta={[
             {
-              label: "Trust Score",
-              value: String(loan.user?.trust_score ?? "Pending"),
+              label: "Tier-Based Score",
+              value: loan.user?.interest_tier === 'T5_3_PERCENT' ? "92" :
+                     loan.user?.interest_tier === 'T4_3_5_PERCENT' ? "80" :
+                     loan.user?.interest_tier === 'T3_4_PERCENT' ? "70" :
+                     loan.user?.interest_tier === 'T2_4_5_PERCENT' ? "60" : "40",
             },
             {
               label: "Cadence / Term",
