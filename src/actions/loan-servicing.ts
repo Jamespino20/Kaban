@@ -304,7 +304,10 @@ export async function releaseLoanFunds(
 
       // Check tenant treasury (CASH_EQUIVALENTS ledger balance)
       const treasuryAccount = await tx.ledgerAccount.findFirst({
-        where: { code: "CASH_EQUIVALENTS", tenant_id: { in: [targetTenantId, null] } },
+        where: {
+          code: "CASH_EQUIVALENTS",
+          OR: [{ tenant_id: targetTenantId }, { tenant_id: null }],
+        },
         orderBy: { tenant_id: "desc" },
       });
       if (!treasuryAccount) {
@@ -740,7 +743,10 @@ export async function verifySubmittedPayment(
 
       // 6. Credit tenant treasury (CASH_EQUIVALENTS)
       const treasuryAcct = await tx.ledgerAccount.findFirst({
-        where: { code: "CASH_EQUIVALENTS", tenant_id: { in: [tenantId, null] } },
+        where: {
+          code: "CASH_EQUIVALENTS",
+          OR: [{ tenant_id: tenantId }, { tenant_id: null }],
+        },
         orderBy: { tenant_id: "desc" },
       });
       if (treasuryAcct) {

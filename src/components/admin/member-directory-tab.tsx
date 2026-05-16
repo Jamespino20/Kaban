@@ -292,7 +292,7 @@ export function MemberDirectoryTab({
                   Loans / Wallet
                 </th>
                 <th className="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
-                  Trust Score
+                  Interest Tier
                 </th>
                 <th className="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
                   Documents
@@ -416,7 +416,7 @@ export function MemberDirectoryTab({
                       <td className="px-6 py-4 text-sm font-medium text-slate-600">
                         <div className="space-y-1">
                           <p className="font-bold text-slate-900">
-                            Trust: {member.trust_score ?? "N/A"}
+                            {formatTier(member.interest_tier)}
                           </p>
 
                         </div>

@@ -43,13 +43,11 @@ export default async function SOAPage({
   const activeLoan = user.loans[0];
   const paidAmount =
     activeLoan?.payments.reduce(
-      (acc: number, p: any) => acc + Number(p.amount),
+      (acc: number, p: any) => acc + Number(p.amount_paid),
       0,
     ) || 0;
-  const balance =
-    Number(activeLoan?.principal_amount || 0) +
-    Number(activeLoan?.total_interest_expected || 0) -
-    paidAmount;
+  
+  const balance = Number(activeLoan?.balance_remaining || 0);
 
   return (
     <div className="p-8 font-sans text-slate-900 bg-white min-h-screen">
@@ -65,10 +63,10 @@ export default async function SOAPage({
         </div>
         <div className="text-right">
           <h2 className="text-xl font-semibold italic text-slate-800">
-            Ulat ng Pagbabayad (SOA)
+            Statement of Account (SOA)
           </h2>
           <p className="text-sm text-slate-500">
-            Petsa: {format(new Date(), "MMMM d, yyyy")}
+            Date: {format(new Date(), "MMMM d, yyyy")}
           </p>
         </div>
       </div>
@@ -77,7 +75,7 @@ export default async function SOAPage({
       <div className="grid grid-cols-2 gap-8 mb-8">
         <div className="bg-slate-50 p-4 rounded-xl border border-slate-200">
           <h3 className="text-xs font-bold text-slate-400 uppercase mb-2">
-            Impormasyon ng Miyembro
+            Member Information
           </h3>
           <p className="text-lg font-bold text-slate-900">
             {user.profile?.first_name} {user.profile?.last_name}
@@ -89,7 +87,7 @@ export default async function SOAPage({
         </div>
         <div className="bg-emerald-50 p-4 rounded-xl border border-emerald-100 flex flex-col justify-center">
           <h3 className="text-xs font-bold text-emerald-600 uppercase mb-1 text-right">
-            Kabuoang Balanse
+            Total Outstanding Balance
           </h3>
           <p className="text-3xl font-black text-emerald-700 text-right">
             ₱{balance.toLocaleString(undefined, { minimumFractionDigits: 2 })}
@@ -103,22 +101,22 @@ export default async function SOAPage({
           <div className="mb-6">
             <h3 className="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">
               <span className="w-2 h-6 bg-emerald-500 rounded-full"></span>
-              Detalye ng Aktibong Utang
+              Active Loan Details
             </h3>
             <table className="w-full text-left border-collapse">
               <thead>
                 <tr className="bg-slate-100 text-slate-600 text-xs font-bold uppercase">
-                  <th className="p-3 border-b border-slate-200">Bilang</th>
+                  <th className="p-3 border-b border-slate-200">No.</th>
                   <th className="p-3 border-b border-slate-200">
-                    Takdang Petsa
+                    Due Date
                   </th>
                   <th className="p-3 border-b border-slate-200 text-right">
-                    Halaga
+                    Principal
                   </th>
                   <th className="p-3 border-b border-slate-200 text-right">
-                    Interes
+                    Interest
                   </th>
-                  <th className="p-3 border-b border-slate-200">Katayuan</th>
+                  <th className="p-3 border-b border-slate-200">Status</th>
                 </tr>
               </thead>
               <tbody>
@@ -150,10 +148,10 @@ export default async function SOAPage({
                         }`}
                       >
                         {s.status === "paid"
-                          ? "Bayad na"
+                          ? "Paid"
                           : s.status === "overdue"
-                            ? "Huli"
-                            : "Hinihintay"}
+                            ? "Overdue"
+                            : "Pending"}
                       </span>
                     </td>
                   </tr>
@@ -166,7 +164,7 @@ export default async function SOAPage({
           <div className="grid grid-cols-3 gap-6 mt-12 pt-8 border-t border-slate-200">
             <div className="text-center">
               <p className="text-xs text-slate-400 font-bold uppercase mb-1">
-                Hiniram
+                Loan Amount
               </p>
               <p className="text-xl font-bold">
                 ₱{Number(activeLoan.principal_amount).toLocaleString()}
@@ -174,7 +172,7 @@ export default async function SOAPage({
             </div>
             <div className="text-center">
               <p className="text-xs text-slate-400 font-bold uppercase mb-1">
-                Kabuoang Bayad
+                Total Paid
               </p>
               <p className="text-xl font-bold text-emerald-600">
                 ₱{paidAmount.toLocaleString()}
@@ -184,21 +182,21 @@ export default async function SOAPage({
               <p className="text-xs text-slate-400 font-bold uppercase mb-1">
                 Trust Score
               </p>
-              <p className="text-xl font-bold text-indigo-600">842 / 1000</p>
+              <p className="text-xl font-bold text-indigo-600">{user.interest_tier.replace('T', '').replace('_', '.')}% Rate</p>
             </div>
           </div>
         </>
       ) : (
         <div className="text-center p-12 bg-slate-50 rounded-2xl">
           <p className="text-slate-500 italic">
-            Walang aktibong utang na nahanap.
+            No active loan found.
           </p>
         </div>
       )}
 
       {/* Footer Branding */}
       <div className="mt-20 text-center text-[10px] text-slate-300 italic uppercase tracking-widest">
-        Inilathala ng Agapay System • Iyong Agapay, Ating Tagumpay
+        Generated by Agapay System • Iyong Agapay, Ating Tagumpay
       </div>
     </div>
   );

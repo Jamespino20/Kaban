@@ -229,6 +229,12 @@ export default async function AgapayTanawPage(props: {
       badge: pendingData.verifications.length || undefined,
       category: "Core Operations",
     },
+    {
+      value: "members",
+      label: "Member Management",
+      icon: "members",
+      category: "Core Operations",
+    },
 
     // Category: Platform Strategy
     {
@@ -627,16 +633,7 @@ export default async function AgapayTanawPage(props: {
                   <RestrictedAccess moduleName="E-Wallet" />
                 )}
               </TabsContent>
-              <TabsContent value="members" className="outline-none">
-                <MemberDirectoryTab
-                  members={members}
-                  userRole={session?.user?.role}
-                  tenants={tenants.map((t: any) => ({
-                    id: t.tenant_id,
-                    name: t.name,
-                  }))}
-                />
-              </TabsContent>
+
               <TabsContent value="products" className="outline-none">
                 {isFeatureEnabled("loans") ? (
                   <LoanProductsTab />
@@ -673,7 +670,10 @@ export default async function AgapayTanawPage(props: {
                 <div className="space-y-6">
                   {isFeatureEnabled("reports") ? (
                     <>
-                      <ReportsTab />
+                      <SuperadminEODTab />
+                      <div className="border-t border-slate-200 pt-6">
+                        <ReportsTab />
+                      </div>
                       <TenantPerformanceReportsTab />
                     </>
                   ) : (
@@ -693,25 +693,20 @@ export default async function AgapayTanawPage(props: {
                   </div>
                 </div>
               </TabsContent>
-              <TabsContent value="email-templates" className="outline-none">
-                <EmailTemplatesTab />
-              </TabsContent>
-              <TabsContent value="ai-config" className="outline-none">
-                <AIConfigTab />
-              </TabsContent>
-              <TabsContent value="subscriptions" className="outline-none">
-                <SubscriptionsModule
-                  initialPlans={subscriptionPlans}
-                  initialTenants={tenantSubscriptions}
-                />
-              </TabsContent>
-              <TabsContent value="reports" className="outline-none">
-                <SuperadminEODTab />
-              </TabsContent>
             </>
           )}
 
           {/* Shared Management Modules */}
+          <TabsContent value="members" className="outline-none">
+            <MemberDirectoryTab
+              members={members}
+              userRole={session?.user?.role}
+              tenants={tenants.map((t: any) => ({
+                id: t.tenant_id,
+                name: t.name,
+              }))}
+            />
+          </TabsContent>
           <TabsContent value="community" className="outline-none h-full">
             {isFeatureEnabled("community") ? (
               isOperator ? (

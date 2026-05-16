@@ -103,10 +103,8 @@ async function assertConversationAccess(
     }
 
     const sameTenant =
-      session.user.role === "superadmin"
-        ? session.user.tenantId === null ||
-          session.user.tenantId === conversation.tenant_id
-        : session.user.tenantId === conversation.tenant_id;
+      session.user.role === "superadmin" ||
+      session.user.tenantId === conversation.tenant_id;
 
     if (!sameTenant) {
       throw new Error(

@@ -37,7 +37,6 @@ export async function getSuperadminOverview() {
       portfolioAtRiskResult,
       recentAuditLogs,
       recentSuperadminWithdrawalsResult,
-      aiSnapshot,
     ] = await prisma.$transaction([
       // Total funds across all tenants (sum of wallet balances, excluding platform/superadmin holdings)
       prisma.$queryRaw`
@@ -131,14 +130,14 @@ export async function getSuperadminOverview() {
           status: true,
         },
       }),
-
-      // AI-generated platform snapshot summary
-      (prisma as any).aiSnapshot
-        ? (prisma as any).aiSnapshot.findFirst({
-            orderBy: { created_at: "desc" },
-          }).catch(() => null)
-        : Promise.resolve(null),
     ]);
+
+    // AI-generated platform snapshot summary (moved outside transaction as it is not a native Prisma promise)
+    const aiSnapshot = (prisma as any).aiSnapshot
+      ? await (prisma as any).aiSnapshot.findFirst({
+          orderBy: { created_at: "desc" },
+        }).catch(() => null)
+      : null;
 
     // Calculate repayment rate from raw aggregates
     const paidRow = Array.isArray(repaymentRateResult) ? repaymentRateResult[0] : repaymentRateResult;
