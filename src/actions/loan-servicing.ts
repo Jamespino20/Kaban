@@ -566,6 +566,22 @@ export async function processFullPayment(
       );
       const waivedInterest = totalFaceValue - remainingPrincipal;
 
+      // Ensure INTEREST_DISCOUNTS account exists globally
+      let discountsAcct = await tx.ledgerAccount.findFirst({
+        where: { code: "INTEREST_DISCOUNTS" },
+      });
+
+      if (!discountsAcct) {
+        await tx.ledgerAccount.create({
+          data: {
+            tenant_id: null,
+            name: "Interest Discounts",
+            code: "INTEREST_DISCOUNTS",
+            type: "EXPENSE",
+          },
+        });
+      }
+
       await postLedgerEntry(tx, {
         tenantId,
         description: `Full Loan Settlement (Interest Waived): LOAN-${loanId}`,

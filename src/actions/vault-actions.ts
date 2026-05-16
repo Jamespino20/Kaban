@@ -30,6 +30,26 @@ export async function getCapitalOversight() {
     (b) => b.account_type === "regular_savings",
   ) || { total_balance: 0, member_count: 0 };
 
+  const memberWallets = await prisma.savingsAccount.aggregate({
+    where: { tenant_id: tenantId, account_type: "personal_wallet" },
+    _sum: { balance: true }
+  });
+
+  const treasuryAccount = await prisma.ledgerAccount.findFirst({
+    where: { code: "CASH_EQUIVALENTS", OR: [{ tenant_id: tenantId }, { tenant_id: null }] },
+    orderBy: { tenant_id: "desc" }
+  });
+
+  let safeLiquidity = 0;
+  if (treasuryAccount) {
+    const treasuryEntries = await prisma.businessLedger.aggregate({
+      where: { tenant_id: tenantId, account_id: treasuryAccount.id },
+      _sum: { debit: true, credit: true }
+    });
+    const grossTreasury = Number(treasuryEntries._sum.debit || 0) - Number(treasuryEntries._sum.credit || 0);
+    safeLiquidity = grossTreasury - Number(memberWallets._sum.balance || 0);
+  }
+
   return {
     shareCapital: {
       total: Number(shareCapital.total_balance),
@@ -39,8 +59,7 @@ export async function getCapitalOversight() {
       total: Number(regularSavings.total_balance),
       count: Number(regularSavings.member_count),
     },
-    totalLiquidAssets:
-      Number(shareCapital.total_balance) + Number(regularSavings.total_balance),
+    totalLiquidAssets: safeLiquidity,
   };
 }
 
