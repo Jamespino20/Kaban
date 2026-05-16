@@ -460,16 +460,32 @@ export async function getDashboardMetrics() {
       actorUserId: session.user.user_id,
     });
 
-    // 1. Total Liquidity (Total Savings Pool)
-    const liquidity = await tx.savingsAccount.aggregate({
+    // 1. Total Liquidity (Total Cooperative Treasury Funds)
+    // Formula: Total CASH_EQUIVALENTS minus Total personal_wallet liabilities
+    const memberWallets = await tx.savingsAccount.aggregate({
       where: {
         tenant_id: tenantId,
-        account_type: {
-          in: ["regular_savings", "share_capital", "personal_wallet"],
-        },
+        account_type: "personal_wallet",
       },
       _sum: { balance: true },
     });
+
+    const treasuryAccount = await tx.ledgerAccount.findFirst({
+        where: { code: "CASH_EQUIVALENTS", OR: [{ tenant_id: tenantId }, { tenant_id: null }] },
+        orderBy: { tenant_id: "desc" },
+    });
+
+    let safeLiquidity = 0;
+    if (treasuryAccount) {
+      const treasuryEntries = await tx.businessLedger.aggregate({
+        where: { tenant_id: tenantId, account_id: treasuryAccount.id },
+        _sum: { debit: true, credit: true },
+      });
+      const grossTreasury = Number(treasuryEntries._sum.debit || 0) - Number(treasuryEntries._sum.credit || 0);
+      safeLiquidity = grossTreasury - Number(memberWallets._sum.balance || 0);
+    }
+
+    const liquidity = { _sum: { balance: safeLiquidity } };
 
     // 2. Active Loans Count
     const activeLoansCount = await tx.loan.count({

@@ -318,31 +318,23 @@ export async function releaseLoanFunds(
         where: { tenant_id: targetTenantId, account_id: treasuryAccount.id },
         select: { debit: true, credit: true },
       });
-      const treasuryBalance = treasuryEntries.reduce(
+      const grossTreasuryBalance = treasuryEntries.reduce(
         (sum: number, e: any) => sum + Number(e.debit) - Number(e.credit), 0,
       );
 
-      if (treasuryBalance < principalAmount) {
+      const memberWallets = await tx.savingsAccount.aggregate({
+        where: { tenant_id: targetTenantId, account_type: "personal_wallet" },
+        _sum: { balance: true }
+      });
+      
+      const safeTreasuryBalance = grossTreasuryBalance - Number(memberWallets._sum.balance || 0);
+
+      if (safeTreasuryBalance < principalAmount) {
         return {
-          error: `Insufficient tenant funds (Available: ₱${Math.max(0, treasuryBalance).toLocaleString()}, ` +
-            `Required: ₱${principalAmount.toLocaleString()}). Members must deposit capital first before loans can be released.`,
+          error: `Insufficient tenant funds (Available: ₱${Math.max(0, safeTreasuryBalance).toLocaleString()}, ` +
+            `Required: ₱${principalAmount.toLocaleString()}). Operators must deposit capital first before loans can be released.`,
         };
       }
-
-      // Deduct from treasury
-      await tx.businessLedger.create({
-        data: {
-          transaction_id: transId,
-          account_id: treasuryAccount.id,
-          tenant_id: targetTenantId,
-          debit: 0,
-          credit: principalAmount,
-          description: `Loan disbursement #${loan.loan_reference}`,
-          loan_id: loanId,
-          created_by: session.user.user_id,
-          metadata: { source: "loan_release", transactionId: transId },
-        },
-      });
 
       // Credit the member's wallet with the loan amount
       const memberWallet = await tx.savingsAccount.findFirst({
@@ -393,7 +385,7 @@ export async function releaseLoanFunds(
       await postLedgerEntry(tx, {
         tenantId: targetTenantId,
         loanId,
-        description: `Loan Released: #${loan.loan_reference}. Funded from tenant treasury.`,
+        description: `Loan Released: #${loan.loan_reference}. internal transfer to member wallet.`,
         createdBy: session.user.user_id,
         metadata: { source: "loan_release", transactionId: transId },
         entries: [
@@ -403,7 +395,7 @@ export async function releaseLoanFunds(
             credit: 0,
           },
           {
-            accountCode: "CASH_EQUIVALENTS",
+            accountCode: "MEMBER_SAVINGS",
             debit: 0,
             credit: principalAmount,
           },
@@ -567,36 +559,6 @@ export async function processFullPayment(
         },
       });
 
-      // 6. Credit operator wallet (The user who funded the loan)
-      if (loan.approved_by) {
-        const operatorWallet = await tx.savingsAccount.findFirst({
-          where: {
-            user_id: loan.approved_by,
-            account_type: AccountType.personal_wallet,
-          },
-        });
-
-        if (operatorWallet) {
-          await tx.savingsAccount.update({
-            where: { account_id: operatorWallet.account_id },
-            data: { balance: { increment: remainingPrincipal } },
-          });
-
-          const creditTransRef = `FULL-CREDIT-${fullPayment.payment_id}-${Date.now()}`;
-          await tx.savingsTransaction.create({
-            data: {
-              account_id: operatorWallet.account_id,
-              tenant_id: tenantId,
-              transaction_type: TransactionType.deposit,
-              amount: remainingPrincipal,
-              reference: creditTransRef,
-              processed_by: session.user.user_id,
-              issue_notes: `Loan full-payment credit from #${loan.loan_reference}`,
-            },
-          });
-        }
-      }
-
       // Post ledger entries for financial integrity
       const totalFaceValue = unpaidSchedules.reduce(
         (sum: number, s: any) => sum + Number(s.total_due),
@@ -741,32 +703,6 @@ export async function verifySubmittedPayment(
           },
         });
       }
-
-      // 6. Credit tenant treasury (CASH_EQUIVALENTS)
-      const treasuryAcct = await tx.ledgerAccount.findFirst({
-        where: {
-          code: "CASH_EQUIVALENTS",
-          OR: [{ tenant_id: tenantId }, { tenant_id: null }],
-        },
-        orderBy: { tenant_id: "desc" },
-      });
-      if (treasuryAcct) {
-        await tx.businessLedger.create({
-          data: {
-            transaction_id: `REPAY-${payment.payment_id}-${Date.now()}`,
-            account_id: treasuryAcct.id,
-            tenant_id: tenantId,
-            debit: payment.amount_paid,
-            credit: 0,
-            description: `Loan repayment from #${payment.loan.loan_reference}`,
-            loan_id: payment.loan_id,
-            created_by: session.user.user_id,
-            metadata: { source: "repayment_credit" },
-          },
-        });
-      }
-
-
 
       // Post ledger entries
       await postLedgerEntry(tx, {
