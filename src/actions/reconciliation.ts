@@ -216,11 +216,7 @@ export async function resolveAndSignEndOfDay(reason?: string) {
       let discrepancyAccount = await tx.ledgerAccount.findFirst({
         where: {
           code: "RECONC_DISCREPANCY",
-          OR: tenantId
-            ? [{ tenant_id: tenantId }, { tenant_id: null }]
-            : [{ tenant_id: null }],
         },
-        orderBy: { tenant_id: "desc" },
       });
 
       if (!discrepancyAccount) {
@@ -229,7 +225,7 @@ export async function resolveAndSignEndOfDay(reason?: string) {
             name: "Reconciliation Discrepancy",
             code: "RECONC_DISCREPANCY",
             type: "EXPENSE",
-            tenant_id: tenantId,
+            tenant_id: null,
           },
         });
       }

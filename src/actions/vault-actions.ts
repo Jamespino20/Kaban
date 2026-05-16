@@ -111,17 +111,13 @@ export async function recordCapitalTransaction(data: {
       let ledgerAccount = await tx.ledgerAccount.findFirst({
         where: {
           code: data.type === "share_capital" ? "EQUITY-SC" : "LIAB-SAV",
-          OR: tenantId
-            ? [{ tenant_id: tenantId }, { tenant_id: null }]
-            : [{ tenant_id: null }],
         },
-        orderBy: { tenant_id: "desc" },
       });
 
       if (!ledgerAccount) {
         ledgerAccount = await tx.ledgerAccount.create({
           data: {
-            tenant_id: tenantId,
+            tenant_id: null,
             name:
               data.type === "share_capital"
                 ? "Share Capital"
