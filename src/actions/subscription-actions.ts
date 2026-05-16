@@ -431,6 +431,16 @@ export async function updateTenantSubscription(
       const nextPlan = nextPlanId
         ? await tx.subscriptionPlan.findUnique({ where: { id: nextPlanId } })
         : currentSub?.plan || null;
+
+      // If plan changed, set activated_modules based on the new plan
+      if (data.plan_id && nextPlan) {
+        const planModules: Record<string, string[]> = {
+          "Agapay Core": ["loans", "wallet", "community"],
+          "Agapay Pro": ["loans", "wallet", "community", "branding", "audit", "compassion"],
+          "Agapay Enterprise": ["loans", "wallet", "community", "branding", "audit", "compassion", "reports", "analytics", "system_config"],
+        };
+        updateData.activated_modules = planModules[nextPlan.tier_name] || updateData.activated_modules;
+      }
       const nextCycle = (data.billing_cycle ||
         currentSub?.billing_cycle ||
         "monthly") as BillingCycleValue;
@@ -441,9 +451,22 @@ export async function updateTenantSubscription(
       const nextPrice = nextPlan ? getPlanCyclePrice(nextPlan, nextCycle) : currentPrice;
       const delta = Number((nextPrice - currentPrice).toFixed(2));
 
+      // Recalculate lease dates based on billing cycle
+      const now = new Date();
+      const currentEnd = currentSub?.end_date ? new Date(currentSub.end_date) : now;
+      const newStart = currentEnd > now ? currentEnd : now;
+      const newEnd = new Date(newStart);
+      const cycle = data.billing_cycle || currentSub?.billing_cycle || "monthly";
+      switch (cycle) {
+        case "monthly": newEnd.setMonth(newEnd.getMonth() + 1); break;
+        case "quarterly": newEnd.setMonth(newEnd.getMonth() + 3); break;
+        case "semi_annually": newEnd.setMonth(newEnd.getMonth() + 6); break;
+        case "annually": newEnd.setMonth(newEnd.getMonth() + 12); break;
+      }
+
       const updatedSub = await tx.tenantSubscription.update({
         where: { tenant_id: tenantId },
-        data: updateData,
+        data: { ...updateData, start_date: newStart, end_date: newEnd },
       });
 
       if (shouldSettle && delta !== 0) {

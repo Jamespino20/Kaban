@@ -46,6 +46,8 @@ export const submitCoopApplication = async (values: {
   membersCount: string;
   message?: string;
   selectedPlanId?: string;
+  plan_id?: number;
+  payment_amount?: number;
   docs?: {
     validId: string | null;
     barangayCert: string | null;
@@ -67,17 +69,11 @@ export const submitCoopApplication = async (values: {
     const planLabel = values.selectedPlanId
       ? values.selectedPlanId.toUpperCase()
       : "NONE";
-    const cycleLabel = "One-time Payment";
 
-    // We use the Tenant model with 'prospect' status for applications
     const slug = values.name
       .toLowerCase()
       .replace(/\s+/g, "-")
       .substring(0, 50);
-
-    const docNotes = values.docs
-      ? `\nDocuments: ${values.docs.validId ? "ID (v)" : "(x)"}, ${values.docs.barangayCert ? "Cert (v)" : "(x)"}, ${values.docs.businessPermit ? "Permit (v)" : "(x)"}`
-      : "";
 
     const billingNotes = values.billing
       ? `\nBilling: ${values.billing.name} (${values.billing.email}), ${values.billing.address}, ${values.billing.city} ${values.billing.zip}. Card: ****${values.billing.cardLast4}`
@@ -93,13 +89,13 @@ export const submitCoopApplication = async (values: {
         estimated_members: parseInt(values.membersCount) || 0,
         tenant_group_id: values.tenant_group_id ?? null,
         status: "pending",
-        submitted_by: 0, // Using 0 for Guest/Public submissions
+        submitted_by: 0,
         documents: values.docs ? (values.docs as any) : null,
-        brand_color: "#10b981", // Default Emerald
+        payment_amount: values.payment_amount,
+        brand_color: "#10b981",
       },
     });
 
-    // Also Log as feedback for immediate visibility to Superadmins
     const ticketNumber = `APP-${Date.now().toString(36).toUpperCase()}`;
     await prisma.supportTicket.create({
       data: {
@@ -115,6 +111,8 @@ export const submitCoopApplication = async (values: {
           applicant_name: values.name,
           applicant_email: values.email,
           category_original: "COOP_APPLICATION",
+          plan_id: values.plan_id || null,
+          downpayment_amount: values.payment_amount || 0,
         },
       },
     });

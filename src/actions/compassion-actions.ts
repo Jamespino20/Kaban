@@ -82,6 +82,7 @@ export const requestCompassionAction = async (
       await db.compassionAction.create({
         data: {
           loan_id,
+          tenant_id: session.user.tenantId,
           action_type,
           reason,
           status: "pending",

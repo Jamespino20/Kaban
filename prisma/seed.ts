@@ -506,6 +506,7 @@ async function main() {
     ];
     const proModules = [
       ...coreModules,
+      AppModule.branding,
       AppModule.audit,
       AppModule.compassion,
     ];

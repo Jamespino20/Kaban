@@ -15,12 +15,14 @@ export async function getAuthUser(req: Request): Promise<AuthUser> {
   const tokenRecord = await prisma.authToken.findUnique({ where: { token } });
   if (!tokenRecord || tokenRecord.expires < new Date()) throw new Error("Token expired");
 
+  if (!tokenRecord.user_id) throw new Error("Invalid token: no user associated");
+
   const user = await prisma.user.findUnique({
     where: { user_id: tokenRecord.user_id },
     select: { user_id: true, tenant_id: true, role: true },
   });
   if (!user) throw new Error("User not found");
-  return user;
+  return user as AuthUser;
 }
 
 export async function createAuthToken(userId: number, tenantId: number): Promise<string> {

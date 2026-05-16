@@ -43,7 +43,7 @@ export async function POST(req: Request) {
 
     return NextResponse.json({
       status: "success",
-      data: { token, user: { ...user, tenant_id: user.tenant_id } },
+      data: { token, user: { id: user.user_id, ...user, tenant_id: user.tenant_id } },
     });
   } catch (error: any) {
     return NextResponse.json({ status: "error", message: error.message }, { status: 500 });

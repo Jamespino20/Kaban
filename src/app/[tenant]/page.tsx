@@ -2,7 +2,7 @@ import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 import Link from "next/link";
-import { ArrowRight, BadgeCheck, CheckCircle2, Shield, Calculator, Quote, ChevronDown, Star } from "lucide-react";
+import { ArrowRight, BadgeCheck, CheckCircle2, Shield, Calculator, Quote, ChevronDown, Star, Target, Eye } from "lucide-react";
 import { Navbar } from "@/components/layout/navbar";
 import { Footer } from "@/components/layout/footer";
 import { AuthModal } from "@/components/auth/auth-modal";
@@ -257,6 +257,32 @@ export default async function TenantIndexPage(props: {
               ))}
             </div>
           </section>
+
+          {/* Mission & Vision Section */}
+          {mission || vision ? (
+            <section id="mission-vision" className="w-full py-20 px-6 max-w-5xl">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                {mission ? (
+                  <div className="rounded-3xl p-8 bg-white border border-slate-100 shadow-sm">
+                    <div className="w-12 h-12 rounded-2xl flex items-center justify-center mb-4" style={{ backgroundColor: `${brandColor}15` }}>
+                      <Target className="w-6 h-6" style={{ color: brandColor }} />
+                    </div>
+                    <h3 className="text-2xl font-black italic mb-3" style={{ color: brandColor }}>Our Mission</h3>
+                    <p className="text-slate-600 leading-relaxed text-lg">{mission}</p>
+                  </div>
+                ) : <div />}
+                {vision ? (
+                  <div className="rounded-3xl p-8 bg-white border border-slate-100 shadow-sm">
+                    <div className="w-12 h-12 rounded-2xl flex items-center justify-center mb-4" style={{ backgroundColor: `${brandColor}15` }}>
+                      <Eye className="w-6 h-6" style={{ color: brandColor }} />
+                    </div>
+                    <h3 className="text-2xl font-black italic mb-3" style={{ color: brandColor }}>Our Vision</h3>
+                    <p className="text-slate-600 leading-relaxed text-lg">{vision}</p>
+                  </div>
+                ) : <div />}
+              </div>
+            </section>
+          ) : null}
 
           {/* About Section */}
           <section id="about" className="w-full py-20 px-6 max-w-7xl">

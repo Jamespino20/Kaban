@@ -63,30 +63,31 @@ export async function getTenantOverview() {
         tx.$queryRaw`
           SELECT COALESCE(SUM(balance), 0) as total
           FROM savings_accounts
+          WHERE tenant_id = ${tenantId}
         `,
 
         // Total active loans
         tx.$queryRaw`
           SELECT COUNT(*) as count
-          FROM loans WHERE status = 'active'
+          FROM loans WHERE status = 'active' AND tenant_id = ${tenantId}
         `,
 
         // Total members
         tx.$queryRaw`
           SELECT COUNT(*) as count
-          FROM users WHERE role = 'member'
+          FROM users WHERE role = 'member' AND tenant_id = ${tenantId}
         `,
 
         // Total operators
         tx.$queryRaw`
           SELECT COUNT(*) as count
-          FROM users WHERE role = 'operator'
+          FROM users WHERE role = 'operator' AND tenant_id = ${tenantId}
         `,
 
         // Tenant trust score (average)
         tx.$queryRaw`
           SELECT AVG(trust_score) as avg_score
-          FROM users WHERE trust_score IS NOT NULL
+          FROM users WHERE trust_score IS NOT NULL AND tenant_id = ${tenantId}
         `,
 
         // Payment score (simplified - based on repayment rate)
@@ -102,7 +103,7 @@ export async function getTenantOverview() {
           FROM loan_schedules ls
           LEFT JOIN payments ps ON ps.loan_schedule_id = ls.schedule_id AND ps.status = 'verified'
           JOIN loans l ON l.loan_id = ls.loan_id
-          WHERE l.status IN ('active', 'delinquent', 'defaulted', 'paid')
+          WHERE l.status IN ('active', 'delinquent', 'defaulted', 'paid') AND l.tenant_id = ${tenantId}
         `,
 
         // Business score (simplified - based on loan portfolio health)
@@ -116,6 +117,7 @@ export async function getTenantOverview() {
               )
             END as score
           FROM loans l
+          WHERE tenant_id = ${tenantId}
         `,
 
         // Peer score (simplified - based on member activity)
@@ -131,7 +133,7 @@ export async function getTenantOverview() {
               )
             END as score
           FROM users u
-          WHERE u.role = 'member'
+          WHERE u.role = 'member' AND u.tenant_id = ${tenantId}
         `,
 
         // Guarantor score (simplified - based on guarantor fulfillment)
@@ -146,13 +148,14 @@ export async function getTenantOverview() {
             END as score
           FROM guarantees g
           JOIN loans l ON l.loan_id = g.loan_id
+          WHERE l.tenant_id = ${tenantId}
         `,
 
         // Interest tier (most common among members)
         tx.$queryRaw`
           SELECT interest_tier
           FROM users 
-          WHERE role = 'member' AND interest_tier IS NOT NULL
+          WHERE role = 'member' AND interest_tier IS NOT NULL AND tenant_id = ${tenantId}
           GROUP BY interest_tier
           ORDER BY COUNT(*) DESC
           LIMIT 1

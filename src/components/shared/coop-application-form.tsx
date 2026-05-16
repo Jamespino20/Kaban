@@ -102,6 +102,8 @@ export function CoopApplicationForm() {
       const res = await submitCoopApplication({
         ...formData,
         tenant_group_id: formData.tenant_group_id ?? undefined,
+        plan_id: selectedPlanData?.dbId,
+        payment_amount: dpAmount,
       });
 
       if (res.error) {
@@ -189,6 +191,7 @@ export function CoopApplicationForm() {
     const dbFeatures: string[] = Array.isArray(p.features) ? p.features : [];
     const allFeatures = [`${p.max_members >= 1000000 ? "Unlimited" : `Up to ${p.max_members.toLocaleString()}`} members`, ...dbFeatures];
     return {
+      dbId: p.id,
       id: key,
       name: p.tier_name.replace("Agapay ", ""),
       price: price.toLocaleString(),

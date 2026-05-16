@@ -27,7 +27,7 @@ export async function GET(req: Request) {
       return NextResponse.json({ status: "error", message: "User not found." }, { status: 404 });
     }
 
-    return NextResponse.json({ status: "success", data: user });
+    return NextResponse.json({ status: "success", data: { id: user.user_id, ...user } });
   } catch (error: any) {
     return NextResponse.json({ status: "error", message: error.message }, { status: 500 });
   }
@@ -86,7 +86,7 @@ export async function PUT(req: Request) {
       },
     });
 
-    return NextResponse.json({ status: "success", data: user });
+    return NextResponse.json({ status: "success", data: { id: user?.user_id, ...user } });
   } catch (error: any) {
     return NextResponse.json({ status: "error", message: error.message }, { status: 500 });
   }

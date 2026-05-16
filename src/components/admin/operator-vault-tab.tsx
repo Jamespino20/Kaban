@@ -23,7 +23,7 @@ export async function OperatorVaultTab({ tenantSlug }: { tenantSlug: string }) {
   const totalFunds = integrity?.treasuryBalance ?? 0;
   const savingsPool = integrity?.savingsPoolTotal ?? 0;
   const totalOutstanding = operational?.riskConcentration.reduce((s: number, r: { amount: number }) => s + r.amount, 0) ?? 0;
-  const netPosition = eod ? Number(eod.holdings.netPosition) : 0;
+  const netPosition = eod ? Number(eod.totalCollected) - Number(eod.totalDisbursed) : 0;
 
   const recentTx = await prisma.payment.findMany({
     where: { tenant_id: tenantId, status: "verified" },
@@ -107,8 +107,8 @@ export async function OperatorVaultTab({ tenantSlug }: { tenantSlug: string }) {
             <div>
               <h3 className="font-bold text-slate-900">Daily Treasury Position</h3>
               <div className="flex gap-6 mt-1 text-sm">
-                <span className="text-slate-500">Disbursed: <strong className="text-slate-900">₱{Number(eod.holdings.totalDisbursed).toLocaleString()}</strong></span>
-                <span className="text-slate-500">Collected: <strong className="text-slate-900">₱{Number(eod.holdings.totalCollected).toLocaleString()}</strong></span>
+                <span className="text-slate-500">Disbursed: <strong className="text-slate-900">₱{Number(eod.totalDisbursed).toLocaleString()}</strong></span>
+                <span className="text-slate-500">Collected: <strong className="text-slate-900">₱{Number(eod.totalCollected).toLocaleString()}</strong></span>
                 <span className="text-slate-500">Net: <strong className={netPosition >= 0 ? "text-emerald-600" : "text-red-600"}>₱{netPosition.toLocaleString()}</strong></span>
               </div>
             </div>

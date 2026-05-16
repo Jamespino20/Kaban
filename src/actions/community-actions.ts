@@ -376,6 +376,7 @@ export async function getCommunityDashboardData() {
       }),
       discoverableUsers: discoverableUsers.map((user: any) => ({
         userId: user.user_id,
+        username: user.username,
         role: user.role,
         name:
           user.profile?.first_name && user.profile?.last_name

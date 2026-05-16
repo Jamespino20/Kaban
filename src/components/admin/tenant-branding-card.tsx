@@ -321,7 +321,7 @@ export function BrandingTabWrapper({
               Synchronized
             </span>
           </div>
-          <div className="h-[500px] w-full">
+          <div className="max-h-[400px] min-h-[300px] w-full overflow-hidden rounded-2xl">
             <MockHomepagePreview
               branding={{
                 logoUrl:

@@ -326,36 +326,21 @@ export function HomepageContentTab({
         </div>
       </div>
 
-      <div className="2xl:col-span-2">
-        <div className="sticky top-24 space-y-4">
-          <div className="flex items-center justify-between px-2">
-            <h4 className="text-sm font-bold uppercase tracking-widest text-slate-400">
-              Content Preview
-            </h4>
-            <span className="text-[10px] text-blue-600 font-bold bg-blue-50 px-2 py-0.5 rounded-full border border-blue-100">
-              Live View
-            </span>
-          </div>
-          <div className="h-[700px] w-full">
-            <MockHomepagePreview
-              branding={{
-                logoUrl: navIconUrl || undefined,
-              }}
-              content={{
-                heroHeadline: heroTagline,
-                heroSubheadline: heroSubtitle,
-              }}
-            />
-          </div>
-          <div className="p-4 rounded-2xl bg-slate-100 border border-slate-200">
-            <p className="text-xs text-slate-500 font-medium leading-relaxed">
-              Tenant storefront changes appear after they are published.
-            </p>
-          </div>
-        </div>
-      </div>
     </div>
   );
+}
+
+function getBrandColor(): string {
+  if (typeof document !== "undefined") {
+    const style = getComputedStyle(document.documentElement);
+    return style.getPropertyValue("--tenant-primary").trim() || "#059669";
+  }
+  return "#059669";
+}
+
+function getTenantDisplayName(): string {
+  const el = document.querySelector('[data-tenant-name]');
+  return el?.getAttribute("data-tenant-name") || "Cooperative";
 }
 
 import { MockHomepagePreview } from "./mock-homepage-preview";

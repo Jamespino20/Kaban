@@ -156,6 +156,7 @@ export function CommunityTab({
     return discoverableDirectory.filter((user: any) => {
       return (
         user.name.toLowerCase().includes(term) ||
+        user.username?.toLowerCase().includes(term) ||
         user.subtitle?.toLowerCase().includes(term)
       );
     });
@@ -572,7 +573,8 @@ export function CommunityTab({
                 ))}
               {discoverSearchTerm && filteredDiscoverableUsers.length === 0 && (
                 <p className="px-3 py-2 text-xs text-slate-400">
-                  No community members matched your search.
+                  No community members matched your search. Try a name,
+                  username, business name, or occupation.
                 </p>
               )}
             </div>

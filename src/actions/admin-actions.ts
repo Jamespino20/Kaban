@@ -459,6 +459,7 @@ export async function getDashboardMetrics() {
     // 1. Total Liquidity (Total Savings Pool)
     const liquidity = await tx.savingsAccount.aggregate({
       where: {
+        tenant_id: tenantId,
         account_type: {
           in: ["regular_savings", "share_capital"],
         },
@@ -474,6 +475,7 @@ export async function getDashboardMetrics() {
     // 3. Repayment Rate (Verified Payments vs Total Due)
     const totalPaid = await tx.payment.aggregate({
       where: {
+        tenant_id: tenantId,
         status: "verified",
       },
       _sum: { amount_paid: true },
@@ -481,6 +483,7 @@ export async function getDashboardMetrics() {
 
     const totalDue = await tx.loanSchedule.aggregate({
       where: {
+        tenant_id: tenantId,
         due_date: { lte: new Date() },
       },
       _sum: { total_due: true },
@@ -493,6 +496,7 @@ export async function getDashboardMetrics() {
     // 4. Risk Exposure (Sum of remaining balance on past-due/defaulted loans)
     const riskExposure = await tx.loan.aggregate({
       where: {
+        tenant_id: tenantId,
         OR: [
           { schedules: { some: { status: "overdue" } } },
           { status: "defaulted" },

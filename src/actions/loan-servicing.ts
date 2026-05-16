@@ -302,6 +302,45 @@ export async function releaseLoanFunds(
       const principalAmount = Number(loan.principal_amount);
       const transId = `DISB-${loan.loan_id}-${Date.now()}`;
 
+      // Check tenant treasury (CASH_EQUIVALENTS ledger balance)
+      const treasuryAccount = await tx.ledgerAccount.findFirst({
+        where: { code: "CASH_EQUIVALENTS", tenant_id: { in: [targetTenantId, null] } },
+        orderBy: { tenant_id: "desc" },
+      });
+      if (!treasuryAccount) {
+        return { error: "Treasury account not configured. Contact superadmin to set up ledger accounts." };
+      }
+
+      const treasuryEntries = await tx.businessLedger.findMany({
+        where: { tenant_id: targetTenantId, account_id: treasuryAccount.id },
+        select: { debit: true, credit: true },
+      });
+      const treasuryBalance = treasuryEntries.reduce(
+        (sum: number, e: any) => sum + Number(e.debit) - Number(e.credit), 0,
+      );
+
+      if (treasuryBalance < principalAmount) {
+        return {
+          error: `Insufficient tenant funds (Available: ₱${Math.max(0, treasuryBalance).toLocaleString()}, ` +
+            `Required: ₱${principalAmount.toLocaleString()}). Members must deposit capital first before loans can be released.`,
+        };
+      }
+
+      // Deduct from treasury
+      await tx.businessLedger.create({
+        data: {
+          transaction_id: transId,
+          account_id: treasuryAccount.id,
+          tenant_id: targetTenantId,
+          debit: 0,
+          credit: principalAmount,
+          description: `Loan disbursement #${loan.loan_reference}`,
+          loan_id: loanId,
+          created_by: session.user.user_id,
+          metadata: { source: "loan_release", transactionId: transId },
+        },
+      });
+
       // Credit the member's wallet with the loan amount
       const memberWallet = await tx.savingsAccount.findFirst({
         where: { user_id: loan.user_id, account_type: AccountType.personal_wallet },
@@ -351,7 +390,7 @@ export async function releaseLoanFunds(
       await postLedgerEntry(tx, {
         tenantId: targetTenantId,
         loanId,
-        description: `Loan Released: #${loan.loan_reference}. Funded from member wallet credit.`,
+        description: `Loan Released: #${loan.loan_reference}. Funded from tenant treasury.`,
         createdBy: session.user.user_id,
         metadata: { source: "loan_release", transactionId: transId },
         entries: [
@@ -361,7 +400,7 @@ export async function releaseLoanFunds(
             credit: 0,
           },
           {
-            accountCode: "MEMBER_SAVINGS", // This is the general liability account for all wallets
+            accountCode: "CASH_EQUIVALENTS",
             debit: 0,
             credit: principalAmount,
           },
