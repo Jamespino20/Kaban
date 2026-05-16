@@ -6,8 +6,8 @@ async function main() {
     const result = await sql("SELECT COUNT(*) as count FROM users");
     console.log("User count:", result);
     
-    const users = await sql("SELECT user_id, email, username FROM users LIMIT 5");
-    console.log("Top users:", users);
+    const tenants = await sql("SELECT tenant_id, name, slug, entitlement_status FROM tenants");
+    console.log("Tenants:", tenants);
   } catch (err) {
     console.error("SQL Error:", err);
   }

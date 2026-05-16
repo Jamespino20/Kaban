@@ -30,7 +30,7 @@ function getMysqlConfig() {
         minVersion: "TLSv1.2",
         rejectUnauthorized: false,
       },
-      connectTimeout: 30000, // 30s for cold start
+      connectTimeout: 60000, // 60s for cold start
     };
   }
 

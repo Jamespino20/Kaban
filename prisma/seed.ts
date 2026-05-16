@@ -333,25 +333,27 @@ async function main() {
   const hashedAdmin = await bcrypt.hash("admin2026!", 10);
   const year = new Date().getFullYear();
 
-  // 1. Clear Global Tables
-  console.log("🧹 Clearing global tables...");
+  // Clear child data only (leave tenant/plan/group structures)
+  console.log("🧹 Clearing transactional data...");
   try {
-    await prisma.receipt.deleteMany();
+    await prisma.trustScoreSnapshot.deleteMany();
+    await prisma.trustTierAudit.deleteMany();
+    await prisma.loanGuarantee.deleteMany();
+    await prisma.loanSchedule.deleteMany();
+    await prisma.loan.deleteMany();
+    await prisma.businessLedger.deleteMany();
+    await prisma.savingsTransaction.deleteMany();
+    await prisma.savingsAccount.deleteMany();
     await prisma.billingInvoice.deleteMany();
     await prisma.payment.deleteMany();
-    await prisma.paymentMethod.deleteMany();
-    // await prisma.socialVouch.deleteMany(); // REMOVED: vouch system dropped
-    await prisma.userProfile.deleteMany();
+    await prisma.notification.deleteMany();
+    await prisma.topupRequest.deleteMany();
     await prisma.supportTicket.deleteMany();
-    await prisma.auditLog.deleteMany();
-    await prisma.tenantSubscription.deleteMany();
+    await prisma.userDocument.deleteMany();
+    await prisma.userProfile.deleteMany();
     await prisma.user.deleteMany();
-    await prisma.tenant.deleteMany();
-    await prisma.tenantGroup.deleteMany();
-    await prisma.subscriptionPlan.deleteMany();
-    await prisma.ledgerAccount.deleteMany();
   } catch (e) {
-    console.log("⚠️ Tables cleared.");
+    console.log("⚠️ Data cleared.");
   }
 
   // 1.5 System Ledger Accounts
@@ -414,8 +416,9 @@ async function main() {
 
   const seededPlans = [];
   for (const p of plansData) {
-    const plan = await prisma.subscriptionPlan.create({
-      data: {
+    const plan = await prisma.subscriptionPlan.upsert({
+      where: { tier_name: p.name },
+      create: {
         tier_name: p.name,
         price_monthly: p.price_monthly,
         price_quarterly: p.price_quarterly || 0,
@@ -435,6 +438,7 @@ async function main() {
               : 100000,
         features: p.features,
       },
+      update: { tier_name: p.name, features: p.features },
     });
     seededPlans.push(plan);
   }
@@ -442,8 +446,10 @@ async function main() {
   // 3. Tenant Groups
   const seededGroups = [];
   for (const g of REGIONS) {
-    const group = await prisma.tenantGroup.create({
-      data: { name: g.name, reg_code: g.reg_code },
+    const group = await prisma.tenantGroup.upsert({
+      where: { reg_code: g.reg_code },
+      create: { name: g.name, reg_code: g.reg_code },
+      update: { name: g.name },
     });
     seededGroups.push(group);
   }
@@ -453,10 +459,16 @@ async function main() {
   // 5. Per-Tenant Seeding
   for (let i = 0; i < COOPERATIVES.length; i++) {
     const coop = COOPERATIVES[i];
-    const tenant = await prisma.tenant.create({
-      data: {
+    const tenant = await prisma.tenant.upsert({
+      where: { slug: coop.slug },
+      create: {
         name: coop.name,
         slug: coop.slug,
+        tenant_group_id: seededGroups[coop.groupIdx].id,
+        brand_color: coop.color,
+      },
+      update: {
+        name: coop.name,
         tenant_group_id: seededGroups[coop.groupIdx].id,
         brand_color: coop.color,
       },
@@ -593,18 +605,22 @@ async function main() {
   }
 
   // ── Post-Seed: Treasury funds, superadmin wallet, trust snapshots ──
-  console.log("🌱 Seeding tenant treasury funds & superadmin wallet...");
+  console.log("🌱 Seeding supplementary data...");
+  try {
   const adminUser = await prisma.user.findFirst({ where: { role: "superadmin" } });
   if (adminUser) {
-    // Give superadmin a wallet
-    await prisma.savingsAccount.upsert({
-      where: { account_id: 0 } as any,
-      create: {
-        user_id: adminUser.user_id, tenant_id: adminUser.tenant_id ?? 1,
-        account_type: "personal_wallet", owner_role: "superadmin", balance: 100000,
-      },
-      update: {},
+    // Give superadmin a wallet (skip if already exists)
+    const existing = await prisma.savingsAccount.findFirst({
+      where: { user_id: adminUser.user_id, account_type: "personal_wallet" },
     });
+    if (!existing) {
+      await prisma.savingsAccount.create({
+        data: {
+          user_id: adminUser.user_id, tenant_id: adminUser.tenant_id ?? 1,
+          account_type: "personal_wallet", owner_role: "superadmin", balance: 100000,
+        },
+      });
+    }
   }
 
   // Fund tenant treasuries and create trust snapshots
@@ -640,6 +656,10 @@ async function main() {
           business_score: Math.min(100, baseScore - 10 + Math.floor(Math.random() * 20)),
           peer_score: Math.min(100, baseScore - 15 + Math.floor(Math.random() * 25)),
           guarantor_score: Math.min(100, baseScore - 5 + Math.floor(Math.random() * 15)),
+          payment_weight: 50,
+          business_weight: 25,
+          peer_weight: 0,
+          guarantor_weight: 25,
           tier_before: "T1_5_PERCENT",
           tier_after: tier,
           calculated_at: new Date(),
@@ -698,6 +718,9 @@ async function main() {
         });
       }
     }
+  }
+  } catch (e: any) {
+    console.error("⚠️ Supplementary seed data error (non-fatal):", e?.message?.substring(0, 150) || e);
   }
 
   console.log("✅ Agapay Seed Complete!");
