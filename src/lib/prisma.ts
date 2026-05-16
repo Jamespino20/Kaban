@@ -22,10 +22,10 @@ function createMariaDbAdapter(dbUrl: string) {
       password: decodeURIComponent(url.password),
       database: url.pathname.replace("/", ""),
       ssl: { rejectUnauthorized: true },
-      connectTimeout: 600000, // 60s for TiDB cold start
-      socketTimeout: 600000,
-      connectionLimit: 5,
-      acquireTimeout: 600000,
+      connectTimeout: 60000, // 60s for TiDB cold start
+      socketTimeout: 60000,
+      connectionLimit: 25,
+      acquireTimeout: 60000,
     } as any;
     return new PrismaMariaDb(config);
   }

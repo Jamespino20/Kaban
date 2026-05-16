@@ -38,6 +38,25 @@ function getMysqlConfig() {
   return dbUrl.replace("sslaccept=strict", "ssl=true");
 }
 
+let pool: mysql.Pool | undefined;
+
+function getPool() {
+  if (pool) return pool;
+  
+  const config = getMysqlConfig();
+  if (typeof config === "string") {
+    pool = mysql.createPool(config);
+  } else {
+    pool = mysql.createPool({
+      ...config,
+      connectionLimit: 10,
+      waitForConnections: true,
+      queueLimit: 0,
+    });
+  }
+  return pool;
+}
+
 /**
  * Execute a MySQL query via tagged template literals.
  * Automatically handles parameterisation.
@@ -53,33 +72,27 @@ export async function sql<T = Record<string, unknown>>(
     return [] as T[];
   }
 
-  const url = getMysqlConfig();
-  const connection = await mysql.createConnection(url as any);
+  const p = getPool();
 
-  try {
-    let query: string;
-    let params: unknown[];
+  let query: string;
+  let params: unknown[];
 
-    if (typeof strings === "string") {
-      query = strings.trim();
-      params = (values[0] as unknown[]) || [];
-    } else {
-      query = strings.reduce(
-        (acc, part, i) => acc + part + (i < values.length ? "?" : ""),
-        "",
-      ).trim();
-      params = values;
-    }
-
-
-    const [rows] = await connection.execute(query, params as any);
-
-    if (process.env.DEBUG_SQL === "true") {
-      console.log(`[SQL Result] → Found ${(rows as any[]).length} rows`);
-    }
-
-    return rows as T[];
-  } finally {
-    await connection.end();
+  if (typeof strings === "string") {
+    query = strings.trim();
+    params = (values[0] as unknown[]) || [];
+  } else {
+    query = strings.reduce(
+      (acc, part, i) => acc + part + (i < values.length ? "?" : ""),
+      "",
+    ).trim();
+    params = values;
   }
+
+  const [rows] = await p.execute(query, params as any);
+
+  if (process.env.DEBUG_SQL === "true") {
+    console.log(`[SQL Result] → Found ${(rows as any[]).length} rows`);
+  }
+
+  return rows as T[];
 }
