@@ -657,7 +657,7 @@ export async function verifySubmittedPayment(
 
     if (!tenantId) return { error: "Tenant context required." };
 
-    return await prisma.$withTenant(tenantId, async (tx: any) => {
+    const result = await prisma.$withTenant(tenantId, async (tx: any) => {
       const payment = await tx.payment.findUnique({
         where: { payment_id: paymentId },
         include: {
@@ -766,18 +766,7 @@ export async function verifySubmittedPayment(
         });
       }
 
-      // Notify member of verified payment
-      try {
-        await tx.notification.create({
-          data: {
-            user_id: payment.loan.user_id,
-            tenant_id: tenantId,
-            type: "repayment_received",
-            title: "Payment Verified",
-            body: `Your payment of ₱${Number(payment.amount_paid).toLocaleString()} for #${payment.loan.loan_reference} has been verified.`,
-          },
-        });
-      } catch {}
+
 
       // Post ledger entries
       await postLedgerEntry(tx, {
@@ -850,8 +839,31 @@ export async function verifySubmittedPayment(
       revalidatePath("/agapay-tanaw");
       revalidatePath("/agapay-pintig");
       revalidatePath("/agapay-tanaw", "layout");
-      return { success: "Payment verified successfully." };
+      return { 
+        success: true,
+        userId: loanOwnerId,
+        amount: payment.amount_paid,
+        reference: payment.loan.loan_reference,
+      };
     });
+
+    if (result && result.success) {
+      // Notify member (outside transaction)
+      try {
+        await createNotification({
+          userId: result.userId as number,
+          tenantId: tenantId,
+          type: NotificationType.repayment_received,
+          title: "Payment Verified",
+          body: `Your payment of ₱${Number(result.amount).toLocaleString()} for #${result.reference} has been verified.`,
+          actionUrl: `/member/loans/${result.userId}`,
+        });
+      } catch (e) {
+        console.warn("Failed to send payment verification notification:", e);
+      }
+    }
+
+    return { success: "Payment verified successfully." };
   } catch (error: any) {
     console.error("verifySubmittedPayment failed:", error);
     const detail = error?.message || error?.meta?.cause || "";

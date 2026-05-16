@@ -22,10 +22,10 @@ function createMariaDbAdapter(dbUrl: string) {
       password: decodeURIComponent(url.password),
       database: url.pathname.replace("/", ""),
       ssl: { rejectUnauthorized: true },
-      connectTimeout: 60000, // 60s for TiDB cold start
-      socketTimeout: 60000,
+      connectTimeout: 120000, // 120s for TiDB cold start / retries
+      socketTimeout: 120000,
       connectionLimit: 25,
-      acquireTimeout: 60000,
+      acquireTimeout: 120000,
     } as any;
     return new PrismaMariaDb(config);
   }
@@ -91,7 +91,7 @@ const prismaExtended = shouldUseApiClient()
         ) {
           return await (prisma as any).$transaction(
             async (tx: Prisma.TransactionClient) => callback(tx),
-            { maxWait: 60000, timeout: 60000 },
+            { maxWait: 120000, timeout: 120000 },
           );
         },
       },

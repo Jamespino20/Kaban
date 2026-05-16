@@ -63,27 +63,24 @@ export async function postLedgerEntry(
     transactionId ||
     `TX-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
 
-  // 4. Record Entries
-  const ledgerPromises = entries.map((entry) => {
+  // 4. Record Entries (Optimized with createMany for TiDB performance)
+  const createData = entries.map((entry) => {
     const account = (accounts as { id: number; code: string }[]).find(
       (a) => a.code === entry.accountCode,
     )!;
-    const createData: Record<string, unknown> = {
+    return {
       transaction_id: linkId,
-      tenant: { connect: { tenant_id: tenantId } },
-      account: { connect: { id: account.id } },
+      tenant_id: tenantId,
+      account_id: account.id,
       debit: new Prisma.Decimal(entry.debit),
       credit: new Prisma.Decimal(entry.credit),
       description: description,
       metadata: metadata || undefined,
       created_by: createdBy,
+      loan_id: loanId || undefined,
     };
-    if (loanId !== undefined) {
-      createData.loan = { connect: { loan_id: loanId } };
-    }
-    return (tx as any).businessLedger.create({ data: createData });
   });
 
-  await Promise.all(ledgerPromises);
+  await (tx as any).businessLedger.createMany({ data: createData });
   return linkId;
 }
