@@ -40,7 +40,7 @@ export async function generatePDF(
 
     await page.goto(url, {
       waitUntil: "networkidle0",
-      timeout: 30000,
+      timeout: 60000,
     });
 
     const pdf = await page.pdf({

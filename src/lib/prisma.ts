@@ -91,7 +91,7 @@ const prismaExtended = shouldUseApiClient()
         ) {
           return await (prisma as any).$transaction(
             async (tx: Prisma.TransactionClient) => callback(tx),
-            { maxWait: 5000, timeout: 600000 },
+            { maxWait: 60000, timeout: 600000 },
           );
         },
       },
