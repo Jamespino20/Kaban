@@ -465,7 +465,7 @@ export async function getDashboardMetrics() {
       where: {
         tenant_id: tenantId,
         account_type: {
-          in: ["regular_savings", "share_capital"],
+          in: ["regular_savings", "share_capital", "personal_wallet"],
         },
       },
       _sum: { balance: true },

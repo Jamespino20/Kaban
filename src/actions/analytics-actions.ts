@@ -283,7 +283,7 @@ export async function getFinancialIntegrityCheck(): Promise<FinancialIntegrity |
         where: {
           tenant_id: tenantId,
           account: {
-            code: "TREASURY_VAULT",
+            code: "CASH_EQUIVALENTS",
           },
         },
         _sum: {
@@ -348,7 +348,7 @@ export async function getGrowthAnalytics(): Promise<GrowthAnalytics | null> {
 
       // FUM trend: approximate from treasury + savings over time (use weekly snapshots from ledger)
       const ledger = await db.businessLedger.findMany({
-        where: { tenant_id: tenantId, account: { code: { in: ["TREASURY_VAULT", "MEMBER_SAVINGS"] } } },
+        where: { tenant_id: tenantId, account: { code: { in: ["CASH_EQUIVALENTS", "MEMBER_SAVINGS"] } } },
         orderBy: { created_at: "asc" },
         select: { created_at: true, debit: true, credit: true, account: { select: { code: true } } },
       });
