@@ -26,27 +26,27 @@ export function TrustDistributionChart({
 
   const segments = [
     {
-      label: "Starter (5.0%)",
+      label: "Tier 1 — Gabay (5%)",
       value: distribution.t1_5Percent,
       color: "bg-rose-500",
     },
     {
-      label: "Bridge (4.5%)",
+      label: "Tier 2 — Bagong Sigla (4.5%)",
       value: distribution.t2_4_5Percent,
       color: "bg-orange-500",
     },
     {
-      label: "Build (4.0%)",
+      label: "Tier 3 — Kasapi (4%)",
       value: distribution.t3_4Percent,
       color: "bg-amber-500",
     },
     {
-      label: "Growth (3.5%)",
+      label: "Tier 4 — Katuwang (3.5%)",
       value: distribution.t4_3_5Percent,
       color: "bg-indigo-500",
     },
     {
-      label: "Elite (3.0%)",
+      label: "Tier 5 — Ka-Agapay (3%)",
       value: distribution.t5_3Percent,
       color: "bg-emerald-500",
     },

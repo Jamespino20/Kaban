@@ -29,7 +29,10 @@ export async function approveWalletTopUp(requestId: number) {
     const result = await prisma.$withTenant(tenantId, async (tx: any) => {
       // 1. Get request
       const request = await tx.topUpRequest.findUnique({
-        where: { id: requestId },
+        where: { 
+          id: requestId,
+          tenant_id: tenantId,
+        },
       });
 
       if (!request) return { error: "Top-up request not found. It may have been already processed or cancelled." };
@@ -42,7 +45,10 @@ export async function approveWalletTopUp(requestId: number) {
 
       // 2. Mark approved
       await tx.topUpRequest.update({
-        where: { id: requestId },
+        where: { 
+          id: requestId,
+          tenant_id: tenantId,
+        },
         data: {
           status: "verified",
           processed_at: new Date(),
@@ -142,7 +148,10 @@ export async function rejectWalletTopUp(requestId: number) {
   try {
     await prisma.$withTenant(tenantId, async (tx: any) => {
       await tx.topUpRequest.update({
-        where: { id: requestId },
+        where: { 
+          id: requestId,
+          tenant_id: tenantId,
+        },
         data: {
           status: "rejected",
           processed_at: new Date(),
@@ -170,7 +179,7 @@ export async function getPendingTopUps() {
 
   return await prisma.$withTenant(tenantId, async (tx: any) => {
     return serializeDecimal(await tx.topUpRequest.findMany({
-      where: { status: "pending" },
+      where: { tenant_id: tenantId, status: "pending" },
       include: { user: { include: { profile: true } } },
       orderBy: { created_at: "asc" },
     }));
@@ -235,7 +244,7 @@ export async function requestWalletTopUp(
 
       // Auto-update wallet balance
       let wallet = await tx.savingsAccount.findFirst({
-        where: { user_id: userId, account_type: AccountType.personal_wallet },
+        where: { tenant_id: tenantId, user_id: userId, account_type: AccountType.personal_wallet },
       });
       if (!wallet) {
         wallet = await tx.savingsAccount.create({

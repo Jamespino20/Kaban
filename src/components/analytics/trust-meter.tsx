@@ -3,7 +3,6 @@
 import React from "react";
 import { cn } from "@/lib/utils";
 import { TrustScoreBreakdown } from "@/lib/trust-engine";
-import { formatTierLabel } from "@/lib/microfinance-policy";
 
 interface TrustMeterProps {
   data: TrustScoreBreakdown;
@@ -22,7 +21,6 @@ export function TrustMeter({
     businessScore,
     peerScore,
     guarantorScore,
-    tier,
   } = data;
 
   // Gauge constants
@@ -104,7 +102,7 @@ export function TrustMeter({
         </div>
       </div>
 
-      {/* Tier Badge */}
+      {/* Score Label */}
       <div
         className={cn(
           "px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider flex items-center gap-2 border",
@@ -116,7 +114,7 @@ export function TrustMeter({
         )}
       >
         <span className="w-2 h-2 rounded-full bg-current animate-pulse" />
-        Tier: {formatTierLabel(tier)}
+        Branch Score: {score}
       </div>
 
       {/* Factor Breakdown */}

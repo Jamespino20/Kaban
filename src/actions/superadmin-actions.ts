@@ -136,7 +136,7 @@ export async function getSuperadminOverview() {
       (prisma as any).aiSnapshot
         ? (prisma as any).aiSnapshot.findFirst({
             orderBy: { created_at: "desc" },
-          })
+          }).catch(() => null)
         : Promise.resolve(null),
     ]);
 
@@ -146,7 +146,7 @@ export async function getSuperadminOverview() {
     const totalDueAgg = await prisma.$queryRaw`
       SELECT COALESCE(SUM(total_due), 0) as total_due
       FROM loan_schedules
-    `;
+    `.catch(() => [{ total_due: 0 }]);
     const dueRow = Array.isArray(totalDueAgg) ? totalDueAgg[0] : totalDueAgg;
     const totalDue = Number(dueRow?.total_due || 0);
     const platformRepaymentRate = totalDue > 0 ? Math.min(100, (totalPaid / totalDue) * 100) : 100;
@@ -2044,5 +2044,242 @@ export async function getSuperadminFraudMetrics() {
   } catch (error) {
     console.error("Failed to load fraud metrics:", error);
     return { success: false, error: "Failed to load fraud metrics." };
+  }
+}
+
+// SA-30: Superadmin End-of-Day (EOD) Reconciliation & Subscription Report
+export async function getSuperadminEODReport(params?: {
+  date?: string;    // ISO date string, defaults to today
+  tenantId?: number; // optional: filter to a specific tenant
+}) {
+  await requireSuperadminSession();
+
+  const targetDate = params?.date ? new Date(params.date) : new Date();
+
+  const dayStart = new Date(targetDate);
+  dayStart.setHours(0, 0, 0, 0);
+  const dayEnd = new Date(targetDate);
+  dayEnd.setHours(23, 59, 59, 999);
+
+  const tenantWhereClause = params?.tenantId
+    ? `AND t.tenant_id = ${params.tenantId}`
+    : "";
+  const invoiceTenantClause = params?.tenantId
+    ? `AND bi.tenant_id = ${params.tenantId}`
+    : "";
+  const subTenantClause = params?.tenantId
+    ? `AND ts.tenant_id = ${params.tenantId}`
+    : "";
+
+  try {
+    // 1. Subscription revenue breakdown by plan + billing cycle
+    const subscriptionSummary: any[] = await prisma.$queryRawUnsafe(`
+      SELECT
+        sp.tier_name AS plan,
+        ts.billing_cycle,
+        ts.status,
+        COUNT(ts.tenant_id) AS tenant_count,
+        SUM(
+          CASE
+            WHEN ts.billing_cycle = 'monthly'       THEN sp.price_monthly
+            WHEN ts.billing_cycle = 'quarterly'     THEN COALESCE(sp.price_quarterly, sp.price_monthly * 3)
+            WHEN ts.billing_cycle = 'semi_annually' THEN COALESCE(sp.price_semi_annually, sp.price_monthly * 6)
+            WHEN ts.billing_cycle = 'annually'      THEN COALESCE(sp.price_annually, sp.price_monthly * 12)
+            ELSE sp.price_monthly
+          END
+        ) AS period_revenue
+      FROM tenant_subscriptions ts
+      JOIN subscription_plans sp ON sp.id = ts.plan_id
+      WHERE 1=1 ${subTenantClause}
+      GROUP BY sp.tier_name, ts.billing_cycle, ts.status
+      ORDER BY sp.tier_name, ts.billing_cycle
+    `);
+
+    // 2. Invoices settled on target date
+    const invoicesToday: any[] = await prisma.$queryRawUnsafe(`
+      SELECT
+        bi.tenant_id,
+        t.name          AS tenant_name,
+        bi.invoice_number,
+        bi.amount,
+        bi.status,
+        bi.payment_method,
+        bi.reference,
+        bi.paid_at
+      FROM billing_invoices bi
+      JOIN tenants t ON t.tenant_id = bi.tenant_id
+      WHERE bi.paid_at >= '${dayStart.toISOString()}'
+        AND bi.paid_at <= '${dayEnd.toISOString()}'
+        ${invoiceTenantClause}
+      ORDER BY bi.paid_at DESC
+      LIMIT 200
+    `);
+
+    // 3. Superadmin earnings wallet movements on target date
+    const earningsToday: any[] = await prisma.$queryRaw`
+      SELECT
+        st.transaction_type,
+        SUM(st.amount)  AS total,
+        COUNT(*)        AS txn_count
+      FROM savings_transactions st
+      JOIN savings_accounts sa ON sa.account_id = st.account_id
+      WHERE sa.owner_role = 'superadmin'
+        AND st.processed_at >= ${dayStart}
+        AND st.processed_at <= ${dayEnd}
+      GROUP BY st.transaction_type
+    `;
+
+    // 4. Subscriptions expiring in the next 7 days
+    const sevenDaysLater = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+    const expiringSubscriptions: any[] = await prisma.$queryRawUnsafe(`
+      SELECT
+        t.tenant_id,
+        t.name          AS tenant_name,
+        t.slug,
+        sp.tier_name    AS plan,
+        ts.billing_cycle,
+        ts.status,
+        ts.end_date
+      FROM tenant_subscriptions ts
+      JOIN tenants t ON t.tenant_id = ts.tenant_id
+      JOIN subscription_plans sp ON sp.id = ts.plan_id
+      WHERE ts.end_date BETWEEN '${new Date().toISOString()}' AND '${sevenDaysLater.toISOString()}'
+        AND ts.status = 'active'
+        ${subTenantClause}
+      ORDER BY ts.end_date ASC
+    `);
+
+    // 5. Pending subscription upgrade requests
+    const pendingUpgrades: any[] = await prisma.$queryRawUnsafe(`
+      SELECT
+        t.tenant_id,
+        t.name          AS tenant_name,
+        sp.tier_name    AS plan,
+        ts.billing_cycle,
+        ts.status,
+        bi.amount       AS pending_amount,
+        bi.created_at   AS requested_at
+      FROM tenant_subscriptions ts
+      JOIN tenants t ON t.tenant_id = ts.tenant_id
+      JOIN subscription_plans sp ON sp.id = ts.plan_id
+      LEFT JOIN billing_invoices bi
+        ON bi.tenant_id = ts.tenant_id AND bi.status = 'pending'
+      WHERE ts.status = 'pending'
+        ${subTenantClause}
+      ORDER BY bi.created_at DESC
+    `);
+
+    // 6. Per-tenant subscription health snapshot
+    const tenantSnapshot: any[] = await prisma.$queryRawUnsafe(`
+      SELECT
+        t.tenant_id,
+        t.name              AS tenant_name,
+        t.slug,
+        t.entitlement_status,
+        sp.tier_name        AS plan,
+        ts.billing_cycle,
+        ts.status           AS sub_status,
+        ts.start_date,
+        ts.end_date,
+        CASE
+          WHEN ts.billing_cycle = 'monthly'       THEN sp.price_monthly
+          WHEN ts.billing_cycle = 'quarterly'     THEN COALESCE(sp.price_quarterly, sp.price_monthly * 3)
+          WHEN ts.billing_cycle = 'semi_annually' THEN COALESCE(sp.price_semi_annually, sp.price_monthly * 6)
+          WHEN ts.billing_cycle = 'annually'      THEN COALESCE(sp.price_annually, sp.price_monthly * 12)
+          ELSE sp.price_monthly
+        END                 AS contract_value,
+        COUNT(DISTINCT u.user_id) AS member_count,
+        COUNT(DISTINCT CASE WHEN l.status = 'active' THEN l.loan_id END) AS active_loans
+      FROM tenants t
+      JOIN tenant_subscriptions ts ON ts.tenant_id = t.tenant_id
+      JOIN subscription_plans sp ON sp.id = ts.plan_id
+      LEFT JOIN users u ON u.tenant_id = t.tenant_id AND u.role = 'member'
+      LEFT JOIN loans l ON l.tenant_id = t.tenant_id
+      WHERE 1=1 ${tenantWhereClause}
+      GROUP BY t.tenant_id, t.name, t.slug, t.entitlement_status,
+               sp.tier_name, ts.billing_cycle, ts.status, ts.start_date, ts.end_date,
+               sp.price_monthly, sp.price_quarterly, sp.price_semi_annually, sp.price_annually
+      ORDER BY t.name ASC
+    `);
+
+    const totalPeriodRevenue = subscriptionSummary.reduce(
+      (s, r) => s + Number(r.period_revenue || 0),
+      0,
+    );
+    const totalInvoicedToday = invoicesToday
+      .filter((i) => i.status === "paid")
+      .reduce((s, i) => s + Number(i.amount || 0), 0);
+    const earningsDepositToday = (earningsToday as any[])
+      .filter((e) => e.transaction_type === "deposit")
+      .reduce((s, e) => s + Number(e.total || 0), 0);
+
+    return {
+      success: true,
+      date: targetDate.toISOString().split("T")[0],
+      data: {
+        subscriptionSummary: subscriptionSummary.map((r) => ({
+          plan: r.plan,
+          billing_cycle: r.billing_cycle,
+          status: r.status,
+          tenant_count: Number(r.tenant_count),
+          period_revenue: Number(r.period_revenue || 0),
+        })),
+        invoicesToday: invoicesToday.map((i) => ({
+          tenant_id: Number(i.tenant_id),
+          tenant_name: i.tenant_name,
+          invoice_number: i.invoice_number,
+          amount: Number(i.amount),
+          status: i.status,
+          payment_method: i.payment_method,
+          reference: i.reference,
+          paid_at: i.paid_at,
+        })),
+        expiringSubscriptions: expiringSubscriptions.map((e) => ({
+          tenant_id: Number(e.tenant_id),
+          tenant_name: e.tenant_name,
+          slug: e.slug,
+          plan: e.plan,
+          billing_cycle: e.billing_cycle,
+          status: e.status,
+          end_date: e.end_date,
+        })),
+        pendingUpgrades: pendingUpgrades.map((p) => ({
+          tenant_id: Number(p.tenant_id),
+          tenant_name: p.tenant_name,
+          plan: p.plan,
+          billing_cycle: p.billing_cycle,
+          status: p.status,
+          pending_amount: Number(p.pending_amount || 0),
+          requested_at: p.requested_at,
+        })),
+        tenantSnapshot: tenantSnapshot.map((s) => ({
+          tenant_id: Number(s.tenant_id),
+          tenant_name: s.tenant_name,
+          slug: s.slug,
+          entitlement_status: s.entitlement_status,
+          plan: s.plan,
+          billing_cycle: s.billing_cycle,
+          sub_status: s.sub_status,
+          start_date: s.start_date,
+          end_date: s.end_date,
+          contract_value: Number(s.contract_value || 0),
+          member_count: Number(s.member_count || 0),
+          active_loans: Number(s.active_loans || 0),
+        })),
+        totals: {
+          totalPeriodRevenue,
+          totalInvoicedToday,
+          earningsDepositToday,
+          activeTenants: tenantSnapshot.filter(
+            (s) => s.entitlement_status === "active",
+          ).length,
+          expiringCount: expiringSubscriptions.length,
+          pendingCount: pendingUpgrades.length,
+        },
+      },
+    };
+  } catch (error) {
+    console.error("Failed to generate superadmin EOD report:", error);
+    return { success: false, error: "Failed to generate EOD report." };
   }
 }

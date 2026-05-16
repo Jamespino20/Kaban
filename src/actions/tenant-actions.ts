@@ -163,6 +163,7 @@ export async function getTenantOverview() {
 
         // Recent activity logs (last 20)
         tx.auditLog.findMany({
+          where: { tenant_id: tenantId },
           orderBy: { created_at: "desc" },
           take: 20,
           include: {

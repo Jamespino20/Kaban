@@ -8,16 +8,31 @@ import { api } from "@/lib/api-client";
 export async function getEndOfDayReconciliation(
   dateCursor?: string,
   overrideTenantId?: number,
+  skipAuth = false,
 ) {
   if (shouldUseApiClient()) {
     const targetDate = dateCursor ? new Date(dateCursor) : new Date();
-    return { targetDate, totalDisbursed: 0, disbursedCount: 0, totalCollected: 0, collectedCount: 0, ledger: { totalDebits: 0, totalCredits: 0, isBalanced: true }, holdings: { totalTenantSavings: 0, totalTreasuryBalance: 0, imbalance: 0, isTreasuryHealthy: true } };
+    return {
+      tenantId: overrideTenantId ?? null,
+      targetDate,
+      totalDisbursed: 0,
+      disbursedCount: 0,
+      totalCollected: 0,
+      collectedCount: 0,
+      ledger: { totalDebits: 0, totalCredits: 0, isBalanced: true },
+      holdings: {
+        totalTenantSavings: 0,
+        totalTreasuryBalance: 0,
+        imbalance: 0,
+        isTreasuryHealthy: true,
+      },
+    };
   }
-  const session = await requireTanawSession();
-  const tenantId = overrideTenantId || session.user.tenantId;
+  const session = skipAuth ? null : await requireTanawSession();
+  const tenantId = overrideTenantId ?? session?.user.tenantId;
 
-  if (!tenantId && session.user.role !== "superadmin") {
-    throw new Error("Unauthorized context");
+  if (!tenantId) {
+    throw new Error("Tenant context required");
   }
 
   // Use today if no date provided
@@ -127,6 +142,7 @@ export async function getEndOfDayReconciliation(
     const isTreasuryHealthy = imbalance <= 0.01;
 
     return {
+      tenantId,
       targetDate,
       totalDisbursed,
       disbursedCount: loansDisbursed.length,

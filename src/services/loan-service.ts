@@ -41,7 +41,10 @@ export class LoanService {
     const query = async (db: any) => {
       const [product, member] = await Promise.all([
         db.loanProduct.findFirst({
-          where: { product_id },
+          where: { 
+            product_id,
+            tenant_id: tenantId,
+          },
         }),
         db.user.findUnique({
           where: { user_id: userId },
@@ -151,6 +154,7 @@ export class LoanService {
       const eligibleGuarantors = await db.user.findMany({
         where: {
           user_id: { in: uniqueGuarantorIds },
+          tenant_id: tenantId,
           role: Role.member,
           status: UserStatus.active,
         },

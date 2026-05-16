@@ -218,7 +218,10 @@ export const updateLoanProduct = async (
   try {
     const queryFn = async (db: any) => {
       await db.loanProduct.update({
-        where: { product_id: productId },
+        where: { 
+          product_id: productId,
+          tenant_id: session.user.tenantId,
+        },
         data: {
           name,
           description,
@@ -262,7 +265,10 @@ export const toggleLoanProduct = async (productId: number, isActive: boolean) =>
   try {
     const queryFn = async (db: any) => {
       await db.loanProduct.update({
-        where: { product_id: productId },
+        where: { 
+          product_id: productId,
+          tenant_id: session.user.tenantId,
+        },
         data: { is_active: isActive },
       });
     };
@@ -297,7 +303,11 @@ export const deleteLoanProduct = async (productId: number) => {
   try {
     const queryFn = async (db: any) => {
       const activeLoans = await db.loan.count({
-        where: { product_id: productId, status: { in: ["active", "approved"] } },
+        where: { 
+          product_id: productId, 
+          tenant_id: session.user.tenantId,
+          status: { in: ["active", "approved"] } 
+        },
       });
 
       if (activeLoans > 0) {
@@ -305,7 +315,10 @@ export const deleteLoanProduct = async (productId: number) => {
       }
 
       await db.loanProduct.delete({
-        where: { product_id: productId },
+        where: { 
+          product_id: productId,
+          tenant_id: session.user.tenantId,
+        },
       });
     };
 

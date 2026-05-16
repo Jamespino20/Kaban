@@ -394,7 +394,7 @@ export default async function AgapayPintigPage(props: {
 
                 <div className="relative z-10 mt-8">
                   <a
-                    href={`/${tenant}/api/reports/soa?userId=${userId}&tenantId=${tenantId}`}
+                    href={`/api/reports/soa?userId=${userId}&tenantId=${tenantId}`}
                     target="_blank"
                     className="inline-flex items-center gap-2 text-sm font-bold text-primary/80 hover:text-primary transition-colors"
                   >
@@ -427,7 +427,7 @@ export default async function AgapayPintigPage(props: {
               ))}
             </div>
 
-            {trustScoreSnapshot && (
+            {trustScoreSnapshot ? (
               <TrustScoreCard
                 score={trustScoreValue}
                 tierAfter={trustScoreSnapshot.tier_after}
@@ -436,6 +436,43 @@ export default async function AgapayPintigPage(props: {
                 peerScore={trustScoreSnapshot.peer_score}
                 lastUpdated={trustScoreDate}
               />
+            ) : (
+              <div className="dashboard-card p-6">
+                <div className="flex items-center justify-between mb-4">
+                  <div>
+                    <h3 className="text-sm font-bold uppercase tracking-widest text-indigo-600">Trust Score</h3>
+                    <p className="text-xs text-slate-400 mt-1">Not yet calculated</p>
+                  </div>
+                  <div className="text-lg font-bold text-slate-500 italic font-display">{member?.interest_tier?.replace(/_/g, " ") || "Tier 1 — Gabay"}</div>
+                </div>
+                <div className="space-y-3">
+                  {[{ label: "Gabay", min: 0, color: "bg-slate-300" },
+                    { label: "Bagong Sigla", min: 55, color: "bg-amber-400" },
+                    { label: "Kasapi", min: 65, color: "bg-emerald-400" },
+                    { label: "Katuwang", min: 75, color: "bg-blue-400" },
+                    { label: "Ka-Agapay", min: 85, color: "bg-purple-400" },
+                  ].map((tier) => {
+                    const currentTier = member?.interest_tier || "T1_5_PERCENT";
+                    const tierIndex = ["T1_5_PERCENT","T2_4_5_PERCENT","T3_4_PERCENT","T4_3_5_PERCENT","T5_3_PERCENT"].indexOf(currentTier);
+                    const tierLabels = ["Gabay", "Bagong Sigla", "Kasapi", "Katuwang", "Ka-Agapay"];
+                    const tierNum = tierLabels.indexOf(tier.label);
+                    const isReached = tierNum <= tierIndex;
+                    const isCurrent = tierNum === tierIndex;
+                    return (
+                      <div key={tier.label} className={`flex items-center gap-3 p-2 rounded-xl ${isCurrent ? "bg-indigo-50 border border-indigo-100" : ""}`}>
+                        <div className={`w-4 h-4 rounded-full ${isReached ? tier.color : "bg-slate-100"}`} />
+                        <span className={`text-sm font-bold ${isCurrent ? "text-indigo-700" : isReached ? "text-slate-700" : "text-slate-400"}`}>
+                          {tier.label} {isCurrent ? "(Current)" : ""}
+                        </span>
+                        {isCurrent && (
+                          <span className="text-[10px] font-bold text-indigo-600 ml-auto">Score: 0</span>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+                <p className="mt-4 text-xs text-slate-400 text-center">Complete loan repayments to build your trust score and unlock higher tiers.</p>
+              </div>
             )}
 
             <div className="my-6">

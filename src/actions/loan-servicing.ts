@@ -738,35 +738,39 @@ export async function verifySubmittedPayment(
         });
       }
 
-      // 6. Credit operator wallet (The user who funded the loan)
-      if (payment.loan.approved_by) {
-        const operatorWallet = await tx.savingsAccount.findFirst({
-          where: {
-            user_id: payment.loan.approved_by,
-            account_type: AccountType.personal_wallet,
+      // 6. Credit tenant treasury (CASH_EQUIVALENTS)
+      const treasuryAcct = await tx.ledgerAccount.findFirst({
+        where: { code: "CASH_EQUIVALENTS", tenant_id: { in: [tenantId, null] } },
+        orderBy: { tenant_id: "desc" },
+      });
+      if (treasuryAcct) {
+        await tx.businessLedger.create({
+          data: {
+            transaction_id: `REPAY-${payment.payment_id}-${Date.now()}`,
+            account_id: treasuryAcct.id,
+            tenant_id: tenantId,
+            debit: payment.amount_paid,
+            credit: 0,
+            description: `Loan repayment from #${payment.loan.loan_reference}`,
+            loan_id: payment.loan_id,
+            created_by: session.user.user_id,
+            metadata: { source: "repayment_credit" },
           },
         });
-
-        if (operatorWallet) {
-          await tx.savingsAccount.update({
-            where: { account_id: operatorWallet.account_id },
-            data: { balance: { increment: payment.amount_paid } },
-          });
-
-          const creditTransRef = `REPAY-CREDIT-${payment.payment_id}-${Date.now()}`;
-          await tx.savingsTransaction.create({
-            data: {
-              account_id: operatorWallet.account_id,
-              tenant_id: tenantId,
-              transaction_type: TransactionType.deposit,
-              amount: payment.amount_paid,
-              reference: creditTransRef,
-              processed_by: session.user.user_id,
-              issue_notes: `Loan repayment credit from #${payment.loan.loan_reference}`,
-            },
-          });
-        }
       }
+
+      // Notify member of verified payment
+      try {
+        await tx.notification.create({
+          data: {
+            user_id: payment.loan.user_id,
+            tenant_id: tenantId,
+            type: "repayment_received",
+            title: "Payment Verified",
+            body: `Your payment of ₱${Number(payment.amount_paid).toLocaleString()} for #${payment.loan.loan_reference} has been verified.`,
+          },
+        });
+      } catch {}
 
       // Post ledger entries
       await postLedgerEntry(tx, {
@@ -838,13 +842,14 @@ export async function verifySubmittedPayment(
 
       revalidatePath("/agapay-tanaw");
       revalidatePath("/agapay-pintig");
+      revalidatePath("/agapay-tanaw", "layout");
       return { success: "Payment verified successfully." };
     });
-  } catch (error) {
+  } catch (error: any) {
     console.error("verifySubmittedPayment failed:", error);
+    const detail = error?.message || error?.meta?.cause || "";
     return {
-      error:
-        "Failed to verify this repayment. The payment record or loan schedules may be in an unexpected state. Please check that the payment is still pending and the loan is active, then try again.",
+      error: `Failed to verify repayment. ${detail || "The payment record or loan schedules may be in an unexpected state. Please check that the payment is still pending and the loan is active."}`,
     };
   }
 }

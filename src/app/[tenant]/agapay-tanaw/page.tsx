@@ -72,6 +72,7 @@ import { AdminProfileSettings } from "@/components/admin/admin-profile-settings"
 import { EmailTemplatesTab } from "@/components/admin/email-templates-tab";
 import { AIConfigTab } from "@/components/admin/ai-config-tab";
 import { SubscriptionsModule } from "@/components/admin/subscriptions-module";
+import { SuperadminEODTab } from "@/components/admin/superadmin-eod-tab";
 import {
   getAllSubscriptionPlans,
   getAllTenantSubscriptions,
@@ -703,6 +704,9 @@ export default async function AgapayTanawPage(props: {
                   initialPlans={subscriptionPlans}
                   initialTenants={tenantSubscriptions}
                 />
+              </TabsContent>
+              <TabsContent value="reports" className="outline-none">
+                <SuperadminEODTab />
               </TabsContent>
             </>
           )}

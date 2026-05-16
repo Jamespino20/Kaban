@@ -8,6 +8,7 @@ import {
   FileSpreadsheet,
   Loader2,
   Save,
+  Download,
 } from "lucide-react";
 import {
   getEndOfDayReconciliation,
@@ -189,7 +190,7 @@ export function ReconciliationTab() {
             discrepancy blocking for {data.targetDate.toLocaleDateString("en-PH")}.
           </p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
           <Button
             variant="outline"
             className="rounded-xl border-slate-200 hover:border-slate-300"
@@ -198,6 +199,15 @@ export function ReconciliationTab() {
             <FileSpreadsheet className="w-4 h-4 mr-2 text-indigo-600" />
             Generate CSV Report
           </Button>
+          <a
+            href={`/api/reports/eod${data?.tenantId ? `?tenantId=${data.tenantId}` : ""}`}
+            target="_blank"
+            rel="noreferrer"
+            className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50"
+          >
+            <Download className="w-4 h-4 text-slate-600" />
+            Generate PDF Report
+          </a>
           <Button
             className="rounded-xl bg-emerald-600 text-white hover:bg-emerald-700 disabled:opacity-50"
             onClick={handleApproveReconciliation}

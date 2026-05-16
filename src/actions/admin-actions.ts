@@ -279,6 +279,7 @@ export async function getPendingApprovals() {
 
     const pendingPayments = await db.payment.findMany({
       where: {
+        tenant_id: tenantId,
         status: "pending",
       },
       include: {
@@ -301,6 +302,7 @@ export async function getPendingApprovals() {
 
     const compassion = await db.compassionAction.findMany({
       where: {
+        tenant_id: tenantId,
         status: "pending",
       },
       include: {
@@ -317,6 +319,7 @@ export async function getPendingApprovals() {
 
     const recoveryLoans = await db.loan.findMany({
       where: {
+        tenant_id: tenantId,
         is_recovery_loan: true,
         status: { in: ["active", "defaulted"] },
       },
@@ -329,6 +332,7 @@ export async function getPendingApprovals() {
 
     const overdueLoans = await db.loan.findMany({
       where: {
+        tenant_id: tenantId,
         status: "active",
         schedules: {
           some: {
@@ -469,7 +473,7 @@ export async function getDashboardMetrics() {
 
     // 2. Active Loans Count
     const activeLoansCount = await tx.loan.count({
-      where: { status: "active" },
+      where: { tenant_id: tenantId, status: "active" },
     });
 
     // 3. Repayment Rate (Verified Payments vs Total Due)
@@ -505,18 +509,28 @@ export async function getDashboardMetrics() {
       _sum: { balance_remaining: true },
     });
 
+    // 5. Overdue Payments Count
+    const overduePaymentsCount = await tx.loanSchedule.count({
+      where: { tenant_id: tenantId, status: "overdue" },
+    });
+
+    // 6. Total Transactions
+    const totalTransactions = await tx.savingsTransaction.count({
+      where: { tenant_id: tenantId },
+    });
+
     return {
       totalLiquidity: Number(liquidity._sum.balance || 0),
       activeLoans: activeLoansCount,
       repaymentRate: Math.min(100, repaymentRate),
       riskExposure: Number(riskExposure._sum.balance_remaining || 0),
       isGlobal: false,
-      // Platforms defaults
-      totalTransactions: 0,
+      // Platform defaults
+      totalTransactions,
       globalSupportLoad: 0,
       newTenantVelocity: 0,
-      overduePayments: 0,
-      totalEarnings: 0,
+      overduePayments: overduePaymentsCount,
+      totalEarnings: paidVal,
       totalTenants: 0,
     };
   });
