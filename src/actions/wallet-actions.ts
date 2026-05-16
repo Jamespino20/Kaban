@@ -11,10 +11,12 @@ import {
   ScheduleStatus,
   AccountType,
   TransactionType,
+  NotificationType,
 } from "@prisma/client";
 import { postLedgerEntry } from "./ledger";
 import { logInteraction } from "@/lib/analytics-logger";
 import { createNotification } from "@/lib/notifications";
+import { refreshUserReputation } from "@/actions/reputation";
 
 const PERSONAL_WALLET = "personal_wallet";
 
@@ -365,7 +367,7 @@ export async function payLoanWithWallet(loanId: number, amount: number) {
       }
 
       // 5. Update loan balance
-      await tx.loan.update({
+      const updatedLoan = await tx.loan.update({
         where: { loan_id: loanId },
         data: {
           balance_remaining: {
@@ -373,6 +375,36 @@ export async function payLoanWithWallet(loanId: number, amount: number) {
           },
         },
       });
+
+      if (Number(updatedLoan.balance_remaining) <= 0.01) {
+        await tx.loan.update({
+          where: { loan_id: loanId },
+          data: { 
+            status: "paid", 
+            paid_at: new Date(),
+            balance_remaining: 0
+          },
+        });
+        
+        try {
+          await refreshUserReputation(userId);
+        } catch (error) {
+          console.error("Failed to refresh reputation after loan wallet payment:", error);
+        }
+
+        try {
+          await createNotification({
+            userId: userId,
+            tenantId: tenantId,
+            type: NotificationType.loan_paid,
+            title: "Loan Fully Paid",
+            body: "Congratulations! Your loan has been fully paid via wallet. Your trust score has been updated.",
+            actionUrl: "/agapay-pintig?tab=loans",
+          });
+        } catch (notifyError) {
+          console.error("Failed to send loan paid notification:", notifyError);
+        }
+      }
 
       // 6. Post Ledger Entry (Double-Entry truth)
       await postLedgerEntry(tx, {
@@ -585,7 +617,7 @@ export async function processPosTransaction(data: {
         }
 
         // Update loan balance
-        await tx.loan.update({
+        const updatedLoan = await tx.loan.update({
           where: { loan_id: loan.loan_id },
           data: {
             balance_remaining: {
@@ -593,6 +625,36 @@ export async function processPosTransaction(data: {
             },
           },
         });
+
+        if (Number(updatedLoan.balance_remaining) <= 0.01) {
+          await tx.loan.update({
+            where: { loan_id: loan.loan_id },
+            data: { 
+              status: "paid", 
+              paid_at: new Date(),
+              balance_remaining: 0
+            },
+          });
+          
+          try {
+            await refreshUserReputation(data.targetUserId);
+          } catch (error) {
+            console.error("Failed to refresh reputation after POS payment:", error);
+          }
+
+          try {
+            await createNotification({
+              userId: data.targetUserId,
+              tenantId: tenantId,
+              type: NotificationType.loan_paid,
+              title: "Loan Fully Paid",
+              body: "Congratulations! Your loan has been fully paid via POS terminal. Your trust score has been updated.",
+              actionUrl: "/agapay-pintig?tab=loans",
+            });
+          } catch (notifyError) {
+            console.error("Failed to send loan paid notification:", notifyError);
+          }
+        }
 
         // Ledger: DR Cash, CR Loan Receivables
         await postLedgerEntry(tx, {

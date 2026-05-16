@@ -4,6 +4,8 @@ import prisma from "@/lib/prisma";
 import { auth } from "@/lib/auth";
 import { sql } from "@/lib/db";
 import { Prisma } from "@prisma/client";
+import { postLedgerEntry } from "./ledger";
+import { revalidatePath } from "next/cache";
 
 export async function getCapitalOversight() {
   const session = await auth();
@@ -128,19 +130,26 @@ export async function recordCapitalTransaction(data: {
         });
       }
 
-      await tx.businessLedger.create({
-        data: {
-          tenant: { connect: { tenant_id: tenantId } },
-          account: { connect: { id: ledgerAccount.id } },
-          debit: data.direction === "invest" ? 0 : amount,
-          credit: data.direction === "invest" ? amount : 0,
-          description: `Vault ${data.direction}: ${data.description}`,
-          source_module: "vault",
-          source_reference: st.reference,
-          created_by: Number(userId),
-        },
+      await postLedgerEntry(tx, {
+        tenantId,
+        description: `Vault ${data.direction}: ${data.description}`,
+        createdBy: Number(userId),
+        metadata: { source: "vault", reference: st.reference },
+        entries: [
+          {
+            accountCode: "CASH_EQUIVALENTS",
+            debit: data.direction === "invest" ? Number(amount) : 0,
+            credit: data.direction === "invest" ? 0 : Number(amount),
+          },
+          {
+            accountCode: ledgerAccount.code,
+            debit: data.direction === "withdraw" ? Number(amount) : 0,
+            credit: data.direction === "withdraw" ? 0 : Number(amount),
+          },
+        ],
       });
 
+    revalidatePath("/agapay-tanaw");
     return { success: true };
   });
 }
