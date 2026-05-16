@@ -3,7 +3,7 @@
 import { useState, useMemo } from "react";
 import { Badge } from "@/components/ui/badge";
 import { ChevronDown, ChevronUp, TrendingUp, Award, Target, Info } from "lucide-react";
-import { TIER_POLICIES, InterestTier, determineInterestTierFromScore } from "@/lib/microfinance-policy";
+import { TIER_POLICIES, InterestTier, determineInterestTierFromScore, getEffectiveTierPolicies } from "@/lib/microfinance-policy";
 
 interface TrustScoreCardProps {
   score: number;
@@ -12,14 +12,15 @@ interface TrustScoreCardProps {
   businessScore: number;
   peerScore: number;
   lastUpdated: string | null;
+  milestones?: any;
 }
 
-const TIER_MILESTONES = [
-  { label: "Tier 1 — Gabay", minScore: 0, color: "text-slate-500" },
-  { label: "Tier 2 — Bagong Sigla", minScore: 55, color: "text-amber-600" },
-  { label: "Tier 3 — Kasapi", minScore: 65, color: "text-emerald-600" },
-  { label: "Tier 4 — Katuwang", minScore: 75, color: "text-blue-600" },
-  { label: "Tier 5 — Ka-Agapay", minScore: 85, color: "text-purple-600" },
+const DEFAULT_TIER_MILESTONES = [
+  { label: "Tier 1 — Gabay", minScore: 0, color: "text-slate-500", tier: InterestTier.T1_5_PERCENT },
+  { label: "Tier 2 — Bagong Sigla", minScore: 55, color: "text-amber-600", tier: InterestTier.T2_4_5_PERCENT },
+  { label: "Tier 3 — Kasapi", minScore: 65, color: "text-emerald-600", tier: InterestTier.T3_4_PERCENT },
+  { label: "Tier 4 — Katuwang", minScore: 75, color: "text-blue-600", tier: InterestTier.T4_3_5_PERCENT },
+  { label: "Tier 5 — Ka-Agapay", minScore: 85, color: "text-purple-600", tier: InterestTier.T5_3_PERCENT },
 ];
 
 export function TrustScoreCard({
@@ -29,23 +30,34 @@ export function TrustScoreCard({
   businessScore,
   peerScore,
   lastUpdated,
+  milestones,
 }: TrustScoreCardProps) {
   const [expanded, setExpanded] = useState(false);
 
-  const currentTier = determineInterestTierFromScore(score);
-  const currentTierPolicy = TIER_POLICIES[currentTier];
+  const effectivePolicies = useMemo(() => getEffectiveTierPolicies(milestones), [milestones]);
 
-  const nextTierEntries = Object.entries(TIER_POLICIES).filter(
-    ([, policy]) => policy.trustScoreMin > score,
+  const currentTier = determineInterestTierFromScore(score, milestones);
+  const currentTierPolicy = effectivePolicies[currentTier];
+
+  const nextTierEntries = Object.entries(effectivePolicies).filter(
+    ([, policy]: [string, any]) => policy.trustScoreMin > score,
   );
   const nextTierPolicy = nextTierEntries.length > 0
-    ? nextTierEntries.sort(([, a], [, b]) => a.trustScoreMin - b.trustScoreMin)[0][1]
+    ? (nextTierEntries.sort(([, a]: [string, any], [, b]: [string, any]) => a.trustScoreMin - b.trustScoreMin)[0][1] as any)
     : null;
 
-  const currentTierIndex = TIER_MILESTONES.findIndex(
+  const dynamicTierMilestones = useMemo(() => {
+    return DEFAULT_TIER_MILESTONES.map(m => ({
+      ...m,
+      label: effectivePolicies[m.tier].label,
+      minScore: effectivePolicies[m.tier].trustScoreMin
+    })).sort((a, b) => a.minScore - b.minScore);
+  }, [effectivePolicies]);
+
+  const currentTierIndex = dynamicTierMilestones.findIndex(
     (m) => currentTierPolicy.trustScoreMin === m.minScore,
   );
-  const nextMilestone = TIER_MILESTONES[currentTierIndex + 1] || null;
+  const nextMilestone = dynamicTierMilestones[currentTierIndex + 1] || null;
   const progressToNext = nextMilestone
     ? Math.min(100, ((score - currentTierPolicy.trustScoreMin) / (nextMilestone.minScore - currentTierPolicy.trustScoreMin)) * 100)
     : 100;
@@ -179,7 +191,7 @@ export function TrustScoreCard({
               <h4 className="text-xs font-bold uppercase tracking-widest text-slate-500">Score Milestones</h4>
             </div>
             <div className="space-y-2">
-              {TIER_MILESTONES.map((milestone, i) => {
+              {dynamicTierMilestones.map((milestone, i) => {
                 const isReached = score >= milestone.minScore;
                 const isCurrent = currentTierIndex === i;
                 return (

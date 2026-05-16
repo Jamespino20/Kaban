@@ -2,14 +2,17 @@
 
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { CheckCircle2, TrendingUp, Target, BookOpen, Crown, ShieldCheck, Zap, ArrowUpRight } from "lucide-react";
+import { CheckCircle2, TrendingUp, Target, BookOpen, Crown, ShieldCheck, Zap, ArrowUpRight, Edit3, Save, X, Loader2 } from "lucide-react";
+import { useState, useEffect } from "react";
+import { getPlatformConfig, updatePlatformConfig } from "@/actions/superadmin-actions";
+import { TIER_POLICIES, InterestTier, getEffectiveTierPolicies } from "@/lib/microfinance-policy";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { toast } from "sonner";
 
-const MILESTONES = [
-  {
-    tier: "T5: Elite",
-    interest: "3.0% Monthly",
-    limit: "₱100,000+",
-    score: "90-100",
+// Default UI metadata that isn't in the core policy
+const UI_METADATA: Record<string, { color: string; icon: any; objectives: string[]; perks: string[] }> = {
+  [InterestTier.T5_3_PERCENT]: {
     color: "emerald",
     icon: Crown,
     objectives: [
@@ -23,11 +26,7 @@ const MILESTONES = [
       "Priority customer support",
     ],
   },
-  {
-    tier: "T4: Trusted",
-    interest: "3.5% Monthly",
-    limit: "₱50,000",
-    score: "80-89",
+  [InterestTier.T4_3_5_PERCENT]: {
     color: "blue",
     icon: ShieldCheck,
     objectives: [
@@ -41,11 +40,7 @@ const MILESTONES = [
       "Higher credit limit visibility",
     ],
   },
-  {
-    tier: "T3: Growth (Full)",
-    interest: "4.0% Monthly",
-    limit: "₱25,000",
-    score: "70-79",
+  [InterestTier.T3_4_PERCENT]: {
     color: "indigo",
     icon: Zap,
     objectives: [
@@ -58,11 +53,7 @@ const MILESTONES = [
       "Bi-weekly payment frequency option",
     ],
   },
-  {
-    tier: "T2: Growth (Lite)",
-    interest: "4.5% Monthly",
-    limit: "₱15,000",
-    score: "60-69",
+  [InterestTier.T2_4_5_PERCENT]: {
     color: "slate",
     icon: TrendingUp,
     objectives: [
@@ -75,11 +66,7 @@ const MILESTONES = [
       "Eligibility for weekly payment terms",
     ],
   },
-  {
-    tier: "T1: Starter",
-    interest: "5.0% Monthly",
-    limit: "₱5,000",
-    score: "40-59",
+  [InterestTier.T1_5_PERCENT]: {
     color: "orange",
     icon: Target,
     objectives: [
@@ -92,9 +79,78 @@ const MILESTONES = [
       "Fixed amortization for predictability",
     ],
   },
-];
+};
 
 export function TieringMilestonesTab() {
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+  const [policies, setPolicies] = useState<any>(TIER_POLICIES);
+  const [configId, setConfigId] = useState<number | null>(null);
+
+  useEffect(() => {
+    async function loadConfig() {
+      const res = await getPlatformConfig();
+      if (res.success && res.data) {
+        setConfigId(res.data.id);
+        const dynamicMilestones = res.data.platformSettings?.tiering_milestones;
+        if (dynamicMilestones) {
+          setPolicies(getEffectiveTierPolicies(dynamicMilestones));
+        }
+      }
+      setLoading(false);
+    }
+    loadConfig();
+  }, []);
+
+  const handleSave = async () => {
+    setSaving(true);
+    const res = await updatePlatformConfig({
+      platformSettings: {
+        tiering_milestones: policies
+      }
+    });
+
+    if (res.success) {
+      toast.success("Milestones updated successfully across the platform.");
+      setIsEditing(false);
+    } else {
+      toast.error(res.error || "Failed to update milestones.");
+    }
+    setSaving(false);
+  };
+
+  const updatePolicyField = (tier: string, field: string, value: any) => {
+    setPolicies((prev: any) => ({
+      ...prev,
+      [tier]: {
+        ...prev[tier],
+        [field]: value
+      }
+    }));
+  };
+
+  if (loading) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[400px] gap-4">
+        <Loader2 className="h-8 w-8 animate-spin text-slate-400" />
+        <p className="text-slate-500 font-medium">Synchronizing milestones...</p>
+      </div>
+    );
+  }
+
+  // Convert policies to array for rendering (ordered T5 to T1)
+  const milestoneList = [
+    InterestTier.T5_3_PERCENT,
+    InterestTier.T4_3_5_PERCENT,
+    InterestTier.T3_4_PERCENT,
+    InterestTier.T2_4_5_PERCENT,
+    InterestTier.T1_5_PERCENT
+  ].map(tier => ({
+    ...policies[tier],
+    ...UI_METADATA[tier]
+  }));
+
   return (
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -106,10 +162,46 @@ export function TieringMilestonesTab() {
             Detailed roadmap for member advancement. Higher tiers unlock lower interest rates, higher limits, and premium features.
           </p>
         </div>
-        <Badge className="bg-emerald-50 text-emerald-700 border-emerald-100 px-4 py-1.5 text-sm font-bold flex items-center gap-2">
-          <Zap className="h-4 w-4" />
-          5 Active Tiers Defined
-        </Badge>
+        <div className="flex items-center gap-3">
+          {isEditing ? (
+            <>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={() => setIsEditing(false)}
+                disabled={saving}
+                className="rounded-xl"
+              >
+                <X className="h-4 w-4 mr-2" />
+                Cancel
+              </Button>
+              <Button 
+                variant="default" 
+                size="sm" 
+                onClick={handleSave}
+                disabled={saving}
+                className="bg-slate-900 text-white hover:bg-slate-800 rounded-xl"
+              >
+                {saving ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Save className="h-4 w-4 mr-2" />}
+                Save Changes
+              </Button>
+            </>
+          ) : (
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={() => setIsEditing(true)}
+              className="rounded-xl border-slate-200 hover:bg-slate-50"
+            >
+              <Edit3 className="h-4 w-4 mr-2" />
+              Edit Thresholds
+            </Button>
+          )}
+          <Badge className="bg-emerald-50 text-emerald-700 border-emerald-100 px-4 py-1.5 text-sm font-bold flex items-center gap-2 h-9">
+            <Zap className="h-4 w-4" />
+            5 Active Tiers Defined
+          </Badge>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
@@ -197,7 +289,7 @@ export function TieringMilestonesTab() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6">
-        {MILESTONES.map((m) => {
+        {milestoneList.map((m) => {
           const Icon = m.icon;
           return (
             <Card key={m.tier} className="flex flex-col h-full border-slate-200 shadow-sm rounded-[2rem] hover:ring-2 hover:ring-indigo-500/20 transition-all group">
@@ -212,15 +304,34 @@ export function TieringMilestonesTab() {
                   <Icon className="h-6 w-6" />
                 </div>
                 
-                <h4 className="text-lg font-black italic tracking-tight text-slate-900 mb-1">{m.tier}</h4>
+                {isEditing ? (
+                  <div className="space-y-2 mb-4">
+                    <Input 
+                      value={m.label} 
+                      onChange={(e) => updatePolicyField(m.tier, 'label', e.target.value)}
+                      className="text-sm font-bold rounded-lg border-slate-200"
+                      placeholder="Tier Name"
+                    />
+                  </div>
+                ) : (
+                  <h4 className="text-lg font-black italic tracking-tight text-slate-900 mb-1">{m.tier === m.label ? m.tier : `${m.tier.replace('_PERCENT', '').replace('T', 'Tier ')}: ${m.label}`}</h4>
+                )}
+                
                 <div className="flex items-center gap-1.5 text-slate-500 text-xs mb-6 font-bold uppercase tracking-wider">
                   <ArrowUpRight className="h-3 w-3" />
-                  Max Limit: {m.limit}
+                  Max Limit: {isEditing ? (
+                    <Input 
+                      type="number"
+                      value={m.capAmount} 
+                      onChange={(e) => updatePolicyField(m.tier, 'capAmount', Number(e.target.value))}
+                      className="h-7 w-24 text-xs font-bold rounded-md border-slate-200"
+                    />
+                  ) : `₱${m.capAmount.toLocaleString()}`}
                 </div>
 
                 <div className="space-y-4 mb-8">
                   <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Objectives</p>
-                  {m.objectives.map((obj, i) => (
+                  {m.objectives.map((obj: string, i: number) => (
                     <div key={i} className="flex gap-3">
                       <CheckCircle2 className="h-4 w-4 text-emerald-500 shrink-0 mt-0.5" />
                       <p className="text-xs text-slate-600 leading-relaxed font-medium">{obj}</p>
@@ -231,7 +342,7 @@ export function TieringMilestonesTab() {
                 <div className="space-y-4">
                   <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Unlocked Perks</p>
                   <div className="flex flex-wrap gap-2">
-                    {m.perks.map((perk, i) => (
+                    {m.perks.map((perk: string, i: number) => (
                       <Badge key={i} variant="secondary" className="bg-slate-50 text-slate-600 border-slate-100 text-[10px] font-semibold py-0.5">
                         {perk}
                       </Badge>
@@ -244,11 +355,33 @@ export function TieringMilestonesTab() {
                 <div className="pt-6 border-t border-slate-100 flex items-center justify-between">
                   <div className="space-y-0.5">
                     <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Interest</p>
-                    <p className="font-bold text-slate-900">{m.interest}</p>
+                    {isEditing ? (
+                      <div className="flex items-center gap-1">
+                        <Input 
+                          type="number"
+                          step="0.1"
+                          value={m.monthlyRatePercent} 
+                          onChange={(e) => updatePolicyField(m.tier, 'monthlyRatePercent', Number(e.target.value))}
+                          className="h-7 w-16 text-xs font-bold rounded-md border-slate-200"
+                        />
+                        <span className="text-xs font-bold">%</span>
+                      </div>
+                    ) : (
+                      <p className="font-bold text-slate-900">{m.monthlyRatePercent}% Monthly</p>
+                    )}
                   </div>
                   <div className="text-right space-y-0.5">
-                    <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Score Range</p>
-                    <p className="font-bold text-slate-900">{m.score}</p>
+                    <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Min Score</p>
+                    {isEditing ? (
+                      <Input 
+                        type="number"
+                        value={m.trustScoreMin} 
+                        onChange={(e) => updatePolicyField(m.tier, 'trustScoreMin', Number(e.target.value))}
+                        className="h-7 w-16 text-xs font-bold rounded-md border-slate-200 ml-auto"
+                      />
+                    ) : (
+                      <p className="font-bold text-slate-900">{m.trustScoreMin}+</p>
+                    )}
                   </div>
                 </div>
               </div>

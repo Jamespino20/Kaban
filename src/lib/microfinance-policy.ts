@@ -130,6 +130,42 @@ export const TIER_POLICIES: Record<InterestTier, TierPolicy> = {
   },
 };
 
+/**
+ * Returns merged policies combining hardcoded defaults with optional dynamic overrides.
+ */
+export function getEffectiveTierPolicies(overrides?: any): Record<InterestTier, TierPolicy> {
+  if (!overrides) return TIER_POLICIES;
+  
+  // If overrides is a JSON string, parse it
+  let milestones = overrides;
+  if (typeof overrides === 'string') {
+    try {
+      milestones = JSON.parse(overrides);
+    } catch (e) {
+      return TIER_POLICIES;
+    }
+  }
+
+  // Support both array and object formats for flexibility
+  const result = { ...TIER_POLICIES };
+  
+  if (Array.isArray(milestones)) {
+    milestones.forEach((m: any) => {
+      if (m.tier && result[m.tier as InterestTier]) {
+        result[m.tier as InterestTier] = { ...result[m.tier as InterestTier], ...m };
+      }
+    });
+  } else if (typeof milestones === 'object') {
+    Object.keys(milestones).forEach(key => {
+      if (result[key as InterestTier]) {
+        result[key as InterestTier] = { ...result[key as InterestTier], ...milestones[key] };
+      }
+    });
+  }
+
+  return result;
+}
+
 export const SAMPLE_LOAN_PRODUCT_TEMPLATES: readonly LoanProductTemplate[] = [
   {
     key: "agapay-sari-sari",
@@ -176,36 +212,40 @@ export type LoanQuote = {
 
 export function getTierPolicy(
   tier: InterestTier | null | undefined,
+  milestones?: any
 ): TierPolicy {
-  return TIER_POLICIES[tier ?? InterestTier.T1_5_PERCENT];
+  const policies = getEffectiveTierPolicies(milestones);
+  return policies[tier ?? InterestTier.T1_5_PERCENT];
 }
 
-export function determineInterestTierFromScore(score: number): InterestTier {
-  if (score >= TIER_POLICIES[InterestTier.T5_3_PERCENT].trustScoreMin) {
+export function determineInterestTierFromScore(score: number, milestones?: any): InterestTier {
+  const policies = getEffectiveTierPolicies(milestones);
+  if (score >= policies[InterestTier.T5_3_PERCENT].trustScoreMin) {
     return InterestTier.T5_3_PERCENT;
   }
-  if (score >= TIER_POLICIES[InterestTier.T4_3_5_PERCENT].trustScoreMin) {
+  if (score >= policies[InterestTier.T4_3_5_PERCENT].trustScoreMin) {
     return InterestTier.T4_3_5_PERCENT;
   }
-  if (score >= TIER_POLICIES[InterestTier.T3_4_PERCENT].trustScoreMin) {
+  if (score >= policies[InterestTier.T3_4_PERCENT].trustScoreMin) {
     return InterestTier.T3_4_PERCENT;
   }
-  if (score >= TIER_POLICIES[InterestTier.T2_4_5_PERCENT].trustScoreMin) {
+  if (score >= policies[InterestTier.T2_4_5_PERCENT].trustScoreMin) {
     return InterestTier.T2_4_5_PERCENT;
   }
   return InterestTier.T1_5_PERCENT;
 }
 
-export function formatTierLabel(tier: InterestTier | null | undefined) {
-  const policy = getTierPolicy(tier);
+export function formatTierLabel(tier: InterestTier | null | undefined, milestones?: any) {
+  const policy = getTierPolicy(tier, milestones);
   return `${policy.label} (${policy.monthlyRatePercent}% monthly)`;
 }
 
 export function getAvailableCreditForTier(
   tier: InterestTier | null | undefined,
   outstandingBalance = 0,
+  milestones?: any
 ) {
-  const capAmount = getTierPolicy(tier).capAmount;
+  const capAmount = getTierPolicy(tier, milestones).capAmount;
   return roundMoney(Math.max(0, capAmount - Math.max(0, outstandingBalance)));
 }
 
@@ -403,6 +443,7 @@ export function validateLoanRequestAgainstPolicy({
   minIncome,
   maxIncome,
   incomeRange,
+  milestones,
 }: {
   amount: number;
   termMonths: number;
@@ -411,8 +452,9 @@ export function validateLoanRequestAgainstPolicy({
   minIncome?: number | null;
   maxIncome?: number | null;
   incomeRange?: string | null;
+  milestones?: any;
 }) {
-  const tierPolicy = getTierPolicy(tier);
+  const tierPolicy = getTierPolicy(tier, milestones);
 
   // 1. Basic DSR Check
   const maxMonthlyRepayment = calculateMaxMonthlyRepayment({
@@ -487,10 +529,12 @@ export function calculateInitialTier({
   minIncome,
   maxIncome,
   incomeRange,
+  milestones,
 }: {
   minIncome?: number | null;
   maxIncome?: number | null;
   incomeRange?: string | null;
+  milestones?: any;
 }): InterestTier {
   const maxMonthlyRepayment = calculateMaxMonthlyRepayment({
     minIncome,
@@ -500,19 +544,22 @@ export function calculateInitialTier({
 
   if (maxMonthlyRepayment <= 0) return InterestTier.T1_5_PERCENT;
 
+  // Use effective policies
+  const policies = getEffectiveTierPolicies(milestones);
+
   // Assume a standard 6-month term for initial capacity assessment
   const capacity = maxMonthlyRepayment * 6;
 
-  if (capacity >= TIER_POLICIES[InterestTier.T5_3_PERCENT].capAmount) {
+  if (capacity >= policies[InterestTier.T5_3_PERCENT].capAmount) {
     return InterestTier.T5_3_PERCENT;
   }
-  if (capacity >= TIER_POLICIES[InterestTier.T4_3_5_PERCENT].capAmount) {
+  if (capacity >= policies[InterestTier.T4_3_5_PERCENT].capAmount) {
     return InterestTier.T4_3_5_PERCENT;
   }
-  if (capacity >= TIER_POLICIES[InterestTier.T3_4_PERCENT].capAmount) {
+  if (capacity >= policies[InterestTier.T3_4_PERCENT].capAmount) {
     return InterestTier.T3_4_PERCENT;
   }
-  if (capacity >= TIER_POLICIES[InterestTier.T2_4_5_PERCENT].capAmount) {
+  if (capacity >= policies[InterestTier.T2_4_5_PERCENT].capAmount) {
     return InterestTier.T2_4_5_PERCENT;
   }
 
@@ -533,14 +580,16 @@ export function evaluateOverindebtedness({
   activeLoanCount,
   overdueLoanCount,
   defaultedLoanCount,
+  milestones,
 }: {
   tier: InterestTier | null | undefined;
   totalOutstandingBalance: number;
   activeLoanCount: number;
   overdueLoanCount: number;
   defaultedLoanCount: number;
+  milestones?: any;
 }) {
-  const tierPolicy = getTierPolicy(tier);
+  const tierPolicy = getTierPolicy(tier, milestones);
   const exposureCap = roundMoney(
     tierPolicy.capAmount * MICROFINANCE_POLICY.overindebtedExposureRate,
   );

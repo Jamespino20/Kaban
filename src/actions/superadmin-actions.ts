@@ -1225,25 +1225,24 @@ export async function deletePlatformAnnouncement(announcementId: number) {
   }
 }
 
-// SA-21: Platform Configuration
+// SA-21: Platform Configuration (Tiering Milestones, etc.)
 export async function getPlatformConfig() {
-  const session = await requireSuperadminSession();
+  await requireSuperadminSession();
 
   try {
-    const config = await prisma.$queryRaw`
-      SELECT * FROM platform_config ORDER BY id DESC LIMIT 1
-    `;
-    const result = Array.isArray(config) ? config[0] : null;
+    const config = await prisma.platformConfig.findFirst({
+      orderBy: { id: "desc" },
+    });
 
     return {
       success: true,
-      data: result
+      data: config
         ? {
-            id: result.id,
-            scoringWeights: result.scoring_weights,
-            riskThresholds: result.risk_thresholds,
-            defaultLoanConfig: result.default_loan_config,
-            platformSettings: result.platform_settings,
+            id: config.id,
+            scoringWeights: config.scoring_weights,
+            riskThresholds: config.risk_thresholds,
+            defaultLoanConfig: config.default_loan_config,
+            platformSettings: config.platform_settings,
           }
         : null,
     };
@@ -1251,89 +1250,71 @@ export async function getPlatformConfig() {
     console.error("Failed to fetch platform config:", error);
     return {
       success: false,
-      error: "Failed to load platform config",
+      error: "Failed to load platform configuration.",
     };
   }
 }
 
 export async function updatePlatformConfig(data: {
-  scoringWeights?: {
-    repaymentBehavior?: number;
-    savingsDiscipline?: number;
-    loanUtilization?: number;
-    membershipActivity?: number;
-    peerValidation?: number;
-  };
-  riskThresholds?: {
-    lowRisk?: number;
-    mediumRisk?: number;
-    highRisk?: number;
-  };
-  defaultLoanConfig?: {
-    minAmount?: number;
-    maxAmount?: number;
-    defaultInterestRate?: number;
-  };
-  platformSettings?: {
-    allowSelfRegistration?: boolean;
-    requireIdentityVerification?: boolean;
-    enableMentorship?: boolean;
-    enableCommunity?: boolean;
-  };
+  scoringWeights?: any;
+  riskThresholds?: any;
+  defaultLoanConfig?: any;
+  platformSettings?: any;
 }) {
-  const session = await requireSuperadminSession();
+  await requireSuperadminSession();
 
   try {
-    const existing = await prisma.$queryRaw`
-      SELECT id FROM platform_config ORDER BY id DESC LIMIT 1
-    `;
-    const existingArr = Array.isArray(existing) ? existing : [];
+    const existing = await prisma.platformConfig.findFirst({
+      orderBy: { id: "desc" },
+    });
 
-    if (existingArr.length > 0) {
-      const existingId = existingArr[0].id;
-      await prisma.$executeRaw`
-        UPDATE platform_config SET 
-          scoring_weights = ${JSON.stringify(data.scoringWeights)},
-          risk_thresholds = ${JSON.stringify(data.riskThresholds)},
-          default_loan_config = ${JSON.stringify(data.defaultLoanConfig)},
-          platform_settings = ${JSON.stringify(data.platformSettings)},
-          updated_at = NOW()
-        WHERE id = ${existingId}
-      `;
-
-      const updated =
-        await prisma.$queryRaw`SELECT * FROM platform_config WHERE id = ${existingId}`;
+    if (existing) {
+      const updated = await prisma.platformConfig.update({
+        where: { id: existing.id },
+        data: {
+          scoring_weights: data.scoringWeights ?? undefined,
+          risk_thresholds: data.riskThresholds ?? undefined,
+          default_loan_config: data.defaultLoanConfig ?? undefined,
+          platform_settings: data.platformSettings ?? undefined,
+        },
+      });
 
       return {
         success: true,
-        data: Array.isArray(updated) ? updated[0] : null,
+        data: {
+          id: updated.id,
+          scoringWeights: updated.scoring_weights,
+          riskThresholds: updated.risk_thresholds,
+          defaultLoanConfig: updated.default_loan_config,
+          platformSettings: updated.platform_settings,
+        },
       };
     } else {
-      await prisma.$executeRaw`
-        INSERT INTO platform_config (scoring_weights, risk_thresholds, default_loan_config, platform_settings, created_at, updated_at)
-        VALUES (
-          ${JSON.stringify(data.scoringWeights)},
-          ${JSON.stringify(data.riskThresholds)},
-          ${JSON.stringify(data.defaultLoanConfig)},
-          ${JSON.stringify(data.platformSettings)},
-          NOW(),
-          NOW()
-        )
-      `;
-
-      const created =
-        await prisma.$queryRaw`SELECT * FROM platform_config ORDER BY id DESC LIMIT 1`;
+      const created = await prisma.platformConfig.create({
+        data: {
+          scoring_weights: data.scoringWeights,
+          risk_thresholds: data.riskThresholds,
+          default_loan_config: data.defaultLoanConfig,
+          platform_settings: data.platformSettings,
+        },
+      });
 
       return {
         success: true,
-        data: Array.isArray(created) ? created[0] : null,
+        data: {
+          id: created.id,
+          scoringWeights: created.scoring_weights,
+          riskThresholds: created.risk_thresholds,
+          defaultLoanConfig: created.default_loan_config,
+          platformSettings: created.platform_settings,
+        },
       };
     }
   } catch (error) {
     console.error("Failed to update platform config:", error);
     return {
       success: false,
-      error: "Failed to update platform config",
+      error: "Failed to update platform configuration.",
     };
   }
 }
@@ -2302,3 +2283,4 @@ export async function getSuperadminEODReport(params?: {
     return { success: false, error: "Failed to generate EOD report." };
   }
 }
+

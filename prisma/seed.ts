@@ -338,6 +338,7 @@ async function main() {
   try {
     await prisma.receipt.deleteMany();
     await prisma.billingInvoice.deleteMany();
+    await prisma.payment.deleteMany();
     await prisma.paymentMethod.deleteMany();
     // await prisma.socialVouch.deleteMany(); // REMOVED: vouch system dropped
     await prisma.userProfile.deleteMany();
@@ -382,7 +383,11 @@ async function main() {
     },
   ];
   for (const acc of ledgerAccounts) {
-    await prisma.ledgerAccount.create({ data: { ...acc, tenant_id: null } });
+    await prisma.ledgerAccount.upsert({
+      where: { code: acc.code },
+      create: { ...acc, tenant_id: null },
+      update: {},
+    });
   }
 
   // 2. Subscription Plans
@@ -584,6 +589,114 @@ async function main() {
       );
     } catch (err) {
       console.error(`❌ ${coop.name} seed failed:`, err);
+    }
+  }
+
+  // ── Post-Seed: Treasury funds, superadmin wallet, trust snapshots ──
+  console.log("🌱 Seeding tenant treasury funds & superadmin wallet...");
+  const adminUser = await prisma.user.findFirst({ where: { role: "superadmin" } });
+  if (adminUser) {
+    // Give superadmin a wallet
+    await prisma.savingsAccount.upsert({
+      where: { account_id: 0 } as any,
+      create: {
+        user_id: adminUser.user_id, tenant_id: adminUser.tenant_id ?? 1,
+        account_type: "personal_wallet", owner_role: "superadmin", balance: 100000,
+      },
+      update: {},
+    });
+  }
+
+  // Fund tenant treasuries and create trust snapshots
+  const allTenants = await prisma.tenant.findMany({ where: { is_active: true, slug: { not: "apex" } } });
+  for (const t of allTenants) {
+    const cashAcct = await prisma.ledgerAccount.findFirst({ where: { code: "CASH_EQUIVALENTS" } });
+    if (cashAcct) {
+      // Create treasury balance via ledger
+      await prisma.businessLedger.create({
+        data: {
+          transaction_id: `TREASURY-SEED-${t.tenant_id}`,
+          account_id: cashAcct.id,
+          tenant_id: t.tenant_id,
+          debit: 500000,
+          credit: 0,
+          description: `Initial treasury funding for ${t.name}`,
+          metadata: { source: "seed" },
+        },
+      });
+    }
+
+    // Create trust score snapshots for members
+    const members = await prisma.user.findMany({ where: { tenant_id: t.tenant_id, role: "member" } });
+    for (const m of members) {
+      const baseScore = 40 + Math.floor(Math.random() * 55); // 40–94
+      const tier = baseScore >= 85 ? "T5_3_PERCENT" : baseScore >= 75 ? "T4_3_5_PERCENT" : baseScore >= 65 ? "T3_4_PERCENT" : baseScore >= 55 ? "T2_4_5_PERCENT" : "T1_5_PERCENT";
+      await prisma.trustScoreSnapshot.create({
+        data: {
+          user_id: m.user_id,
+          tenant_id: t.tenant_id,
+          score: baseScore,
+          payment_score: Math.min(100, baseScore - 5 + Math.floor(Math.random() * 15)),
+          business_score: Math.min(100, baseScore - 10 + Math.floor(Math.random() * 20)),
+          peer_score: Math.min(100, baseScore - 15 + Math.floor(Math.random() * 25)),
+          guarantor_score: Math.min(100, baseScore - 5 + Math.floor(Math.random() * 15)),
+          tier_before: "T1_5_PERCENT",
+          tier_after: tier,
+          calculated_at: new Date(),
+        },
+      });
+    }
+
+    // Create sample active loans with schedules for a few members
+    const eligibleMembers = members.filter((_: any, i: number) => i % 3 === 0).slice(0, 2);
+    const products = await prisma.loanProduct.findMany({ where: { tenant_id: t.tenant_id } });
+    for (const member of eligibleMembers) {
+      const product = products.length > 0 ? products[Math.floor(Math.random() * products.length)] : null;
+      if (!product) continue;
+      const amount = Number(product.min_amount) + Math.floor(Math.random() * (Number(product.max_amount) - Number(product.min_amount)));
+      const term = Math.min(6, Number(product.max_term_months));
+      const ref = `LN-SEED-${t.slug}-${member.user_id}-${Date.now()}`.substring(0, 50);
+      const interest = amount * Number(product.interest_rate_percent) / 100 * term;
+      const fees = 70;
+      const total = amount + interest + fees;
+      const installment = total / term;
+
+      const loan = await prisma.loan.create({
+        data: {
+          tenant_id: t.tenant_id,
+          user_id: member.user_id,
+          product_id: product.product_id,
+          loan_reference: ref,
+          principal_amount: amount,
+          purpose: "Business capital (seed)",
+          term_months: term,
+          interest_applied: interest,
+          fees_applied: fees,
+          total_payable: total,
+          balance_remaining: total,
+          status: "active",
+          repayment_frequency: "monthly",
+          applied_at: new Date(Date.now() - 60 * 86400000),
+          approved_at: new Date(Date.now() - 55 * 86400000),
+        },
+      });
+
+      // Create repayment schedule
+      for (let i = 1; i <= term; i++) {
+        await prisma.loanSchedule.create({
+          data: {
+            loan_id: loan.loan_id,
+            tenant_id: t.tenant_id,
+            installment_number: i,
+            due_date: new Date(Date.now() + (i - 1) * 30 * 86400000),
+            principal_amount: amount / term,
+            interest_amount: interest / term,
+            total_due: installment,
+            status: i <= 2 ? "paid" : "pending",
+            paid_at: i <= 2 ? new Date(Date.now() - (term - i) * 30 * 86400000) : null,
+          },
+        });
+      }
     }
   }
 

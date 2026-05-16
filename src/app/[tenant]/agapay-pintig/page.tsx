@@ -72,6 +72,7 @@ export default async function AgapayPintigPage(props: {
     tenantIdentity,
     userTickets,
     trustScoreSnapshot,
+    platformConfig,
   ] = await Promise.all([
     prisma.user.findUnique({
       where: { user_id: userId },
@@ -164,7 +165,12 @@ export default async function AgapayPintigPage(props: {
         calculated_at: true,
       },
     }),
+    prisma.platformConfig.findFirst({
+      orderBy: { id: "desc" },
+    }),
   ]);
+
+  const milestones = platformConfig?.platform_settings?.tiering_milestones;
 
   // Fallback payment methods if none seeded for this tenant
   const resolvedPaymentMethods =
@@ -213,8 +219,9 @@ export default async function AgapayPintigPage(props: {
   const availableCredit = getAvailableCreditForTier(
     member?.interest_tier,
     totalLoanBalance,
+    milestones,
   );
-  const memberTierLabel = formatTierLabel(member?.interest_tier);
+  const memberTierLabel = formatTierLabel(member?.interest_tier, milestones);
   const navItems: ShellNavItem[] = [
     // PRD: Overview & Wallet
     {
@@ -363,7 +370,7 @@ export default async function AgapayPintigPage(props: {
                     <div
                       className="h-full bg-primary rounded-full shadow-[0_0_15px_color-mix(in_srgb,var(--primary)_40%,transparent)] transition-all duration-1000"
                       style={{
-                        width: `${Math.min(100, (availableCredit / getTierPolicy(member?.interest_tier).capAmount) * 100)}%`,
+                        width: `${Math.min(100, (availableCredit / getTierPolicy(member?.interest_tier, milestones).capAmount) * 100)}%`,
                       }}
                     />
                   </div>
@@ -372,7 +379,7 @@ export default async function AgapayPintigPage(props: {
                     <span>
                       Max:{" "}
                       {formatCurrency(
-                        getTierPolicy(member?.interest_tier).capAmount,
+                        getTierPolicy(member?.interest_tier, milestones).capAmount,
                       )}
                     </span>
                   </div>
@@ -435,6 +442,7 @@ export default async function AgapayPintigPage(props: {
                 businessScore={trustScoreSnapshot.business_score}
                 peerScore={trustScoreSnapshot.peer_score}
                 lastUpdated={trustScoreDate}
+                milestones={milestones}
               />
             ) : (
               <div className="dashboard-card p-6">
